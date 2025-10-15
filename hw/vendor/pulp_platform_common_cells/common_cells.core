@@ -14,7 +14,7 @@ filesets:
       - src/binary_to_gray.sv
       - src/cb_filter_pkg.sv
       - src/cc_onehot.sv
-      - src/cf_math_pkg.sv
+      - src/cf_math_pkg_xheep.sv
       - src/clk_int_div.sv
       - src/credit_counter.sv
       - src/delta_counter.sv
@@ -35,7 +35,7 @@ filesets:
       - src/passthrough_stream_fifo.sv
       - src/popcount.sv
       - src/rr_arb_tree.sv
-      - src/rstgen_bypass.sv
+      - src/rstgen_bypass_xheep.sv
       - src/serial_deglitch.sv
       - src/shift_reg.sv
       - src/shift_reg_gated.sv
@@ -66,7 +66,7 @@ filesets:
       - src/edge_detect.sv
       - src/lzc.sv
       - src/max_counter.sv
-      - src/rstgen.sv
+      - src/rstgen_xheep.sv
       - src/spill_register.sv
       - src/stream_delay.sv
       - src/stream_fifo.sv
@@ -78,7 +78,7 @@ filesets:
       - src/cdc_reset_ctrlr.sv
       - src/cdc_fifo_gray.sv
       - src/fall_through_register.sv
-      - src/id_queue.sv
+      # - src/id_queue_xheep.sv
       - src/stream_to_mem.sv
       - src/stream_arbiter_flushable.sv
       - src/stream_fifo_optimal_wrap.sv

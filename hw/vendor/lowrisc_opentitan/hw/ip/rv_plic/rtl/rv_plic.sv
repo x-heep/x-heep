@@ -197,7 +197,7 @@ module rv_plic import rv_plic_reg_pkg::*; #(
   //////////////
   // Gateways //
   //////////////
-  rv_plic_gateway #(
+  rv_plic_gateway_xheep #(
     .N_SOURCE   (NumSrc)
   ) u_gateway (
     .clk_i,
@@ -216,7 +216,7 @@ module rv_plic import rv_plic_reg_pkg::*; #(
   // Target interrupt notification //
   ///////////////////////////////////
   for (genvar i = 0 ; i < NumTarget ; i++) begin : gen_target
-    rv_plic_target #(
+    rv_plic_target_xheep #(
       .N_SOURCE    (NumSrc),
       .MAX_PRIO    (MAX_PRIO)
     ) u_target (

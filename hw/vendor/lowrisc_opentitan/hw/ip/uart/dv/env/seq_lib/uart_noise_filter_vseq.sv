@@ -16,8 +16,8 @@ class uart_noise_filter_vseq extends uart_tx_rx_vseq;
     // monitor doesn't filter glitch less than 1 core cycle, need to disable it
     cfg.m_uart_agent_cfg.en_rx_monitor = 0;
     if (en_noise_filter) begin
-      // uart clk is much slower than core clk
-      // need large number to check if the glitch has no impact to uart
+      // uart_xheep clk is much slower than core clk
+      // need large number to check if the glitch has no impact to uart_xheep
       repeat ($urandom_range(1, 10_000)) begin
         cfg.m_uart_agent_cfg.vif.drive_uart_rx_glitch(
             .max_glitch_ps(core_clk_period_ps), // 1 core clk

@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
-// test reg uart.VAL
+// test reg uart_xheep.VAL
 // 1. find the center of oversampled clock
 // 2. drive 16 bits on RX pin based on 16x oversampled clk, then check the reg value
 class uart_rx_oversample_vseq extends uart_tx_rx_vseq;
@@ -37,7 +37,7 @@ class uart_rx_oversample_vseq extends uart_tx_rx_vseq;
       `uvm_info(`gfn, $sformatf("finished run %0d/%0d", i, num_trans), UVM_LOW)
     end
 
-    // wait for a full uart transaction time to flush out the remaining rx transaction
+    // wait for a full uart_xheep transaction time to flush out the remaining rx transaction
     uart_xfer_bits = NUM_UART_XFER_BITS_WO_PARITY + cfg.m_uart_agent_cfg.en_parity;
     #(cfg.m_uart_agent_cfg.vif.uart_clk_period_ns * uart_xfer_bits);
 

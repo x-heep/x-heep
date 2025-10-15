@@ -33,7 +33,7 @@ class uart_base_vseq extends cip_base_vseq #(.CFG_T               (uart_env_cfg)
   }
 
   constraint baud_rate_c {
-    // when the uart frequency is very close to core freq, disable noise filter and glitch,
+    // when the uart_xheep frequency is very close to core freq, disable noise filter and glitch,
     // otherwise, not enough timing margin to predict status correctly in scb
     if (baud_rate == BaudRate1p5Mbps && p_sequencer.cfg.clk_freq_mhz == ClkFreq24Mhz) {
       en_noise_filter == 0;
@@ -45,7 +45,7 @@ class uart_base_vseq extends cip_base_vseq #(.CFG_T               (uart_env_cfg)
   }
 
   constraint dly_to_access_fifo_c {
-    // uart clk is slow, up to 2 ** 16 (65_536) slower than pclk
+    // uart_xheep clk is slow, up to 2 ** 16 (65_536) slower than pclk
     // 1_000_000 is about 1.5 * 65_536
     dly_to_access_fifo dist {
       0                   :/ 1,
@@ -65,11 +65,11 @@ class uart_base_vseq extends cip_base_vseq #(.CFG_T               (uart_env_cfg)
     `uvm_info(`gfn, "done waiting for idle", UVM_HIGH)
   endtask
 
-  // setup basic uart features
+  // setup basic uart_xheep features
   virtual task uart_init();
     int nco = get_nco(baud_rate, cfg.clk_freq_mhz, ral.ctrl.nco.get_n_bits());
 
-    // we skip writting some CSRs at the last 1-2 uart cycles, when baud rate is 1.5Mbps, uart
+    // we skip writting some CSRs at the last 1-2 uart_xheep cycles, when baud rate is 1.5Mbps, uart_xheep
     // cycle is small, need to reduce the TL delay, so that the write doesn't happen at the
     // ignore period
     if (baud_rate == BaudRate1p5Mbps && p_sequencer.cfg.clk_freq_mhz == ClkFreq24Mhz) begin
@@ -78,7 +78,7 @@ class uart_base_vseq extends cip_base_vseq #(.CFG_T               (uart_env_cfg)
 
     cfg.m_uart_agent_cfg.set_uart_period_glitch_pct(uart_period_glitch_pct);
 
-    // cfg uart agent to set the baud rate & parity
+    // cfg uart_xheep agent to set the baud rate & parity
     cfg.m_uart_agent_cfg.set_baud_rate(baud_rate);
     cfg.m_uart_agent_cfg.set_parity(en_parity, odd_parity);
     ral.ctrl.tx.set(en_tx);
@@ -116,22 +116,22 @@ class uart_base_vseq extends cip_base_vseq #(.CFG_T               (uart_env_cfg)
     csr_update(ral.fifo_ctrl);
   endtask
 
-  // set uart parity for the dut and the agent
+  // set uart_xheep parity for the dut and the agent
   virtual task set_parity(bit en_parity, bit odd_parity);
-    // cfg uart dut
+    // cfg uart_xheep dut
     ral.ctrl.parity_en.set(en_parity);
     ral.ctrl.parity_odd.set(odd_parity);
     csr_update(ral.ctrl);
-    // cfg uart agent
+    // cfg uart_xheep agent
     cfg.m_uart_agent_cfg.set_parity(en_parity, odd_parity);
   endtask
 
-  // set uart baud rate for the dut and the agent
+  // set uart_xheep baud rate for the dut and the agent
   virtual task set_baud_rate(baud_rate_e baud_rate);
     int nco = get_nco(baud_rate, cfg.clk_freq_mhz, ral.ctrl.nco.get_n_bits());
     ral.ctrl.nco.set(nco);
     csr_update(ral.ctrl);
-    // cfg uart agent
+    // cfg uart_xheep agent
     cfg.m_uart_agent_cfg.set_baud_rate(baud_rate);
   endtask
 
@@ -267,12 +267,12 @@ class uart_base_vseq extends cip_base_vseq #(.CFG_T               (uart_env_cfg)
       `DV_CHECK_MEMBER_RANDOMIZE_FATAL(dly_to_access_fifo)
       csr_spinwait(.ptr(ral.status.rxfull), .exp_data(1'b0),
                    .spinwait_delay_ns(dly_to_access_fifo),
-                   .timeout_ns(50_000_000)); // use longer timeout as uart freq is low
+                   .timeout_ns(50_000_000)); // use longer timeout as uart_xheep freq is low
     end
     `uvm_info(`gfn, "wait_for_rx_fifo_not_full is done", UVM_HIGH)
   endtask : wait_for_rx_fifo_not_full
 
-  // in some corner cases, we can't drive when the uart item is almost done
+  // in some corner cases, we can't drive when the uart_xheep item is almost done
   // wait for this period to pass
   virtual task wait_when_in_ignored_period(bit tx = 0, bit rx = 0);
     wait (!(

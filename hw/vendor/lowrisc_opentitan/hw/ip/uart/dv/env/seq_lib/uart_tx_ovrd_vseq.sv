@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
-// test TX override feature through uart.OVRD and check the pin
+// test TX override feature through uart_xheep.OVRD and check the pin
 class uart_tx_ovrd_vseq extends uart_smoke_vseq;
   `uvm_object_utils(uart_tx_ovrd_vseq)
 
@@ -14,7 +14,7 @@ class uart_tx_ovrd_vseq extends uart_smoke_vseq;
     bit txval;
     bit exp;
 
-    // add 1 uart clk to make sure previous uart TX transfer is done completedly
+    // add 1 uart_xheep clk to make sure previous uart_xheep TX transfer is done completedly
     #(cfg.m_uart_agent_cfg.vif.uart_clk_period_ns * 1ns);
 
     // disable monitor as monitor can't handle this

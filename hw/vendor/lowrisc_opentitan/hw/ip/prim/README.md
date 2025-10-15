@@ -31,7 +31,7 @@ example below shows one.
 
 ```systemverilog
 `ifndef PRIM_DEFAULT_IMPL
-  `define PRIM_DEFAULT_IMPL prim_pkg::ImplGeneric
+  `define PRIM_DEFAULT_IMPL prim_pkg_xheep::ImplGeneric
 `endif
 
 module prim_pad_wrapper
@@ -45,13 +45,13 @@ module prim_pad_wrapper
   // additional attributes {drive strength, keeper, pull-up, pull-down, open-drain, invert}
   input [AttrDw-1:0] attr_i
 );
-  parameter prim_pkg::impl_e Impl = `PRIM_DEFAULT_IMPL;
+  parameter prim_pkg_xheep::impl_e Impl = `PRIM_DEFAULT_IMPL;
 
-  if (Impl == prim_pkg::ImplGeneric) begin : gen_generic
+  if (Impl == prim_pkg_xheep::ImplGeneric) begin : gen_generic
     prim_generic_pad_wrapper u_impl_generic (
       .*
     );
-  end else if (Impl == prim_pkg::ImplXilinx) begin : gen_xilinx
+  end else if (Impl == prim_pkg_xheep::ImplXilinx) begin : gen_xilinx
     prim_xilinx_pad_wrapper u_impl_xilinx (
       .*
     );
@@ -102,7 +102,7 @@ The discovery is performed based on the agreed-on naming scheme for primitives.
 
 After the discovery process has completed, a script (`primgen`) creates
 - an abstract primitive (see above), and
-- an entry in the `prim_pkg` package in the form of `prim_pkg::ImplTechlibname`
+- an entry in the `prim_pkg_xheep` package in the form of `prim_pkg_xheep::ImplTechlibname`
   to identify the technology library by its name.
 
 ## User Guide
@@ -123,7 +123,7 @@ prim_ram_2p #(
   .Depth (Depth),
   // Force the use of the tsmc40lp technology library for this instance, instead
   // of using the build-time default.
-  .Impl(prim_pkg::ImplTsmc40lp)
+  .Impl(prim_pkg_xheep::ImplTsmc40lp)
 ) u_mem (
   .clk_a_i    (clk_i),
   ...
@@ -136,7 +136,7 @@ prim_ram_2p #(
 If no specific technology library is chosen for an instantiated primitive the
 default library is used. The SystemVerilog define `PRIM_DEFAULT_IMPL` can be
 used to set the default for the whole design. Set this define to one of the enum
-values in `prim_pkg.sv` in the form `prim_pkg::ImplTechlibname`. `Techlibname`
+values in `prim_pkg_xheep.sv` in the form `prim_pkg_xheep::ImplTechlibname`. `Techlibname`
 is the capitalized name of the technology library.
 
 In the top-level FuseSoC core file the default technology library can be chosen
@@ -153,8 +153,8 @@ parameters:
   PRIM_DEFAULT_IMPL:
     datatype: str
     paramtype: vlogdefine
-    description: Primitives implementation to use, e.g. "prim_pkg::ImplGeneric".
-    default: prim_pkg::ImplGeneric
+    description: Primitives implementation to use, e.g. "prim_pkg_xheep::ImplGeneric".
+    default: prim_pkg_xheep::ImplGeneric
 
 targets:
   fpga_synthesis:
@@ -162,7 +162,7 @@ targets:
       - my_rtl_files
     parameters:
       # Use the xilinx technology library for this target by default.
-      - PRIM_DEFAULT_IMPL=prim_pkg::ImplXilinx
+      - PRIM_DEFAULT_IMPL=prim_pkg_xheep::ImplXilinx
     toplevel: my_toplevel
 ```
 

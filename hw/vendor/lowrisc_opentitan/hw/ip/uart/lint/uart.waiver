@@ -4,25 +4,25 @@
 #
 # waiver file for UART lint
 
-waive -rules HIER_NET_NOT_READ -location {uart.sv} -regexp {[nN]et.*a_(address|param|user).*not read from} \
+waive -rules HIER_NET_NOT_READ -location {uart_xheep.sv} -regexp {[nN]et.*a_(address|param|user).*not read from} \
       -comment "several TLUL signals are not used by register file"
-waive -rules HIER_NET_NOT_READ -location {uart.sv} -regexp {[nN]et 'reg2hw.rdata.q' .* is not read from} \
+waive -rules HIER_NET_NOT_READ -location {uart_xheep.sv} -regexp {[nN]et 'reg2hw.rdata.q' .* is not read from} \
       -comment "don't need this data, only marking hwaccess as 'hrw' in order to get the .re signal"
 waive -rules INPUT_NOT_READ    -location {uart_core.sv} -regexp {Input port 'reg2hw.rdata.q' is not read from} \
       -comment "don't need this data, only marking hwaccess as 'hrw' in order to get the .re signal"
-waive -rules HIER_NET_NOT_READ -location {uart.sv} -regexp {[nN]et 'reg2hw.status.*q' .* is not read from} \
+waive -rules HIER_NET_NOT_READ -location {uart_xheep.sv} -regexp {[nN]et 'reg2hw.status.*q' .* is not read from} \
       -comment "don't need this data, only marking hwaccess as 'hrw' in order to get the .re signal"
 waive -rules INPUT_NOT_READ    -location {uart_core.sv} -regexp {Input port 'reg2hw.status.*' is not read from} \
       -comment "don't need this data, only marking hwaccess as 'hrw' in order to get the .re signal"
-waive -rules HIER_NET_NOT_READ -location {uart.sv} -regexp {[nN]et 'reg2hw.status.*re' .* is not read from} \
+waive -rules HIER_NET_NOT_READ -location {uart_xheep.sv} -regexp {[nN]et 'reg2hw.status.*re' .* is not read from} \
       -comment "registers with multiple fields often have unused re's since they are duplicative"
-waive -rules HIER_NET_NOT_READ -location {uart.sv} -regexp {Net 'reg2hw.*.qe.* is not read from} \
+waive -rules HIER_NET_NOT_READ -location {uart_xheep.sv} -regexp {Net 'reg2hw.*.qe.* is not read from} \
       -comment "registers with multiple fields often have unused qe's since they are duplicative"
-waive -rules NOT_READ          -location {uart.sv} -regexp {Signal 'reg2hw.*.qe' is not read from} \
+waive -rules NOT_READ          -location {uart_xheep.sv} -regexp {Signal 'reg2hw.*.qe' is not read from} \
       -comment "registers with multiple fields often have unused qe's since they are duplicative"
 waive -rules INPUT_NOT_READ    -location {uart_core.sv} -regexp {Input port 'reg2hw.*.qe' is not read from} \
       -comment "registers with multiple fields often have unused qe's since they are duplicative"
-waive -rules CONST_OUTPUT      -location {uart.sv} -regexp {Output 'cio_tx_en_o' is driven by constant one} \
+waive -rules CONST_OUTPUT      -location {uart_xheep.sv} -regexp {Output 'cio_tx_en_o' is driven by constant one} \
       -comment "required output, always true"
 waive -rules CONST_OUTPUT      -location {uart_core.sv} -regexp {Output 'hw2reg.fifo_ctrl.*.(d|de)' is driven by constant} \
       -comment "need .d/.de for some fields, not for others"

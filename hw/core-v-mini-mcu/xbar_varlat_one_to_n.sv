@@ -12,7 +12,7 @@ module xbar_varlat_one_to_n #(
     parameter int unsigned NUM_RULES = XBAR_NSLAVE,  // number of ranges in the address map
     parameter int unsigned AGGREGATE_GNT = 32'd0, // the master port is not aggregating multiple masters
     // Dependent parameters: do not override!
-    localparam int unsigned IdxWidth = cf_math_pkg::idx_width(XBAR_NSLAVE)
+    localparam int unsigned IdxWidth = cf_math_pkg_xheep::idx_width(XBAR_NSLAVE)
 ) (
     input logic clk_i,
     input logic rst_ni,

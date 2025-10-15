@@ -12,7 +12,7 @@
 // Description: This module is a reset synchronizer with a dedicated reset bypass pin for testmode reset.
 // Pro Tip: The wise Dr. Schaffner recommends at least 4 registers!
 
-module rstgen_bypass #(
+module rstgen_bypass_xheep #(
     parameter int unsigned NumRegs = 4
 ) (
     input  logic clk_i,

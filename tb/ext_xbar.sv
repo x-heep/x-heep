@@ -7,7 +7,7 @@ module ext_xbar #(
     parameter int unsigned XBAR_NMASTER = 3,
     parameter int unsigned XBAR_NSLAVE = 6,
     // Dependent parameters: do not override!
-    localparam int unsigned IdxWidth = cf_math_pkg::idx_width(XBAR_NSLAVE)
+    localparam int unsigned IdxWidth = cf_math_pkg_xheep::idx_width(XBAR_NSLAVE)
 ) (
     input logic clk_i,
     input logic rst_ni,

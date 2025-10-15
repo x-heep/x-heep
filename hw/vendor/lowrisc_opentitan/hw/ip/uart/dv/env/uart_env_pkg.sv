@@ -63,7 +63,7 @@ package uart_env_pkg;
   endfunction
 
   // nco = 16*(2 ** nco_width) * freq_baud / freq_core, and truncate the factional number
-  // if uart baud rate is 1500_000 and IO is 24Mhz, NCO is 'h1_0000, which is over the NCO width
+  // if uart_xheep baud rate is 1500_000 and IO is 24Mhz, NCO is 'h1_0000, which is over the NCO width
   // use NCO = 'hffff for this case since the error is tolerable. Refer to #4263
   `define CALC_NCO(baud_rate, nco_width, clk_freq_mhz) \
     (baud_rate == BaudRate1p5Mbps && clk_freq_mhz == ClkFreq24Mhz) ? 16'hffff : \

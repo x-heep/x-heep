@@ -336,7 +336,7 @@ analog_signal_pads = [ pad for pad in xheep.get_padring().pad_list if any(isinst
       % endif
   );
 
-  rstgen rstgen_i (
+  rstgen_xheep rstgen_i (
     .clk_i(clk_in_x),
     .rst_ni(rst_nin_x),
     .test_mode_i(1'b0),

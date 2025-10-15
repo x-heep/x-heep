@@ -495,7 +495,7 @@ module core_v_mini_mcu
   debug_subsystem #(
       .NRHARTS    (NRHARTS),
       .JTAG_IDCODE(JTAG_IDCODE),
-      .SPI_SLAVE  (1)
+      .SPI_SLAVE  (0)
   ) debug_subsystem_i (
       .clk_i,
       .rst_ni,

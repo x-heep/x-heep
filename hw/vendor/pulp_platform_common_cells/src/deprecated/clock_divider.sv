@@ -73,7 +73,7 @@ module clock_divider
     assign s_clock_enable_gate =  s_clock_enable & reg_ext_gate_sync;
 
 `ifndef PULP_FPGA_EMUL
-    rstgen i_rst_gen
+    rstgen_xheep i_rst_gen
     (
         // PAD FRAME SIGNALS
         .clk_i(clk_i),

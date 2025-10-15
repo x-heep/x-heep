@@ -141,7 +141,7 @@ module axi_lite_regs #(
   // Reg byte:   B A 9 8   7 6 5 4   3 2 1 0
   //           | chunk_2 | chunk_1 | chunk_0 |
   localparam int unsigned AxiStrbWidth  = AxiDataWidth / 32'd8;
-  localparam int unsigned NumChunks     = cf_math_pkg::ceil_div(RegNumBytes, AxiStrbWidth);
+  localparam int unsigned NumChunks     = cf_math_pkg_xheep::ceil_div(RegNumBytes, AxiStrbWidth);
   localparam int unsigned ChunkIdxWidth = (NumChunks > 32'd1) ? $clog2(NumChunks) : 32'd1;
   // Type of the index to identify a specific register chunk.
   typedef logic [ChunkIdxWidth-1:0] chunk_idx_t;

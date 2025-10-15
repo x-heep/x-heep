@@ -77,7 +77,7 @@ class uart_tx_rx_vseq extends uart_base_vseq;
   task pre_start();
     super.pre_start();
     num_trans.rand_mode(0);
-    // dly to send a_valid is controlled in uart vseq level. Don't add additional delay in tl
+    // dly to send a_valid is controlled in uart_xheep vseq level. Don't add additional delay in tl
     // driver as it may make tl happens at ignore period
     cfg.m_tl_agent_cfg.a_valid_delay_min = 0;
     cfg.m_tl_agent_cfg.a_valid_delay_max = 0;
@@ -177,12 +177,12 @@ class uart_tx_rx_vseq extends uart_base_vseq;
   endtask : process_tx
 
   // control RX data from both sides independently
-  //   1. uart device
+  //   1. uart_xheep device
   //   2. register
   virtual task process_rx();
     bit send_rx_done = 0;
     fork
-      begin // drive from uart RX interface
+      begin // drive from uart_xheep RX interface
         for (int j = 1; j <= num_rx_bytes; j++) begin
           byte rx_byte;
           `DV_CHECK_MEMBER_RANDOMIZE_FATAL(dly_to_next_trans)
@@ -198,7 +198,7 @@ class uart_tx_rx_vseq extends uart_base_vseq;
       end
       begin // read RX data through register
         while (!send_rx_done && !cfg.under_reset) begin
-          // csr read is much faster than uart transfer, use bigger delay
+          // csr read is much faster than uart_xheep transfer, use bigger delay
           `DV_CHECK_MEMBER_RANDOMIZE_FATAL(dly_to_rx_read)
           cfg.clk_rst_vif.wait_clks(dly_to_rx_read);
           rand_read_rx_byte(weight_to_skip_rx_read);

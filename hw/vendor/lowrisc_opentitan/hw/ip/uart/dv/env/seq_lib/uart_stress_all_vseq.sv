@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
-// combine all uart seqs (except below seqs) in one seq to run sequentially
+// combine all uart_xheep seqs (except below seqs) in one seq to run sequentially
 // 1. csr seq, which requires scb to be disabled
 // 2. uart_rx_oversample_vseq, which requires zero_delays as it's very timing sensitive
 class uart_stress_all_vseq extends uart_base_vseq;

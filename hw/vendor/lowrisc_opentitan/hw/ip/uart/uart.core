@@ -16,7 +16,7 @@ filesets:
       - rtl/uart_rx.sv
       - rtl/uart_tx.sv
       - rtl/uart_core.sv
-      - rtl/uart.sv
+      - rtl/uart_xheep.sv
     file_type: systemVerilogSource
 
   files_verilator_waiver:

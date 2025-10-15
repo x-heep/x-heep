@@ -10,8 +10,8 @@ filesets:
     depend:
       - lowrisc:prim:assert
     files:
-      - rtl/rv_plic_gateway.sv
-      - rtl/rv_plic_target.sv
+      - rtl/rv_plic_gateway_xheep.sv
+      - rtl/rv_plic_target_xheep.sv
     file_type: systemVerilogSource
 
   files_verilator_waiver:

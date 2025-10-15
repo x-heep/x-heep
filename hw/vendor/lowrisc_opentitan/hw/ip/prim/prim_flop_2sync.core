@@ -8,7 +8,7 @@ description: "Primitive synchronizer"
 filesets:
   primgen_dep:
     depend:
-      - lowrisc:prim:prim_pkg
+      - lowrisc:prim:prim_pkg_xheep
       - lowrisc:prim:primgen
       # Needed because the generic prim_generic_flop_2sync has a
       # dependency on prim:flop.

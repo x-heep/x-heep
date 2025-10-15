@@ -6,7 +6,7 @@
 
 % if num_techlibs > 1:
 `ifndef PRIM_DEFAULT_IMPL
-  `define PRIM_DEFAULT_IMPL prim_pkg::ImplGeneric
+  `define PRIM_DEFAULT_IMPL prim_pkg_xheep::ImplGeneric
 `endif
 % endif
 
@@ -23,7 +23,7 @@ ${module_header_params}
   ${module_header_ports}
 );
 % if num_techlibs > 1:
-  parameter prim_pkg::impl_e Impl = `PRIM_DEFAULT_IMPL;
+  parameter prim_pkg_xheep::impl_e Impl = `PRIM_DEFAULT_IMPL;
 % endif
 
 ${instances}

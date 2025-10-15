@@ -139,7 +139,7 @@ class uart_intr_vseq extends uart_base_vseq;
           begin
             // < 10 cycles 0s, expect no interrupt
             wait_for_baud_clock_cycles(9);
-            // check interrupt reg & pin but not affect timing of driving uart RX
+            // check interrupt reg & pin but not affect timing of driving uart_xheep RX
             nonblocking_check_all_intr(.exp(0), .do_clear(0));
             // 10th cycle
             wait_for_baud_clock_cycles(1);
@@ -203,7 +203,7 @@ class uart_intr_vseq extends uart_base_vseq;
         csr_rd(.ptr(ral.rdata),  .value(rdata));
 
         // wait for timeout_val-2 cycles (it's about to timeout) and then
-        // read or drive one uart RX item to reset timeout cnt. More fifo read, less fifo write
+        // read or drive one uart_xheep RX item to reset timeout cnt. More fifo read, less fifo write
         // Repeat until fifo is empty. Timeout should never occur
         forever begin
           bit [TL_DW-1:0] status;

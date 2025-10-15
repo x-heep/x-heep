@@ -53,7 +53,7 @@ module axi_dw_upsizer #(
   import axi_pkg::beat_addr   ;
   import axi_pkg::modifiable  ;
 
-  import cf_math_pkg::idx_width;
+  import cf_math_pkg_xheep::idx_width;
 
   // Type used to index which adapter is handling each outstanding transaction.
   localparam TranIdWidth = AxiMaxReads > 1 ? $clog2(AxiMaxReads) : 1;

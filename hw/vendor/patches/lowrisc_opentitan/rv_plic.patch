@@ -961,11 +961,11 @@ index e4ffbc2..8d36b33 100644
  
  endpackage
 
-diff --git a/hw/ip/rv_plic/rtl/rv_plic_target.sv b/hw/ip/rv_plic/rtl/rv_plic_target.sv
+diff --git a/hw/ip/rv_plic/rtl/rv_plic_target_xheep.sv b/hw/ip/rv_plic/rtl/rv_plic_target_xheep.sv
 index 55b6381..91ece67 100644
---- a/hw/ip/rv_plic/rtl/rv_plic_target.sv
-+++ b/hw/ip/rv_plic/rtl/rv_plic_target.sv
-@@ -19,7 +19,7 @@ module rv_plic_target #(
+--- a/hw/ip/rv_plic/rtl/rv_plic_target_xheep.sv
++++ b/hw/ip/rv_plic/rtl/rv_plic_target_xheep.sv
+@@ -19,7 +19,7 @@ module rv_plic_target_xheep #(
    parameter int MAX_PRIO = 7,
  
    // Local param (Do not change this through parameter

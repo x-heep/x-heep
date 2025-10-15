@@ -8,7 +8,7 @@ interface uart_core_cov_if (
   input logic rx_enable
 );
 
-  // This interface is bound to `uart_core` which is 1 level underneath `uart` which is the DUT top
+  // This interface is bound to `uart_core` which is 1 level underneath `uart_xheep` which is the DUT top
   // level module.
   `DV_VIF_WRAP_SET_VIF(uart_core_cov_if, uart_core_cov_vif, 1)
 

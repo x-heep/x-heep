@@ -53,7 +53,7 @@ module axi_dw_downsizer #(
   import axi_pkg::aligned_addr;
   import axi_pkg::modifiable  ;
 
-  import cf_math_pkg::idx_width;
+  import cf_math_pkg_xheep::idx_width;
 
   // Type used to index which adapter is handling each outstanding transaction.
   localparam TranIdWidth = AxiMaxReads > 1 ? $clog2(AxiMaxReads) : 1;
@@ -309,7 +309,7 @@ module axi_dw_downsizer #(
   tran_id_t                   idqueue_id;
   logic                       idqueue_valid;
 
-  id_queue #(
+  id_queue_xheep #(
     .ID_WIDTH(AxiIdWidth ),
     .CAPACITY(AxiMaxReads),
     .data_t  (tran_id_t  )

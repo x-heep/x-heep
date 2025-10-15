@@ -11,6 +11,6 @@
 // avoids spurious UNOPTFLAT warnings caused by the fact that the
 // arrays feed into themselves (with different bits for different
 // positions in the tree).
-split_var -module "rv_plic_target" -var "is_tree"
-split_var -module "rv_plic_target" -var "id_tree"
-split_var -module "rv_plic_target" -var "max_tree"
+split_var -module "rv_plic_target_xheep" -var "is_tree"
+split_var -module "rv_plic_target_xheep" -var "id_tree"
+split_var -module "rv_plic_target_xheep" -var "max_tree"

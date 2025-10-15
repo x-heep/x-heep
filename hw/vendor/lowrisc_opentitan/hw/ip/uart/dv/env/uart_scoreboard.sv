@@ -69,7 +69,7 @@ class uart_scoreboard extends cip_base_scoreboard #(.CFG_T(uart_env_cfg),
     forever begin
       uart_tx_fifo.get(act_item);
 
-      `uvm_info(`gfn, $sformatf("received uart tx item:\n%0s", act_item.sprint()), UVM_HIGH)
+      `uvm_info(`gfn, $sformatf("received uart_xheep tx item:\n%0s", act_item.sprint()), UVM_HIGH)
       `DV_CHECK_EQ(tx_processing_item_q.size(), 1)
       exp_item = tx_processing_item_q.pop_front();
       // move item from fifo to process
@@ -91,7 +91,7 @@ class uart_scoreboard extends cip_base_scoreboard #(.CFG_T(uart_env_cfg),
     uart_item item;
     forever begin
       uart_rx_fifo.get(item);
-      `uvm_info(`gfn, $sformatf("received uart rx item:\n%0s", item.sprint()), UVM_HIGH)
+      `uvm_info(`gfn, $sformatf("received uart_xheep rx item:\n%0s", item.sprint()), UVM_HIGH)
 
       if (rx_enabled) begin
         bit parity = `GET_PARITY(item.data, ral.ctrl.parity_odd.get_mirrored_value());
@@ -99,12 +99,12 @@ class uart_scoreboard extends cip_base_scoreboard #(.CFG_T(uart_env_cfg),
 
         if (parity_err) begin
           intr_exp[RxParityErr] = 1;
-          `uvm_info(`gfn, $sformatf("dropped uart rx item due to partiy err:\n%0s",
+          `uvm_info(`gfn, $sformatf("dropped uart_xheep rx item due to partiy err:\n%0s",
                                     item.sprint()), UVM_HIGH)
         end
         if (!item.stop_bit) begin
           intr_exp[RxFrameErr] = 1;
-          `uvm_info(`gfn, $sformatf("dropped uart rx item due to frame err:\n%0s",
+          `uvm_info(`gfn, $sformatf("dropped uart_xheep rx item due to frame err:\n%0s",
                                     item.sprint()), UVM_HIGH)
         end
         if (!parity_err && item.stop_bit == 1) begin // no parity/frame error
@@ -114,7 +114,7 @@ class uart_scoreboard extends cip_base_scoreboard #(.CFG_T(uart_env_cfg),
           end
           else begin
             intr_exp[RxOverflow] = 1;
-            `uvm_info(`gfn, $sformatf("dropped uart rx item due to overflow:\n%0s",
+            `uvm_info(`gfn, $sformatf("dropped uart_xheep rx item due to overflow:\n%0s",
                                       item.sprint()), UVM_HIGH)
           end
         end // no parity/frame error
@@ -149,7 +149,7 @@ class uart_scoreboard extends cip_base_scoreboard #(.CFG_T(uart_env_cfg),
         .triggered(rx_watermark_triggered));
   endfunction
 
-  // we don't model uart cycle-acurrately, ignore checking when item is just/almost finished
+  // we don't model uart_xheep cycle-acurrately, ignore checking when item is just/almost finished
   function bit is_in_ignored_period(uart_dir_e dir);
     case (dir)
       UartTx: return uart_tx_clk_pulses inside `TX_IGNORED_PERIOD;
@@ -231,7 +231,7 @@ class uart_scoreboard extends cip_base_scoreboard #(.CFG_T(uart_env_cfg),
             // use negedge to avoid race condition
             cfg.clk_rst_vif.wait_n_clks(NUM_CLK_DLY_TO_UPDATE_TX_WATERMARK);
             if (ral.ctrl.slpbk.get_mirrored_value()) begin
-              // if sys loopback is on, tx item isn't sent to uart pin but rx fifo
+              // if sys loopback is on, tx item isn't sent to uart_xheep pin but rx fifo
               uart_item tx_item = tx_q.pop_front();
               if (rx_enabled && (rx_q.size < UART_FIFO_DEPTH)) begin
                 rx_q.push_back(tx_item);

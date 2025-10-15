@@ -8,7 +8,7 @@ description: "Flash memory"
 filesets:
   primgen_dep:
     depend:
-      - lowrisc:prim:prim_pkg
+      - lowrisc:prim:prim_pkg_xheep
       - lowrisc:prim:primgen
       # TODO olofk/fusesoc#404: The below dependency is already added to prim_generic_flash.core.
       # However, the generator for the prim:ram1p does not kick in, causing compile errors.

@@ -73,7 +73,7 @@ def _core_info_for_techlib(prim_cores, techlib):
 def _enum_name_for_techlib(techlib_name, qualified=True):
     name = "Impl" + techlib_name.capitalize()
     if qualified:
-        name = "prim_pkg::" + name
+        name = "prim_pkg_xheep::" + name
     return name
 
 
@@ -221,21 +221,21 @@ def _generate_prim_pkg(gapi):
             continue
         techlib_enums.append(_enum_name_for_techlib(techlib, qualified=False))
 
-    # Render prim_pkg.sv file
-    print("Creating prim_pkg.sv")
+    # Render prim_pkg_xheep.sv file
+    print("Creating prim_pkg_xheep.sv")
     prim_pkg_sv_tpl_filepath = os.path.join(os.path.dirname(__file__),
-                                            'primgen', 'prim_pkg.sv.tpl')
+                                            'primgen', 'prim_pkg_xheep.sv.tpl')
     prim_pkg_sv_tpl = Template(filename=prim_pkg_sv_tpl_filepath)
 
     prim_pkg_sv = prim_pkg_sv_tpl.render(encoding="utf-8",
                                          techlib_enums=techlib_enums)
-    with open('prim_pkg.sv', 'w') as f:
+    with open('prim_pkg_xheep.sv', 'w') as f:
         f.write(prim_pkg_sv)
 
-    # Copy prim_pkg.core (no changes needed)
+    # Copy prim_pkg_xheep.core (no changes needed)
     prim_pkg_core_src = os.path.join(os.path.dirname(__file__), 'primgen',
-                                     'prim_pkg.core.tpl')
-    prim_pkg_core_dest = 'prim_pkg.core'
+                                     'prim_pkg_xheep.core.tpl')
+    prim_pkg_core_dest = 'prim_pkg_xheep.core'
     shutil.copyfile(prim_pkg_core_src, prim_pkg_core_dest)
     print("Core file written to %s." % (prim_pkg_core_dest, ))
 
@@ -347,7 +347,7 @@ def _generate_abstract_impl(gapi):
     print("Creating core file for primitive %s." % (prim_name, ))
     abstract_prim_core_filepath = os.path.abspath('prim_%s.core' % (prim_name))
     dependencies = []
-    dependencies.append('lowrisc:prim:prim_pkg')
+    dependencies.append('lowrisc:prim:prim_pkg_xheep')
     dependencies += [
         _core_info_for_techlib(prim_cores, t)[0] for t in techlibs
     ]

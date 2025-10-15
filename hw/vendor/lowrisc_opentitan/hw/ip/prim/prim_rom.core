@@ -8,7 +8,7 @@ description: "Read-only memory (ROM)"
 filesets:
   primgen_dep:
     depend:
-      - lowrisc:prim:prim_pkg
+      - lowrisc:prim:prim_pkg_xheep
       - lowrisc:prim:rom_pkg
       - lowrisc:prim:primgen
 

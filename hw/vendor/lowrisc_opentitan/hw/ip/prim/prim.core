@@ -12,7 +12,7 @@ filesets:
       - lowrisc:prim:assert
       - lowrisc:prim:util
       - lowrisc:prim:diff_decode # for prim_alert_sender/receiver
-      - lowrisc:prim:prim_pkg
+      - lowrisc:prim:prim_pkg_xheep
       - lowrisc:prim:clock_mux2
       - lowrisc:prim:buf
       - lowrisc:prim:flop

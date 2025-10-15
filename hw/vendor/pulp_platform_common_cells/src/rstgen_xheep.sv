@@ -10,7 +10,7 @@
 
 // Davide Rossi <davide.rossi@unibo.it>
 
-module rstgen (
+module rstgen_xheep (
     input  logic clk_i,
     input  logic rst_ni,
     input  logic test_mode_i,
@@ -18,7 +18,7 @@ module rstgen (
     output logic init_no
 );
 
-    rstgen_bypass i_rstgen_bypass (
+    rstgen_bypass_xheep i_rstgen_bypass (
         .clk_i            ( clk_i       ),
         .rst_ni           ( rst_ni      ),
         .rst_test_mode_ni ( rst_ni      ),

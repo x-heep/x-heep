@@ -8,14 +8,14 @@
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the
 // specific language governing permissions and limitations under the License.
 
-/// cf_math_pkg: Constant Function Implementations of Mathematical Functions for HDL Elaboration
+/// cf_math_pkg_xheep: Constant Function Implementations of Mathematical Functions for HDL Elaboration
 ///
 /// This package contains a collection of mathematical functions that are commonly used when defining
 /// the value of constants in HDL code.  These functions are implemented as Verilog constants
 /// functions.  Introduced in Verilog 2001 (IEEE Std 1364-2001), a constant function (§ 10.3.5) is a
 /// function whose value can be evaluated at compile time or during elaboration.  A constant function
 /// must be called with arguments that are constants.
-package cf_math_pkg;
+package cf_math_pkg_xheep;
 
     /// Ceiled Division of Two Natural Numbers
     ///
@@ -51,9 +51,9 @@ package cf_math_pkg;
     ///
     /// Sample usage in type definition:
     /// As parameter:
-    ///   `parameter type idx_t = logic[cf_math_pkg::idx_width(NumIdx)-1:0]`
+    ///   `parameter type idx_t = logic[cf_math_pkg_xheep::idx_width(NumIdx)-1:0]`
     /// As typedef:
-    ///   `typedef logic [cf_math_pkg::idx_width(NumIdx)-1:0] idx_t`
+    ///   `typedef logic [cf_math_pkg_xheep::idx_width(NumIdx)-1:0] idx_t`
     function automatic integer unsigned idx_width (input integer unsigned num_idx);
         return (num_idx > 32'd1) ? unsigned'($clog2(num_idx)) : 32'd1;
     endfunction

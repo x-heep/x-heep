@@ -4,7 +4,7 @@
 
 module uart_bind;
 
-  bind uart tlul_assert #(
+  bind uart_xheep tlul_assert #(
     .EndpointType("Device")
   ) tlul_assert_device (
     .clk_i,
@@ -13,7 +13,7 @@ module uart_bind;
     .d2h  (tl_o)
   );
 
-  bind uart uart_csr_assert_fpv uart_csr_assert (
+  bind uart_xheep uart_csr_assert_fpv uart_csr_assert (
     .clk_i,
     .rst_ni,
     .h2d    (tl_i),

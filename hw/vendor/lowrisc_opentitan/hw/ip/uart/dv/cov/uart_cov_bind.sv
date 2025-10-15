@@ -5,7 +5,7 @@
 // Binds UART functional coverage interaface to the top level UART module.
 module uart_cov_bind;
 
-  bind uart uart_cov_if u_uart_cov_if (.*);
+  bind uart_xheep uart_cov_if u_uart_cov_if (.*);
 
   bind uart_core uart_core_cov_if u_uart_core_cov_if (.*);
 

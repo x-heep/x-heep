@@ -754,7 +754,7 @@ There are breaking changes between `v0.38.0` and `v0.39.0`:
 - `rand_axi_slave` (in `axi_test`):
   - Decouple receiving of Ws from receiving of AWs.  This allows to receive W beats independent of
     AW beats.
-- Update `common_cells` to `1.16.4` to fix synthesis warning in `id_queue`.
+- Update `common_cells` to `1.16.4` to fix synthesis warning in `id_queue_xheep`.
 
 
 ## 0.15.0 - 2020-02-28

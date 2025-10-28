@@ -355,6 +355,7 @@ targets:
         - -suppress vlog-2583
         - -suppress vlog-2577
         - -suppress vlog-2720
+        - -suppress vlog-12003
         - -pedanticerrors
         - -define MODELSIM
         vsim_options:

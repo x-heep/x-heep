@@ -16,7 +16,6 @@
  * Author: Robert Balas <balasr@iis.ee.ethz.ch>
  */
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include "xheep_common.h"
@@ -28,7 +27,6 @@ static const char __attribute__((aligned(4))) axi_msg[] = "Hello from AXI, X-Hee
 int main(int argc, char *argv[])
 {
     /* write something to stdout */
-    printf("Hello from UART, X-Heep!\n");
     volatile char *apb_dst = (volatile char *)(uintptr_t)XHEEP_SHARED_STR_ADDR;
     for (unsigned i = 0; i < sizeof(apb_msg); i++) {
         apb_dst[i] = apb_msg[i];

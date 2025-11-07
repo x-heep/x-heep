@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sld>
+  <accelerator name="xheep" desc="EPFL_X-HEEP_RISC-V_MCU"
+               device_id="200" axi_prefix="x_heep_axi_" interrupt="x_heep_intr"
+               addr_width="32" id_width="4" user_width="0">
+    <clock name="x_heep_clk"/>
+    <reset name="x_heep_rstn" polarity="LOW"/>
+    <reset name="direct_reset"  polarity="LOW"/>
+  </accelerator>
+</sld>

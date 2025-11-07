@@ -368,6 +368,35 @@ clean: clean-app
 .PHONY: clean-all
 clean-all: clean
 
+## @section ESP Integration
+
+## Prepare ESP by copying files from esp_files to the parent xheep directory
+.PHONY: prepare_esp
+prepare_esp:
+	@echo "Copying files from esp_files to ../../ while maintaining directory structure..."
+	@if [ -d "$(mkfile_path)/esp_files" ]; then \
+		cd $(mkfile_path)/esp_files && \
+		find . -type f -exec sh -c 'mkdir -p "$(mkfile_path)/../../$$(dirname "{}")" && cp -v "{}" "$(mkfile_path)/../../{}"' \; ; \
+		echo "ESP files copied successfully!"; \
+	else \
+		echo "ERROR: esp_files directory not found!"; \
+		exit 1; \
+	fi
+	@echo "Checking and updating thirdparty.py..."
+	@if [ -f "$(mkfile_path)/../../../../../tools/socgen/thirdparty.py" ]; then \
+		if ! grep -q 'THIRDPARTY_COMPATIBLE\["xheep"\]' "$(mkfile_path)/../../../../../tools/socgen/thirdparty.py"; then \
+			echo "Adding X-HEEP configuration to thirdparty.py..."; \
+			sed -i '/#$$/i # X-HEEP\nTHIRDPARTY_COMPATIBLE["xheep"] = "epfl,200"\nTHIRDPARTY_IRQ_TYPE["xheep"]   = "1"            # 1 = level-sensitive IRQ\n' "$(mkfile_path)/../../../../tools/socgen/thirdparty.py"; \
+			echo "X-HEEP configuration added to thirdparty.py"; \
+		else \
+			echo "X-HEEP configuration already exists in thirdparty.py"; \
+		fi; \
+	else \
+		echo "ERROR: thirdparty.py not found at expected location!"; \
+		exit 1; \
+	fi
+	@echo "ESP preparation completed successfully!"
+
 ## @section Utilities
 # Check if a program is available in PATH
 define CHECK_PROGRAM

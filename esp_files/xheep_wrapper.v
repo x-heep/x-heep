@@ -77,12 +77,12 @@ module XHEEP_wrapper
   output wire                     x_heep_intr
 );
 
+  localparam logic [31:0] XHEEP_INSTANCE_ID = 32'd0;
+
   localparam logic [31:0] EXT_SLAVE_START_ADDRESS = 32'hF000_0000; // from generated core_v_mini_mcu.h
   localparam logic [31:0] SOC_CTRL_START_ADDRESS = 32'h2000_0000; // from generated core_v_mini_mcu.h
   localparam logic [31:0] ESP_MEMORY_ADDRESS   = 32'h8000_0000; // from generated ESP's riscv.dts
   localparam int LSB = $clog2(AXI_DATA_WIDTH/8);
-  // X-HEEP address map offsets (for APB->OBI translation)
-  localparam logic [31:0] XHEEP_APB_BASE_OFF = 32'h0040_0000; // from the ESP address map
   localparam logic [31:0] XHEEP_SOC_CTRL_WRITE_OFFSET = 32'h0000_FF00; // fixed and hardcoded. It must fit in the area ESP allocates to X-HEEP.
 
   // Minimal sideband defaults; main sidebands driven by OBI->AXI bridge below
@@ -107,15 +107,15 @@ module XHEEP_wrapper
     // Copy all fields from input
     apb_req_translated = apb_req;
     
+    // ESP routing uses bits [31:20], we only care about the offset
+    apb_req_translated.paddr = {12'h000, apb_req.paddr[19:0]};
+    
     // Translate address based on target region
-    if (apb_req.paddr >= (XHEEP_APB_BASE_OFF + XHEEP_SOC_CTRL_WRITE_OFFSET)) begin
-      // Access to configuration registers
-      apb_req_translated.paddr = apb_req.paddr + (SOC_CTRL_START_ADDRESS - XHEEP_APB_BASE_OFF - XHEEP_SOC_CTRL_WRITE_OFFSET);
+    if (apb_req_translated.paddr >= XHEEP_SOC_CTRL_WRITE_OFFSET) begin
+      // Access to configuration registers - map to X-HEEP's SoC control space
+      apb_req_translated.paddr = apb_req_translated.paddr + (SOC_CTRL_START_ADDRESS - XHEEP_SOC_CTRL_WRITE_OFFSET);
     end
-    else begin
-      // Normal access to X-Heep RAM - remove base offset
-      apb_req_translated.paddr = apb_req.paddr - XHEEP_APB_BASE_OFF;
-    end
+    // else: normal access to X-Heep RAM at offset within [19:0]
   end
 
   assign apb_req.paddr   = paddr;
@@ -294,8 +294,23 @@ module XHEEP_wrapper
 
 // -------- X-HEEP top --------
 
-  // Tie-off interface for XIF (X_EXT==0, but ports still require an actual interface)
-  if_xif xif_if();
+  // Tie-off interfaces for XIF
+  // Create separate interface instances for each XIF port to avoid multi-driven nets
+  if_xif xif_compressed_if();
+  if_xif xif_issue_if();
+  if_xif xif_commit_if();
+  if_xif xif_mem_if();
+  if_xif xif_mem_result_if();
+  if_xif xif_result_if();
+  assign xif_compressed_if.compressed_ready = 1'b0;
+  assign xif_compressed_if.compressed_resp  = '0;
+  assign xif_issue_if.issue_ready = 1'b0;
+  assign xif_issue_if.issue_resp  = '0;
+  assign xif_mem_if.mem_ready = 1'b0;
+  assign xif_mem_if.mem_resp  = '0;
+  assign xif_mem_result_if.mem_result_valid = 1'b0;
+  assign xif_mem_result_if.mem_result       = '0;
+  assign xif_result_if.result_ready = 1'b0;
 
   // Sink for unused outputs to avoid floating ports
   logic unused_jtag_tdo;
@@ -369,12 +384,14 @@ module XHEEP_wrapper
     .peripheral_subsystem_powergate_switch_ack_ni (1'b1),
     .external_subsystem_powergate_switch_ack_ni   (1'b1),
   
-    .xif_compressed_if (xif_if),
-    .xif_issue_if      (xif_if),
-    .xif_commit_if     (xif_if),
-    .xif_mem_if        (xif_if),
-    .xif_mem_result_if (xif_if),
-    .xif_result_if     (xif_if)
+    .xif_compressed_if (xif_compressed_if),
+    .xif_issue_if      (xif_issue_if),
+    .xif_commit_if     (xif_commit_if),
+    .xif_mem_if        (xif_mem_if),
+    .xif_mem_result_if (xif_mem_result_if),
+    .xif_result_if     (xif_result_if),
+
+    .xheep_instance_id_i(XHEEP_INSTANCE_ID)
 
   );
 

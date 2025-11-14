@@ -89,14 +89,14 @@ def generate_c_header(sections, header_file, name):
         
         # Create a helper struct for section info
         f.write('// Section information structure\n')
-        f.write('typedef struct {\n')
+        f.write(f'typedef struct {name}_fw_section {{\n')
         f.write('    uint32_t addr;\n')
         f.write('    uint32_t size;\n')
         f.write('    const uint32_t *data;\n')
-        f.write('} fw_section_t;\n\n')
+        f.write(f'}} {name}_fw_section_t;\n\n')
         
         f.write(f'#define {name.upper()}_NUM_SECTIONS {len(sections)}\n')
-        f.write(f'const fw_section_t {name}_sections[] = {{\n')
+        f.write(f'const {name}_fw_section_t {name}_sections[] = {{\n')
         for idx, (addr, data) in enumerate(sections):
             section_name = f'{name}_section{idx}'
             f.write(f'    {{0x{addr:08X}, {len(data)}, {section_name}}}')

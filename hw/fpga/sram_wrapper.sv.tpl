@@ -32,22 +32,28 @@ module sram_wrapper #(
 
 assign pwrgate_ack_no = pwrgate_ni;
 
-<%el = ""%>
-% for num_words in xheep.memory_ss().iter_bank_numwords():
-  ${el}if (NumWords == 32'd${num_words}) begin
-    xilinx_mem_gen_${num_words} tc_ram_i (
-        .clka (clk_i),
-        .ena  (req_i),
-        .wea  ({4{req_i & we_i}} & be_i),
-        .addra(addr_i),
-        .dina (wdata_i),
-        // output ports
-        .douta(rdata_o)
-    );
+  // Force block RAM inference on Xilinx (Virtex-7)
+  (* ram_style = "block" *)
+  logic [DataWidth-1:0] mem[0:NumWords-1];
+
+  always_ff @(posedge clk_i) begin
+    if (!rst_ni) begin
+      rdata_o <= '0;
+    end else begin
+      // Write with byte enables
+      if (req_i && we_i) begin
+        for (int b = 0; b < 4; b++) begin
+          if (be_i[b]) begin
+            mem[addr_i][8*b+:8] <= wdata_i[8*b+:8];
+          end
+        end
+      end
+
+      // 1-cycle synchronous read (matches X-HEEP expectation)
+      if (req_i && !we_i) begin
+        rdata_o <= mem[addr_i];
+      end
+    end
   end
-<%el = "else "%>
-% endfor
-  else begin
-    $error("Bank size not generated.");
-  end
+
 endmodule

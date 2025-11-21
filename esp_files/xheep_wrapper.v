@@ -344,27 +344,30 @@ module XHEEP_wrapper
     .ext_xbar_master_req_i  (esp_obi_m_req),
     .ext_xbar_master_resp_o (esp_obi_m_rsp),
 
-  // External master OBI ports (exposed out of X-HEEP)
-  .ext_core_instr_req_o         (heep_core_instr_req),
-  .ext_core_instr_resp_i        (heep_core_instr_resp),
-  .ext_core_data_req_o          (heep_core_data_req),
-  .ext_core_data_resp_i         (heep_core_data_resp),
-  .ext_debug_master_req_o       (heep_debug_master_req),
-  .ext_debug_master_resp_i      (heep_debug_master_resp),
-  .ext_dma_read_req_o           (heep_dma_read_req),
-  .ext_dma_read_resp_i          (heep_dma_read_resp),
-  .ext_dma_write_req_o          (heep_dma_write_req),
-  .ext_dma_write_resp_i         (heep_dma_write_resp),
-  .ext_dma_addr_req_o           (heep_dma_addr_req),
-  .ext_dma_addr_resp_i          (heep_dma_addr_resp),
-  .ext_peripheral_slave_req_o   (heep_ext_peripheral_slave_req),
-  .ext_peripheral_slave_resp_i  (heep_ext_peripheral_slave_resp),
-  .ext_debug_req_o              (unused_ext_debug_req),
+    .ext_ao_peripheral_slave_req_i ('0),
+    .ext_ao_peripheral_slave_resp_o(),
 
-    // JTAG / UART / exit
-  .jtag_tdo_o                   (unused_jtag_tdo),
-  .uart_tx_o                    (unused_uart_tx),
-  .exit_valid_o                 (heep_exit_valid),
+    // External master OBI ports (exposed out of X-HEEP)
+    .ext_core_instr_req_o         (heep_core_instr_req),
+    .ext_core_instr_resp_i        (heep_core_instr_resp),
+    .ext_core_data_req_o          (heep_core_data_req),
+    .ext_core_data_resp_i         (heep_core_data_resp),
+    .ext_debug_master_req_o       (heep_debug_master_req),
+    .ext_debug_master_resp_i      (heep_debug_master_resp),
+    .ext_dma_read_req_o           (heep_dma_read_req),
+    .ext_dma_read_resp_i          (heep_dma_read_resp),
+    .ext_dma_write_req_o          (heep_dma_write_req),
+    .ext_dma_write_resp_i         (heep_dma_write_resp),
+    .ext_dma_addr_req_o           (heep_dma_addr_req),
+    .ext_dma_addr_resp_i          (heep_dma_addr_resp),
+    .ext_peripheral_slave_req_o   (heep_ext_peripheral_slave_req),
+    .ext_peripheral_slave_resp_i  (heep_ext_peripheral_slave_resp),
+    .ext_debug_req_o              (unused_ext_debug_req),
+
+      // JTAG / UART / exit
+    .jtag_tdo_o                   (unused_jtag_tdo),
+    .uart_tx_o                    (unused_uart_tx),
+    .exit_valid_o                 (heep_exit_valid),
 
     // DMA ports (unused in this ESP integration)
     .ext_dma_slot_tx_i            (1'b0),
@@ -546,100 +549,6 @@ module XHEEP_wrapper
 
   // --- Wave dump: flattened signals (QuestaSim-compatible) ---
   initial begin
-    //$dumpfile("xheep.vcd");
-    // top-level clock/resets
-    //$dumpvars(0, x_heep_clk);
-    //$dumpvars(0, x_heep_rstn);
-    //$dumpvars(0, direct_reset);
-    // internal derived clk/reset
-    //$dumpvars(0, clk_i);
-    //$dumpvars(0, rst_ni);
-
-    // top-level APB
-    //$dumpvars(0, paddr);
-    //$dumpvars(0, psel);
-    //$dumpvars(0, penable);
-    //$dumpvars(0, pwrite);
-    //$dumpvars(0, pwdata);
-    //$dumpvars(0, prdata);
-    //$dumpvars(0, pready);
-    //$dumpvars(0, pslverr);
-
-    // flattened APB request (from struct)
-    //$dumpvars(0, dbg_apb_req_paddr);
-    //$dumpvars(0, dbg_apb_req_psel);
-    //$dumpvars(0, dbg_apb_req_penable);
-    //$dumpvars(0, dbg_apb_req_pwrite);
-    //$dumpvars(0, dbg_apb_req_pwdata);
-    //$dumpvars(0, dbg_apb_req_pstrb);
-    //$dumpvars(0, dbg_apb_req_pprot);
-
-    // flattened APB response (from struct)
-    //$dumpvars(0, dbg_apb_rsp_prdata);
-    //$dumpvars(0, dbg_apb_rsp_pready);
-    //$dumpvars(0, dbg_apb_rsp_pslverr);
-
-    // flattened OBI master request (from struct)
-    //$dumpvars(0, dbg_obi_m_req_req);
-    //$dumpvars(0, dbg_obi_m_req_addr);
-    //$dumpvars(0, dbg_obi_m_req_wdata);
-    //$dumpvars(0, dbg_obi_m_req_we);
-    //$dumpvars(0, dbg_obi_m_req_be);
-    // flattened OBI master response (from struct)
-    //$dumpvars(0, dbg_obi_m_resp_rdata);
-    //$dumpvars(0, dbg_obi_m_resp_rvalid);
-    //$dumpvars(0, dbg_apb_m_resp_gnt);
-
-    // AXI master interface (to ESP fabric)
-    // Write address channel
-    //$dumpvars(0, x_heep_axi_awvalid);
-    //$dumpvars(0, x_heep_axi_awready);
-    //$dumpvars(0, x_heep_axi_awid);
-    //$dumpvars(0, x_heep_axi_awlen);
-    //$dumpvars(0, x_heep_axi_awaddr);
-    //$dumpvars(0, x_heep_axi_awsize);
-    //$dumpvars(0, x_heep_axi_awburst);
-    //$dumpvars(0, x_heep_axi_awlock);
-    //$dumpvars(0, x_heep_axi_awcache);
-    //$dumpvars(0, x_heep_axi_awprot);
-    //$dumpvars(0, x_heep_axi_awqos);
-    //$dumpvars(0, x_heep_axi_awregion);
-    //$dumpvars(0, x_heep_axi_awatop);
-
-    // Write data channel
-    //$dumpvars(0, x_heep_axi_wvalid);
-    //$dumpvars(0, x_heep_axi_wready);
-    //$dumpvars(0, x_heep_axi_wdata);
-    //$dumpvars(0, x_heep_axi_wstrb);
-    //$dumpvars(0, x_heep_axi_wlast);
-
-    // Read address channel
-    //$dumpvars(0, x_heep_axi_arvalid);
-    //$dumpvars(0, x_heep_axi_arready);
-    //$dumpvars(0, x_heep_axi_arid);
-    //$dumpvars(0, x_heep_axi_arlen);
-    //$dumpvars(0, x_heep_axi_araddr);
-    //$dumpvars(0, x_heep_axi_arsize);
-    //$dumpvars(0, x_heep_axi_arburst);
-    //$dumpvars(0, x_heep_axi_arlock);
-    //$dumpvars(0, x_heep_axi_arcache);
-    //$dumpvars(0, x_heep_axi_arprot);
-    //$dumpvars(0, x_heep_axi_arqos);
-    //$dumpvars(0, x_heep_axi_arregion);
-
-    // Write response channel
-    //$dumpvars(0, x_heep_axi_bvalid);
-    //$dumpvars(0, x_heep_axi_bready);
-    //$dumpvars(0, x_heep_axi_bid);
-    //$dumpvars(0, x_heep_axi_bresp);
-
-    // Read data channel
-    //$dumpvars(0, x_heep_axi_rvalid);
-    //$dumpvars(0, x_heep_axi_rready);
-    //$dumpvars(0, x_heep_axi_rid);
-    //$dumpvars(0, x_heep_axi_rlast);
-    //$dumpvars(0, x_heep_axi_rdata);
-    //$dumpvars(0, x_heep_axi_rresp);
 
   end
 

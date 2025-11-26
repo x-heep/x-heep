@@ -6,3 +6,4 @@
 
 lint_off -rule GENUNNAMED -file "*/src/*.sv" -match "Unnamed generate block '*'"
 lint_off -rule UNOPTFLAT -file "*/src/cdc_reset_ctrlr.sv" -match "Signal unoptimizable: Circular combinational logic: '*'"
+lint_off -rule UNOPTFLAT -file "*/src/rr_arb_tree.sv" -match "Signal unoptimizable: Circular combinational logic: '*'"

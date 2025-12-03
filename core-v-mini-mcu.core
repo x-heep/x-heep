@@ -4,7 +4,7 @@ CAPI=2:
 # Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 # SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
-name: openhwgroup.org:systems:core-v-mini-mcu:1.0.1
+name: openhwgroup.org:systems:core-v-mini-mcu:1.0.2
 description: CORE-V MINI-MCU Top.
 
 filesets:

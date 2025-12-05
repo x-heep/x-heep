@@ -8,7 +8,7 @@ SHELL ["/bin/bash", "-c"]
 # Set ARGs and ENVs
 ARG riscv=/tools/riscv
 ARG toolchain_path=toolchain.tar.gz
-ARG verilator_version=5.040
+ARG verilator_version=v5.040
 ARG verible_version=v0.0-4023-gc1271a00
 ENV RISCV_XHEEP=${riscv}
 ENV VERILATOR_VERSION=${verilator_version}
@@ -44,7 +44,7 @@ RUN mkdir -p ${RISCV_XHEEP} && \
 
 # Install Verilator
 RUN git clone https://github.com/verilator/verilator.git /tmp/verilator && \
-    cd /tmp/verilator && git checkout v${VERILATOR_VERSION} && \
+    cd /tmp/verilator && git checkout ${VERILATOR_VERSION} && \
     autoconf && ./configure --prefix=/tools/verilator/${VERILATOR_VERSION} && \
     make -j$(nproc) && make install && \
     rm -rf /tmp/verilator

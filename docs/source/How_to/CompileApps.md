@@ -19,11 +19,12 @@ Don't forget to set the `RISCV_XHEEP` env variable to the compiler folder (witho
 
 You can select the application to run, the target, compiler, etc. by modifying the parameters. The compiler flags explicitely specified by the user will override those already existing (e.g. the default optimization level is `-O2`, passing `COMPILER_FLAGS=-Os` will override the `-O2`). This can be used to pass preprocessor definitions (e.g. pasing `make app COMPILER_FLAGS=-DENABLE_PRINTF` is equivalent to adding `#define ENABLE_PRINTF` on all included files). 
 ```
-app PROJECT=<folder_name_of_the_project_to_be_built> TARGET=sim(default),systemc,pynq-z2,aup-zu3,nexys-a7-100t,zcu104,zcu102 LINKER=on_chip(default),flash_load,flash_exec COMPILER=gcc(default),clang COMPILER_PREFIX=riscv32-corev-(default),riscv32-unknown- ARCH=rv32imc_zicsr(default),<any_RISC-V_ISA_string_supported_by_the_CPU> 
+
+app PROJECT=<folder_name_of_the_project_to_be_built> TARGET=sim(default),systemc,pynq-z2,nexys-a7-100t,genesys2,aup-zu3,zcu102,zcu104 LINKER=on_chip(default),flash_load,flash_exec COMPILER=gcc(default),clang COMPILER_PREFIX=riscv32-corev-(default),riscv32-unknown- ARCH=rv32imc_zicsr(default),<any_RISC-V_ISA_string_supported_by_the_CPU> 
 
 Params:
     - PROJECT (ex: <folder_name_of_the_project_to_be_built>) 
-    - TARGET (ex: sim(default),systemc,pynq-z2,aup-zu3,,nexys-a7-100t,zcu104,zcu102) 
+    - TARGET (ex: sim(default),systemc,pynq-z2,nexys-a7-100t,genesys2,aup-zu3,zcu102,zcu104) 
     - LINKER (ex: on_chip(default),flash_load,flash_exec) 
     - COMPILER (ex: gcc(default),clang) 
     - COMPILER_PREFIX (ex: riscv32-corev-(default),riscv32-unknown-) 

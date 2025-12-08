@@ -17,33 +17,15 @@
 
 # Author: Jose Miranda, Juan Sapriza (jose.mirandacalero / juan.sapriza @epfl.ch)
 
-MAKE                       = make
-
-# Project options are based on the app to be build (default - hello_world)
-PROJECT  ?= hello_world
-
-# Linker options are 'on_chip' (default),'flash_load','flash_exec'
-LINKER   ?= on_chip
-
-# Target options are 'sim' (default), 'pynq-z2', and 'nexys-a7-100t'
-TARGET   ?= sim
-
-# Compiler options are 'gcc' (default) and 'clang'
-COMPILER ?= gcc
-
-# Compiler prefix options are 'riscv32-unknown-' (default)
-COMPILER_PREFIX ?= riscv32-unknown-
-
-# Arch options are any RISC-V ISA string supported by the CPU. Default 'rv32imc'
-ARCH     ?= rv32imc
+MAKE     = make
 
 # Path relative from the location of sw/Makefile from which to fetch source files. The directory of that file is the default value.
-SOURCE 	 ?= $(".")
+SOURCE 	?= $(".")
 
 VERBOSE ?= false
 
 # riscv toolchain install path
-RISCV_XHEEP			?= ~/.riscv
+RISCV_XHEEP			 ?= ~/.riscv
 RISCV_EXE_PREFIX	= $(RISCV_XHEEP)/bin/${COMPILER_PREFIX}elf-
 RISCV_GDB_PATH		= $(RISCV_EXE_PREFIX)gdb
 
@@ -65,19 +47,19 @@ else ifeq ($(ARG), value2)
   $(info $$You are fetching sources from $(source_path) )
 endif
 
-SOURCE_PATH   		       = $(source_path)/
-ROOT_PROJECT               = $(mkfile_path)/
-INC_FOLDERS                = $(mkfile_path)/device/target/$(TARGET)/
-LINK_FOLDER                ?= $(mkfile_path)/linker
+SOURCE_PATH  = $(source_path)/
+ROOT_PROJECT = $(mkfile_path)/
+INC_FOLDERS  = $(mkfile_path)/device/target/$(TARGET)/
+LINK_FOLDER  ?= $(mkfile_path)/linker
 
 # CMake keyword
-CMAKE_DIR=cmake
+CMAKE_DIR = cmake
 
 # to distinguish between cmake distros
 ifeq (, $(shell which cmake3)) # cmake3 is not defined
-CMAKE=cmake
+CMAKE = cmake
 else
-CMAKE=cmake3
+CMAKE = cmake3
 endif
 
 # Export variables to sub-makefiles

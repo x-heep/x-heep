@@ -60,7 +60,7 @@ XHEEP_CONFIG_CACHE ?= $(BUILD_DIR)/xheep_config_cache.pickle
 
 # Compiler options are 'gcc' (default) and 'clang'
 COMPILER 		?= gcc
-# Compiler prefix options are 'riscv32-unknown-' (default) and 'riscv32-corev-'
+# Compiler prefix options are 'riscv32-corev-' (default) and 'riscv32-unknown-'
 COMPILER_PREFIX ?= riscv32-corev-
 # Compiler flags to be passed (for both linking and compiling)
 COMPILER_FLAGS 	?=
@@ -186,7 +186,7 @@ format-python:
 ## @param TARGET=sim(default),systemc,pynq-z2,nexys-a7-100t,zcu104,zcu102
 ## @param LINKER=on_chip(default),flash_load,flash_exec
 ## @param COMPILER=gcc(default),clang
-## @param COMPILER_PREFIX=riscv32-unknown-(default)
+## @param COMPILER_PREFIX=riscv32-corev-(default),riscv32-unknown-
 ## @param ARCH=rv32imc(default),<any_RISC-V_ISA_string_supported_by_the_CPU>
 app: clean-app
 	@$(MAKE) -C sw PROJECT=$(PROJECT) TARGET=$(TARGET) LINKER=$(LINKER) LINK_FOLDER=$(LINK_FOLDER) COMPILER=$(COMPILER) COMPILER_PREFIX=$(COMPILER_PREFIX) COMPILER_FLAGS=$(COMPILER_FLAGS) ARCH=$(ARCH) SOURCE=$(SOURCE) \
@@ -195,7 +195,8 @@ app: clean-app
 	echo "\033[0;31mIf you do not understand why, it is likely that you either:\033[0m"; \
 	echo "\033[0;31m  a) offended the Leprechaun of Electronics\033[0m"; \
 	echo "\033[0;31m  b) forgot to run make mcu-gen\033[0m"; \
-	echo "\033[0;31mI would start by checking b) if I were you!\033[0m"; \
+	echo "\033[0;31m  c) forgot to set the correct compiler parameters (check the docs!)\033[0m"; \
+	echo "\033[0;31mI would start by checking b) or c) if I were you!\033[0m"; \
 	exit 1; \
 	}
 	@python scripts/building/mem_usage.py

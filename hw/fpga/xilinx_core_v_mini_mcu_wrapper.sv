@@ -14,8 +14,8 @@ module xilinx_core_v_mini_mcu_wrapper
 ) (
 
 `ifdef FPGA_ZCU104
-    inout  logic clk_300mhz_n,
-    inout  logic clk_300mhz_p,
+    inout logic clk_300mhz_n,
+    inout logic clk_300mhz_p,
 `elsif FPGA_ZCU102
     inout logic clk_125mhz_n,
     inout logic clk_125mhz_p,
@@ -26,9 +26,9 @@ module xilinx_core_v_mini_mcu_wrapper
     inout  logic clk_200mhz_n,
     inout  logic clk_200mhz_p,
 `else
-    inout  logic clk_i,
+    inout logic clk_i,
 `endif
-    inout  logic rst_i,
+    inout logic rst_i,
 
     output logic rst_led_o,
     output logic clk_led_o,

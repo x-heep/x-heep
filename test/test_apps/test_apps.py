@@ -155,13 +155,12 @@ def compile_app(an_app, compiler_path, compiler_prefix, compiler, linker, dry_ru
             compile_command, capture_output=True, check=True
         )
     except subprocess.CalledProcessError as exc:
-        if verbose:
-            print(
-                BColors.FAIL
-                + f"Error compiling {an_app.name} with {compiler} and {linker} linker."
-                + BColors.ENDC
-            )
-            print(exc.stderr.decode("utf-8"), flush=True)
+        print(
+            BColors.FAIL
+            + f"Error compiling {an_app.name} with {compiler} and {linker} linker."
+            + BColors.ENDC
+        )
+        print(exc.stderr.decode("utf-8"), flush=True)
         return False
     else:
         if verbose:
@@ -200,13 +199,12 @@ def run_app(an_app, simulator, dry_run=False, verbose=True):
             check=False,
         )
     except subprocess.TimeoutExpired:
-        if verbose:
-            print(
-                BColors.FAIL
-                + f"Simulation of {an_app.name} with {simulator} timed out."
-                + BColors.ENDC,
-                flush=True,
-            )
+        print(
+            BColors.FAIL
+            + f"Simulation of {an_app.name} with {simulator} timed out."
+            + BColors.ENDC,
+            flush=True,
+        )
         return SimResult.TIMED_OUT
     else:
         match = re.search(
@@ -222,13 +220,12 @@ def run_app(an_app, simulator, dry_run=False, verbose=True):
                 )
             return SimResult.PASSED
         else:
-            if verbose:
-                print(
-                    BColors.FAIL
-                    + f"Simulation of {an_app.name} with {simulator} failed."
-                    + BColors.ENDC
-                )
-                print(BColors.FAIL + str(run_output.stdout.decode("utf-8")) + BColors.ENDC)
+            print(
+                BColors.FAIL
+                + f"Simulation of {an_app.name} with {simulator} failed."
+                + BColors.ENDC
+            )
+            print(BColors.FAIL + str(run_output.stdout.decode("utf-8")) + BColors.ENDC)
             return SimResult.FAILED
 
 

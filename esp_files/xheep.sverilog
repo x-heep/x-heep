@@ -9,7 +9,7 @@ x-heep/hw/ip_examples/simple_accelerator/simple_accelerator.sv
 x-heep/hw/vendor/lowrisc_opentitan/hw/top_earlgrey/rtl/top_pkg.sv
 x-heep/hw/vendor/lowrisc_opentitan/hw/ip/spi_device/rtl/spi_device_reg_pkg.sv
 x-heep/hw/vendor/lowrisc_opentitan/hw/ip/spi_device/rtl/spi_device_pkg.sv
-x-heep/build/openhwgroup.org_systems_core-v-mini-mcu_0.3.0/sim-modelsim/generated/lowrisc_prim_prim_pkg_xheep-impl_0.1/prim_pkg_xheep.sv
+x-heep/build/openhwgroup.org_systems_core-v-mini-mcu_0.3.0/sim-modelsim/generated/lowrisc_prim_prim_pkg_xheep-impl_0.1/prim_pkg.sv
 x-heep/hw/vendor/lowrisc_opentitan/hw/ip/prim/rtl/prim_cipher_pkg.sv
 x-heep/hw/vendor/lowrisc_opentitan/hw/ip/prim_generic/rtl/prim_generic_buf.sv
 x-heep/hw/vendor/lowrisc_opentitan/hw/ip/prim_generic/rtl/prim_generic_flop.sv
@@ -108,7 +108,7 @@ x-heep/hw/vendor/pulp_platform_common_cells/src/onehot_to_bin.sv
 x-heep/hw/vendor/pulp_platform_common_cells/src/plru_tree.sv
 x-heep/hw/vendor/pulp_platform_common_cells/src/popcount.sv
 x-heep/hw/vendor/pulp_platform_common_cells/src/rr_arb_tree.sv
-x-heep/hw/vendor/pulp_platform_common_cells/src/rstgen_bypass_xheep.sv
+x-heep/hw/vendor/pulp_platform_common_cells/src/rstgen_bypass.sv
 x-heep/hw/vendor/pulp_platform_common_cells/src/serial_deglitch.sv
 x-heep/hw/vendor/pulp_platform_common_cells/src/shift_reg.sv
 x-heep/hw/vendor/pulp_platform_common_cells/src/shift_reg_gated.sv
@@ -138,7 +138,7 @@ x-heep/hw/vendor/pulp_platform_common_cells/src/ecc_encode.sv
 x-heep/hw/vendor/pulp_platform_common_cells/src/edge_detect.sv
 x-heep/hw/vendor/pulp_platform_common_cells/src/lzc.sv
 x-heep/hw/vendor/pulp_platform_common_cells/src/max_counter.sv
-x-heep/hw/vendor/pulp_platform_common_cells/src/rstgen_xheep.sv
+x-heep/hw/vendor/pulp_platform_common_cells/src/rstgen.sv
 x-heep/hw/vendor/pulp_platform_common_cells/src/spill_register.sv
 x-heep/hw/vendor/pulp_platform_common_cells/src/stream_delay.sv
 x-heep/hw/vendor/pulp_platform_common_cells/src/stream_fifo.sv
@@ -210,8 +210,8 @@ x-heep/hw/ip_examples/iffifo/rtl/iffifo_reg_pkg.sv
 x-heep/hw/ip_examples/iffifo/rtl/iffifo_reg_top.sv
 x-heep/hw/ip_examples/iffifo/rtl/iffifo.sv
 x-heep/hw/ip_examples/slow_memory/rtl/slow_memory.sv
-x-heep/hw/vendor/lowrisc_opentitan/hw/ip/rv_plic/rtl/rv_plic_gateway_xheep.sv
-x-heep/hw/vendor/lowrisc_opentitan/hw/ip/rv_plic/rtl/rv_plic_target_xheep.sv
+x-heep/hw/vendor/lowrisc_opentitan/hw/ip/rv_plic/rtl/rv_plic_gateway.sv
+x-heep/hw/vendor/lowrisc_opentitan/hw/ip/rv_plic/rtl/rv_plic_target.sv
 x-heep/hw/vendor/lowrisc_opentitan/hw/ip/prim/rtl/prim_arbiter_ppc.sv
 x-heep/hw/vendor/lowrisc_opentitan/hw/ip/prim/rtl/prim_arbiter_tree.sv
 x-heep/hw/vendor/lowrisc_opentitan/hw/ip/prim/rtl/prim_arbiter_fixed.sv
@@ -481,7 +481,7 @@ x-heep/hw/vendor/lowrisc_opentitan/hw/ip/uart/rtl/uart_reg_top.sv
 x-heep/hw/vendor/lowrisc_opentitan/hw/ip/uart/rtl/uart_rx.sv
 x-heep/hw/vendor/lowrisc_opentitan/hw/ip/uart/rtl/uart_tx.sv
 x-heep/hw/vendor/lowrisc_opentitan/hw/ip/uart/rtl/uart_core.sv
-x-heep/hw/vendor/lowrisc_opentitan/hw/ip/uart/rtl/uart_xheep.sv
+x-heep/hw/vendor/lowrisc_opentitan/hw/ip/uart/rtl/uart.sv
 x-heep/hw/core-v-mini-mcu/core_v_mini_mcu.sv
 x-heep/hw/core-v-mini-mcu/cpu_subsystem.sv
 x-heep/hw/core-v-mini-mcu/memory_subsystem.sv

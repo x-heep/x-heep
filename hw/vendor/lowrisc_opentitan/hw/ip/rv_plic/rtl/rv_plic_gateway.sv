@@ -4,7 +4,7 @@
 //
 // RISC-V Platform-Level Interrupt Gateways module
 
-module rv_plic_gateway_xheep #(
+module rv_plic_gateway #(
   parameter int N_SOURCE = 32
 ) (
   input clk_i,

@@ -35,7 +35,7 @@ module tb;
   uart_if uart_if();
 
   // dut
-  uart_xheep dut (
+  uart dut (
     .clk_i                (clk        ),
     .rst_ni               (rst_n      ),
 

@@ -14,7 +14,7 @@ module system_xbar
     parameter core_v_mini_mcu_pkg::bus_type_e BUS_TYPE = core_v_mini_mcu_pkg::BusType,
     parameter XBAR_NMASTER = 3,
     parameter XBAR_NSLAVE = 6,
-    localparam int unsigned IdxWidth = cf_math_pkg_xheep::idx_width(XBAR_NSLAVE)
+    localparam int unsigned IdxWidth = cf_math_pkg::idx_width(XBAR_NSLAVE)
 ) (
     input logic clk_i,
     input logic rst_ni,

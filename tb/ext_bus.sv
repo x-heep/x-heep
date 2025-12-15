@@ -13,7 +13,7 @@ module ext_bus #(
     // Dependent parameters: do not override
     localparam int unsigned EXT_XBAR_NMASTER_RND = EXT_XBAR_NMASTER == 0 ? 1 : EXT_XBAR_NMASTER,
     localparam int unsigned EXT_XBAR_NSLAVE_RND = EXT_XBAR_NSLAVE == 0 ? 1 : EXT_XBAR_NSLAVE,
-    localparam int unsigned IDX_WIDTH = cf_math_pkg_xheep::idx_width(EXT_XBAR_NSLAVE)
+    localparam int unsigned IDX_WIDTH = cf_math_pkg::idx_width(EXT_XBAR_NSLAVE)
 ) (
     input logic clk_i,
     input logic rst_ni,

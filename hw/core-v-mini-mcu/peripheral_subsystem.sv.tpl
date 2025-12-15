@@ -600,7 +600,7 @@ module peripheral_subsystem
       .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::UART_IDX])
   );
 
-  uart_xheep uart_i (
+  uart uart_i (
       .clk_i(clk_cg),
       .rst_ni,
       .tl_i(uart_tl_h2d),

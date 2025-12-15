@@ -1,5 +1,5 @@
 // xheep_wrapper.v
-`include "cf_math_pkg_xheep.sv"
+`include "cf_math_pkg.sv"
 `include "obi_pkg.sv"
 `include "esp_apb_pkg.sv"
 `include "axi_pkg.sv"

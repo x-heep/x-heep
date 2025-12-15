@@ -6,10 +6,10 @@
 
 // This file is auto-generated.
 
-package prim_pkg_xheep;
+package prim_pkg;
 
   // Implementation target specialization
   typedef enum integer {
     ${',\n    '.join(techlib_enums)}
   } impl_e;
-endpackage : prim_pkg_xheep
+endpackage : prim_pkg

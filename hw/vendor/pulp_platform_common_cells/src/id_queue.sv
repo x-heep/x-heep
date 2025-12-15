@@ -83,8 +83,8 @@ module id_queue #(
     // indices.
     localparam int NIds = 2**ID_WIDTH;
     localparam int HtCapacity = (NIds <= CAPACITY) ? NIds : CAPACITY;
-    localparam int unsigned HtIdxWidth = cf_math_pkg_xheep::idx_width(HtCapacity);
-    localparam int unsigned LdIdxWidth = cf_math_pkg_xheep::idx_width(CAPACITY);
+    localparam int unsigned HtIdxWidth = cf_math_pkg::idx_width(HtCapacity);
+    localparam int unsigned LdIdxWidth = cf_math_pkg::idx_width(CAPACITY);
 
     // Type for indexing the head-tail table.
     typedef logic [HtIdxWidth-1:0] ht_idx_t;

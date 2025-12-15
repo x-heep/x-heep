@@ -142,9 +142,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - Make `stream_register` truly stream by replacing internal FIFO with FFs.
-- Avoid using `$bits()` call in `id_queue_xheep`'s parameters.
+- Avoid using `$bits()` call in `id_queue`'s parameters.
 - Remove `cb_filter` and `cb_filter_pkg` from from Vivado IP packager project sources due to compatibility issues.
-- Use `tc_clk_mux` as glitch-free muxes in `rstgen_bypass_xheep` to avoid combinational glitches.
+- Use `tc_clk_mux` as glitch-free muxes in `rstgen_bypass` to avoid combinational glitches.
 - Avoid program blocks in testbenches for simulator compatibility.
 
 ### Fixed
@@ -187,7 +187,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Make reset value of `sync` module parameterizable.
 
 ### Changed
-- `id_queue_xheep`: Allow simultaneous input and output requests in `FULL_BW` mode
+- `id_queue`: Allow simultaneous input and output requests in `FULL_BW` mode
 
 ## 1.22.1 - 2021-06-14
 ### Fixed
@@ -210,8 +210,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 1.20.1 - 2021-01-21
 ### Changed
-- `id_queue_xheep`: Replace default or reset value of signals that were assigned `'x` with `'0`.
-- `id_queue_xheep`: Use `cf_math_pkg_xheep::idx_width()` for computation of localparams.
+- `id_queue`: Replace default or reset value of signals that were assigned `'x` with `'0`.
+- `id_queue`: Use `cf_math_pkg::idx_width()` for computation of localparams.
 
 ### Fixed
 - Add `XSIM` define guard for statements incompatible with `xsim`.
@@ -236,13 +236,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   without flow control for output data to be used in streams.
 - isochronous_spill_register: Isochronous clock domain crossing cutting all paths.
 - `rr_arb_tree_tb`: Systemverilog testbench for `rr_arb_tree`, which checks for fair throughput.
-- `cf_math_pkg_xheep::idx_width`: Constant function for defining the binary representation width
+- `cf_math_pkg::idx_width`: Constant function for defining the binary representation width
   of an index signal.
 
 ### Changed
-- `addr_decode`: Use `cf_math_pkg_xheep::idx_width` for computing the index width, inline documentation.
-- `lzc`: Use `cf_math_pkg_xheep::idx_width` for computing the index width, inline documentation.
-- `Bender`: Change levels of modules affected by depending on `cf_math_pkg_xheep::idx_width()`.
+- `addr_decode`: Use `cf_math_pkg::idx_width` for computing the index width, inline documentation.
+- `lzc`: Use `cf_math_pkg::idx_width` for computing the index width, inline documentation.
+- `Bender`: Change levels of modules affected by depending on `cf_math_pkg::idx_width()`.
 - `stream_xbar`: Fully connected stream bassed interconnect with variable number of inputs and outputs.
 - `stream_xbar`: Fully connected stream-bassed interconnect with a variable number of inputs and outputs.
 - `stream_omega_net`: Stream-based network implementing an omega topology. Variable number of inputs,
@@ -269,7 +269,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 1.16.4 - 2020-03-02
 ### Fixed
-- id_queue_xheep: Fix generation of `head_tail_q` registers
+- id_queue: Fix generation of `head_tail_q` registers
 
 ## 1.16.3 - 2020-02-11
 ### Fixed
@@ -287,7 +287,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## 1.16.0 - 2020-01-13
 ### Fixed
 - Handle degenerated `onehot_to_bin` with `ONEHOT_WIDTH == 1`
-- Handle degenerated `id_queue_xheep` with `CAPACITY == 1` or `HT_CAPACITY == 1`
+- Handle degenerated `id_queue` with `CAPACITY == 1` or `HT_CAPACITY == 1`
 - Fix `cdc_fifo_gray` to be a safe clock domain crossing (CDC)
 
 ## 1.15.0 - 2019-12-09
@@ -322,7 +322,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 - Added exponential backoff window module
 - Added parametric Galois LFSR module with optional whitening feature
-- Added `cf_math_pkg_xheep`: Constant Function implementations of mathematical functions for HDL elaboration
+- Added `cf_math_pkg`: Constant Function implementations of mathematical functions for HDL elaboration
 
 ### Changed
 - Parametric payload data type for `rr_arb_tree`
@@ -377,7 +377,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Add shift register
 
 ### Changed
-- Make number of registers of `rstgen_bypass_xheep` a parameter.
+- Make number of registers of `rstgen_bypass` a parameter.
 
 ### Fixed
 - Fix `valid_i` and `grant_i` guarantees in `generic_fifo` for backward compatibility.
@@ -459,7 +459,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 1.5.2 - 2018-03-16
 ### Changed
-- Remove deprecated `rstgen_xheep` and fix interface.
+- Remove deprecated `rstgen` and fix interface.
 
 ## 1.5.1 - 2018-03-16
 ### Changed

@@ -141,9 +141,10 @@ class MemorySS:
         Removes all previously added RAM banks and linker sections and adds 32kB numbanks RAM banks.
         :param int numbanks: number of 32kB banks to add.
         """
-        self._ram_next_addr = self._ram_start_address
-        self._ram_next_idx = 1
-        self._ram_banks = []
+        if not self._ignore_ram_interleaved:  # Do not undo interleaved override
+            self._ram_next_addr = self._ram_start_address
+            self._ram_next_idx = 1
+            self._ram_banks = []
 
         self.add_ram_banks([32] * numbanks)
         self._ignore_ram_continous = True
@@ -154,12 +155,13 @@ class MemorySS:
         Removes all previously added RAM banks and linker sections and adds 32kB numbanks_il interleaved RAM banks.
         :param int numbanks_il: number of 32kB interleaved banks to add.
         """
-        self._ram_next_addr = self._ram_start_address
-        self._ram_next_idx = 1
-        self._ram_banks = []
+        if not self._ignore_ram_continous:  # Do not undo continous override
+            self._ram_next_addr = self._ram_start_address
+            self._ram_next_idx = 1
+            self._ram_banks = []
 
-        self._ignore_ram_interleaved = True
         self._override_numbanks_il = numbanks_il
+        self._ignore_ram_interleaved = True
 
     def add_linker_section_for_banks(self, banks: "List[Bank]", name: str):
         """

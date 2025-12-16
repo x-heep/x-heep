@@ -5,6 +5,13 @@
             num: 6
             sizes: 32
         }
+        data_interleaved: {
+            auto_section: auto
+            // the name is used by example_matadd_interleaved as .xheep_data_interleaved
+            type: interleaved
+            num: 4
+            size: 16
+        }
     }
 
     linker_sections: 

@@ -31,8 +31,8 @@ int main()
 {
 
 #ifndef HAS_MEMORY_BANKS_IL
-    PRINTF("This application is only meant to be tested when there are interleaved memory banks\n");
-    return EXIT_SUCCESS;
+    PRINTF("This application is only meant to be run when there are interleaved memory banks\n");
+    return EXIT_FAILURE;
 #endif
 
 

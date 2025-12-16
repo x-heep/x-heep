@@ -158,8 +158,11 @@ def generate_xheep(args):
         int(stack_size, 16) + int(heap_size, 16)
     ) > xheep.memory_ss().ram_size_address():
         exit(
-            "The stack and heap section must fit in the RAM size, instead they takes "
-            + str(stack_size + heap_size)
+            "The stack and heap section must fit in the RAM size, instead they take "
+            + str(int(stack_size, 16) + int(heap_size, 16))
+            + " bytes while RAM size is "
+            + str(xheep.memory_ss().ram_size_address())
+            + " bytes."
         )
 
     kwargs = {

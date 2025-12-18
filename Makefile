@@ -370,16 +370,16 @@ clean-all: clean
 
 ## @section ESP Integration
 
-## Prepare ESP by copying files from esp_files to the parent xheep directory
+## Prepare ESP by copying files from esp_files/third-party to the parent xheep directory
 .PHONY: prepare_esp
 prepare_esp:
-	@echo "Copying files from esp_files to ../../ while maintaining directory structure..."
-	@if [ -d "$(mkfile_path)/esp_files" ]; then \
-		cd $(mkfile_path)/esp_files && \
+	@echo "Copying files from esp_files/third-party to ../../ while maintaining directory structure..."
+	@if [ -d "$(mkfile_path)/esp_files/third-party" ]; then \
+		cd $(mkfile_path)/esp_files/third-party && \
 		find . -type f -exec sh -c 'mkdir -p "$(mkfile_path)/../../$$(dirname "{}")" && cp -v "{}" "$(mkfile_path)/../../{}"' \; ; \
 		echo "ESP files copied successfully!"; \
 	else \
-		echo "ERROR: esp_files directory not found!"; \
+		echo "ERROR: esp_files/third-party directory not found!"; \
 		exit 1; \
 	fi
 	@echo "Checking and updating thirdparty.py..."

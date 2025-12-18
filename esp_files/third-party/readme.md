@@ -16,7 +16,7 @@ Clone X-HEEP (this branch) into the `ip` folder.
 
 From the top of the cloned X-HEEP root folder run:
 ```bash
-make prepare_esp
+make prepare-xheep-third-party
 ```
 
 This command will move all necessary files to their correct locations in the ESP directory structure.
@@ -242,7 +242,7 @@ int main(int argc, char **argv)
 
 | Step | Command | Description |
 |------|---------|-------------|
-| 1 | `make prepare_esp` | Prepare ESP integration |
+| 1 | `make prepare-xheep-third-party` | Prepare ESP integration |
 | 2 | `make esp-xconfig` | Configure SoC with GUI |
 | 3 | `make xheep` | Generate X-HEEP MCU and software |
 | 4 | `make sim` or `make sim-gui` | Launch simulation |

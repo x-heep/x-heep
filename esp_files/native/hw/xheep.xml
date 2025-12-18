@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sld>
+  <accelerator name="xheep" desc="Accelerator XHEEP" data_size="512" device_id="066" hls_tool="rtl">
+    <param name="code_size_words" desc="code_size_words" />
+    <param name="boot_fetch_code_addr" desc="boot_fetch_code_addr" />
+    <param name="boot_fetch_code" desc="boot_fetch_code" />
+    <param name="boot_exit_loop" desc="boot_exit_loop" />
+  </accelerator>
+</sld>

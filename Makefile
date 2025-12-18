@@ -370,23 +370,12 @@ clean-all: clean
 
 ## @section ESP Integration
 
-## Prepare ESP by copying files from esp_files/third-party to the parent xheep directory
-.PHONY: prepare_esp
-prepare_esp:
-	@echo "Copying files from esp_files/third-party to ../../ while maintaining directory structure..."
-	@if [ -d "$(mkfile_path)/esp_files/third-party" ]; then \
-		cd $(mkfile_path)/esp_files/third-party && \
-		find . -type f -exec sh -c 'mkdir -p "$(mkfile_path)/../../$$(dirname "{}")" && cp -v "{}" "$(mkfile_path)/../../{}"' \; ; \
-		echo "ESP files copied successfully!"; \
-	else \
-		echo "ERROR: esp_files/third-party directory not found!"; \
-		exit 1; \
-	fi
+define UPDATE_THIRDPARTY_PY
 	@echo "Checking and updating thirdparty.py..."
 	@if [ -f "$(mkfile_path)/../../../../../tools/socgen/thirdparty.py" ]; then \
 		if ! grep -q 'THIRDPARTY_COMPATIBLE\["xheep"\]' "$(mkfile_path)/../../../../../tools/socgen/thirdparty.py"; then \
 			echo "Adding X-HEEP configuration to thirdparty.py..."; \
-			sed -i '/#$$/i # X-HEEP\nTHIRDPARTY_COMPATIBLE["xheep"] = "epfl,200"\nTHIRDPARTY_IRQ_TYPE["xheep"]   = "1"            # 1 = level-sensitive IRQ\n' "$(mkfile_path)/../../../../tools/socgen/thirdparty.py"; \
+			sed -i '/#$$/i # X-HEEP\nTHIRDPARTY_COMPATIBLE["xheep"] = "epfl,200"\nTHIRDPARTY_IRQ_TYPE["xheep"]   = "1"            # 1 = level-sensitive IRQ\n' "$(mkfile_path)/../../../../../tools/socgen/thirdparty.py"; \
 			echo "X-HEEP configuration added to thirdparty.py"; \
 		else \
 			echo "X-HEEP configuration already exists in thirdparty.py"; \
@@ -395,7 +384,37 @@ prepare_esp:
 		echo "ERROR: thirdparty.py not found at expected location!"; \
 		exit 1; \
 	fi
-	@echo "ESP preparation completed successfully!"
+endef
+
+## Prepare ESP by copying files from esp_files/third-party to the parent xheep directory
+.PHONY: prepare-xheep-third-party
+prepare-xheep-third-party:
+	@echo "Copying files from esp_files/third-party to ../../ while maintaining directory structure..."
+	@if [ -d "$(mkfile_path)/esp_files/third-party" ]; then \
+		cd $(mkfile_path)/esp_files/third-party && \
+		find . -type f -exec sh -c 'mkdir -p "$(mkfile_path)/../../$$(dirname "{}")" && cp -v "{}" "$(mkfile_path)/../../{}"' \; ; \
+		echo "ESP third-party files copied successfully!"; \
+	else \
+		echo "ERROR: esp_files/third-party directory not found!"; \
+		exit 1; \
+	fi
+	$(UPDATE_THIRDPARTY_PY)
+	@echo "ESP third-party preparation completed successfully!"
+
+## Prepare ESP by copying files from esp_files/native to the parent xheep directory
+.PHONY: prepare-xheep-native
+prepare-xheep-native:
+	@echo "Copying files from esp_files/native to ../../ while maintaining directory structure..."
+	@if [ -d "$(mkfile_path)/esp_files/native" ]; then \
+		cd $(mkfile_path)/esp_files/native && \
+		find . -type f -exec sh -c 'mkdir -p "$(mkfile_path)/../../$$(dirname "{}")" && cp -v "{}" "$(mkfile_path)/../../{}"' \; ; \
+		echo "ESP native files copied successfully!"; \
+	else \
+		echo "ERROR: esp_files/native directory not found!"; \
+		exit 1; \
+	fi
+	$(UPDATE_THIRDPARTY_PY)
+	@echo "ESP native preparation completed successfully!"
 
 ## @section Utilities
 # Check if a program is available in PATH

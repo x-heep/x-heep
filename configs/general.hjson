@@ -1,9 +1,16 @@
 {
-    bus_type: "onetoM"
+    bus_type: "NtoM"
     ram_banks: {
         code_and_data: {
-            num: 2
+            num: 3
             sizes: [32]
+        }
+        data_interleaved: {
+            auto_section: auto
+            // the name is used by example_matadd_interleaved as .xheep_data_interleaved
+            type: interleaved
+            num: 8
+            size: 32
         }
     }
 
@@ -13,31 +20,29 @@
             name: code
             start: 0
             #minimum size for freeRTOS and clang
-            size: 0x00000E800
+            size: 0x00000F800
         }
         {
             name: data
-            start: 0x00000E800
+            start: 0x00000F800
         }
-    ]
-
-    // Copyright 2020 ETH Zurich and University of Bologna.
+    ]    
+    debug: {
+        address: 0x10000000
+        length:  0x00100000
+        has_spi_slave: "yes"
+}
+// Copyright 2020 ETH Zurich and University of Bologna.
     // Solderpad Hardware License, Version 0.51, see LICENSE for details.
     // SPDX-License-Identifier: SHL-0.51
     // Derived from Occamy: https://github.com/pulp-platform/snitch/blob/master/hw/system/occamy/src/occamy_cfg.hjson
     // Peripherals configuration for core-v-mini-mcu.
 
-    cpu_type: cv32e20
+    cpu_type: cv32e40x
 
     linker_script: {
         stack_size: 0x800
         heap_size: 0x800
-    }
-
-    debug: {
-        address: 0x10000000
-        length:  0x00100000
-        has_spi_slave: "yes"
     }
 
     //if is_include is missing, it means it is always instantiated (like is_included "yes")

@@ -506,6 +506,7 @@ targets:
     - COREV_PULP
     - FPU
     - ZFINX
+    - QUADRILATERO
     - X_EXT
     - SYNTHESIS=true
     - REMOVE_OBI_FIFO

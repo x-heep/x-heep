@@ -80,10 +80,10 @@ module xilinx_core_v_mini_mcu_wrapper
 
   // Internal JTAG wires
   // This is to control the JTAG through the CPU
-  wire int_jtag_tck_i;
-  wire int_jtag_tms_i;
-  wire int_jtag_tdi_i;
-  wire int_jtag_tdo_o;
+  wire                               int_jtag_tck_i;
+  wire                               int_jtag_tms_i;
+  wire                               int_jtag_tdi_i;
+  wire                               int_jtag_tdo_o;
 
 
   // low active reset
@@ -116,12 +116,12 @@ module xilinx_core_v_mini_mcu_wrapper
       .CLK_IN1_D_0_clk_p(clk_300mhz_p),
       .clk_out1_0(clk_gen)
   );
-  axi_jtag_bridge_wrapper axi_jtag_bridge_wrapper_i(
-    .tck_0(int_jtag_tck_i),
-    .tdi_0(int_jtag_tdi_i),
-    .tdo_0(int_jtag_tdo_o),
-    .tms_0(int_jtag_tms_i)
-    );
+  axi_jtag_bridge_wrapper axi_jtag_bridge_wrapper_i (
+      .tck_0(int_jtag_tck_i),
+      .tdi_0(int_jtag_tdi_i),
+      .tdo_0(int_jtag_tdo_o),
+      .tms_0(int_jtag_tms_i)
+  );
 `elsif FPGA_ZCU102
   xilinx_clk_wizard_wrapper xilinx_clk_wizard_wrapper_i (
       .CLK_IN1_D_0_clk_n(clk_125mhz_n),

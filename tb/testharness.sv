@@ -726,8 +726,8 @@ module testharness #(
         assign ext_master_req[testharness_pkg::EXT_MASTER4_IDX] = '0;
         assign ext_master_req[testharness_pkg::EXT_MASTER5_IDX] = '0;
         assign ext_master_req[testharness_pkg::EXT_MASTER6_IDX] = '0;
-        assign ext_master_req[testharness_pkg::EXT_MASTER7_IDX] = '0; 
-      
+        assign ext_master_req[testharness_pkg::EXT_MASTER7_IDX] = '0;
+
       end
 
     end else begin : gen_DONT_USE_EXTERNAL_DEVICE_EXAMPLE

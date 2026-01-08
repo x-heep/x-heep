@@ -12,7 +12,8 @@
  * Author: Thomas Lenges   <thomas.lenges@epfl.ch> 
  *                         <thomas.lenges@hotmail.com>
  */
-module w25q128jw_controller import core_v_mini_mcu_pkg::*;
+module w25q128jw_controller
+  import core_v_mini_mcu_pkg::*;
 #(
     parameter type reg_req_t = reg_pkg::reg_req_t,
     parameter type reg_rsp_t = reg_pkg::reg_rsp_t

@@ -51,8 +51,8 @@ module system_bus
     input  obi_req_t  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_addr_req_i,
     output obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_addr_resp_o,
 
-    input   obi_req_t  w25q128jw_controller_master_bus_req_i,
-    output  obi_resp_t w25q128jw_controller_master_bus_resp_o,
+    input   obi_req_t  w25q128jw_controller_req_i,
+    output  obi_resp_t w25q128jw_controller_resp_o,
 
     // External master ports
     input  obi_req_t  [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_req_i,
@@ -128,14 +128,13 @@ module system_bus
   assign int_master_req[core_v_mini_mcu_pkg::CORE_INSTR_IDX] = core_instr_req_i;
   assign int_master_req[core_v_mini_mcu_pkg::CORE_DATA_IDX] = core_data_req_i;
   assign int_master_req[core_v_mini_mcu_pkg::DEBUG_MASTER_IDX] = debug_master_req_i;
+  assign int_master_req[core_v_mini_mcu_pkg::W25Q128JW_CONTROLLER_MASTER_IDX] = w25q128jw_controller_req_i;
 
   % for i in range(dma.get_num_master_ports()):
-  assign int_master_req[${3+i*3}]  = dma_read_req_i[${i}];
-  assign int_master_req[${4+i*3}] = dma_write_req_i[${i}];
-  assign int_master_req[${5+i*3}]  = dma_addr_req_i[${i}];
+  assign int_master_req[${4+i*3}]  = dma_read_req_i[${i}];
+  assign int_master_req[${5+i*3}] = dma_write_req_i[${i}];
+  assign int_master_req[${6+i*3}]  = dma_addr_req_i[${i}];
   % endfor
-
-  assign int_master_req[9] = w25q128jw_controller_master_bus_req_i;
 
   // Internal + external master requests
   generate
@@ -156,14 +155,13 @@ module system_bus
   assign core_instr_resp_o = int_master_resp[core_v_mini_mcu_pkg::CORE_INSTR_IDX];
   assign core_data_resp_o = int_master_resp[core_v_mini_mcu_pkg::CORE_DATA_IDX];
   assign debug_master_resp_o = int_master_resp[core_v_mini_mcu_pkg::DEBUG_MASTER_IDX];
+  assign w25q128jw_controller_resp_o = int_master_resp[core_v_mini_mcu_pkg::W25Q128JW_CONTROLLER_MASTER_IDX];
 
   % for i in range(dma.get_num_master_ports()):
-  assign dma_read_resp_o[${i}] = int_master_resp[${3+i*3}];
-  assign dma_write_resp_o[${i}] = int_master_resp[${4+i*3}];
-  assign dma_addr_resp_o[${i}] = int_master_resp[${5+i*3}];
+  assign dma_read_resp_o[${i}] = int_master_resp[${4+i*3}];
+  assign dma_write_resp_o[${i}] = int_master_resp[${5+i*3}];
+  assign dma_addr_resp_o[${i}] = int_master_resp[${6+i*3}];
   % endfor
-
-  assign w25q128jw_controller_master_bus_resp_o = int_master_resp[9];
   
   // External master responses
   if (EXT_XBAR_NMASTER == 0) begin : gen_no_ext_master_resp

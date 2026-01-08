@@ -72,6 +72,7 @@ MCU_GEN_TEMPLATES = \
 	hw/core-v-mini-mcu/memory_subsystem.sv.tpl \
 	hw/core-v-mini-mcu/ao_peripheral_subsystem.sv.tpl \
 	hw/core-v-mini-mcu/peripheral_subsystem.sv.tpl \
+	hw/core-v-mini-mcu/spi_subsystem.sv.tpl \
 	hw/core-v-mini-mcu/cpu_subsystem.sv.tpl \
 	hw/system/x_heep_system.sv.tpl \
 	hw/system/pad_ring.sv.tpl \

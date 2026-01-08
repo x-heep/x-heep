@@ -18,6 +18,7 @@ from .peripherals.base_peripherals import (
     Bootrom,
     SPI_flash,
     SPI_memio,
+    W25Q128JW_CONTROLLER,
     DMA,
     Power_manager,
     RV_timer_ao,
@@ -38,7 +39,6 @@ from .peripherals.user_peripherals import (
     PDM2PCM,
     I2S,
     UART,
-    W25Q128JW_CONTROLLER,
 )
 
 
@@ -280,6 +280,8 @@ def load_peripherals_config(system: XHeep, config_path: str):
                         peripheral = SPI_flash(offset, length)
                     elif peripheral_name == "spi_memio":
                         peripheral = SPI_memio(offset, length)
+                    elif peripheral_name == "w25q128jw_controller":
+                        peripheral = W25Q128JW_CONTROLLER(offset, length)
                     elif peripheral_name == "dma":
                         try:
                             if peripheral_config["is_included"] == "yes":
@@ -404,8 +406,6 @@ def load_peripherals_config(system: XHeep, config_path: str):
                         peripheral = I2S(offset, length)
                     elif peripheral_name == "uart":
                         peripheral = UART(offset, length)
-                    elif peripheral_name == "w25q128jw_controller":
-                        peripheral = W25Q128JW_CONTROLLER(offset, length)
                     else:
                         raise ValueError(
                             f"Peripheral {peripheral_name} does not exist."

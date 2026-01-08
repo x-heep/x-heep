@@ -2,7 +2,9 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
-
+<%
+  base_peripheral_domain = xheep.get_base_peripheral_domain()
+%>
 
 module spi_subsystem
   import obi_pkg::*;
@@ -19,14 +21,14 @@ module spi_subsystem
     output obi_resp_t spimemio_resp_o,
 
     // Yosys SPI configuration
-    input  reg_req_t yo_reg_req_i,
-    output reg_rsp_t yo_reg_rsp_o,
+    input  reg_req_t  yo_reg_req_i,
+    output reg_rsp_t  yo_reg_rsp_o,
     // OpenTitan SPI configuration
-    input  reg_req_t ot_reg_req_i,
-    output reg_rsp_t ot_reg_rsp_o,
+    input  reg_req_t  ot_reg_req_i,
+    output reg_rsp_t  ot_reg_rsp_o,
     // w25q128jw flash controller configuration
-    input  reg_req_t flash_ctr_reg_req_i,
-    output reg_rsp_t flash_ctr_reg_rsp_o,
+    input  reg_req_t  flash_ctr_reg_req_i,
+    output reg_rsp_t  flash_ctr_reg_rsp_o,
 
     // Master ports on the system bus
     output obi_pkg::obi_req_t  w25q128jw_controller_obi_req_o,
@@ -162,6 +164,7 @@ module spi_subsystem
       .intr_spi_event_o(ot_spi_intr_event)
   );
 
+% if base_peripheral_domain.contains_peripheral('w25q128jw_controller'):
 
   w25q128jw_controller #(
       .reg_req_t(reg_pkg::reg_req_t),
@@ -186,6 +189,11 @@ module spi_subsystem
       .dma_done_i
   );
 
+% else:
+  assign w25q128jw_controller_obi_req_o = '0;
+  assign w25q128jw_controller_intr_o = '0;
+  assign flash_ctr_reg_rsp_o = '0;
+% endif
 
 
 

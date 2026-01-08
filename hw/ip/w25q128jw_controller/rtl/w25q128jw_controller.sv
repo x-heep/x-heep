@@ -31,11 +31,11 @@ module w25q128jw_controller #(
     output logic w25q128jw_controller_done_o,
 
     // Interrupt signal
-    output logic w25q128jw_controller_interrupt_o,
+    output logic w25q128jw_controller_intr_o,
 
     // Master ports on the system bus
-    output obi_pkg::obi_req_t  w25q128jw_controller_master_bus_req_o,
-    input  obi_pkg::obi_resp_t w25q128jw_controller_master_bus_resp_i,
+    output obi_pkg::obi_req_t  w25q128jw_controller_obi_req_o,
+    input  obi_pkg::obi_resp_t w25q128jw_controller_obi_resp_i,
 
     // DMA channel done signals (directly from DMA IP)
     input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_done_i
@@ -101,11 +101,11 @@ module w25q128jw_controller #(
 
   // FSM combinational logic
   always_comb begin
-    w25q128jw_controller_master_bus_req_o.req = 1'b0;
-    w25q128jw_controller_master_bus_req_o.we = 1'b0;
-    w25q128jw_controller_master_bus_req_o.be = 4'b1111;  // All bytes enabled
-    w25q128jw_controller_master_bus_req_o.addr = 32'h00000000;
-    w25q128jw_controller_master_bus_req_o.wdata = 32'h00000000;
+    w25q128jw_controller_obi_req_o.req = 1'b0;
+    w25q128jw_controller_obi_req_o.we = 1'b0;
+    w25q128jw_controller_obi_req_o.be = 4'b1111;  // All bytes enabled
+    w25q128jw_controller_obi_req_o.addr = 32'h00000000;
+    w25q128jw_controller_obi_req_o.wdata = 32'h00000000;
 
     obi_finish = 1'b0;
     read_value = 32'h00000000;
@@ -124,13 +124,13 @@ module w25q128jw_controller #(
       // -------- ISSUE REQUEST STATE --------
       // Assert request signals and wait for grant from target (w_enable/address/data also come from controller FSM)
       OBI_ISSUE_REQ: begin
-        w25q128jw_controller_master_bus_req_o.req = 1'b1;
-        w25q128jw_controller_master_bus_req_o.we = w_enable;
-        w25q128jw_controller_master_bus_req_o.addr = address;
-        w25q128jw_controller_master_bus_req_o.wdata = data;
+        w25q128jw_controller_obi_req_o.req = 1'b1;
+        w25q128jw_controller_obi_req_o.we = w_enable;
+        w25q128jw_controller_obi_req_o.addr = address;
+        w25q128jw_controller_obi_req_o.wdata = data;
 
         // Proceed when target grants the request
-        if (w25q128jw_controller_master_bus_resp_i.gnt) begin
+        if (w25q128jw_controller_obi_resp_i.gnt) begin
           obi_state_d = OBI_WAIT_RVALID;
         end
       end
@@ -138,8 +138,8 @@ module w25q128jw_controller #(
       // -------- WAIT FOR RESPONSE STATE --------
       // Wait for rvalid, then capture read data and signal transaction completion
       OBI_WAIT_RVALID: begin
-        if (w25q128jw_controller_master_bus_resp_i.rvalid) begin
-          read_value  = w25q128jw_controller_master_bus_resp_i.rdata;
+        if (w25q128jw_controller_obi_resp_i.rvalid) begin
+          read_value  = w25q128jw_controller_obi_resp_i.rdata;
           obi_finish  = 1'b1;
           obi_state_d = OBI_IDLE;
         end
@@ -1908,7 +1908,7 @@ module w25q128jw_controller #(
   // Assignments
   assign hw2reg.status.d = (top_state_q == TOP_IDLE); // READY = 1 when TOP FSM is in IDLE state, 0 otherwise
   assign hw2reg.status.de = 1'b1;  // Always update status register
-  assign w25q128jw_controller_interrupt_o = reg2hw.intr_status; // ISR Handler lowers interrupt status register (interrupt register is risen in hw2reg by FSM when done)
+  assign w25q128jw_controller_intr_o = reg2hw.intr_status; // ISR Handler lowers interrupt status register (interrupt register is risen in hw2reg by FSM when done)
 
   // Registers 
   w25q128jw_controller_reg_top #(

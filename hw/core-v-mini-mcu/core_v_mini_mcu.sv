@@ -329,8 +329,6 @@ module core_v_mini_mcu
     output logic [EXT_HARTS_RND-1:0] ext_debug_req_o,
     output logic ext_debug_reset_no,
 
-    output logic w25q128jw_controller_done_o,
-
     // PLIC external interrupts
     input logic [NEXT_INT_RND-1:0] intr_vector_ext_i,
     // FIC external interrupt
@@ -398,8 +396,9 @@ module core_v_mini_mcu
   obi_resp_t [core_v_mini_mcu_pkg::NUM_BANKS-1:0] ram_slave_resp;
 
   // w25q128jw controller signals
-  obi_req_t w25q128jw_controller_master_bus_req_i;
-  obi_resp_t w25q128jw_controller_master_bus_resp_o;
+  obi_req_t w25q128jw_controller_obi_req;
+  obi_resp_t w25q128jw_controller_obi_resp;
+  logic w25q128jw_controller_intr;
 
   // debug signals
   obi_req_t debug_slave_req;
@@ -629,8 +628,8 @@ module core_v_mini_mcu
       .ext_dma_write_resp_i(ext_dma_write_resp_i),
       .ext_dma_addr_req_o(ext_dma_addr_req_o),
       .ext_dma_addr_resp_i(ext_dma_addr_resp_i),
-      .w25q128jw_controller_master_bus_req_i(w25q128jw_controller_master_bus_req_i),
-      .w25q128jw_controller_master_bus_resp_o(w25q128jw_controller_master_bus_resp_o)
+      .w25q128jw_controller_req_i(w25q128jw_controller_obi_req),
+      .w25q128jw_controller_resp_o(w25q128jw_controller_obi_resp)
   );
 
   memory_subsystem #(
@@ -662,6 +661,9 @@ module core_v_mini_mcu
       .exit_value_o,
       .spimemio_req_i(flash_mem_slave_req),
       .spimemio_resp_o(flash_mem_slave_resp),
+      .w25q128jw_controller_intr_o(w25q128jw_controller_intr),
+      .w25q128jw_controller_obi_req_o(w25q128jw_controller_obi_req),
+      .w25q128jw_controller_obi_resp_i(w25q128jw_controller_obi_resp),
       .spi_flash_sck_o,
       .spi_flash_sck_en_o(spi_flash_sck_oe_o),
       .spi_flash_csb_o({spi_flash_cs_1_o, spi_flash_cs_0_o}),
@@ -724,6 +726,7 @@ module core_v_mini_mcu
       .intr_vector_ext_i,
       .irq_plic_o(irq_external),
       .msip_o(irq_software),
+      .w25q128jw_controller_intr_i(w25q128jw_controller_intr),
       .cio_gpio_i(gpio_in),
       .cio_gpio_o(gpio_out),
       .cio_gpio_en_o(gpio_oe),
@@ -766,11 +769,7 @@ module core_v_mini_mcu
       .i2s_sd_i(i2s_sd_i),
       .i2s_rx_valid_o(i2s_rx_valid),
       .uart_rx_i,
-      .uart_tx_o,
-      .w25q128jw_controller_done_o(w25q128jw_controller_done_o),
-      .w25q128jw_controller_master_bus_req_o(w25q128jw_controller_master_bus_req_i),
-      .w25q128jw_controller_master_bus_resp_i(w25q128jw_controller_master_bus_resp_o),
-      .dma_done_i(dma_done_o)
+      .uart_tx_o
   );
 
   // Debug_req assign

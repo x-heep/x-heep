@@ -102,7 +102,7 @@ MCU_GEN_TEMPLATES = \
 # Compiler options are 'gcc' (default) and 'clang'
 COMPILER 		?= gcc
 # Compiler prefix options are 'riscv32-corev-' (default) and 'riscv32-unknown-'
-COMPILER_PREFIX ?= $(shell command -v riscv32-corev-elf-gcc > /dev/null && echo riscv32-corev- || echo riscv32-unknown-)
+COMPILER_PREFIX ?= $(shell basename $$(ls $(RISCV_XHEEP)/bin/*gcc 2>/dev/null | head -1) | sed 's/elf-gcc$$//')
 # Compiler flags to be passed (for both linking and compiling)
 COMPILER_FLAGS 	?=
 # Arch options are any RISC-V ISA string supported by the CPU. Default 'rv32imc_zicsr'

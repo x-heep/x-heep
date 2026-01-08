@@ -18,9 +18,11 @@ The block diagram below shows the `X-HEEP` MCU
 
 You can access an editable version of this diagram for your use in presentations or publications [here](https://viewer.diagrams.net/?tags=%7B%7D&lightbox=1&highlight=0000FF&edit=_blank&layers=1&nav=1&title=X-HEEP-general-diagram.drawio&dark=auto#Uhttps%3A%2F%2Fdrive.google.com%2Fuc%3Fid%3D1FxAmuywf1zneG0PeiYe_IHTJCv-3kLPI%26export%3Ddownload). 
 
-## :bookmark_tabs: Documentation
+## :bookmark_tabs: Documentation and Community
 
-Please refer to the documentation in [Read the Docs](https://x-heep.readthedocs.io/en/latest/index.html)
+You can refer to the documentation in [Read the Docs](https://x-heep.readthedocs.io/en/latest/index.html).
+
+Join the community on Matrix: [#x-heep:matrix.org](https://matrix.to/#/#x-heep:matrix.org).
 
 ## Reference
 

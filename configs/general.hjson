@@ -63,8 +63,8 @@
             length:  0x00000008
         }
         w25q128jw_controller: {
-            offset:  0x00028008
-            length:  0x00007FF8
+            offset:  0x00029000
+            length:  0x00007000
             is_included: "yes"
             path:    "./hw/ip/w25q128jw_controller/data/w25q128jw_controller.hjson"
         }

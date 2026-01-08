@@ -12,13 +12,10 @@
  * Author: Thomas Lenges   <thomas.lenges@epfl.ch> 
  *                         <thomas.lenges@hotmail.com>
  */
-module w25q128jw_controller #(
+module w25q128jw_controller import core_v_mini_mcu_pkg::*;
+#(
     parameter type reg_req_t = reg_pkg::reg_req_t,
-    parameter type reg_rsp_t = reg_pkg::reg_rsp_t,
-    // Enable DMA zero padding feature initialization (see DMA_INIT FSM)
-    parameter logic DMA_ZERO_PADDING = 1'b1,
-    // Enable DMA address mode feature initialization (see DMA_INIT FSM)
-    parameter logic DMA_ADDR_MODE = 1'b1
+    parameter type reg_rsp_t = reg_pkg::reg_rsp_t
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -43,9 +40,9 @@ module w25q128jw_controller #(
 
   // ============== PACKAGE IMPORTS ==============
   import w25q128jw_controller_reg_pkg::*;
-  import core_v_mini_mcu_pkg::*;
   import spi_host_reg_pkg::*;
   import dma_reg_pkg::*;
+  `include "dma_conf.svh"
 
   // ============== REGISTER SIGNALS ==============
   w25q128jw_controller_reg2hw_t reg2hw;
@@ -53,6 +50,22 @@ module w25q128jw_controller #(
 
   // ============== LOCAL PARAMETERS ==============
   localparam int SPI_FLASH_TX_FIFO_DEPTH = spi_host_reg_pkg::TxDepth;
+
+  // Enable DMA zero padding feature initialization (see DMA_INIT FSM)
+`ifdef ZERO_PADDING_EN
+  localparam logic DMA_ZERO_PADDING = 1'b1;
+`else
+  localparam logic DMA_ZERO_PADDING = 1'b0;
+`endif
+
+  // Enable DMA address mode feature initialization (see DMA_INIT FSM)
+`ifdef ADDR_MODE_EN
+  localparam logic DMA_ADDR_MODE = 1'b1;
+`else
+  localparam logic DMA_ADDR_MODE = 1'b0;
+`endif
+
+
   // FLASH COMMANDS
   localparam logic [12:0] FC_RD = 13'h03,  // Read Data
   FC_RSR1 = 13'h05,  // Read Status Register 1

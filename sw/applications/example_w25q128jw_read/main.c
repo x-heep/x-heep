@@ -64,8 +64,6 @@ __attribute__((optimize("O0"))) void w25q128jw_controller_run(){
 
 int main(void) {
 
-    printf("Read test with 128 bytes\n");
-
     w25q128jw_controller_run();
 
     uint32_t res =  check_result(ram_golden_data, LENGTH_BYTES);

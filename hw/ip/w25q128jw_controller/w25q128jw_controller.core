@@ -13,6 +13,7 @@ filesets:
     depend:
       - x-heep::packages
       - lowrisc:ip:spi_host:1.0
+      - x-heep:ip:dma
     files:
     - rtl/w25q128jw_controller_reg_pkg.sv
     - rtl/w25q128jw_controller_reg_top.sv

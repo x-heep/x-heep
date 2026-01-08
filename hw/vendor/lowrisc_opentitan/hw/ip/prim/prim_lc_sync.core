@@ -20,14 +20,14 @@ filesets:
     depend:
       # common waivers
       - lowrisc:lint:common
-    files:
+    files: []
     file_type: vlt
 
   files_ascentlint_waiver:
     depend:
       # common waivers
       - lowrisc:lint:common
-    files:
+    files: []
       # - lint/prim_lc_sync.waiver
     file_type: waiver
 

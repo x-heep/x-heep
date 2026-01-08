@@ -83,7 +83,13 @@ module peripheral_subsystem
     // PDM2PCM Interface
     output logic pdm2pcm_clk_o,
     output logic pdm2pcm_clk_en_o,
-    input  logic pdm2pcm_pdm_i
+    input  logic pdm2pcm_pdm_i,
+
+    // W25Q128JW controller
+    output logic                                            w25q128jw_controller_done_o,
+    output obi_req_t                                        w25q128jw_controller_master_bus_req_o,
+    input  obi_resp_t                                       w25q128jw_controller_master_bus_resp_i,
+    input  logic      [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_done_i
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -145,6 +151,8 @@ module peripheral_subsystem
   logic uart_intr_rx_timeout;
   logic uart_intr_rx_parity_err;
 
+  logic w25q128jw_controller_intr_event;
+
   // this avoids lint errors
   assign unused_irq_id = irq_id;
 
@@ -177,6 +185,7 @@ module peripheral_subsystem
   assign intr_vector[48] = i2c_intr_host_timeout;
   assign intr_vector[49] = spi2_intr_event;
   assign intr_vector[50] = i2s_intr_event;
+  assign intr_vector[51] = w25q128jw_controller_intr_event;
 
   // External interrupts assignement
   for (genvar i = 0; i < NEXT_INT; i++) begin : gen_external_intr_vect
@@ -472,6 +481,7 @@ module peripheral_subsystem
   );
 
 
+
   reg_to_tlul #(
       .req_t(reg_pkg::reg_req_t),
       .rsp_t(reg_pkg::reg_rsp_t),
@@ -509,5 +519,27 @@ module peripheral_subsystem
 
 
 
+  w25q128jw_controller #(
+      .reg_req_t(reg_pkg::reg_req_t),
+      .reg_rsp_t(reg_pkg::reg_rsp_t)
+  ) w25q128jw_controller_i (
+      .clk_i(clk_cg),
+      .rst_ni,
+
+      // Register interface
+      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::W25Q128JW_CONTROLLER_IDX]),
+      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::W25Q128JW_CONTROLLER_IDX]),
+
+      // Done signal
+      .w25q128jw_controller_done_o,
+
+      // Interrupt signal
+      .w25q128jw_controller_interrupt_o(w25q128jw_controller_intr_event),
+
+      // Master ports on the system bus
+      .w25q128jw_controller_master_bus_req_o,
+      .w25q128jw_controller_master_bus_resp_i,
+      .dma_done_i
+  );
 
 endmodule : peripheral_subsystem

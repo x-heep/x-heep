@@ -7,7 +7,7 @@ name: "lowrisc:dv:xbar_macros:0.1"
 description: "XBAR Macros"
 filesets:
   files_dv:
-    depend:
+    depend: []
     files:
       - xbar_macros.svh
     file_type: systemVerilogSource

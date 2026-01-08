@@ -15,7 +15,7 @@ filesets:
     depend:
       # common waivers
       - lowrisc:lint:common
-    files:
+    files: []
       #- lint/prim_generic_usb_diff_rx.vlt
     file_type: vlt
 
@@ -23,7 +23,7 @@ filesets:
     depend:
       # common waivers
       - lowrisc:lint:common
-    files:
+    files: []
       #- lint/prim_generic_usb_diff_rx.waiver
     file_type: waiver
 

@@ -15,8 +15,9 @@
 #include "w25q128jw.h"
 
 /* By default, PRINTFs are activated for FPGA and disabled for simulation. */
-#define PRINTF_IN_FPGA  1
-#define PRINTF_IN_SIM   0
+#define PRINTF_IN_FPGA  0
+#define PRINTF_IN_SIM   1
+
 
 #if TARGET_SIM && PRINTF_IN_SIM
         #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
@@ -228,6 +229,8 @@ uint32_t test_read(uint32_t *test_buffer, uint32_t len) {
 #ifndef ON_CHIP
 uint32_t test_read_flash_only(uint32_t *test_buffer, uint32_t len) {
 
+    // Gives the address offset how where the test_buffer is stored in the flash
+    // Doesn't make any sense/supported if load test_buffer directly on_chip
     uint32_t *test_buffer_flash = heep_get_flash_address_offset(test_buffer);
 
     // Read from flash memory at the same address

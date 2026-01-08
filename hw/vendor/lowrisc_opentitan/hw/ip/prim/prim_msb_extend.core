@@ -22,7 +22,7 @@ filesets:
     depend:
       # common waivers
       - lowrisc:lint:common
-    files:
+    files: []
     file_type: waiver
 
   files_veriblelint_waiver:

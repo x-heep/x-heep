@@ -76,6 +76,11 @@
  */
 #define I2S_ID          I2S_INTR_EVENT
 
+/**
+ * ID of the W25Q128JW_CONTROLLER interrupt request lines
+ */
+#define W25Q128JW_CONTROLLER_ID          W25Q128JW_CONTROLLER_INTR_EVENT
+
 
 /**
  * ID of the external interrupt request lines

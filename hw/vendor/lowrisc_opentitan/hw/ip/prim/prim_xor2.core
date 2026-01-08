@@ -15,7 +15,7 @@ filesets:
     depend:
       # common waivers
       - lowrisc:lint:common
-    files:
+    files: []
     file_type: vlt
 
   files_ascentlint_waiver:

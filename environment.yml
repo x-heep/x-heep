@@ -1,0 +1,19 @@
+name: core-v-mini-mcu
+channels:
+  - defaults
+dependencies:
+  - python=3.8
+  - pip
+  - pip:
+    - gitpython==3.1.25
+    - hjson==3.0.2
+    - pyyaml==6.0
+    - sphinx==4.3.2
+    - yamlfmt==1.1.0
+    - mako==1.1.6
+    - jsonref==0.2
+    - black==24.8.0
+    - git+https://github.com/davideschiavone/fusesoc.git@ot#egg=fusesoc >= 1.11.0
+    - git+https://github.com/davideschiavone/edalize.git
+    - git+https://github.com/vlsi-lab/rv_profile.git
+    - git+https://github.com/vlsi-lab/area-plot-post-syn.git

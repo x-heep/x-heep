@@ -8,6 +8,7 @@
 
 module dma
   import fifo_pkg::*;
+  import dma_reg_pkg::*;
 #(
     parameter int FIFO_DEPTH = 4,
     parameter int RVALID_FIFO_DEPTH = 1,
@@ -41,13 +42,14 @@ module dma
 
     input logic [SLOT_NUM-1:0] trigger_slot_i,
 
+    input dma_hw2reg_t external_hw2reg_i,
+
     output dma_done_intr_o,
     output dma_window_intr_o,
 
     output dma_done_o
 );
 
-  import dma_reg_pkg::*;
   `include "dma_conf.svh"
 
   /*_________________________________________________________________________________________________________________________________ */
@@ -565,11 +567,21 @@ module dma
   assign dma_window_intr = window_ifr;
   assign dma_window_intr_o = dma_window_intr_n;
 
-  assign hw2reg.transaction_ifr.d = transaction_ifr;
-  assign hw2reg.window_ifr.d = window_ifr;
+  always_comb begin
+    hw2reg = '0;
 
-  assign hw2reg.status.ready.d = (dma_state_q == DMA_READY);
-  assign hw2reg.status.window_done.d = window_event;
+    if (reg2hw.hw_config_mode.q) begin
+      hw2reg = external_hw2reg_i;
+    end
+    //these registers are controlled only by the DMA and never externally
+    //thus, they are overwritten
+    hw2reg.transaction_ifr.d = transaction_ifr;
+    hw2reg.window_ifr.d = window_ifr;
+    hw2reg.status.ready.d = (dma_state_q == DMA_READY);
+    hw2reg.status.window_done.d = window_event;
+    hw2reg.window_count.d = window_counter[7:0];
+  end
+
 
   assign circular_mode = reg2hw.mode.q == 1;
   assign address_mode = reg2hw.mode.q == 2;
@@ -582,6 +594,5 @@ module dma
   //TODO: is it really necessary? Do we need to write into a register how many events are done?
   //      Or do we need only the window donw signal?
   assign window_event = |reg2hw.window_size.q & data_out_gnt & (window_counter == {19'h0, reg2hw.window_size.q});
-  assign hw2reg.window_count.d = window_counter;
 
 endmodule : dma

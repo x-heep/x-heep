@@ -11,9 +11,11 @@
  *
  * Author: Thomas Lenges   <thomas.lenges@epfl.ch> 
  *                         <thomas.lenges@hotmail.com>
+ * Additional authors:  Davide Schiavone <davide.schiavone@epfl.ch>
  */
 module w25q128jw_controller
   import core_v_mini_mcu_pkg::*;
+  import dma_reg_pkg::*;
 #(
     parameter type reg_req_t = reg_pkg::reg_req_t,
     parameter type reg_rsp_t = reg_pkg::reg_rsp_t
@@ -32,8 +34,10 @@ module w25q128jw_controller
     output logic w25q128jw_controller_intr_o,
 
     // Master ports on the system bus
-    output obi_pkg::obi_req_t  w25q128jw_controller_obi_req_o,
-    input  obi_pkg::obi_resp_t w25q128jw_controller_obi_resp_i,
+    output obi_pkg::obi_req_t w25q128jw_controller_obi_req_o,
+    input obi_pkg::obi_resp_t w25q128jw_controller_obi_resp_i,
+    output dma_reg_pkg::dma_hw2reg_t external_dma_hw2reg_o,
+
 
     // DMA channel done signals (directly from DMA IP)
     input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_done_i
@@ -42,7 +46,6 @@ module w25q128jw_controller
   // ============== PACKAGE IMPORTS ==============
   import w25q128jw_controller_reg_pkg::*;
   import spi_host_reg_pkg::*;
-  import dma_reg_pkg::*;
   `include "dma_conf.svh"
 
   // ============== REGISTER SIGNALS ==============
@@ -52,19 +55,19 @@ module w25q128jw_controller
   // ============== LOCAL PARAMETERS ==============
   localparam int SPI_FLASH_TX_FIFO_DEPTH = spi_host_reg_pkg::TxDepth;
 
-  // Enable DMA zero padding feature initialization (see DMA_INIT FSM)
-`ifdef ZERO_PADDING_EN
-  localparam logic DMA_ZERO_PADDING = 1'b1;
-`else
-  localparam logic DMA_ZERO_PADDING = 1'b0;
-`endif
+  //   // Enable DMA zero padding feature initialization (see DMA_INIT FSM)
+  // `ifdef ZERO_PADDING_EN
+  //   localparam logic DMA_ZERO_PADDING = 1'b1;
+  // `else
+  //   localparam logic DMA_ZERO_PADDING = 1'b0;
+  // `endif
 
-  // Enable DMA address mode feature initialization (see DMA_INIT FSM)
-`ifdef ADDR_MODE_EN
-  localparam logic DMA_ADDR_MODE = 1'b1;
-`else
-  localparam logic DMA_ADDR_MODE = 1'b0;
-`endif
+  //   // Enable DMA address mode feature initialization (see DMA_INIT FSM)
+  // `ifdef ADDR_MODE_EN
+  //   localparam logic DMA_ADDR_MODE = 1'b1;
+  // `else
+  //   localparam logic DMA_ADDR_MODE = 1'b0;
+  // `endif
 
 
   // FLASH COMMANDS
@@ -102,7 +105,7 @@ module w25q128jw_controller
 
   // FSM signals
   logic [31:0] address, data, read_value;
-  logic obi_start, obi_finish, w_enable;
+  logic mem_op_start, memory_op_finish, w_enable;
 
   // FSM sequential logic
   always_ff @(posedge clk_i or negedge rst_ni) begin
@@ -121,16 +124,16 @@ module w25q128jw_controller
     w25q128jw_controller_obi_req_o.addr = 32'h00000000;
     w25q128jw_controller_obi_req_o.wdata = 32'h00000000;
 
-    obi_finish = 1'b0;
+    memory_op_finish = 1'b0;
     read_value = 32'h00000000;
 
     obi_state_d = obi_state_q;
 
     case (obi_state_q)
       // -------- IDLE STATE --------
-      // Wait for obi_start signal to begin transaction (signal comes from controller FSM)
+      // Wait for mem_op_start signal to begin transaction (signal comes from controller FSM)
       OBI_IDLE: begin
-        if (obi_start) begin
+        if (mem_op_start) begin
           obi_state_d = OBI_ISSUE_REQ;
         end
       end
@@ -153,8 +156,8 @@ module w25q128jw_controller
       // Wait for rvalid, then capture read data and signal transaction completion
       OBI_WAIT_RVALID: begin
         if (w25q128jw_controller_obi_resp_i.rvalid) begin
-          read_value  = w25q128jw_controller_obi_resp_i.rdata;
-          obi_finish  = 1'b1;
+          read_value = w25q128jw_controller_obi_resp_i.rdata;
+          memory_op_finish = 1'b1;
           obi_state_d = OBI_IDLE;
         end
       end
@@ -293,31 +296,34 @@ module w25q128jw_controller
   // -------- DMA INIT FSM STATES --------
   // Resets all DMA registers before each transfer
   // This ensures clean state regardless of previous DMA operations
-  typedef enum logic [4:0] {
-    DMA_INIT_IDLE,            // Wait for DMA to be ready (check status)
-    DMA_INIT_SRC_PTR,         // Clear source pointer
-    DMA_INIT_DST_PTR,         // Clear destination pointer
-    DMA_INIT_ADDR_PTR,        // Clear address pointer (if DMA_ADDR_MODE enabled)
-    DMA_INIT_SIZE_D1,         // Clear size dimension 1
-    DMA_INIT_SIZE_D2,         // Clear size dimension 2
-    DMA_INIT_SRC_PTR_INC_D1,  // Clear source increment D1
-    DMA_INIT_SRC_PTR_INC_D2,  // Clear source increment D2
-    DMA_INIT_DST_PTR_INC_D1,  // Clear destination increment D1
-    DMA_INIT_DST_PTR_INC_D2,  // Clear destination increment D2
-    DMA_INIT_SLOT,            // Clear trigger slot configuration
-    DMA_INIT_SRC_DATA_TYPE,   // Clear source data type
-    DMA_INIT_DST_DATA_TYPE,   // Clear destination data type
-    DMA_INIT_SIGN_EXT,        // Clear sign extension setting
-    DMA_INIT_MODE,            // Clear DMA mode
-    DMA_INIT_DIM_CONFIG,      // Clear dimension configuration
-    DMA_INIT_DIM_INV,         // Clear dimension inversion
-    DMA_INIT_PAD_TOP,         // Clear top padding (if DMA_ZERO_PADDING enabled)
-    DMA_INIT_PAD_BOTTOM,      // Clear bottom padding (if DMA_ZERO_PADDING enabled)
-    DMA_INIT_PAD_RIGHT,       // Clear right padding (if DMA_ZERO_PADDING enabled)
-    DMA_INIT_PAD_LEFT,        // Clear left padding (if DMA_ZERO_PADDING enabled)
-    DMA_INIT_WINDOW_SIZE,     // Clear window size
-    DMA_INIT_INTERRUPT_EN,    // Clear interrupt enable
-    DMA_INIT_REDIRECT         // Return to calling FSM
+  typedef enum logic [2:0] {
+    DMA_INIT_IDLE,  // Wait for DMA to be ready (check status)
+    DMA_SET_HW_CONFIG_REGISTER,  // Tell the DMA that it will be controlled by the Flash controller
+    DMA_INIT_REGISTERS,  // Clear all registers
+    DMA_UNSET_HW_CONFIG_REGISTER, // Tell the DMA that it won't be controlled by the Flash controller anymore
+    // DMA_INIT_SRC_PTR,         // Clear source pointer
+    // DMA_INIT_DST_PTR,         // Clear destination pointer
+    // DMA_INIT_ADDR_PTR,        // Clear address pointer (if DMA_ADDR_MODE enabled)
+    // DMA_INIT_SIZE_D1,         // Clear size dimension 1
+    // DMA_INIT_SIZE_D2,         // Clear size dimension 2
+    // DMA_INIT_SRC_PTR_INC_D1,  // Clear source increment D1
+    // DMA_INIT_SRC_PTR_INC_D2,  // Clear source increment D2
+    // DMA_INIT_DST_PTR_INC_D1,  // Clear destination increment D1
+    // DMA_INIT_DST_PTR_INC_D2,  // Clear destination increment D2
+    // DMA_INIT_SLOT,            // Clear trigger slot configuration
+    // DMA_INIT_SRC_DATA_TYPE,   // Clear source data type
+    // DMA_INIT_DST_DATA_TYPE,   // Clear destination data type
+    // DMA_INIT_SIGN_EXT,        // Clear sign extension setting
+    // DMA_INIT_MODE,            // Clear DMA mode
+    // DMA_INIT_DIM_CONFIG,      // Clear dimension configuration
+    // DMA_INIT_DIM_INV,         // Clear dimension inversion
+    // DMA_INIT_PAD_TOP,         // Clear top padding (if DMA_ZERO_PADDING enabled)
+    // DMA_INIT_PAD_BOTTOM,      // Clear bottom padding (if DMA_ZERO_PADDING enabled)
+    // DMA_INIT_PAD_RIGHT,       // Clear right padding (if DMA_ZERO_PADDING enabled)
+    // DMA_INIT_PAD_LEFT,        // Clear left padding (if DMA_ZERO_PADDING enabled)
+    // DMA_INIT_WINDOW_SIZE,     // Clear window size
+    // DMA_INIT_INTERRUPT_EN,    // Clear interrupt enable
+    DMA_INIT_REDIRECT  // Return to calling FSM
   } dma_init_state_e;
 
   // -------- DMA INIT RETURN TYPE --------
@@ -412,7 +418,7 @@ module w25q128jw_controller
     address = 32'h00000000;
     data = 32'h00000000;
     w_enable = 1'b0;
-    obi_start = 1'b0;
+    mem_op_start = 1'b0;
 
     w25q128jw_controller_done_o = 1'b0;
 
@@ -424,6 +430,8 @@ module w25q128jw_controller
     hw2reg.length.d = 32'h0;
     hw2reg.intr_status.de   = 1'b0;
     hw2reg.intr_status.d    = 1'b0;
+
+    external_dma_hw2reg_o   = '0;
 
     // ============================================================================
     // TOP FSM
@@ -471,10 +479,10 @@ module w25q128jw_controller
             address = DMA_START_ADDRESS + {25'b0, DMA_SRC_PTR_OFFSET}; // Set OBI FSM target address 
             data = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_RXDATA_OFFSET}; // SPI RX FIFO address. Set OBI FSM sent data
             w_enable = 1'b1;  // Set OBI FSM to be a write operation 
-            obi_start = 1'b1;  // Launch OBI FSM 
+            mem_op_start = 1'b1;  // Launch OBI FSM
 
             // Wait for OBI transaction to complete before going to next state
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               read_state_d = READ_DMA_DST_PTR;
             end
           end
@@ -484,9 +492,9 @@ module w25q128jw_controller
             address = DMA_START_ADDRESS + {25'b0, DMA_DST_PTR_OFFSET};
             data = reg2hw.s_address;  // RAM buffer address from S_ADDRESS register
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               read_state_d = READ_DMA_SRC_INC;
             end
           end
@@ -496,9 +504,9 @@ module w25q128jw_controller
             address = DMA_START_ADDRESS + {25'b0, DMA_SRC_PTR_INC_D1_OFFSET};
             data = 32'h0;  // No increment - always read from RX FIFO address
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               read_state_d = READ_DMA_DST_INC;
             end
           end
@@ -508,9 +516,9 @@ module w25q128jw_controller
             address = DMA_START_ADDRESS + {25'b0, DMA_DST_PTR_INC_D1_OFFSET};
             data = 32'h4;  // Increment by 4 bytes (32-bit word) in RAM
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               read_state_d = READ_DMA_SRC_TYPE;
             end
           end
@@ -521,9 +529,9 @@ module w25q128jw_controller
             address = DMA_START_ADDRESS + {25'b0, DMA_SRC_DATA_TYPE_OFFSET};
             data = 32'h0;  // 0 = 32-bit word
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               read_state_d = READ_DMA_DST_TYPE;
             end
           end
@@ -533,9 +541,9 @@ module w25q128jw_controller
             address = DMA_START_ADDRESS + {25'b0, DMA_DST_DATA_TYPE_OFFSET};
             data = 32'h0;  // 0 = 32-bit word
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               read_state_d = READ_DMA_TRIG;
             end
           end
@@ -548,9 +556,9 @@ module w25q128jw_controller
             address = DMA_START_ADDRESS + {25'b0, DMA_SLOT_OFFSET};
             data = {16'h0, 16'h4};  // [31:16]=TX_TRG, [15:0]=RX_TRG
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               read_state_d = READ_DMA_SIZE_D1;
             end
           end
@@ -558,9 +566,9 @@ module w25q128jw_controller
           // -------- Set transfer size and START DMA --------
           // Writing to SIZE_D1 register triggers DMA transaction (See hw/ip/dma/data/dma.hjson)
           READ_DMA_SIZE_D1: begin
-            address   = DMA_START_ADDRESS + {25'b0, DMA_SIZE_D1_OFFSET};
-            w_enable  = 1'b1;
-            obi_start = 1'b1;
+            address = DMA_START_ADDRESS + {25'b0, DMA_SIZE_D1_OFFSET};
+            w_enable = 1'b1;
+            mem_op_start = 1'b1;
 
             // Compute number of words to transfer
             if (reg2hw.control.rnw) begin
@@ -575,7 +583,7 @@ module w25q128jw_controller
               data = {19'b0, SE_WSIZE};
             end
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               read_state_d = READ_SPI_CHECK_TX_FIFO;
             end
           end
@@ -584,13 +592,13 @@ module w25q128jw_controller
 
           // -------- Check if TX FIFO has space for command --------
           READ_SPI_CHECK_TX_FIFO: begin
-            address   = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
-            obi_start = 1'b1;
+            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+            mem_op_start = 1'b1;
 
             // STATUS[7:0] = TXQD (TX FIFO depth). Proceed if not full.
             // See hw/vendor/lowrisc_opentitan_spi_host/data/spi_host.hjson for status register bit mapping
             // See hw/vendor/lowrisc_opentitan_spi_host/rtl/spi_host_reg_pkg.sv for TXQD depth definition
-            if (obi_finish && read_value[7:0] < SPI_FLASH_TX_FIFO_DEPTH[7:0]) begin
+            if (memory_op_finish && read_value[7:0] < SPI_FLASH_TX_FIFO_DEPTH[7:0]) begin
               read_state_d = READ_SPI_FILL_TX_FIFO;
             end
           end
@@ -599,9 +607,9 @@ module w25q128jw_controller
           // Format: [31:8] = 24-bit flash address byte swapped, [7:0] = FC_RD command (0x03)
           // Inspiration from sw/device/bsp/w25q
           READ_SPI_FILL_TX_FIFO: begin
-            address   = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_TXDATA_OFFSET};
-            w_enable  = 1'b1;
-            obi_start = 1'b1;
+            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_TXDATA_OFFSET};
+            w_enable = 1'b1;
+            mem_op_start = 1'b1;
 
             if (reg2hw.control.rnw) begin
               // READ: Use exact flash address from F_ADDRESS register
@@ -613,18 +621,18 @@ module w25q128jw_controller
                                             (sector_iter_offset_q))) >> 8) << 8) | {19'h0, FC_RD};
             end
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               read_state_d = READ_SPI_WAIT_READY_1;
             end
           end
 
           // -------- Wait for SPI Host ready (Send action type and location) --------
           READ_SPI_WAIT_READY_1: begin
-            address   = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
-            obi_start = 1'b1;
+            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+            mem_op_start = 1'b1;
 
             // STATUS[31] = READY bit. Proceed if ready.
-            if (obi_finish && read_value[31]) begin
+            if (memory_op_finish && read_value[31]) begin
               read_state_d = READ_SPI_SEND_CMD_1;
             end
           end
@@ -642,20 +650,20 @@ module w25q128jw_controller
               3'h0, 2'h2, 2'h0, 1'h1, 24'h3
             };  // Reserved + Direction + Speed + Csaat + Length 
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               read_state_d = READ_SPI_WAIT_READY_2;
             end
           end
 
           // -------- Wait for SPI Host ready (Specify read action) --------
           READ_SPI_WAIT_READY_2: begin
-            address   = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
-            obi_start = 1'b1;
+            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+            mem_op_start = 1'b1;
 
             // STATUS[31] = READY bit. Proceed if ready.
-            if (obi_finish && read_value[31]) begin
+            if (memory_op_finish && read_value[31]) begin
               read_state_d = READ_SPI_SEND_CMD_2;
             end
           end
@@ -668,9 +676,9 @@ module w25q128jw_controller
           //   [24]    = CSAAT (0 = release CS after transfer, no more commands to send)
           //   [23:0]  = See comments below
           READ_SPI_SEND_CMD_2: begin
-            address   = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
-            w_enable  = 1'b1;
-            obi_start = 1'b1;
+            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
+            w_enable = 1'b1;
+            mem_op_start = 1'b1;
 
             if (reg2hw.control.rnw) begin
               // READ: receive user-specified number of bytes
@@ -684,7 +692,7 @@ module w25q128jw_controller
               };  // Empty + Direction + Speed + Csaat + Length
             end
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               read_state_d = READ_TRANS;
             end
           end
@@ -782,10 +790,10 @@ module w25q128jw_controller
           // -------- Read current CONTROL register value --------
           // We need to preserve other bits when modifying RXWM (preserved in read_value from OBI FSM)
           FWAIT_SET_RXWM_R: begin
-            address   = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_CONTROL_OFFSET};
-            obi_start = 1'b1;
+            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_CONTROL_OFFSET};
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               fwait_state_d = FWAIT_SET_RXWM_W;
             end
           end
@@ -795,9 +803,9 @@ module w25q128jw_controller
             address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_CONTROL_OFFSET};
             data    = {read_value[31:8], 8'h01}; // Keep upper CONTROL bits, set RXWM = 1
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               fwait_state_d = FWAIT_SPI_CHECK_TX_FIFO;
             end
           end
@@ -806,11 +814,11 @@ module w25q128jw_controller
 
           // -------- Check if TX FIFO has space --------
           FWAIT_SPI_CHECK_TX_FIFO: begin
-            address   = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
-            obi_start = 1'b1;
+            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+            mem_op_start = 1'b1;
 
             // STATUS[7:0] = TXQD (TX FIFO depth)
-            if (obi_finish && read_value[7:0] < SPI_FLASH_TX_FIFO_DEPTH[7:0]) begin
+            if (memory_op_finish && read_value[7:0] < SPI_FLASH_TX_FIFO_DEPTH[7:0]) begin
               fwait_state_d = FWAIT_SPI_FILL_TX_FIFO;
             end
           end
@@ -820,20 +828,20 @@ module w25q128jw_controller
             address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_TXDATA_OFFSET};
             data = {19'b0, FC_RSR1};
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               fwait_state_d = FWAIT_SPI_WAIT_READY_1;
             end
           end
 
           // -------- Wait for SPI Host ready --------
           FWAIT_SPI_WAIT_READY_1: begin
-            address   = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
-            obi_start = 1'b1;
+            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+            mem_op_start = 1'b1;
 
             // STATUS[31] = READY bit
-            if (obi_finish && read_value[31]) begin
+            if (memory_op_finish && read_value[31]) begin
               fwait_state_d = FWAIT_SPI_SEND_CMD_1;
             end
           end
@@ -848,20 +856,20 @@ module w25q128jw_controller
             address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
             data = {3'h0, 2'h2, 2'h0, 1'h1, 24'h0};  // Empty + Direction + Speed + Csaat + Length
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               fwait_state_d = FWAIT_SPI_WAIT_READY_2;
             end
           end
 
           // -------- Wait for SPI Host ready --------
           FWAIT_SPI_WAIT_READY_2: begin
-            address   = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
-            obi_start = 1'b1;
+            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+            mem_op_start = 1'b1;
 
             // STATUS[31] = READY bit
-            if (obi_finish && read_value[31]) begin
+            if (memory_op_finish && read_value[31]) begin
               fwait_state_d = FWAIT_SPI_SEND_CMD_2;
             end
           end
@@ -876,9 +884,9 @@ module w25q128jw_controller
             address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
             data = {3'h0, 2'h1, 2'h0, 1'h0, 24'h0};  // Empty + Direction + Speed + Csaat + Length
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               fwait_state_d = FWAIT_WAIT_RXWM;
             end
           end
@@ -887,21 +895,21 @@ module w25q128jw_controller
 
           // -------- Wait for status byte received --------
           FWAIT_WAIT_RXWM: begin
-            address   = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
-            obi_start = 1'b1;
+            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+            mem_op_start = 1'b1;
 
             // STATUS[20] = RXWM (RX watermark reached)
-            if (obi_finish && read_value[20]) begin
+            if (memory_op_finish && read_value[20]) begin
               fwait_state_d = FWAIT_READ_FLASH_STATUS;
             end
           end
 
           // -------- Read flash status byte and check BUSY bit --------
           FWAIT_READ_FLASH_STATUS: begin
-            address   = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_RXDATA_OFFSET};
-            obi_start = 1'b1;
+            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_RXDATA_OFFSET};
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               // Check BUSY bit: 0 = ready, 1 = busy
               if (read_value[0] == 1'b0) begin
                 // ===== FLASH READY: Proceed to next operation =====
@@ -977,11 +985,11 @@ module w25q128jw_controller
 
           // -------- Check if TX FIFO has space --------
           ERASE_WE_CHECK_TX_FIFO: begin
-            address   = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
-            obi_start = 1'b1;
+            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+            mem_op_start = 1'b1;
 
             // STATUS[7:0] = TXQD (TX FIFO depth)
-            if (obi_finish && read_value[7:0] < SPI_FLASH_TX_FIFO_DEPTH[7:0]) begin
+            if (memory_op_finish && read_value[7:0] < SPI_FLASH_TX_FIFO_DEPTH[7:0]) begin
               erase_state_d = ERASE_WE_FILL_TX_FIFO;
             end
           end
@@ -991,20 +999,20 @@ module w25q128jw_controller
             address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_TXDATA_OFFSET};
             data = {19'b0, FC_WE};
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               erase_state_d = ERASE_WE_WAIT_READY;
             end
           end
 
           // -------- Wait for SPI Host ready --------
           ERASE_WE_WAIT_READY: begin
-            address   = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
-            obi_start = 1'b1;
+            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+            mem_op_start = 1'b1;
 
             // STATUS[31] = READY bit
-            if (obi_finish && read_value[31]) begin
+            if (memory_op_finish && read_value[31]) begin
               erase_state_d = ERASE_WE_SEND_CMD;
             end
           end
@@ -1019,9 +1027,9 @@ module w25q128jw_controller
             address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
             data = {3'h0, 2'h2, 2'h0, 1'h0, 24'h0};  // Empty + Direction + Speed + Csaat + Length
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               erase_state_d = ERASE_SE_CHECK_TX_FIFO;
             end
           end
@@ -1030,11 +1038,11 @@ module w25q128jw_controller
 
           // -------- Check if TX FIFO has space --------
           ERASE_SE_CHECK_TX_FIFO: begin
-            address   = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
-            obi_start = 1'b1;
+            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+            mem_op_start = 1'b1;
 
             // STATUS[7:0] = TXQD (TX FIFO depth)
-            if (obi_finish && read_value[7:0] < SPI_FLASH_TX_FIFO_DEPTH[7:0]) begin
+            if (memory_op_finish && read_value[7:0] < SPI_FLASH_TX_FIFO_DEPTH[7:0]) begin
               erase_state_d = ERASE_SE_FILL_TX_FIFO;
             end
           end
@@ -1048,20 +1056,20 @@ module w25q128jw_controller
             data = (((bitfield_byteswap32((reg2hw.f_address & 32'h00fff000) +
                                           (sector_iter_offset_q))) >> 8) << 8) | {19'h0, FC_SE};
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               erase_state_d = ERASE_SE_WAIT_READY;
             end
           end
 
           // -------- Wait for SPI Host ready --------
           ERASE_SE_WAIT_READY: begin
-            address   = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
-            obi_start = 1'b1;
+            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+            mem_op_start = 1'b1;
 
             // STATUS[31] = READY bit
-            if (obi_finish && read_value[31] == 1'b1) begin
+            if (memory_op_finish && read_value[31] == 1'b1) begin
               erase_state_d = ERASE_SE_SEND_CMD;
             end
           end
@@ -1076,9 +1084,9 @@ module w25q128jw_controller
             address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
             data = {3'h0, 2'h2, 2'h0, 1'h0, 24'h3};  // Empty + Direction + Speed + Csaat + Length
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               // Go to FWAIT FSM to poll status register until erase completes
               erase_state_d = ERASE_IDLE;
               top_state_d = TOP_FWAIT;
@@ -1132,9 +1140,9 @@ module w25q128jw_controller
             // Source = MD_ADDRESS + offset for current sector iteration (for multi-sector writes) 
             // F_ADDRESS not necessarily sector aligned and such case must be taken into consideration
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               modify_state_d = MODIFY_DMA_DST_PTR;
             end
           end
@@ -1146,9 +1154,9 @@ module w25q128jw_controller
             // Destination = S_ADDRESS + offset within sector (for first iteration only, otherwise sector_offset = 0)
             // F_ADDRESS not necessarily sector aligned and such case must be taken into consideration
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               modify_state_d = MODIFY_DMA_SRC_INC;
             end
           end
@@ -1158,9 +1166,9 @@ module w25q128jw_controller
             address = DMA_START_ADDRESS + {25'b0, DMA_SRC_PTR_INC_D1_OFFSET};
             data = 32'h4;  // Increment by 4 bytes (32-bit word) in RAM
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               modify_state_d = MODIFY_DMA_DST_INC;
             end
           end
@@ -1170,9 +1178,9 @@ module w25q128jw_controller
             address = DMA_START_ADDRESS + {25'b0, DMA_DST_PTR_INC_D1_OFFSET};
             data = 32'h4;  // Increment by 4 bytes (32-bit word) in RAM
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               modify_state_d = MODIFY_DMA_SRC_TYPE;
             end
           end
@@ -1183,9 +1191,9 @@ module w25q128jw_controller
             address = DMA_START_ADDRESS + {25'b0, DMA_SRC_DATA_TYPE_OFFSET};
             data = 32'h0;  // 0 = 32-bit word
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               modify_state_d = MODIFY_DMA_DST_TYPE;
             end
           end
@@ -1195,9 +1203,9 @@ module w25q128jw_controller
             address = DMA_START_ADDRESS + {25'b0, DMA_DST_DATA_TYPE_OFFSET};
             data = 32'h0;  // 0 = 32-bit word
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               modify_state_d = MODIFY_DMA_TRIG;
             end
           end
@@ -1210,9 +1218,9 @@ module w25q128jw_controller
             address = DMA_START_ADDRESS + {25'b0, DMA_SLOT_OFFSET};
             data = {16'h0, 16'h0};  // [31:16]=TX_TRG, [15:0]=RX_TRG
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               modify_state_d = MODIFY_DMA_SIZE_D1;
             end
           end
@@ -1221,9 +1229,9 @@ module w25q128jw_controller
           // Writing to SIZE_D1 register triggers DMA transaction (See hw/ip/dma/data/dma.hjson)
           // Compute how many words to transfer for this sector
           MODIFY_DMA_SIZE_D1: begin
-            address   = DMA_START_ADDRESS + {25'b0, DMA_SIZE_D1_OFFSET};
-            w_enable  = 1'b1;
-            obi_start = 1'b1;
+            address = DMA_START_ADDRESS + {25'b0, DMA_SIZE_D1_OFFSET};
+            w_enable = 1'b1;
+            mem_op_start = 1'b1;
 
             if (reg2hw.length < {19'h0, SE_BSIZE} - sector_offset) begin
               // Case 1: All remaining data fits in this sector
@@ -1239,7 +1247,7 @@ module w25q128jw_controller
             end
 
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               modify_state_d = MODIFY_TRANS;
             end
           end
@@ -1299,11 +1307,11 @@ module w25q128jw_controller
 
           // -------- Check if TX FIFO has space --------
           WRITE_WE_CHECK_TX_FIFO: begin
-            address   = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
-            obi_start = 1'b1;
+            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+            mem_op_start = 1'b1;
 
             // STATUS[7:0] = TXQD (TX FIFO depth)
-            if (obi_finish && read_value[7:0] < SPI_FLASH_TX_FIFO_DEPTH[7:0]) begin
+            if (memory_op_finish && read_value[7:0] < SPI_FLASH_TX_FIFO_DEPTH[7:0]) begin
               write_state_d = WRITE_WE_FILL_TX_FIFO;
             end
           end
@@ -1313,20 +1321,20 @@ module w25q128jw_controller
             address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_TXDATA_OFFSET};
             data = {19'b0, FC_WE};  // Required every time before issuing a write command
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               write_state_d = WRITE_WE_WAIT_READY;
             end
           end
 
           // -------- Wait for SPI Host ready --------
           WRITE_WE_WAIT_READY: begin
-            address   = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
-            obi_start = 1'b1;
+            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+            mem_op_start = 1'b1;
 
             // STATUS[31] = READY bit
-            if (obi_finish && read_value[31] == 1'b1) begin
+            if (memory_op_finish && read_value[31] == 1'b1) begin
               write_state_d = WRITE_WE_SEND_CMD;
             end
           end
@@ -1341,9 +1349,9 @@ module w25q128jw_controller
             address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
             data = {3'h0, 2'h2, 2'h0, 1'h0, 24'h0};  // Empty + Direction + Speed + Csaat + Length
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               write_state_d = WRITE_PP_CHECK_TX_FIFO;
             end
           end
@@ -1352,11 +1360,11 @@ module w25q128jw_controller
 
           // -------- Check if TX FIFO has space --------
           WRITE_PP_CHECK_TX_FIFO: begin
-            address   = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
-            obi_start = 1'b1;
+            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+            mem_op_start = 1'b1;
 
             // STATUS[7:0] = TXQD (TX FIFO depth)
-            if (obi_finish && read_value[7:0] < SPI_FLASH_TX_FIFO_DEPTH[7:0]) begin
+            if (memory_op_finish && read_value[7:0] < SPI_FLASH_TX_FIFO_DEPTH[7:0]) begin
               write_state_d = WRITE_PP_FILL_TX_FIFO;
             end
           end
@@ -1369,21 +1377,21 @@ module w25q128jw_controller
             data = (((bitfield_byteswap32(((reg2hw.f_address & 32'h00fff000) + (sector_iter_offset_q)) |
                                           ({28'h0, page_cnt_q} << 8))) >> 8) << 8) | {19'h0, FC_PP};
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               write_state_d = WRITE_PP_WAIT_READY;
             end
           end
 
           // -------- Wait for SPI Host ready --------
           WRITE_PP_WAIT_READY: begin
-            address   = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
-            obi_start = 1'b1;
+            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+            mem_op_start = 1'b1;
 
             // STATUS[31] = READY bit
-            if (obi_finish && read_value[31] == 1'b1) begin
+            if (memory_op_finish && read_value[31] == 1'b1) begin
               write_state_d = WRITE_PP_SEND_CMD;
             end
           end
@@ -1398,9 +1406,9 @@ module w25q128jw_controller
             address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
             data = {3'h0, 2'h2, 2'h0, 1'h1, 24'h3};  // Empty + Direction + Speed + Csaat + Length
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               write_state_d = WRITE_DMA_CHECK_READY;
             end
           end
@@ -1419,9 +1427,9 @@ module w25q128jw_controller
             address = DMA_START_ADDRESS + {25'b0, DMA_SRC_PTR_OFFSET};
             data = reg2hw.s_address + ({28'h0, page_cnt_q} << 8);
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               write_state_d = WRITE_DMA_DST_PTR;
             end
           end
@@ -1431,9 +1439,9 @@ module w25q128jw_controller
             address = DMA_START_ADDRESS + {25'b0, DMA_DST_PTR_OFFSET};
             data = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_TXDATA_OFFSET};
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               write_state_d = WRITE_DMA_SRC_INC;
             end
           end
@@ -1443,9 +1451,9 @@ module w25q128jw_controller
             address = DMA_START_ADDRESS + {25'b0, DMA_SRC_PTR_INC_D1_OFFSET};
             data = 32'h4;  // Increment through sector buffer
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               write_state_d = WRITE_DMA_DST_INC;
             end
           end
@@ -1455,9 +1463,9 @@ module w25q128jw_controller
             address = DMA_START_ADDRESS + {25'b0, DMA_DST_PTR_INC_D1_OFFSET};
             data = 32'h0;  // Keep aiming TX FIFO
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               write_state_d = WRITE_DMA_SRC_TYPE;
             end
           end
@@ -1467,9 +1475,9 @@ module w25q128jw_controller
             address = DMA_START_ADDRESS + {25'b0, DMA_SRC_DATA_TYPE_OFFSET};
             data = 32'h0;  // 0 = 32-bit word
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               write_state_d = WRITE_DMA_DST_TYPE;
             end
           end
@@ -1479,9 +1487,9 @@ module w25q128jw_controller
             address = DMA_START_ADDRESS + {25'b0, DMA_DST_DATA_TYPE_OFFSET};
             data = 32'h0;  // 0 = 32-bit word
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               write_state_d = WRITE_DMA_TRIG;
             end
           end
@@ -1494,9 +1502,9 @@ module w25q128jw_controller
             address = DMA_START_ADDRESS + {25'b0, DMA_SLOT_OFFSET};
             data = {16'h8, 16'h0};  // [31:16]=TX_TRG (SPI TX), [15:0]=RX_TRG (memory)
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               write_state_d = WRITE_DMA_SIZE_D1;
             end
           end
@@ -1507,9 +1515,9 @@ module w25q128jw_controller
             address = DMA_START_ADDRESS + {25'b0, DMA_SIZE_D1_OFFSET};
             data = {19'b0, PAGE_WSIZE};
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               write_state_d = WRITE_TRANS;
             end
           end
@@ -1523,11 +1531,11 @@ module w25q128jw_controller
 
           // -------- Wait for SPI Host ready (finalize page program after DMA has transferred required data in SPI TX FIFO) --------
           WRITE_PP_WAIT_READY_2: begin
-            address   = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
-            obi_start = 1'b1;
+            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+            mem_op_start = 1'b1;
 
             // STATUS[31] = READY bit
-            if (obi_finish && read_value[31] == 1'b1) begin
+            if (memory_op_finish && read_value[31] == 1'b1) begin
               write_state_d = WRITE_PP_SEND_CMD_2;
             end
           end
@@ -1544,9 +1552,9 @@ module w25q128jw_controller
               3'h0, 2'h2, 2'h0, 1'h0, {11'b0, PAGE_BSIZE - 1'h1}
             };  // Empty + Direction + Speed + Csaat + Length
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               // ===== CHECK IF MORE PAGES/SECTORS TO PROCESS =====
               if (page_cnt_q == 4'hf) begin
                 // All 16 pages in current sector programmed
@@ -1598,23 +1606,130 @@ module w25q128jw_controller
           // Poll DMA STATUS register until READY bit is set
           // See: hw/ip/dma/data/dma.hjson for STATUS register description
           DMA_INIT_IDLE: begin
-            address   = DMA_START_ADDRESS + {25'b0, DMA_STATUS_OFFSET};
-            obi_start = 1'b1;
+            address = DMA_START_ADDRESS + {25'b0, DMA_STATUS_OFFSET};
+            mem_op_start = 1'b1;
 
             // STATUS[0] = READY bit
-            if (obi_finish && read_value[0]) begin
-              dma_init_state_d = DMA_INIT_SRC_PTR;
+            if (memory_op_finish && read_value[0]) begin
+              //dma_init_state_d = DMA_INIT_SRC_PTR;
+              dma_init_state_d = DMA_SET_HW_CONFIG_REGISTER;
             end
           end
 
+          // -------- Tell the DMA that it will be controlled by the Flash controller --------
+          DMA_SET_HW_CONFIG_REGISTER: begin
+            address = DMA_START_ADDRESS + {25'b0, DMA_HW_CONFIG_MODE_OFFSET};
+            data = 32'h00000001;
+            w_enable = 1'b1;
+            mem_op_start = 1'b1;
+
+            if (memory_op_finish) begin
+              dma_init_state_d = DMA_INIT_REGISTERS;
+            end
+          end
+
+          // These states have been collapsed to 1 with hw2reg
+          DMA_INIT_REGISTERS: begin
+            dma_init_state_d                                       = DMA_UNSET_HW_CONFIG_REGISTER;
+
+            //DMA_INIT_SRC_PTR
+            external_dma_hw2reg_o.src_ptr.de                       = 1'b1;
+            external_dma_hw2reg_o.src_ptr.d                        = '0;
+            //DMA_INIT_DST_PTR
+            external_dma_hw2reg_o.dst_ptr.de                       = 1'b1;
+            external_dma_hw2reg_o.dst_ptr.d                        = '0;
+            //DMA_INIT_SIZE_D1
+            external_dma_hw2reg_o.size_d1.de                       = 1'b1;
+            external_dma_hw2reg_o.size_d1.d                        = '0;
+            //DMA_INIT_SIZE_D2
+            external_dma_hw2reg_o.size_d2.de                       = 1'b1;
+            external_dma_hw2reg_o.size_d2.d                        = '0;
+            //DMA_INIT_SRC_PTR_INC_D1
+            external_dma_hw2reg_o.src_ptr_inc_d1.de                = 1'b1;
+            external_dma_hw2reg_o.src_ptr_inc_d1.d                 = '0;
+            //DMA_INIT_SRC_PTR_INC_D2
+            external_dma_hw2reg_o.src_ptr_inc_d2.de                = 1'b1;
+            external_dma_hw2reg_o.src_ptr_inc_d2.d                 = '0;
+            //DMA_INIT_DST_PTR_INC_D1
+            external_dma_hw2reg_o.dst_ptr_inc_d1.de                = 1'b1;
+            external_dma_hw2reg_o.dst_ptr_inc_d1.d                 = '0;
+            //DMA_INIT_DST_PTR_INC_D2
+            external_dma_hw2reg_o.dst_ptr_inc_d2.de                = 1'b1;
+            external_dma_hw2reg_o.dst_ptr_inc_d2.d                 = '0;
+            //DMA_INIT_SLOT
+            external_dma_hw2reg_o.slot.rx_trigger_slot.de          = 1'b1;
+            external_dma_hw2reg_o.slot.rx_trigger_slot.d           = '0;
+            external_dma_hw2reg_o.slot.tx_trigger_slot.de          = 1'b1;
+            external_dma_hw2reg_o.slot.tx_trigger_slot.d           = '0;
+            //DMA_INIT_SRC_DATA_TYPE
+            external_dma_hw2reg_o.src_data_type.de                 = 1'b1;
+            external_dma_hw2reg_o.src_data_type.d                  = '0;
+            //DMA_INIT_DST_DATA_TYPE
+            external_dma_hw2reg_o.dst_data_type.de                 = 1'b1;
+            external_dma_hw2reg_o.dst_data_type.d                  = '0;
+            //DMA_INIT_SIGN_EXT
+            external_dma_hw2reg_o.sign_ext.de                      = 1'b1;
+            external_dma_hw2reg_o.sign_ext.d                       = '0;
+            //DMA_INIT_MODE
+            external_dma_hw2reg_o.mode.de                          = 1'b1;
+            external_dma_hw2reg_o.mode.d                           = '0;
+            //DMA_INIT_DIM_CONFIG
+            external_dma_hw2reg_o.dim_config.de                    = 1'b1;
+            external_dma_hw2reg_o.dim_config.d                     = '0;
+            //DMA_INIT_DIM_INV
+            external_dma_hw2reg_o.mode.de                          = 1'b1;
+            external_dma_hw2reg_o.mode.d                           = '0;
+            //DMA_INIT_WINDOW_SIZE
+            external_dma_hw2reg_o.dim_inv.de                       = 1'b1;
+            external_dma_hw2reg_o.dim_inv.d                        = '0;
+            //DMA_INIT_INTERRUPT_EN
+            external_dma_hw2reg_o.interrupt_en.transaction_done.de = 1'b1;
+            external_dma_hw2reg_o.interrupt_en.transaction_done.d  = '0;
+            external_dma_hw2reg_o.interrupt_en.window_done.de      = 1'b1;
+            external_dma_hw2reg_o.interrupt_en.window_done.d       = '0;
+`ifdef ZERO_PADDING_EN
+            //DMA_INIT_PAD_TOP
+            external_dma_hw2reg_o.pad_top.de = 1'b1;
+            external_dma_hw2reg_o.pad_top.d = '0;
+            //DMA_INIT_PAD_BOTTOM
+            external_dma_hw2reg_o.pad_bottom.de = 1'b1;
+            external_dma_hw2reg_o.pad_bottom.d = '0;
+            //DMA_INIT_PAD_RIGHT
+            external_dma_hw2reg_o.pad_right.de = 1'b1;
+            external_dma_hw2reg_o.pad_right.d = '0;
+            //DMA_INIT_PAD_LEFT
+            external_dma_hw2reg_o.pad_left.de = 1'b1;
+            external_dma_hw2reg_o.pad_left.d = '0;
+`endif
+`ifdef ADDR_MODE_EN
+            //DMA_INIT_ADDR_PTR
+            external_dma_hw2reg_o.addr_ptr.de = 1'b1;
+            external_dma_hw2reg_o.addr_ptr.d  = '0;
+`endif
+          end
+
+          // -------- Tell the DMA that it won't be controlled by the Flash controller anymore --------
+          DMA_UNSET_HW_CONFIG_REGISTER: begin
+            address = DMA_START_ADDRESS + {25'b0, DMA_HW_CONFIG_MODE_OFFSET};
+            data = 32'h00000000;
+            w_enable = 1'b1;
+            mem_op_start = 1'b1;
+
+            if (memory_op_finish) begin
+              dma_init_state_d = DMA_INIT_REDIRECT;
+            end
+          end
+
+
+          /*
           // -------- Clear source pointer --------
           DMA_INIT_SRC_PTR: begin
             address = DMA_START_ADDRESS + {25'b0, DMA_SRC_PTR_OFFSET};
             data = 32'h00000000;
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               dma_init_state_d = DMA_INIT_DST_PTR;
             end
           end
@@ -1624,9 +1739,9 @@ module w25q128jw_controller
             address = DMA_START_ADDRESS + {25'b0, DMA_DST_PTR_OFFSET};
             data = 32'h00000000;
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               dma_init_state_d = DMA_INIT_SIZE_D1;
             end
           end
@@ -1636,9 +1751,9 @@ module w25q128jw_controller
             address = DMA_START_ADDRESS + {25'b0, DMA_SIZE_D1_OFFSET};
             data = 32'h00000000;
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               dma_init_state_d = DMA_INIT_SIZE_D2;
             end
           end
@@ -1648,9 +1763,9 @@ module w25q128jw_controller
             address = DMA_START_ADDRESS + {25'b0, DMA_SIZE_D2_OFFSET};
             data = 32'h00000000;
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               dma_init_state_d = DMA_INIT_SRC_PTR_INC_D1;
             end
           end
@@ -1660,9 +1775,9 @@ module w25q128jw_controller
             address = DMA_START_ADDRESS + {25'b0, DMA_SRC_PTR_INC_D1_OFFSET};
             data = 32'h00000000;
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               dma_init_state_d = DMA_INIT_SRC_PTR_INC_D2;
             end
           end
@@ -1672,9 +1787,9 @@ module w25q128jw_controller
             address = DMA_START_ADDRESS + {25'b0, DMA_SRC_PTR_INC_D2_OFFSET};
             data = 32'h00000000;
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               dma_init_state_d = DMA_INIT_DST_PTR_INC_D1;
             end
           end
@@ -1684,9 +1799,9 @@ module w25q128jw_controller
             address = DMA_START_ADDRESS + {25'b0, DMA_DST_PTR_INC_D1_OFFSET};
             data = 32'h00000000;
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               dma_init_state_d = DMA_INIT_DST_PTR_INC_D2;
             end
           end
@@ -1696,9 +1811,9 @@ module w25q128jw_controller
             address = DMA_START_ADDRESS + {25'b0, DMA_DST_PTR_INC_D2_OFFSET};
             data = 32'h00000000;
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               dma_init_state_d = DMA_INIT_SLOT;
             end
           end
@@ -1708,9 +1823,9 @@ module w25q128jw_controller
             address = DMA_START_ADDRESS + {25'b0, DMA_SLOT_OFFSET};
             data = 32'h00000000;
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               dma_init_state_d = DMA_INIT_SRC_DATA_TYPE;
             end
           end
@@ -1720,9 +1835,9 @@ module w25q128jw_controller
             address = DMA_START_ADDRESS + {25'b0, DMA_SRC_DATA_TYPE_OFFSET};
             data = 32'h00000000;
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               dma_init_state_d = DMA_INIT_DST_DATA_TYPE;
             end
           end
@@ -1732,9 +1847,9 @@ module w25q128jw_controller
             address = DMA_START_ADDRESS + {25'b0, DMA_DST_DATA_TYPE_OFFSET};
             data = 32'h00000000;
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               dma_init_state_d = DMA_INIT_SIGN_EXT;
             end
           end
@@ -1744,9 +1859,9 @@ module w25q128jw_controller
             address = DMA_START_ADDRESS + {25'b0, DMA_SIGN_EXT_OFFSET};
             data = 32'h00000000;
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               dma_init_state_d = DMA_INIT_MODE;
             end
           end
@@ -1756,9 +1871,9 @@ module w25q128jw_controller
             address = DMA_START_ADDRESS + {25'b0, DMA_MODE_OFFSET};
             data = 32'h00000000;
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               dma_init_state_d = DMA_INIT_DIM_CONFIG;
             end
           end
@@ -1768,9 +1883,9 @@ module w25q128jw_controller
             address = DMA_START_ADDRESS + {25'b0, DMA_DIM_CONFIG_OFFSET};
             data = 32'h00000000;
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               dma_init_state_d = DMA_INIT_DIM_INV;
             end
           end
@@ -1780,9 +1895,9 @@ module w25q128jw_controller
             address = DMA_START_ADDRESS + {25'b0, DMA_DIM_INV_OFFSET};
             data = 32'h00000000;
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               dma_init_state_d = DMA_INIT_WINDOW_SIZE;
             end
           end
@@ -1792,9 +1907,9 @@ module w25q128jw_controller
             address = DMA_START_ADDRESS + {25'b0, DMA_WINDOW_SIZE_OFFSET};
             data = 32'h00000000;
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               dma_init_state_d = DMA_INIT_INTERRUPT_EN;
             end
           end
@@ -1804,9 +1919,9 @@ module w25q128jw_controller
             address = DMA_START_ADDRESS + {25'b0, DMA_INTERRUPT_EN_OFFSET};
             data = 32'h00000000;
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               // Branch based on optional DMA features enabled
               if (DMA_ZERO_PADDING) begin
                 dma_init_state_d = DMA_INIT_PAD_TOP;
@@ -1826,9 +1941,9 @@ module w25q128jw_controller
             address = DMA_START_ADDRESS + {25'b0, DMA_PAD_TOP_OFFSET};
             data = 32'h00000000;
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               dma_init_state_d = DMA_INIT_PAD_BOTTOM;
             end
           end
@@ -1838,9 +1953,9 @@ module w25q128jw_controller
             address = DMA_START_ADDRESS + {25'b0, DMA_PAD_BOTTOM_OFFSET};
             data = 32'h00000000;
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               dma_init_state_d = DMA_INIT_PAD_RIGHT;
             end
           end
@@ -1850,9 +1965,9 @@ module w25q128jw_controller
             address = DMA_START_ADDRESS + {25'b0, DMA_PAD_RIGHT_OFFSET};
             data = 32'h00000000;
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               dma_init_state_d = DMA_INIT_PAD_LEFT;
             end
           end
@@ -1862,9 +1977,9 @@ module w25q128jw_controller
             address = DMA_START_ADDRESS + {25'b0, DMA_PAD_LEFT_OFFSET};
             data = 32'h00000000;
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               if (DMA_ADDR_MODE) begin
                 dma_init_state_d = DMA_INIT_ADDR_PTR;
               end else begin
@@ -1878,13 +1993,13 @@ module w25q128jw_controller
             address = DMA_START_ADDRESS + {25'b0, DMA_ADDR_PTR_OFFSET};
             data = 32'h00000000;
             w_enable = 1'b1;
-            obi_start = 1'b1;
+            mem_op_start = 1'b1;
 
-            if (obi_finish) begin
+            if (memory_op_finish) begin
               dma_init_state_d = DMA_INIT_REDIRECT;
             end
           end
-
+*/
           // ============== REDIRECT TO CALLING FSM ==============
 
           DMA_INIT_REDIRECT: begin

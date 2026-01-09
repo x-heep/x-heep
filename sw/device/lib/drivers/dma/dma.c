@@ -353,7 +353,12 @@ void fic_irq_dma_done(void)
     }
     return;
 }
-
+uint32_t dma_set_hw_configuration_mode(uint32_t hw_config_mode, int dma_ch)
+{
+    uint32_t old_hw_config_mode = dma_subsys_per[dma_ch].peri->HW_CONFIG_MODE;
+    dma_subsys_per[dma_ch].peri->HW_CONFIG_MODE = hw_config_mode;
+    return old_hw_config_mode;
+}
 void dma_init( dma *dma_peri )
 {
     /*
@@ -386,6 +391,7 @@ void dma_init( dma *dma_peri )
         dma_subsys_per[i].peri->MODE           = 0;
         dma_subsys_per[i].peri->WINDOW_SIZE    = 0;
         dma_subsys_per[i].peri->INTERRUPT_EN   = 0;
+        dma_subsys_per[i].peri->HW_CONFIG_MODE = 0;
 
         #if DMA_ADDR_MODE
         dma_subsys_per[i].peri->ADDR_PTR       = 0;

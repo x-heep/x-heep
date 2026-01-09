@@ -32,6 +32,8 @@ module spi_subsystem
     output obi_pkg::obi_req_t  w25q128jw_controller_obi_req_o,
     input  obi_pkg::obi_resp_t w25q128jw_controller_obi_resp_i,
 
+    //dma hw controller
+    output dma_reg_pkg::dma_hw2reg_t external_dma_hw2reg_o,
     // flash controller interrupt
     output logic w25q128jw_controller_intr_o,
 
@@ -179,6 +181,9 @@ module spi_subsystem
 
       // Interrupt signal
       .w25q128jw_controller_intr_o,
+
+      //dma hw controller
+      .external_dma_hw2reg_o,
 
       // Master ports on the system bus
       .w25q128jw_controller_obi_req_o,

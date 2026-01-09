@@ -9,9 +9,6 @@
 #include "w25q128jw_controller_structs.h"
 #include "w25q128jw_controller_regs.h"
 #include "w25q128jw_controller.h"
-
-#include "dma.h" // To use write_register function
-
 /**
  * @brief Internal flag to indicate operation completion.
  */
@@ -48,52 +45,25 @@ __attribute__((weak, optimize("O0"))) void handler_irq_w25q128jw_controller(uint
 
 
 // ============== OPERATION  ==============
-__attribute__((optimize("O0"))) void w25q128jw_controller_rnw(uint32_t rnw,
+void w25q128jw_controller_rnw(uint32_t rnw,
                                                             uint32_t length_bytes,
                                                             uint32_t flash_address,
                                                             uint32_t *ram_buffer,
                                                             uint32_t *ram_w_new_data) {
     // Send flash address to controller
-    write_register( (uint32_t)flash_address,
-                    W25Q128JW_CONTROLLER_F_ADDRESS_REG_OFFSET,
-                    0xFFFFFFFF,
-                    0,
-                    W25Q128JW_CONTROLLER_START_ADDRESS
-                );
+    w25q128jw_controller_peri->F_ADDRESS = flash_address;
     // Send RAM buffer address to controller
-    write_register( (uint32_t)ram_buffer,
-                    W25Q128JW_CONTROLLER_S_ADDRESS_REG_OFFSET,
-                    0xFFFFFFFF,
-                    0,
-                    W25Q128JW_CONTROLLER_START_ADDRESS
-                );
+    w25q128jw_controller_peri->S_ADDRESS = (uint32_t)ram_buffer;
     // Send RAM new data address to controller (with data to write into flash memory)
-    write_register( (uint32_t)ram_w_new_data,
-                    W25Q128JW_CONTROLLER_MD_ADDRESS_REG_OFFSET,
-                    0xFFFFFFFF,
-                    0,
-                    W25Q128JW_CONTROLLER_START_ADDRESS
-                );          
+    w25q128jw_controller_peri->MD_ADDRESS = (uint32_t)ram_w_new_data;
     // Send length (in bytes) to controller (byte precision for read operation and word precision for write operation)
-    write_register( length_bytes,
-                    W25Q128JW_CONTROLLER_LENGTH_REG_OFFSET,
-                    0xFFFFFFFF,
-                    0,
-                    W25Q128JW_CONTROLLER_START_ADDRESS
-                );
+    w25q128jw_controller_peri->LENGTH = length_bytes;
     // Specify operation type (rnw = 1 for read, 0 for write)
-    write_register( rnw,
-                    W25Q128JW_CONTROLLER_CONTROL_REG_OFFSET,
-                    0x1,
-                    W25Q128JW_CONTROLLER_CONTROL_RNW_BIT,
-                    W25Q128JW_CONTROLLER_START_ADDRESS
-                );
+    w25q128jw_controller_peri->CONTROL = w25q128jw_controller_peri->CONTROL & ~(1 << W25Q128JW_CONTROLLER_CONTROL_RNW_BIT);
+    w25q128jw_controller_peri->CONTROL = w25q128jw_controller_peri->CONTROL | ((rnw & 0x1) << W25Q128JW_CONTROLLER_CONTROL_RNW_BIT);
     // Start operation
-    write_register( 0x1,
-                    W25Q128JW_CONTROLLER_CONTROL_REG_OFFSET,
-                    0x1,
-                    W25Q128JW_CONTROLLER_CONTROL_START_BIT,
-                    W25Q128JW_CONTROLLER_START_ADDRESS
-                );
+    w25q128jw_controller_peri->CONTROL = w25q128jw_controller_peri->CONTROL & ~(1 << W25Q128JW_CONTROLLER_CONTROL_START_BIT);
+    w25q128jw_controller_peri->CONTROL = w25q128jw_controller_peri->CONTROL | (0x1 << W25Q128JW_CONTROLLER_CONTROL_START_BIT);
+
 }
 

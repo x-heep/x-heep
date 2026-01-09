@@ -51,22 +51,24 @@ uint32_t check_result(uint8_t *test_buffer, uint32_t len);
  * 3. Waits for read completion (polling)
  *
  */
-__attribute__((optimize("O0"))) void w25q128jw_controller_run(){
+__attribute__((optimize("O0"))) int w25q128jw_controller_run(){
     spi_host_t* spi;
     spi = spi_flash;
 
     if (w25q128jw_init(spi) != FLASH_OK) return EXIT_FAILURE;
 
-    w25q128jw_controller_rnw(1, LENGTH_BYTES, flash_address, ram_buffer_address, 0x00000000);
+    w25q128jw_controller_rnw(1, LENGTH_BYTES, (uint32_t)flash_address, ram_buffer_address, 0x00000000);
 
     while(!w25q128jw_controller_is_ready_polling());
+
+    return EXIT_SUCCESS;
 }
 
 int main(void) {
 
-    w25q128jw_controller_run();
+    if (w25q128jw_controller_run() != EXIT_SUCCESS) return EXIT_FAILURE;
 
-    uint32_t res =  check_result(ram_golden_data, LENGTH_BYTES);
+    uint32_t res =  check_result((uint8_t *)ram_golden_data, LENGTH_BYTES);
 
     if (res == 0){
         return EXIT_SUCCESS;

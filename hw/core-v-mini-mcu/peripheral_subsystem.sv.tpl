@@ -345,6 +345,7 @@ module peripheral_subsystem
       .cio_sd_i(spi_sd_i),
       .rx_valid_o(spi_rx_valid_o),
       .tx_ready_o(spi_tx_ready_o),
+      .hw2reg_status_o(),
       .intr_error_o(),
       .intr_spi_event_o(spi_intr_event_o)
   );
@@ -506,6 +507,7 @@ module peripheral_subsystem
       .cio_sd_i(spi2_sd_i),
       .rx_valid_o(),
       .tx_ready_o(),
+      .hw2reg_status_o(),
       .intr_error_o(),
       .intr_spi_event_o(spi2_intr_event)
   );

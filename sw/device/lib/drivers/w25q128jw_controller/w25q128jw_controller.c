@@ -9,16 +9,22 @@
 #include "w25q128jw_controller_structs.h"
 #include "w25q128jw_controller_regs.h"
 #include "w25q128jw_controller.h"
+#include "dma.h"
+
 /**
  * @brief Internal flag to indicate operation completion.
  */
 static volatile uint32_t w25q128jw_controller_done_flag = 0;
 
 // ============== POLLING  ==============
-__attribute__((optimize("O0"))) uint32_t w25q128jw_controller_is_ready_polling()
+uint32_t w25q128jw_controller_is_ready_polling()
 {
     /* The transaction READY bit is read from the status register*/
     uint32_t ret = ( w25q128jw_controller_peri->STATUS & (1<<W25Q128JW_CONTROLLER_STATUS_READY_BIT) ); 
+
+    // Tell the DMA to do not accept write operations from w25q128jw_controller in HW anymore
+    dma_set_hw_configuration_mode(0,0);
+
     return ret;
 }
 
@@ -61,6 +67,8 @@ void w25q128jw_controller_rnw(uint32_t rnw,
     // Specify operation type (rnw = 1 for read, 0 for write)
     w25q128jw_controller_peri->CONTROL = w25q128jw_controller_peri->CONTROL & ~(1 << W25Q128JW_CONTROLLER_CONTROL_RNW_BIT);
     w25q128jw_controller_peri->CONTROL = w25q128jw_controller_peri->CONTROL | ((rnw & 0x1) << W25Q128JW_CONTROLLER_CONTROL_RNW_BIT);
+    // Tell the DMA to accept write operations from w25q128jw_controller in HW
+    dma_set_hw_configuration_mode(1,0);
     // Start operation
     w25q128jw_controller_peri->CONTROL = w25q128jw_controller_peri->CONTROL & ~(1 << W25Q128JW_CONTROLLER_CONTROL_START_BIT);
     w25q128jw_controller_peri->CONTROL = w25q128jw_controller_peri->CONTROL | (0x1 << W25Q128JW_CONTROLLER_CONTROL_START_BIT);

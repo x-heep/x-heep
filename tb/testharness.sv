@@ -540,6 +540,7 @@ module testharness #(
           .trigger_slot_i('0),
           .dma_done_intr_o(memcopy_intr),
           .dma_window_intr_o(),
+          .dma_ready_o(),
           .dma_done_o()
       );
 

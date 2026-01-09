@@ -44,10 +44,11 @@ module dma
 
     input dma_hw2reg_t external_hw2reg_i,
 
-    output dma_done_intr_o,
-    output dma_window_intr_o,
+    output logic dma_done_intr_o,
+    output logic dma_window_intr_o,
 
-    output dma_done_o
+    output logic dma_ready_o,
+    output logic dma_done_o
 );
 
   `include "dma_conf.svh"
@@ -191,6 +192,8 @@ module dma
       .hw2reg,
       .devmode_i(1'b1)
   );
+
+  assign dma_ready_o = hw2reg.status.ready.d;
 
   /* Buffer unit */
   dma_buffer_unit #(

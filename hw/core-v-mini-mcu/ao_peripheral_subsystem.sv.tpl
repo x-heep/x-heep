@@ -164,6 +164,7 @@ module ao_peripheral_subsystem
   reg_req_t perconv2regdemux_req;
   reg_rsp_t regdemux2perconv_resp;
   dma_reg_pkg::dma_hw2reg_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] external_dma_hw2reg;
+  logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_ready;
 
   /*_________________________________________________________________________________________________________________________________ */
 
@@ -353,6 +354,7 @@ module ao_peripheral_subsystem
       .w25q128jw_controller_obi_req_o,
       .w25q128jw_controller_obi_resp_i,
       .w25q128jw_controller_intr_o,
+      .dma_ready_i(dma_ready),
       .dma_done_i(dma_done_o),
       .spi_flash_sck_o,
       .spi_flash_sck_en_o,
@@ -461,6 +463,7 @@ module ao_peripheral_subsystem
       .hw_fifo_done_i,
       .dma_done_intr_o(dma_done_intr_o),
       .dma_window_intr_o(dma_window_intr_o),
+      .dma_ready_o(dma_ready),
       .dma_done_o(dma_done_o)
   );
 

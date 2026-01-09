@@ -356,7 +356,7 @@ void fic_irq_dma_done(void)
 uint32_t dma_set_hw_configuration_mode(uint32_t hw_config_mode, int dma_ch)
 {
     uint32_t old_hw_config_mode = dma_subsys_per[dma_ch].peri->HW_CONFIG_MODE;
-    dma_subsys_per[dma_ch].peri->HW_CONFIG_MODE = hw_config_mode;
+    dma_peri(dma_ch)->HW_CONFIG_MODE = hw_config_mode;
     return old_hw_config_mode;
 }
 void dma_init( dma *dma_peri )

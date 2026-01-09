@@ -16,6 +16,7 @@
 module w25q128jw_controller
   import core_v_mini_mcu_pkg::*;
   import dma_reg_pkg::*;
+  import spi_host_reg_pkg::*;
 #(
     parameter type reg_req_t = reg_pkg::reg_req_t,
     parameter type reg_rsp_t = reg_pkg::reg_rsp_t
@@ -34,18 +35,21 @@ module w25q128jw_controller
     output logic w25q128jw_controller_intr_o,
 
     // Master ports on the system bus
-    output obi_pkg::obi_req_t w25q128jw_controller_obi_req_o,
-    input obi_pkg::obi_resp_t w25q128jw_controller_obi_resp_i,
+    output obi_pkg::obi_req_t  w25q128jw_controller_obi_req_o,
+    input  obi_pkg::obi_resp_t w25q128jw_controller_obi_resp_i,
+
+    // DMA HW Controller 
     output dma_reg_pkg::dma_hw2reg_t external_dma_hw2reg_o,
+    // SPI HW register
+    input spi_host_reg_pkg::spi_host_hw2reg_status_reg_t external_spi_host_hw2reg_status_i,
 
-
-    // DMA channel done signals (directly from DMA IP)
+    // DMA channel redy/done signals (directly from DMA IP)
+    input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_ready_i,
     input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_done_i
 );
 
   // ============== PACKAGE IMPORTS ==============
   import w25q128jw_controller_reg_pkg::*;
-  import spi_host_reg_pkg::*;
   `include "dma_conf.svh"
 
   // ============== REGISTER SIGNALS ==============
@@ -187,7 +191,7 @@ module w25q128jw_controller
   // -------- READ FSM STATES --------
   // Handles flash read operations via SPI & DMA
   typedef enum logic [3:0] {
-    READ_IDLE,    // Lead to DMA initialization (necessary before every use of DMA)
+    READ_IDLE,  // Lead to DMA initialization (necessary before every use of DMA)
     // READ_DMA_SRC_PTR,  // Set DMA source (SPI RX FIFO)
     // READ_DMA_DST_PTR,  // Set DMA destination (RAM sector buffer (register S_ADDRESS)) (S for Store)
     // READ_DMA_SRC_INC,  // Set source increment (0 for FIFO)
@@ -196,8 +200,7 @@ module w25q128jw_controller
     // READ_DMA_DST_TYPE,  // Set destination data type (32-bit)
     // READ_DMA_TRIG,  // Set DMA trigger sources (SPI RX FIFO to memory)
     // READ_DMA_SIZE_D1,  // Set transfer size (starts DMA)
-    READ_SET_DMA, // Set transfer size (starts DMA)
-
+    READ_SET_DMA,  // Set transfer size (starts DMA)
     READ_SPI_CHECK_TX_FIFO,  // Check if TX FIFO has space
     READ_SPI_FILL_TX_FIFO,  // Write command + address to TX FIFO
     READ_SPI_WAIT_READY_1,  // Wait for SPI Host ready
@@ -298,11 +301,9 @@ module w25q128jw_controller
   // -------- DMA INIT FSM STATES --------
   // Resets all DMA registers before each transfer
   // This ensures clean state regardless of previous DMA operations
-  typedef enum logic [2:0] {
+  typedef enum logic [1:0] {
     DMA_INIT_IDLE,  // Wait for DMA to be ready (check status)
-    DMA_SET_HW_CONFIG_REGISTER,  // Tell the DMA that it will be controlled by the Flash controller
     DMA_INIT_REGISTERS,  // Clear all registers
-    DMA_UNSET_HW_CONFIG_REGISTER, // Tell the DMA that it won't be controlled by the Flash controller anymore
     // DMA_INIT_SRC_PTR,         // Clear source pointer
     // DMA_INIT_DST_PTR,         // Clear destination pointer
     // DMA_INIT_ADDR_PTR,        // Clear address pointer (if DMA_ADDR_MODE enabled)
@@ -494,10 +495,10 @@ module w25q128jw_controller
             external_dma_hw2reg_o.dst_ptr_inc_d1.d  = 'h04; // Increment by 4 bytes (32-bit word) in RAM
             //READ_DMA_SRC_TYPE
             external_dma_hw2reg_o.src_data_type.de = 1'b1;
-            external_dma_hw2reg_o.src_data_type.d  =  '0;  // 0 = 32-bit word
+            external_dma_hw2reg_o.src_data_type.d = '0;  // 0 = 32-bit word
             //READ_DMA_DST_TYPE
             external_dma_hw2reg_o.dst_data_type.de = 1'b1;
-            external_dma_hw2reg_o.dst_data_type.d  = '0;   // 0 = 32-bit word
+            external_dma_hw2reg_o.dst_data_type.d = '0;  // 0 = 32-bit word
             //READ_DMA_TRIG
             external_dma_hw2reg_o.slot.rx_trigger_slot.de = 1'b1;
             external_dma_hw2reg_o.slot.rx_trigger_slot.d = 16'h4;
@@ -638,16 +639,25 @@ module w25q128jw_controller
 
           // -------- Check if TX FIFO has space for command --------
           READ_SPI_CHECK_TX_FIFO: begin
-            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
-            mem_op_start = 1'b1;
-
             // STATUS[7:0] = TXQD (TX FIFO depth). Proceed if not full.
             // See hw/vendor/lowrisc_opentitan_spi_host/data/spi_host.hjson for status register bit mapping
             // See hw/vendor/lowrisc_opentitan_spi_host/rtl/spi_host_reg_pkg.sv for TXQD depth definition
-            if (memory_op_finish && read_value[7:0] < SPI_FLASH_TX_FIFO_DEPTH[7:0]) begin
+            if (external_spi_host_hw2reg_status_i.txqd.d < SPI_FLASH_TX_FIFO_DEPTH[7:0]) begin
               read_state_d = READ_SPI_FILL_TX_FIFO;
             end
           end
+
+          // READ_SPI_CHECK_TX_FIFO: begin
+          //   address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+          //   mem_op_start = 1'b1;
+
+          //   // STATUS[7:0] = TXQD (TX FIFO depth). Proceed if not full.
+          //   // See hw/vendor/lowrisc_opentitan_spi_host/data/spi_host.hjson for status register bit mapping
+          //   // See hw/vendor/lowrisc_opentitan_spi_host/rtl/spi_host_reg_pkg.sv for TXQD depth definition
+          //   if (memory_op_finish && read_value[7:0] < SPI_FLASH_TX_FIFO_DEPTH[7:0]) begin
+          //     read_state_d = READ_SPI_FILL_TX_FIFO;
+          //   end
+          // end
 
           // -------- Write READ command + address to TX FIFO --------
           // Format: [31:8] = 24-bit flash address byte swapped, [7:0] = FC_RD command (0x03)
@@ -678,10 +688,19 @@ module w25q128jw_controller
             mem_op_start = 1'b1;
 
             // STATUS[31] = READY bit. Proceed if ready.
-            if (memory_op_finish && read_value[31]) begin
+            if (external_spi_host_hw2reg_status_i.ready.d) begin
               read_state_d = READ_SPI_SEND_CMD_1;
             end
           end
+          // READ_SPI_WAIT_READY_1: begin
+          //   address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+          //   mem_op_start = 1'b1;
+
+          //   // STATUS[31] = READY bit. Proceed if ready.
+          //   if (memory_op_finish && read_value[31]) begin
+          //     read_state_d = READ_SPI_SEND_CMD_1;
+          //   end
+          // end
 
           // -------- Send command phase: Read operation from f_address --------
           // COMMAND register format:
@@ -703,16 +722,25 @@ module w25q128jw_controller
             end
           end
 
-          // -------- Wait for SPI Host ready (Specify read action) --------
+          // // -------- Wait for SPI Host ready (Specify read action) --------
           READ_SPI_WAIT_READY_2: begin
             address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
             mem_op_start = 1'b1;
 
             // STATUS[31] = READY bit. Proceed if ready.
-            if (memory_op_finish && read_value[31]) begin
+            if (external_spi_host_hw2reg_status_i.ready.d) begin
               read_state_d = READ_SPI_SEND_CMD_2;
             end
           end
+          // READ_SPI_WAIT_READY_2: begin
+          //   address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+          //   mem_op_start = 1'b1;
+
+          //   // STATUS[31] = READY bit. Proceed if ready.
+          //   if (memory_op_finish && read_value[31]) begin
+          //     read_state_d = READ_SPI_SEND_CMD_2;
+          //   end
+          // end
 
           // -------- Send command phase: Direction and length of read operation --------
           // COMMAND register format:
@@ -1652,27 +1680,22 @@ module w25q128jw_controller
           // Poll DMA STATUS register until READY bit is set
           // See: hw/ip/dma/data/dma.hjson for STATUS register description
           DMA_INIT_IDLE: begin
-            address = DMA_START_ADDRESS + {25'b0, DMA_STATUS_OFFSET};
-            mem_op_start = 1'b1;
-
             // STATUS[0] = READY bit
-            if (memory_op_finish && read_value[0]) begin
+            if (dma_ready_i[0]) begin
               //dma_init_state_d = DMA_INIT_SRC_PTR;
-              dma_init_state_d = DMA_SET_HW_CONFIG_REGISTER;
-            end
-          end
-
-          // -------- Tell the DMA that it will be controlled by the Flash controller --------
-          DMA_SET_HW_CONFIG_REGISTER: begin
-            address = DMA_START_ADDRESS + {25'b0, DMA_HW_CONFIG_MODE_OFFSET};
-            data = 32'h00000001;
-            w_enable = 1'b1;
-            mem_op_start = 1'b1;
-
-            if (memory_op_finish) begin
               dma_init_state_d = DMA_INIT_REGISTERS;
             end
           end
+          // DMA_INIT_IDLE: begin
+          //   address = DMA_START_ADDRESS + {25'b0, DMA_STATUS_OFFSET};
+          //   mem_op_start = 1'b1;
+
+          //   // STATUS[0] = READY bit
+          //   if (memory_op_finish && read_value[0]) begin
+          //     //dma_init_state_d = DMA_INIT_SRC_PTR;
+          //     dma_init_state_d = DMA_SET_HW_CONFIG_REGISTER;
+          //   end
+          // end
 
           // These states have been collapsed to 1 with hw2reg
           DMA_INIT_REGISTERS: begin
@@ -1753,19 +1776,6 @@ module w25q128jw_controller
             external_dma_hw2reg_o.addr_ptr.d  = '0;
 `endif
           end
-
-          // -------- Tell the DMA that it won't be controlled by the Flash controller anymore --------
-          DMA_UNSET_HW_CONFIG_REGISTER: begin
-            address = DMA_START_ADDRESS + {25'b0, DMA_HW_CONFIG_MODE_OFFSET};
-            data = 32'h00000000;
-            w_enable = 1'b1;
-            mem_op_start = 1'b1;
-
-            if (memory_op_finish) begin
-              dma_init_state_d = DMA_INIT_REDIRECT;
-            end
-          end
-
 
           /*
           // -------- Clear source pointer --------

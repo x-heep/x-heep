@@ -37,6 +37,7 @@ module spi_subsystem
     // flash controller interrupt
     output logic w25q128jw_controller_intr_o,
 
+    input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_ready_i,
     input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_done_i,
 
     // SPI Interface
@@ -78,6 +79,10 @@ module spi_subsystem
   logic [                        3:0] yo_spi_sd_out;
   logic [                        3:0] yo_spi_sd_en;
   logic [                        3:0] yo_spi_sd_in;
+
+  import spi_host_reg_pkg::*;
+  spi_host_reg_pkg::spi_host_hw2reg_status_reg_t external_spi_host_hw2reg_status;
+
 
   // Multiplexer
   always_comb begin
@@ -160,6 +165,7 @@ module spi_subsystem
       .cio_sd_i(ot_spi_sd_in),
       .rx_valid_o(ot_spi_rx_valid),
       .tx_ready_o(ot_spi_tx_ready),
+      .hw2reg_status_o(external_spi_host_hw2reg_status),
       .intr_error_o(ot_spi_intr_error),
       .intr_spi_event_o(ot_spi_intr_event)
   );
@@ -184,10 +190,13 @@ module spi_subsystem
 
       //dma hw controller
       .external_dma_hw2reg_o,
+      //spi status if
+      .external_spi_host_hw2reg_status_i(external_spi_host_hw2reg_status),
 
       // Master ports on the system bus
       .w25q128jw_controller_obi_req_o,
       .w25q128jw_controller_obi_resp_i,
+      .dma_ready_i,
       .dma_done_i
   );
 

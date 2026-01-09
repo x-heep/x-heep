@@ -396,7 +396,7 @@ module dma
     end else begin
       if (dma_start == 1'b1) begin
         dma_start_pending <= 1'b0;
-      end else if ((reg2hw.size_d1.qe & |reg2hw.size_d1.q)) begin
+      end else if ((reg2hw.size_d1.qe & |reg2hw.size_d1.q) || (reg2hw.hw_config_mode.q && external_hw2reg_i.size_d1.de && (external_hw2reg_i.size_d1.d > '0))) begin
         dma_start_pending <= 1'b1;
       end
     end

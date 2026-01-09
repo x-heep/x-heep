@@ -187,15 +187,17 @@ module w25q128jw_controller
   // -------- READ FSM STATES --------
   // Handles flash read operations via SPI & DMA
   typedef enum logic [3:0] {
-    READ_IDLE,  // Lead to DMA initialization (necessary before every use of DMA)
-    READ_DMA_SRC_PTR,  // Set DMA source (SPI RX FIFO)
-    READ_DMA_DST_PTR,  // Set DMA destination (RAM sector buffer (register S_ADDRESS)) (S for Store)
-    READ_DMA_SRC_INC,  // Set source increment (0 for FIFO)
-    READ_DMA_DST_INC,  // Set destination increment (+4 bytes (32-bit word))
-    READ_DMA_SRC_TYPE,  // Set source data type (32-bit)
-    READ_DMA_DST_TYPE,  // Set destination data type (32-bit)
-    READ_DMA_TRIG,  // Set DMA trigger sources (SPI RX FIFO to memory)
-    READ_DMA_SIZE_D1,  // Set transfer size (starts DMA)
+    READ_IDLE,    // Lead to DMA initialization (necessary before every use of DMA)
+    // READ_DMA_SRC_PTR,  // Set DMA source (SPI RX FIFO)
+    // READ_DMA_DST_PTR,  // Set DMA destination (RAM sector buffer (register S_ADDRESS)) (S for Store)
+    // READ_DMA_SRC_INC,  // Set source increment (0 for FIFO)
+    // READ_DMA_DST_INC,  // Set destination increment (+4 bytes (32-bit word))
+    // READ_DMA_SRC_TYPE,  // Set source data type (32-bit)
+    // READ_DMA_DST_TYPE,  // Set destination data type (32-bit)
+    // READ_DMA_TRIG,  // Set DMA trigger sources (SPI RX FIFO to memory)
+    // READ_DMA_SIZE_D1,  // Set transfer size (starts DMA)
+    READ_SET_DMA, // Set transfer size (starts DMA)
+
     READ_SPI_CHECK_TX_FIFO,  // Check if TX FIFO has space
     READ_SPI_FILL_TX_FIFO,  // Write command + address to TX FIFO
     READ_SPI_WAIT_READY_1,  // Wait for SPI Host ready
@@ -352,6 +354,7 @@ module w25q128jw_controller
   // Simulation Bypass Signal
   logic pass_fwait;
 
+  logic [31:0] dma_size;
 
   // In simulation (not FPGA_SYNTHESIS and not SYNTHESIS), we skip the flash wait and erase FSMs
   // This is mandatory as otherwise the controller will be stuck in FWAIT FSM in simulation
@@ -433,6 +436,8 @@ module w25q128jw_controller
 
     external_dma_hw2reg_o   = '0;
 
+    dma_size = '0;
+
     // ============================================================================
     // TOP FSM
     // ============================================================================
@@ -468,11 +473,52 @@ module w25q128jw_controller
           READ_IDLE: begin
             top_state_d       = TOP_DMA_INIT;  // Go to DMA init FSM
             dma_init_return_d = RETURN_READ;  // Return here after DMA init
-            read_state_d      = READ_DMA_SRC_PTR;  // Next state after returning from DMA init
+            //read_state_d      = READ_DMA_SRC_PTR;  // Next state after returning from DMA init
+            read_state_d      = READ_SET_DMA;  // Next state after returning from DMA init
           end
 
           // ============== DMA CONFIGURATION ==============
-
+          READ_SET_DMA: begin
+            read_state_d = READ_SPI_CHECK_TX_FIFO;
+            //READ_DMA_SRC_PTR
+            external_dma_hw2reg_o.src_ptr.de = 1'b1;
+            external_dma_hw2reg_o.src_ptr.d  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_RXDATA_OFFSET}; // SPI RX FIFO address;
+            //READ_DMA_DST_PTR
+            external_dma_hw2reg_o.dst_ptr.de = 1'b1;
+            external_dma_hw2reg_o.dst_ptr.d = reg2hw.s_address; // RAM buffer address from S_ADDRESS register
+            //READ_DMA_SRC_INC
+            external_dma_hw2reg_o.src_ptr_inc_d1.de = 1'b1;
+            external_dma_hw2reg_o.src_ptr_inc_d1.d  = '0; // No increment - always read from RX FIFO address
+            //READ_DMA_DST_INC
+            external_dma_hw2reg_o.dst_ptr_inc_d1.de = 1'b1;
+            external_dma_hw2reg_o.dst_ptr_inc_d1.d  = 'h04; // Increment by 4 bytes (32-bit word) in RAM
+            //READ_DMA_SRC_TYPE
+            external_dma_hw2reg_o.src_data_type.de = 1'b1;
+            external_dma_hw2reg_o.src_data_type.d  =  '0;  // 0 = 32-bit word
+            //READ_DMA_DST_TYPE
+            external_dma_hw2reg_o.dst_data_type.de = 1'b1;
+            external_dma_hw2reg_o.dst_data_type.d  = '0;   // 0 = 32-bit word
+            //READ_DMA_TRIG
+            external_dma_hw2reg_o.slot.rx_trigger_slot.de = 1'b1;
+            external_dma_hw2reg_o.slot.rx_trigger_slot.d = 16'h4;
+            external_dma_hw2reg_o.slot.tx_trigger_slot.de = 1'b1;
+            external_dma_hw2reg_o.slot.tx_trigger_slot.d = '0;
+            //READ_DMA_SIZE_D1
+            external_dma_hw2reg_o.size_d1.de = 1'b1;
+            if (reg2hw.control.rnw) begin
+              // READ operation: transfer user-specified length
+              if (reg2hw.length[1:0] == 0) begin
+                dma_size = reg2hw.length >> 2;  // Exact word count (length divisible by 4)
+              end else begin
+                dma_size = (reg2hw.length >> 2) + 1;  // Round up to next word
+              end
+            end else begin
+              // WRITE operation: always read one sector (1024 words = 4KB)
+              dma_size = {19'b0, SE_WSIZE};
+            end
+            external_dma_hw2reg_o.size_d1.d = dma_size[15:0];
+          end
+          /*
           // -------- Set DMA source pointer: SPI RX FIFO --------
           READ_DMA_SRC_PTR: begin
             // This OBI setting is repeated for all bus transactions in the rest of the code
@@ -587,7 +633,7 @@ module w25q128jw_controller
               read_state_d = READ_SPI_CHECK_TX_FIFO;
             end
           end
-
+*/
           // ============== SPI COMMAND SEQUENCE ==============
 
           // -------- Check if TX FIFO has space for command --------
@@ -1630,7 +1676,7 @@ module w25q128jw_controller
 
           // These states have been collapsed to 1 with hw2reg
           DMA_INIT_REGISTERS: begin
-            dma_init_state_d                                       = DMA_UNSET_HW_CONFIG_REGISTER;
+            dma_init_state_d                                       = DMA_INIT_REDIRECT;
 
             //DMA_INIT_SRC_PTR
             external_dma_hw2reg_o.src_ptr.de                       = 1'b1;

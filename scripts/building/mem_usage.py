@@ -299,23 +299,48 @@ for bank_idx, bank in enumerate(banks):
 
     if bank['type'] == 'Cont':
         for piece in range(len(bank['use'])):
-            address += granularity_B
-
             bank['use'][piece] = '-'
             for region in regions:
-                if address > region['start_add'] and address <= region['end_add']:
+                # Region starts before and finishes after current segment
+                if region['start_add'] < address and region['end_add'] > (address + granularity_B):
                     bank['use'][piece] = region['symbol']
                     utilization += granularity_B
-            
+                # Region starts before but finishes in current segment
+                if region['start_add'] < address and region['end_add'] > address and region['end_add'] <= (address + granularity_B):
+                    bank['use'][piece] = region['symbol']
+                    utilization += region['end_add'] - address
+                # Region starts in but finishes after current segment
+                if region['start_add'] >= address and region['start_add'] < (address + granularity_B) and region['end_add'] > (address + granularity_B):
+                    bank['use'][piece] = region['symbol']
+                    utilization += (address + granularity_B) - region['start_add']
+                # Region starts and finishes in current segment
+                if region['start_add'] >= address and region['start_add'] < (address + granularity_B) and region['end_add'] > address and region['end_add'] <= (address + granularity_B):
+                    bank['use'][piece] = region['symbol']
+                    utilization += region['end_add'] - region['start_add']
+            address += granularity_B
+
     if bank['type'] == "IntL":
         for piece in range(len(bank['use'])):
             address = start_IL_B + granularity_B*piece
             bank['use'][piece] = '-'
             for region in regions:
-                used_by_others = (region['size_B']*(num_il_banks-1)/num_il_banks)
-                if address >= region['start_add'] and address < region['end_add'] - used_by_others:
+                used_by_others = int(region['size_B']*(num_il_banks-1)/num_il_banks)
+                # Region starts before and finishes after current segment
+                if region['start_add'] < address and (region['end_add'] - used_by_others) > (address + granularity_B):
                     bank['use'][piece] = region['symbol']
                     utilization += granularity_B
+                # Region starts before but finishes in current segment
+                if region['start_add'] < address and (region['end_add'] - used_by_others) > address and (region['end_add'] - used_by_others) <= (address + granularity_B):
+                    bank['use'][piece] = region['symbol']
+                    utilization += (region['end_add'] - used_by_others) - address
+                # Region starts in but finishes after current segment
+                if region['start_add'] >= address and region['start_add'] < (address + granularity_B) and (region['end_add'] - used_by_others) > (address + granularity_B):
+                    bank['use'][piece] = region['symbol']
+                    utilization += (address + granularity_B) - region['start_add']
+                # Region starts and finishes in current segment
+                if region['start_add'] >= address and region['start_add'] < (address + granularity_B) and (region['end_add'] - used_by_others) > address and (region['end_add'] - used_by_others) <= (address + granularity_B):
+                    bank['use'][piece] = region['symbol']
+                    utilization += (region['end_add'] - used_by_others) - region['start_add']
 
     bank['use'] = ''.join([''.join(sublist) for sublist in bank['use']])
     print(bank['type'],bank_idx,bank['use'], f"\t{100*(utilization/bank['size']):0.1f}%")

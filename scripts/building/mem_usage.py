@@ -158,7 +158,8 @@ def get_regions(program_headers, section_to_segment):
     code_sections = {'.vectors', '.init', '.text', '.eh_frame'}
     data_sections = {'.power_manager', '.rodata', '.data', '.sdata', '.sbss', '.bss', '.heap', '.stack'}
     interleaved_data_sections = {'.data_interleaved'}
-    
+    flash_data_sections = {'.data_flash_only'}
+
     # List to store region dictionaries
     regions = []
 
@@ -174,6 +175,9 @@ def get_regions(program_headers, section_to_segment):
         elif any(sec in sections for sec in interleaved_data_sections):
             region_type = 'i'  # Special data handling like interleaved can be marked differently if needed
             name = 'IL data'
+        elif any(sec in sections for sec in flash_data_sections):
+            region_type = 'f'  # Special data handling to avoid FLASH-only data to be included in the RAM report
+            name = 'FLASH data'
         # Create dictionary for the region
         region_dict = {
             'name': name,

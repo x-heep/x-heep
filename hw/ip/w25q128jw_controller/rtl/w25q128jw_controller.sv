@@ -24,7 +24,7 @@ module w25q128jw_controller
     input logic clk_i,
     input logic rst_ni,
 
-    // Register interface to system bus
+    // Register interface from system bus
     input  reg_req_t reg_req_i,
     output reg_rsp_t reg_rsp_o,
 
@@ -34,7 +34,10 @@ module w25q128jw_controller
     // Interrupt signal
     output logic w25q128jw_controller_intr_o,
 
-    // Master ports on the system bus
+    // Master ports to the SPI HOST
+    output reg_req_t spi_host_reg_req_o,
+    input  reg_rsp_t spi_host_reg_rsp_i,
+
     output obi_pkg::obi_req_t  w25q128jw_controller_obi_req_o,
     input  obi_pkg::obi_resp_t w25q128jw_controller_obi_resp_i,
 
@@ -439,6 +442,9 @@ module w25q128jw_controller
 
     dma_size = '0;
 
+    spi_host_reg_req_o = '0;
+    spi_host_reg_req_o.wstrb = 4'b1111;
+
     // ============================================================================
     // TOP FSM
     // ============================================================================
@@ -663,29 +669,34 @@ module w25q128jw_controller
           // Format: [31:8] = 24-bit flash address byte swapped, [7:0] = FC_RD command (0x03)
           // Inspiration from sw/device/bsp/w25q
           READ_SPI_FILL_TX_FIFO: begin
-            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_TXDATA_OFFSET};
-            w_enable = 1'b1;
-            mem_op_start = 1'b1;
+            //            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_TXDATA_OFFSET};
+            //            w_enable = 1'b1;
+            //            mem_op_start = 1'b1;
+            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_TXDATA_OFFSET};
+            spi_host_reg_req_o.write = 1'b1;
+            spi_host_reg_req_o.valid = 1'b1;
 
             if (reg2hw.control.rnw) begin
               // READ: Use exact flash address from F_ADDRESS register
-              data = (((bitfield_byteswap32(reg2hw.f_address & 32'h00ffffff)) >> 8) << 8) |
-                  {19'h0, FC_RD};
+              spi_host_reg_req_o.wdata = (((bitfield_byteswap32(reg2hw.f_address & 32'h00ffffff)) >>
+                                           8) << 8) | {19'h0, FC_RD};
             end else begin
               // WRITE: Use sector-aligned address + current sector iteration offset
-              data = (((bitfield_byteswap32((reg2hw.f_address & 32'h00fff000) +
-                                            (sector_iter_offset_q))) >> 8) << 8) | {19'h0, FC_RD};
+              spi_host_reg_req_o.wdata = (((bitfield_byteswap32((reg2hw.f_address & 32'h00fff000) +
+                                                                (sector_iter_offset_q))) >> 8) <<
+                                          8) | {19'h0, FC_RD};
             end
-
-            if (memory_op_finish) begin
+            data = spi_host_reg_rsp_i.rdata;  // TODO: delete
+            //if (memory_op_finish) begin
+            if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error) begin
               read_state_d = READ_SPI_WAIT_READY_1;
             end
           end
 
           // -------- Wait for SPI Host ready (Send action type and location) --------
           READ_SPI_WAIT_READY_1: begin
-            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
-            mem_op_start = 1'b1;
+            // address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+            // mem_op_start = 1'b1;
 
             // STATUS[31] = READY bit. Proceed if ready.
             if (external_spi_host_hw2reg_status_i.ready.d) begin
@@ -710,22 +721,28 @@ module w25q128jw_controller
           //   [24]    = CSAAT (1 = keep CS asserted for next command)
           //   [23:0]  = Length-1 (3 = 4 bytes: 1 command + 3 address)
           READ_SPI_SEND_CMD_1: begin
-            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
-            data = {
+            // address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
+            // data = {
+            //   3'h0, 2'h2, 2'h0, 1'h1, 24'h3
+            // };  // Reserved + Direction + Speed + Csaat + Length
+            // w_enable = 1'b1;
+            // mem_op_start = 1'b1;
+            spi_host_reg_req_o.addr = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
+            spi_host_reg_req_o.write = 1'b1;
+            spi_host_reg_req_o.valid = 1'b1;
+            spi_host_reg_req_o.wdata = {
               3'h0, 2'h2, 2'h0, 1'h1, 24'h3
-            };  // Reserved + Direction + Speed + Csaat + Length 
-            w_enable = 1'b1;
-            mem_op_start = 1'b1;
-
-            if (memory_op_finish) begin
+            };  // Reserved + Direction + Speed + Csaat + Length
+            //if (memory_op_finish) begin
+            if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error) begin
               read_state_d = READ_SPI_WAIT_READY_2;
             end
           end
 
           // // -------- Wait for SPI Host ready (Specify read action) --------
           READ_SPI_WAIT_READY_2: begin
-            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
-            mem_op_start = 1'b1;
+            // address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+            // mem_op_start = 1'b1;
 
             // STATUS[31] = READY bit. Proceed if ready.
             if (external_spi_host_hw2reg_status_i.ready.d) begin
@@ -750,23 +767,26 @@ module w25q128jw_controller
           //   [24]    = CSAAT (0 = release CS after transfer, no more commands to send)
           //   [23:0]  = See comments below
           READ_SPI_SEND_CMD_2: begin
-            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
-            w_enable = 1'b1;
-            mem_op_start = 1'b1;
+            // address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
+            // w_enable = 1'b1;
+            // mem_op_start = 1'b1;
+            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
+            spi_host_reg_req_o.write = 1'b1;
+            spi_host_reg_req_o.valid = 1'b1;
 
             if (reg2hw.control.rnw) begin
               // READ: receive user-specified number of bytes
-              data = {
+              spi_host_reg_req_o.wdata = {
                 3'h0, 2'h1, 2'h0, 1'h0, reg2hw.length[23:0] - 1'h1
               };  // Empty + Direction + Speed + Csaat + Length
             end else begin
               // WRITE: read full sector (4096 bytes)
-              data = {
+              spi_host_reg_req_o.wdata = {
                 3'h0, 2'h1, 2'h0, 1'h0, {11'b0, SE_BSIZE - 1'h1}
               };  // Empty + Direction + Speed + Csaat + Length
             end
-
-            if (memory_op_finish) begin
+            if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error) begin
+              //            if (memory_op_finish) begin
               read_state_d = READ_TRANS;
             end
           end

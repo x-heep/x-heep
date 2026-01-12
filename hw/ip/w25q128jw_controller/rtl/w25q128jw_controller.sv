@@ -268,6 +268,10 @@ module w25q128jw_controller
     end
   end
 
+  logic [spi_host_reg_pkg::BlockAw-1:0] spi_host_reg_req_offset;
+
+  assign spi_host_reg_req_o.addr = SPI_FLASH_START_ADDRESS + {{(32 - spi_host_reg_pkg::BlockAw){1'b0}}, spi_host_reg_req_offset};
+
   // FSM combinational logic
   always_comb begin
     dma_init_state_d = dma_init_state_q;
@@ -298,8 +302,10 @@ module w25q128jw_controller
 
     dma_size = '0;
 
-    spi_host_reg_req_o = '0;
+    spi_host_reg_req_o.valid = '0;
     spi_host_reg_req_o.wstrb = 4'b1111;
+    spi_host_reg_req_o.write = 1'b0;
+    spi_host_reg_req_o.wdata = '0;
 
     // ============================================================================
     // TOP FSM
@@ -398,7 +404,7 @@ module w25q128jw_controller
           // Format: [31:8] = 24-bit flash address byte swapped, [7:0] = FC_RD command (0x03)
           // Inspiration from sw/device/bsp/w25q
           READ_SPI_FILL_TX_FIFO: begin
-            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_TXDATA_OFFSET};
+            spi_host_reg_req_offset  = SPI_HOST_TXDATA_OFFSET;
             spi_host_reg_req_o.write = 1'b1;
             spi_host_reg_req_o.valid = 1'b1;
 
@@ -433,7 +439,7 @@ module w25q128jw_controller
           //   [24]    = CSAAT (1 = keep CS asserted for next command)
           //   [23:0]  = Length-1 (3 = 4 bytes: 1 command + 3 address)
           READ_SPI_SEND_CMD_1: begin
-            spi_host_reg_req_o.addr = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
+            spi_host_reg_req_offset = SPI_HOST_COMMAND_OFFSET;
             spi_host_reg_req_o.write = 1'b1;
             spi_host_reg_req_o.valid = 1'b1;
             spi_host_reg_req_o.wdata = {
@@ -460,7 +466,7 @@ module w25q128jw_controller
           //   [24]    = CSAAT (0 = release CS after transfer, no more commands to send)
           //   [23:0]  = See comments below
           READ_SPI_SEND_CMD_2: begin
-            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
+            spi_host_reg_req_offset  = SPI_HOST_COMMAND_OFFSET;
             spi_host_reg_req_o.write = 1'b1;
             spi_host_reg_req_o.valid = 1'b1;
 
@@ -573,7 +579,7 @@ module w25q128jw_controller
           // -------- Read current CONTROL register value --------
           // We need to preserve other bits when modifying RXWM (preserved in read_value from OBI FSM)
           FWAIT_SET_RXWM_R: begin
-            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
+            spi_host_reg_req_offset  = SPI_HOST_COMMAND_OFFSET;
             spi_host_reg_req_o.write = 1'b0;
             spi_host_reg_req_o.valid = 1'b1;
             if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error) begin
@@ -585,7 +591,7 @@ module w25q128jw_controller
 
           // -------- Write back with RX watermark = 1 --------
           FWAIT_SET_RXWM_W: begin
-            spi_host_reg_req_o.addr = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
+            spi_host_reg_req_offset = SPI_HOST_COMMAND_OFFSET;
             spi_host_reg_req_o.write = 1'b1;
             spi_host_reg_req_o.valid = 1'b1;
             //we are sharing the sector_iter_offset_q register with the rdata from SPI to save resources
@@ -610,7 +616,7 @@ module w25q128jw_controller
 
           // -------- Write Read Status Register 1 command to TX FIFO --------
           FWAIT_SPI_FILL_TX_FIFO: begin
-            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_TXDATA_OFFSET};
+            spi_host_reg_req_offset  = SPI_HOST_TXDATA_OFFSET;
             spi_host_reg_req_o.write = 1'b1;
             spi_host_reg_req_o.valid = 1'b1;
             spi_host_reg_req_o.wdata = {19'b0, FC_RSR1};
@@ -634,7 +640,7 @@ module w25q128jw_controller
           //   [24]    = CSAAT (1 = keep CS asserted for next command)
           //   [23:0]  = Length-1 (0 = 1 byte) (FC_RSR1 is 1 byte command)
           FWAIT_SPI_SEND_CMD_1: begin
-            spi_host_reg_req_o.addr = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
+            spi_host_reg_req_offset = SPI_HOST_COMMAND_OFFSET;
             spi_host_reg_req_o.write = 1'b1;
             spi_host_reg_req_o.valid = 1'b1;
             spi_host_reg_req_o.wdata = {
@@ -660,7 +666,7 @@ module w25q128jw_controller
           //   [24]    = CSAAT (0 = release CS after transfer, no more commands to send)
           //   [23:0]  = Length-1 (0 = 1 byte)
           FWAIT_SPI_SEND_CMD_2: begin
-            spi_host_reg_req_o.addr = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
+            spi_host_reg_req_offset = SPI_HOST_COMMAND_OFFSET;
             spi_host_reg_req_o.write = 1'b1;
             spi_host_reg_req_o.valid = 1'b1;
             spi_host_reg_req_o.wdata = {
@@ -675,7 +681,7 @@ module w25q128jw_controller
 
           // -------- Wait for status byte received --------
           FWAIT_WAIT_RXWM: begin
-            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+            spi_host_reg_req_offset  = SPI_HOST_STATUS_OFFSET;
             spi_host_reg_req_o.write = 1'b0;
             spi_host_reg_req_o.valid = 1'b1;
             // STATUS[20] = RXWM (RX watermark reached)
@@ -686,7 +692,7 @@ module w25q128jw_controller
 
           // -------- Read flash status byte and check BUSY bit --------
           FWAIT_READ_FLASH_STATUS: begin
-            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_RXDATA_OFFSET};
+            spi_host_reg_req_offset  = SPI_HOST_RXDATA_OFFSET;
             spi_host_reg_req_o.write = 1'b0;
             spi_host_reg_req_o.valid = 1'b1;
 
@@ -775,7 +781,7 @@ module w25q128jw_controller
 
           // -------- Write Write Enable command to TX FIFO --------
           ERASE_WE_FILL_TX_FIFO: begin
-            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_TXDATA_OFFSET};
+            spi_host_reg_req_offset  = SPI_HOST_TXDATA_OFFSET;
             spi_host_reg_req_o.write = 1'b1;
             spi_host_reg_req_o.valid = 1'b1;
             spi_host_reg_req_o.wdata = {19'b0, FC_WE};
@@ -799,7 +805,7 @@ module w25q128jw_controller
           //   [24]    = CSAAT (0 = release CS after, WE is standalone command)
           //   [23:0]  = Length-1 (0 = 1 byte)
           ERASE_WE_SEND_CMD: begin
-            spi_host_reg_req_o.addr = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
+            spi_host_reg_req_offset = SPI_HOST_COMMAND_OFFSET;
             spi_host_reg_req_o.write = 1'b1;
             spi_host_reg_req_o.valid = 1'b1;
             spi_host_reg_req_o.wdata = {
@@ -823,7 +829,7 @@ module w25q128jw_controller
           // -------- Write Sector Erase command + address to TX FIFO --------
 
           ERASE_SE_FILL_TX_FIFO: begin
-            spi_host_reg_req_o.addr = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_TXDATA_OFFSET};
+            spi_host_reg_req_offset = SPI_HOST_TXDATA_OFFSET;
             spi_host_reg_req_o.write = 1'b1;
             spi_host_reg_req_o.valid = 1'b1;
             // Use sector-aligned address + current sector iteration offset + SECTOR ERASE command
@@ -852,7 +858,7 @@ module w25q128jw_controller
           //   [24]    = CSAAT (0 = release CS after transfer, no more commands to send)
           //   [23:0]  = Length-1 (3 = 4 bytes: 1 cmd + 3 addr bytes)
           ERASE_SE_SEND_CMD: begin
-            spi_host_reg_req_o.addr = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
+            spi_host_reg_req_offset = SPI_HOST_COMMAND_OFFSET;
             spi_host_reg_req_o.write = 1'b1;
             spi_host_reg_req_o.valid = 1'b1;
             spi_host_reg_req_o.wdata = {
@@ -1015,7 +1021,7 @@ module w25q128jw_controller
 
           // -------- Write Write Enable command to TX FIFO --------
           WRITE_WE_FILL_TX_FIFO: begin
-            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_TXDATA_OFFSET};
+            spi_host_reg_req_offset  = SPI_HOST_TXDATA_OFFSET;
             spi_host_reg_req_o.write = 1'b1;
             spi_host_reg_req_o.valid = 1'b1;
             // Required every time before issuing a write command
@@ -1040,7 +1046,7 @@ module w25q128jw_controller
           //   [24]    = CSAAT (0 = release CS after, WE is standalone command)
           //   [23:0]  = Length-1 (0 = 1 byte)
           WRITE_WE_SEND_CMD: begin
-            spi_host_reg_req_o.addr = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
+            spi_host_reg_req_offset = SPI_HOST_COMMAND_OFFSET;
             spi_host_reg_req_o.write = 1'b1;
             spi_host_reg_req_o.valid = 1'b1;
             spi_host_reg_req_o.wdata = {
@@ -1064,7 +1070,7 @@ module w25q128jw_controller
           // -------- Write Page Program command + address to TX FIFO --------
           // Inspiration from sw/device/bsp/w25q
           WRITE_PP_FILL_TX_FIFO: begin
-            spi_host_reg_req_o.addr = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_TXDATA_OFFSET};
+            spi_host_reg_req_offset = SPI_HOST_TXDATA_OFFSET;
             spi_host_reg_req_o.write = 1'b1;
             spi_host_reg_req_o.valid = 1'b1;
             // Compute page address: sector base + sector offset + page offset
@@ -1091,7 +1097,7 @@ module w25q128jw_controller
           //   [24]    = CSAAT (1 = keep CS asserted for next command)
           //   [23:0]  = Length-1 (3 = 4 bytes: 1 cmd + 3 addr)
           WRITE_PP_SEND_CMD: begin
-            spi_host_reg_req_o.addr = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
+            spi_host_reg_req_offset = SPI_HOST_COMMAND_OFFSET;
             spi_host_reg_req_o.write = 1'b1;
             spi_host_reg_req_o.valid = 1'b1;
             spi_host_reg_req_o.wdata = {
@@ -1165,7 +1171,7 @@ module w25q128jw_controller
           //   [24]    = CSAAT (0 = release CS after transfer, no more commands to send)
           //   [23:0]  = Length-1 (255 = 256 bytes = 1 page)
           WRITE_PP_SEND_CMD_2: begin
-            spi_host_reg_req_o.addr = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
+            spi_host_reg_req_offset = SPI_HOST_COMMAND_OFFSET;
             spi_host_reg_req_o.write = 1'b1;
             spi_host_reg_req_o.valid = 1'b1;
             spi_host_reg_req_o.wdata = {
@@ -1273,18 +1279,18 @@ module w25q128jw_controller
             external_dma_hw2reg_o.interrupt_en.window_done.de      = 1'b1;
             external_dma_hw2reg_o.interrupt_en.window_done.d       = '0;
 `ifdef ZERO_PADDING_EN
-            external_dma_hw2reg_o.pad_top.de = 1'b1;
-            external_dma_hw2reg_o.pad_top.d = '0;
-            external_dma_hw2reg_o.pad_bottom.de = 1'b1;
-            external_dma_hw2reg_o.pad_bottom.d = '0;
-            external_dma_hw2reg_o.pad_right.de = 1'b1;
-            external_dma_hw2reg_o.pad_right.d = '0;
-            external_dma_hw2reg_o.pad_left.de = 1'b1;
-            external_dma_hw2reg_o.pad_left.d = '0;
+            external_dma_hw2reg_o.pad_top.de                       = 1'b1;
+            external_dma_hw2reg_o.pad_top.d                        = '0;
+            external_dma_hw2reg_o.pad_bottom.de                    = 1'b1;
+            external_dma_hw2reg_o.pad_bottom.d                     = '0;
+            external_dma_hw2reg_o.pad_right.de                     = 1'b1;
+            external_dma_hw2reg_o.pad_right.d                      = '0;
+            external_dma_hw2reg_o.pad_left.de                      = 1'b1;
+            external_dma_hw2reg_o.pad_left.d                       = '0;
 `endif
 `ifdef ADDR_MODE_EN
-            external_dma_hw2reg_o.addr_ptr.de = 1'b1;
-            external_dma_hw2reg_o.addr_ptr.d  = '0;
+            external_dma_hw2reg_o.addr_ptr.de                      = 1'b1;
+            external_dma_hw2reg_o.addr_ptr.d                       = '0;
 `endif
           end
 

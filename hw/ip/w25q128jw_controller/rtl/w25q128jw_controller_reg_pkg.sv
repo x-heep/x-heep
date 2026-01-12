@@ -30,6 +30,8 @@ package w25q128jw_controller_reg_pkg;
 
   typedef struct packed {logic q;} w25q128jw_controller_reg2hw_intr_status_reg_t;
 
+  typedef struct packed {logic q;} w25q128jw_controller_reg2hw_intr_enable_reg_t;
+
   typedef struct packed {
     struct packed {
       logic d;
@@ -73,13 +75,14 @@ package w25q128jw_controller_reg_pkg;
 
   // Register -> HW type
   typedef struct packed {
-    w25q128jw_controller_reg2hw_control_reg_t control;  // [131:130]
-    w25q128jw_controller_reg2hw_status_reg_t status;  // [129:129]
-    w25q128jw_controller_reg2hw_f_address_reg_t f_address;  // [128:97]
-    w25q128jw_controller_reg2hw_s_address_reg_t s_address;  // [96:65]
-    w25q128jw_controller_reg2hw_md_address_reg_t md_address;  // [64:33]
-    w25q128jw_controller_reg2hw_length_reg_t length;  // [32:1]
-    w25q128jw_controller_reg2hw_intr_status_reg_t intr_status;  // [0:0]
+    w25q128jw_controller_reg2hw_control_reg_t control;  // [132:131]
+    w25q128jw_controller_reg2hw_status_reg_t status;  // [130:130]
+    w25q128jw_controller_reg2hw_f_address_reg_t f_address;  // [129:98]
+    w25q128jw_controller_reg2hw_s_address_reg_t s_address;  // [97:66]
+    w25q128jw_controller_reg2hw_md_address_reg_t md_address;  // [65:34]
+    w25q128jw_controller_reg2hw_length_reg_t length;  // [33:2]
+    w25q128jw_controller_reg2hw_intr_status_reg_t intr_status;  // [1:1]
+    w25q128jw_controller_reg2hw_intr_enable_reg_t intr_enable;  // [0:0]
   } w25q128jw_controller_reg2hw_t;
 
   // HW -> register type
@@ -101,6 +104,7 @@ package w25q128jw_controller_reg_pkg;
   parameter logic [BlockAw-1:0] W25Q128JW_CONTROLLER_MD_ADDRESS_OFFSET = 5'h10;
   parameter logic [BlockAw-1:0] W25Q128JW_CONTROLLER_LENGTH_OFFSET = 5'h14;
   parameter logic [BlockAw-1:0] W25Q128JW_CONTROLLER_INTR_STATUS_OFFSET = 5'h18;
+  parameter logic [BlockAw-1:0] W25Q128JW_CONTROLLER_INTR_ENABLE_OFFSET = 5'h1c;
 
   // Register index
   typedef enum int {
@@ -110,18 +114,20 @@ package w25q128jw_controller_reg_pkg;
     W25Q128JW_CONTROLLER_S_ADDRESS,
     W25Q128JW_CONTROLLER_MD_ADDRESS,
     W25Q128JW_CONTROLLER_LENGTH,
-    W25Q128JW_CONTROLLER_INTR_STATUS
+    W25Q128JW_CONTROLLER_INTR_STATUS,
+    W25Q128JW_CONTROLLER_INTR_ENABLE
   } w25q128jw_controller_id_e;
 
   // Register width information to check illegal writes
-  parameter logic [3:0] W25Q128JW_CONTROLLER_PERMIT[7] = '{
+  parameter logic [3:0] W25Q128JW_CONTROLLER_PERMIT[8] = '{
       4'b0001,  // index[0] W25Q128JW_CONTROLLER_CONTROL
       4'b0001,  // index[1] W25Q128JW_CONTROLLER_STATUS
       4'b1111,  // index[2] W25Q128JW_CONTROLLER_F_ADDRESS
       4'b1111,  // index[3] W25Q128JW_CONTROLLER_S_ADDRESS
       4'b1111,  // index[4] W25Q128JW_CONTROLLER_MD_ADDRESS
       4'b1111,  // index[5] W25Q128JW_CONTROLLER_LENGTH
-      4'b0001  // index[6] W25Q128JW_CONTROLLER_INTR_STATUS
+      4'b0001,  // index[6] W25Q128JW_CONTROLLER_INTR_STATUS
+      4'b0001  // index[7] W25Q128JW_CONTROLLER_INTR_ENABLE
   };
 
 endpackage

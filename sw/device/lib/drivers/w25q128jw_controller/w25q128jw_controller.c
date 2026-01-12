@@ -10,7 +10,6 @@
 #include "w25q128jw_controller_regs.h"
 #include "w25q128jw_controller.h"
 #include "dma.h"
-
 /**
  * @brief Internal flag to indicate operation completion.
  */
@@ -42,6 +41,16 @@ __attribute__((optimize("O0"))) void w25q128jw_controller_clear_done_flag()
 __attribute__((optimize("O0"))) void w25q128jw_controller_set_done_flag()
 {
     w25q128jw_controller_done_flag = 1;
+}
+
+__attribute__((optimize("O0"))) void w25q128jw_controller_clear_status_register()
+{
+   w25q128jw_controller_peri->INTR_STATUS &= ~(1 << W25Q128JW_CONTROLLER_INTR_STATUS_INTR_STATUS_BIT);
+}
+
+__attribute__((optimize("O0"))) void w25q128jw_controller_enable_interrupt(uint32_t intr_enable)
+{
+   w25q128jw_controller_peri->INTR_ENABLE = intr_enable;
 }
 
 __attribute__((weak, optimize("O0"))) void handler_irq_w25q128jw_controller(uint32_t id)

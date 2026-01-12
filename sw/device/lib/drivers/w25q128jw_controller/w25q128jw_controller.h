@@ -63,6 +63,16 @@ __attribute__((optimize("O0"))) void w25q128jw_controller_clear_done_flag();
  */
 __attribute__((optimize("O0"))) void w25q128jw_controller_set_done_flag();
 
+/**
+ * Clear the interrupt status flag.
+ */
+__attribute__((optimize("O0"))) void w25q128jw_controller_clear_status_register();
+
+/**
+ * Enable interrupts (1 enable, 0 not enable).
+ */
+__attribute__((optimize("O0"))) void w25q128jw_controller_enable_interrupt(uint32_t intr_enable);
+
 // ============== OPERATION ==============
 
 /**

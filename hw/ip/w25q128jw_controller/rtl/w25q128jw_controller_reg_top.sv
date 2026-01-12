@@ -92,6 +92,9 @@ module w25q128jw_controller_reg_top #(
   logic intr_status_qs;
   logic intr_status_wd;
   logic intr_status_we;
+  logic intr_enable_qs;
+  logic intr_enable_wd;
+  logic intr_enable_we;
 
   // Register instances
   // R[control]: V(False)
@@ -310,9 +313,36 @@ module w25q128jw_controller_reg_top #(
   );
 
 
+  // R[intr_enable]: V(False)
+
+  prim_subreg #(
+      .DW      (1),
+      .SWACCESS("RW"),
+      .RESVAL  (1'h0)
+  ) u_intr_enable (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(intr_enable_we),
+      .wd(intr_enable_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.intr_enable.q),
+
+      // to register interface (read)
+      .qs(intr_enable_qs)
+  );
 
 
-  logic [6:0] addr_hit;
+
+
+  logic [7:0] addr_hit;
   always_comb begin
     addr_hit = '0;
     addr_hit[0] = (reg_addr == W25Q128JW_CONTROLLER_CONTROL_OFFSET);
@@ -322,6 +352,7 @@ module w25q128jw_controller_reg_top #(
     addr_hit[4] = (reg_addr == W25Q128JW_CONTROLLER_MD_ADDRESS_OFFSET);
     addr_hit[5] = (reg_addr == W25Q128JW_CONTROLLER_LENGTH_OFFSET);
     addr_hit[6] = (reg_addr == W25Q128JW_CONTROLLER_INTR_STATUS_OFFSET);
+    addr_hit[7] = (reg_addr == W25Q128JW_CONTROLLER_INTR_ENABLE_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0;
@@ -335,7 +366,8 @@ module w25q128jw_controller_reg_top #(
                (addr_hit[3] & (|(W25Q128JW_CONTROLLER_PERMIT[3] & ~reg_be))) |
                (addr_hit[4] & (|(W25Q128JW_CONTROLLER_PERMIT[4] & ~reg_be))) |
                (addr_hit[5] & (|(W25Q128JW_CONTROLLER_PERMIT[5] & ~reg_be))) |
-               (addr_hit[6] & (|(W25Q128JW_CONTROLLER_PERMIT[6] & ~reg_be)))));
+               (addr_hit[6] & (|(W25Q128JW_CONTROLLER_PERMIT[6] & ~reg_be))) |
+               (addr_hit[7] & (|(W25Q128JW_CONTROLLER_PERMIT[7] & ~reg_be)))));
   end
 
   assign control_start_we = addr_hit[0] & reg_we & !reg_error;
@@ -361,6 +393,9 @@ module w25q128jw_controller_reg_top #(
 
   assign intr_status_we = addr_hit[6] & reg_we & !reg_error;
   assign intr_status_wd = reg_wdata[0];
+
+  assign intr_enable_we = addr_hit[7] & reg_we & !reg_error;
+  assign intr_enable_wd = reg_wdata[0];
 
   // Read data return
   always_comb begin
@@ -393,6 +428,10 @@ module w25q128jw_controller_reg_top #(
 
       addr_hit[6]: begin
         reg_rdata_next[0] = intr_status_qs;
+      end
+
+      addr_hit[7]: begin
+        reg_rdata_next[0] = intr_enable_qs;
       end
 
       default: begin

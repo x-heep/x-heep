@@ -60,13 +60,20 @@
         { bits: "31:0", name: "LENGTH", desc: "Length of data to W/R" }
       ]
     }
-
     { name: "INTR_STATUS"
       desc: "Interrupt status register"
       swaccess: "rw"
       hwaccess: "hrw"
       fields: [
-        { bits: "0", name: "INTR_STATUS", desc: "Event interrupt status",}
+        { bits: "0", name: "INTR_STATUS", desc: "Event interrupt status"}
+     ]
+    }
+    { name: "INTR_ENABLE"
+      desc: "Interrupt enable register"
+      swaccess: "rw"
+      hwaccess: "hro"
+      fields: [
+        { bits: "0", name: "INTR_ENABLE", desc: "interrupt enable"}
      ]
     }
   ]

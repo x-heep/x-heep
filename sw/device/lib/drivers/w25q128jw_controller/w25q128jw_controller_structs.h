@@ -5,7 +5,7 @@
 **                                                                         **
 ** project  : x-heep                                                       **
 ** filename : w25q128jw_controller_structs.h                                 **
-** date     : 22/12/2025                                                      **
+** date     : 12/01/2026                                                      **
 **                                                                         **
 *****************************************************************************
 **                                                                         **
@@ -16,7 +16,7 @@
 
 /**
 * @file   w25q128jw_controller_structs.h
-* @date   22/12/2025
+* @date   12/01/2026
 * @brief  Contains structs for every register
 *
 * This file contains the structs of the registes of the peripheral.
@@ -68,6 +68,8 @@ typedef struct {
   uint32_t LENGTH;                                /*!< Length of data to W/R*/
 
   uint32_t INTR_STATUS;                           /*!< Interrupt status register*/
+
+  uint32_t INTR_ENABLE;                           /*!< Interrupt enable register*/
 
 } w25q128jw_controller;
 

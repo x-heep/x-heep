@@ -28,9 +28,6 @@ module w25q128jw_controller
     input  reg_req_t reg_req_i,
     output reg_rsp_t reg_rsp_o,
 
-    // Done signal
-    output logic w25q128jw_controller_done_o,
-
     // Interrupt signal
     output logic w25q128jw_controller_intr_o,
 
@@ -287,8 +284,6 @@ module w25q128jw_controller
     sector_iter_offset_d = sector_iter_offset_q;
     md_offset_d = md_offset_q;
 
-    w25q128jw_controller_done_o = 1'b0;
-
     sector_offset = 32'h0;
 
     hw2reg.control.start.de = 1'b0;
@@ -491,13 +486,12 @@ module w25q128jw_controller
             if (dma_done_i[0]) begin  // DMA channel 0 done signal
               if (reg2hw.control.rnw) begin
                 // ===== READ OPERATION COMPLETE =====
-                read_state_d                = READ_IDLE;
-                top_state_d                 = TOP_IDLE;
-                w25q128jw_controller_done_o = 1'b1;
-                hw2reg.control.start.de     = 1'b1;
-                hw2reg.control.start.d      = 1'b0;
-                hw2reg.intr_status.de       = 1'b1;
-                hw2reg.intr_status.d        = 1'b1;
+                read_state_d            = READ_IDLE;
+                top_state_d             = TOP_IDLE;
+                hw2reg.control.start.de = 1'b1;
+                hw2reg.control.start.d  = 1'b0;
+                hw2reg.intr_status.de   = 1'b1;
+                hw2reg.intr_status.d    = reg2hw.intr_enable.q;
               end else begin
                 // ===== WRITE OPERATION: Proceed to FWAIT =====
                 read_state_d  = READ_IDLE;
@@ -554,11 +548,10 @@ module w25q128jw_controller
                   top_state_d = TOP_IDLE;
                   md_offset_d = 32'h0;  // Reset MODIFY offset for next operation
                   sector_iter_offset_d = 32'h0;  // Reset sector iteration offset for next operation
-                  w25q128jw_controller_done_o = 1'b1;  // Rise done signal
                   hw2reg.control.start.de = 1'b1;  // Clear START bit so operation is only done once
                   hw2reg.control.start.d = 1'b0;
                   hw2reg.intr_status.de   = 1'b1;     // Set interrupt status (rise IRQ through assignements (see end of module))
-                  hw2reg.intr_status.d = 1'b1;
+                  hw2reg.intr_status.d = reg2hw.intr_enable.q;
                 end
 
                 default: begin
@@ -723,11 +716,10 @@ module w25q128jw_controller
                     top_state_d = TOP_IDLE;
                     md_offset_d = 32'h0;  // Reset MODIFY offset for next operation
                     sector_iter_offset_d = 32'h0; // Reset sector iteration offset for next operation
-                    w25q128jw_controller_done_o = 1'b1;  // Rise done signal
                     hw2reg.control.start.de = 1'b1;     // Clear START bit so operation is only done once
                     hw2reg.control.start.d = 1'b0;
                     hw2reg.intr_status.de   = 1'b1;     // Set interrupt status (rise IRQ through assignements (see end of module))
-                    hw2reg.intr_status.d = 1'b1;
+                    hw2reg.intr_status.d = reg2hw.intr_enable.q;
                   end
 
                   default: begin
@@ -1279,18 +1271,18 @@ module w25q128jw_controller
             external_dma_hw2reg_o.interrupt_en.window_done.de      = 1'b1;
             external_dma_hw2reg_o.interrupt_en.window_done.d       = '0;
 `ifdef ZERO_PADDING_EN
-            external_dma_hw2reg_o.pad_top.de                       = 1'b1;
-            external_dma_hw2reg_o.pad_top.d                        = '0;
-            external_dma_hw2reg_o.pad_bottom.de                    = 1'b1;
-            external_dma_hw2reg_o.pad_bottom.d                     = '0;
-            external_dma_hw2reg_o.pad_right.de                     = 1'b1;
-            external_dma_hw2reg_o.pad_right.d                      = '0;
-            external_dma_hw2reg_o.pad_left.de                      = 1'b1;
-            external_dma_hw2reg_o.pad_left.d                       = '0;
+            external_dma_hw2reg_o.pad_top.de    = 1'b1;
+            external_dma_hw2reg_o.pad_top.d     = '0;
+            external_dma_hw2reg_o.pad_bottom.de = 1'b1;
+            external_dma_hw2reg_o.pad_bottom.d  = '0;
+            external_dma_hw2reg_o.pad_right.de  = 1'b1;
+            external_dma_hw2reg_o.pad_right.d   = '0;
+            external_dma_hw2reg_o.pad_left.de   = 1'b1;
+            external_dma_hw2reg_o.pad_left.d    = '0;
 `endif
 `ifdef ADDR_MODE_EN
-            external_dma_hw2reg_o.addr_ptr.de                      = 1'b1;
-            external_dma_hw2reg_o.addr_ptr.d                       = '0;
+            external_dma_hw2reg_o.addr_ptr.de = 1'b1;
+            external_dma_hw2reg_o.addr_ptr.d  = '0;
 `endif
           end
 

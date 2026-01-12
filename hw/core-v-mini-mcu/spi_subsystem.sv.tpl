@@ -213,9 +213,6 @@ module spi_subsystem
       .reg_req_i(flash_ctr_reg_req_i),
       .reg_rsp_o(flash_ctr_reg_rsp_o),
 
-      // Done signal
-      .w25q128jw_controller_done_o(),
-
       // Interrupt signal
       .w25q128jw_controller_intr_o,
 

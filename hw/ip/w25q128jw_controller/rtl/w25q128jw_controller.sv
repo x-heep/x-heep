@@ -294,6 +294,7 @@ module w25q128jw_controller
     WRITE_DMA_DST_TYPE,     // Set destination data type (32-bit)
     WRITE_DMA_TRIG,         // Set DMA trigger (memory to SPI TX)
     WRITE_DMA_SIZE_D1,      // Set transfer size = PAGE_WSIZE (starts DMA)
+    WRITE_DMA_REGS,      // Set DMA source (ram_buffer + page offset)
 
     // Finalize page write
     WRITE_TRANS,            // Wait for DMA transfer complete
@@ -1529,11 +1530,14 @@ module w25q128jw_controller
 
           // -------- Check if TX FIFO has space --------
           WRITE_WE_CHECK_TX_FIFO: begin
-            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
-            mem_op_start = 1'b1;
-
+            // address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+            // mem_op_start = 1'b1;
+            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+            spi_host_reg_req_o.write = 1'b0;
+            spi_host_reg_req_o.valid = 1'b1;
             // STATUS[7:0] = TXQD (TX FIFO depth)
-            if (memory_op_finish && read_value[7:0] < SPI_FLASH_TX_FIFO_DEPTH[7:0]) begin
+            // if (memory_op_finish && read_value[7:0] < SPI_FLASH_TX_FIFO_DEPTH[7:0]) begin
+            if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error && spi_host_reg_rsp_i.rdata[7:0] < SPI_FLASH_TX_FIFO_DEPTH[7:0]) begin
               write_state_d = WRITE_WE_FILL_TX_FIFO;
             end
             if (read_value[30:8] == '0) data = '0; // TODO: delete this, just to avoid waivers
@@ -1541,23 +1545,32 @@ module w25q128jw_controller
 
           // -------- Write Write Enable command to TX FIFO --------
           WRITE_WE_FILL_TX_FIFO: begin
-            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_TXDATA_OFFSET};
-            data = {19'b0, FC_WE};  // Required every time before issuing a write command
-            w_enable = 1'b1;
-            mem_op_start = 1'b1;
+            // address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_TXDATA_OFFSET};
+            // data = {19'b0, FC_WE};  // Required every time before issuing a write command
+            // w_enable = 1'b1;
+            // mem_op_start = 1'b1;
+            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_TXDATA_OFFSET};
+            spi_host_reg_req_o.write = 1'b1;
+            spi_host_reg_req_o.valid = 1'b1;
+            // Required every time before issuing a write command
+            spi_host_reg_req_o.wdata = {19'b0, FC_WE};
 
-            if (memory_op_finish) begin
+            //if (memory_op_finish) begin
+            if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error) begin
               write_state_d = WRITE_WE_WAIT_READY;
             end
           end
 
           // -------- Wait for SPI Host ready --------
           WRITE_WE_WAIT_READY: begin
-            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
-            mem_op_start = 1'b1;
-
+            // address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+            // mem_op_start = 1'b1;
+            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+            spi_host_reg_req_o.write = 1'b0;
+            spi_host_reg_req_o.valid = 1'b1;
             // STATUS[31] = READY bit
-            if (memory_op_finish && read_value[31] == 1'b1) begin
+            // if (memory_op_finish && read_value[31] == 1'b1) begin
+            if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error && spi_host_reg_rsp_i.rdata[31]) begin
               write_state_d = WRITE_WE_SEND_CMD;
             end
           end
@@ -1569,12 +1582,17 @@ module w25q128jw_controller
           //   [24]    = CSAAT (0 = release CS after, WE is standalone command)
           //   [23:0]  = Length-1 (0 = 1 byte)
           WRITE_WE_SEND_CMD: begin
-            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
-            data = {3'h0, 2'h2, 2'h0, 1'h0, 24'h0};  // Empty + Direction + Speed + Csaat + Length
-            w_enable = 1'b1;
-            mem_op_start = 1'b1;
+            // address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
+            // data = {3'h0, 2'h2, 2'h0, 1'h0, 24'h0};  // Empty + Direction + Speed + Csaat + Length
+            // w_enable = 1'b1;
+            // mem_op_start = 1'b1;
+            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
+            spi_host_reg_req_o.write = 1'b1;
+            spi_host_reg_req_o.valid = 1'b1;
+            spi_host_reg_req_o.wdata = {3'h0, 2'h2, 2'h0, 1'h0, 24'h0};  // Empty + Direction + Speed + Csaat + Length
 
-            if (memory_op_finish) begin
+            // if (memory_op_finish) begin
+            if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error) begin
               write_state_d = WRITE_PP_CHECK_TX_FIFO;
             end
           end
@@ -1583,11 +1601,14 @@ module w25q128jw_controller
 
           // -------- Check if TX FIFO has space --------
           WRITE_PP_CHECK_TX_FIFO: begin
-            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
-            mem_op_start = 1'b1;
-
+            // address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+            // mem_op_start = 1'b1;
+            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+            spi_host_reg_req_o.write = 1'b0;
+            spi_host_reg_req_o.valid = 1'b1;
             // STATUS[7:0] = TXQD (TX FIFO depth)
-            if (memory_op_finish && read_value[7:0] < SPI_FLASH_TX_FIFO_DEPTH[7:0]) begin
+            // if (memory_op_finish && read_value[7:0] < SPI_FLASH_TX_FIFO_DEPTH[7:0]) begin
+            if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error && spi_host_reg_rsp_i.rdata[7:0] < SPI_FLASH_TX_FIFO_DEPTH[7:0]) begin
               write_state_d = WRITE_PP_FILL_TX_FIFO;
             end
           end
@@ -1595,26 +1616,34 @@ module w25q128jw_controller
           // -------- Write Page Program command + address to TX FIFO --------
           // Inspiration from sw/device/bsp/w25q
           WRITE_PP_FILL_TX_FIFO: begin
-            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_TXDATA_OFFSET};
+            // address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_TXDATA_OFFSET};
+            // // Compute page address: sector base + sector offset + page offset
+            // data = (((bitfield_byteswap32(((reg2hw.f_address & 32'h00fff000) + (sector_iter_offset_q)) |
+            //                               ({28'h0, page_cnt_q} << 8))) >> 8) << 8) | {19'h0, FC_PP};
+            // w_enable = 1'b1;
+            // mem_op_start = 1'b1;
+            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_TXDATA_OFFSET};
+            spi_host_reg_req_o.write = 1'b1;
+            spi_host_reg_req_o.valid = 1'b1;
             // Compute page address: sector base + sector offset + page offset
-            data = (((bitfield_byteswap32(((reg2hw.f_address & 32'h00fff000) + (sector_iter_offset_q)) |
-                                          ({28'h0, page_cnt_q} << 8))) >> 8) << 8) | {19'h0, FC_PP};
-            w_enable = 1'b1;
-            mem_op_start = 1'b1;
-
-
-            if (memory_op_finish) begin
+            spi_host_reg_req_o.wdata = (((bitfield_byteswap32(((reg2hw.f_address & 32'h00fff000) + (sector_iter_offset_q)) |
+                                           ({28'h0, page_cnt_q} << 8))) >> 8) << 8) | {19'h0, FC_PP};
+            // if (memory_op_finish) begin
+            if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error) begin
               write_state_d = WRITE_PP_WAIT_READY;
             end
           end
 
           // -------- Wait for SPI Host ready --------
           WRITE_PP_WAIT_READY: begin
-            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
-            mem_op_start = 1'b1;
-
+            // address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+            // mem_op_start = 1'b1;
+            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+            spi_host_reg_req_o.write = 1'b0;
+            spi_host_reg_req_o.valid = 1'b1;
             // STATUS[31] = READY bit
-            if (memory_op_finish && read_value[31] == 1'b1) begin
+            // if (memory_op_finish && read_value[31] == 1'b1) begin
+            if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error && spi_host_reg_rsp_i.rdata[31]) begin
               write_state_d = WRITE_PP_SEND_CMD;
             end
           end
@@ -1626,12 +1655,16 @@ module w25q128jw_controller
           //   [24]    = CSAAT (1 = keep CS asserted for next command)
           //   [23:0]  = Length-1 (3 = 4 bytes: 1 cmd + 3 addr)
           WRITE_PP_SEND_CMD: begin
-            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
-            data = {3'h0, 2'h2, 2'h0, 1'h1, 24'h3};  // Empty + Direction + Speed + Csaat + Length
-            w_enable = 1'b1;
-            mem_op_start = 1'b1;
-
-            if (memory_op_finish) begin
+            // address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
+            // data = {3'h0, 2'h2, 2'h0, 1'h1, 24'h3};  // Empty + Direction + Speed + Csaat + Length
+            // w_enable = 1'b1;
+            // mem_op_start = 1'b1;
+            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
+            spi_host_reg_req_o.write = 1'b1;
+            spi_host_reg_req_o.valid = 1'b1;
+            spi_host_reg_req_o.wdata = {3'h0, 2'h2, 2'h0, 1'h1, 24'h3};  // Empty + Direction + Speed + Csaat + Length
+            // if (memory_op_finish) begin
+            if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error) begin
               write_state_d = WRITE_DMA_CHECK_READY;
             end
           end
@@ -1643,6 +1676,7 @@ module w25q128jw_controller
             top_state_d       = TOP_DMA_INIT;  // Go to DMA init FSM
             dma_init_return_d = RETURN_WRITE;  // Return here after DMA init
             write_state_d     = WRITE_DMA_SRC_PTR;  // Next state after returning from DMA init
+            //write_state_d     = WRITE_DMA_REGS;  // Next state after returning from DMA init
           end
 
           // -------- Set DMA source pointer: RAM sector buffer (at S_ADDRESS) with page offset --------

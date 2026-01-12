@@ -1821,11 +1821,15 @@ module w25q128jw_controller
 
           // -------- Wait for SPI Host ready (finalize page program after DMA has transferred required data in SPI TX FIFO) --------
           WRITE_PP_WAIT_READY_2: begin
-            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
-            mem_op_start = 1'b1;
+            // address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+            // mem_op_start = 1'b1;
+            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+            spi_host_reg_req_o.write = 1'b0;
+            spi_host_reg_req_o.valid = 1'b1;
 
             // STATUS[31] = READY bit
-            if (memory_op_finish && read_value[31] == 1'b1) begin
+//            if (memory_op_finish && read_value[31] == 1'b1) begin
+            if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error && spi_host_reg_rsp_i.rdata[31]) begin
               write_state_d = WRITE_PP_SEND_CMD_2;
             end
           end
@@ -1837,14 +1841,21 @@ module w25q128jw_controller
           //   [24]    = CSAAT (0 = release CS after transfer, no more commands to send)
           //   [23:0]  = Length-1 (255 = 256 bytes = 1 page)
           WRITE_PP_SEND_CMD_2: begin
-            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
-            data = {
-              3'h0, 2'h2, 2'h0, 1'h0, {11'b0, PAGE_BSIZE - 1'h1}
+            // address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
+            // data = {
+            //   3'h0, 2'h2, 2'h0, 1'h0, {11'b0, PAGE_BSIZE - 1'h1}
+            // };  // Empty + Direction + Speed + Csaat + Length
+            // w_enable = 1'b1;
+            // mem_op_start = 1'b1;
+            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
+            spi_host_reg_req_o.write = 1'b1;
+            spi_host_reg_req_o.valid = 1'b1;
+            spi_host_reg_req_o.wdata = {
+               3'h0, 2'h2, 2'h0, 1'h0, {11'b0, PAGE_BSIZE - 1'h1}
             };  // Empty + Direction + Speed + Csaat + Length
-            w_enable = 1'b1;
-            mem_op_start = 1'b1;
-
-            if (memory_op_finish) begin
+            
+            // if (memory_op_finish) begin
+            if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error) begin
               // ===== CHECK IF MORE PAGES/SECTORS TO PROCESS =====
               if (page_cnt_q == 4'hf) begin
                 // All 16 pages in current sector programmed

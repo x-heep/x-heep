@@ -269,7 +269,7 @@ module w25q128jw_controller
   // -------- WRITE FSM STATES --------
   // Programs sector buffer to flash, page by page (256 bytes per page)
   // Sequence: Write Enable -> Page Program command -> DMA data -> repeat for 16 pages
-  typedef enum logic [4:0] {
+  typedef enum logic [3:0] {
     WRITE_IDLE,  // Idle state (simply redirects to WE and PP sequences)
 
     // Write Enable command sequence (required before each page program)
@@ -286,14 +286,14 @@ module w25q128jw_controller
 
     // DMA configuration for page data transfer
     WRITE_DMA_CHECK_READY,  // Leads to DMA initialization
-    WRITE_DMA_SRC_PTR,      // Set DMA source (ram_buffer + page offset)
-    WRITE_DMA_DST_PTR,      // Set DMA destination (SPI TX FIFO)
-    WRITE_DMA_SRC_INC,      // Set source increment (+4 bytes)
-    WRITE_DMA_DST_INC,      // Set destination increment (0, stay at FIFO)
-    WRITE_DMA_SRC_TYPE,     // Set source data type (32-bit)
-    WRITE_DMA_DST_TYPE,     // Set destination data type (32-bit)
-    WRITE_DMA_TRIG,         // Set DMA trigger (memory to SPI TX)
-    WRITE_DMA_SIZE_D1,      // Set transfer size = PAGE_WSIZE (starts DMA)
+    // WRITE_DMA_SRC_PTR,      // Set DMA source (ram_buffer + page offset)
+    // WRITE_DMA_DST_PTR,      // Set DMA destination (SPI TX FIFO)
+    // WRITE_DMA_SRC_INC,      // Set source increment (+4 bytes)
+    // WRITE_DMA_DST_INC,      // Set destination increment (0, stay at FIFO)
+    // WRITE_DMA_SRC_TYPE,     // Set source data type (32-bit)
+    // WRITE_DMA_DST_TYPE,     // Set destination data type (32-bit)
+    // WRITE_DMA_TRIG,         // Set DMA trigger (memory to SPI TX)
+    // WRITE_DMA_SIZE_D1,      // Set transfer size = PAGE_WSIZE (starts DMA)
     WRITE_DMA_REGS,      // Set DMA source (ram_buffer + page offset)
 
     // Finalize page write
@@ -509,7 +509,7 @@ module w25q128jw_controller
             external_dma_hw2reg_o.dst_data_type.d = '0;  // 0 = 32-bit word
             //READ_DMA_TRIG
             external_dma_hw2reg_o.slot.rx_trigger_slot.de = 1'b1;
-            external_dma_hw2reg_o.slot.rx_trigger_slot.d = 16'h4;
+            external_dma_hw2reg_o.slot.rx_trigger_slot.d = 'h4;
             external_dma_hw2reg_o.slot.tx_trigger_slot.de = 1'b1;
             external_dma_hw2reg_o.slot.tx_trigger_slot.d = '0;
             //READ_DMA_SIZE_D1
@@ -1675,10 +1675,43 @@ module w25q128jw_controller
           WRITE_DMA_CHECK_READY: begin
             top_state_d       = TOP_DMA_INIT;  // Go to DMA init FSM
             dma_init_return_d = RETURN_WRITE;  // Return here after DMA init
-            write_state_d     = WRITE_DMA_SRC_PTR;  // Next state after returning from DMA init
-            //write_state_d     = WRITE_DMA_REGS;  // Next state after returning from DMA init
+            //write_state_d     = WRITE_DMA_SRC_PTR;  // Next state after returning from DMA init
+            write_state_d     = WRITE_DMA_REGS;  // Next state after returning from DMA init
           end
 
+          // -------- Set DMA registers --------
+          WRITE_DMA_REGS: begin
+            write_state_d = WRITE_TRANS;
+            //WRITE_DMA_SRC_PTR
+            external_dma_hw2reg_o.src_ptr.de = 1'b1;
+            // Set DMA source pointer: RAM sector buffer (at S_ADDRESS) with page offset
+            external_dma_hw2reg_o.src_ptr.d  = reg2hw.s_address + ({28'h0, page_cnt_q} << 8);
+            //WRITE_DMA_DST_PTR
+            // Set DMA destination pointer: SPI Host TX FIFO
+            external_dma_hw2reg_o.dst_ptr.de = 1'b1;
+            external_dma_hw2reg_o.dst_ptr.d = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_TXDATA_OFFSET};
+            //WRITE_DMA_SRC_INC
+            external_dma_hw2reg_o.src_ptr_inc_d1.de = 1'b1;
+            external_dma_hw2reg_o.src_ptr_inc_d1.d  = 'h4;  // Increment through sector buffer
+            //WRITE_DMA_DST_INC
+            external_dma_hw2reg_o.dst_ptr_inc_d1.de = 1'b1;
+            external_dma_hw2reg_o.dst_ptr_inc_d1.d  = 'h0;  // Keep aiming TX FIFO
+            //WRITE_DMA_SRC_TYPE
+            external_dma_hw2reg_o.src_data_type.de = 1'b1;
+            external_dma_hw2reg_o.src_data_type.d = '0;  // 0 = 32-bit word
+            //WRITE_DMA_DST_TYPE
+            external_dma_hw2reg_o.dst_data_type.de = 1'b1;
+            external_dma_hw2reg_o.dst_data_type.d = '0;  // 0 = 32-bit word
+            //WRITE_DMA_TRIG
+            external_dma_hw2reg_o.slot.rx_trigger_slot.de = 1'b1;
+            external_dma_hw2reg_o.slot.rx_trigger_slot.d = '0;
+            external_dma_hw2reg_o.slot.tx_trigger_slot.de = 1'b1;
+            external_dma_hw2reg_o.slot.tx_trigger_slot.d = 'h8;
+            //WRITE_DMA_SIZE_D1
+            external_dma_hw2reg_o.size_d1.de = 1'b1;
+            external_dma_hw2reg_o.size_d1.d = $unsigned(PAGE_WSIZE);
+          end
+/*
           // -------- Set DMA source pointer: RAM sector buffer (at S_ADDRESS) with page offset --------
           WRITE_DMA_SRC_PTR: begin
             address = DMA_START_ADDRESS + {25'b0, DMA_SRC_PTR_OFFSET};
@@ -1778,7 +1811,7 @@ module w25q128jw_controller
               write_state_d = WRITE_TRANS;
             end
           end
-
+*/
           // ============== WAIT FOR DMA COMPLETION ==============
           WRITE_TRANS: begin
             if (dma_done_i[0]) begin  // DMA channel 0 done signal
@@ -1883,7 +1916,6 @@ module w25q128jw_controller
           // These states have been collapsed to 1 with hw2reg
           DMA_INIT_REGISTERS: begin
             dma_init_state_d                                       = DMA_INIT_REDIRECT;
-
             //DMA_INIT_SRC_PTR
             external_dma_hw2reg_o.src_ptr.de                       = 1'b1;
             external_dma_hw2reg_o.src_ptr.d                        = '0;

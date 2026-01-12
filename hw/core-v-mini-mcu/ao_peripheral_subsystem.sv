@@ -52,9 +52,6 @@ module ao_peripheral_subsystem
 
     output logic spi_flash_intr_event_o,
 
-    // SPI + DMA Flash Controller
-    output obi_req_t w25q128jw_controller_obi_req_o,
-    input obi_resp_t w25q128jw_controller_obi_resp_i,
     // flash controller interrupt
     output logic w25q128jw_controller_intr_o,
 
@@ -338,8 +335,6 @@ module ao_peripheral_subsystem
       .flash_ctr_reg_req_i(ao_peripheral_slv_req[core_v_mini_mcu_pkg::W25Q128JW_CONTROLLER_IDX]),
       .flash_ctr_reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::W25Q128JW_CONTROLLER_IDX]),
       .external_dma_hw2reg_o(external_dma_hw2reg[0]),
-      .w25q128jw_controller_obi_req_o,
-      .w25q128jw_controller_obi_resp_i,
       .w25q128jw_controller_intr_o,
       .dma_ready_i(dma_ready),
       .dma_done_i(dma_done_o),

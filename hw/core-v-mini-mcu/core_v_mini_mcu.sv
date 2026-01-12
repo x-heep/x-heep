@@ -396,8 +396,6 @@ module core_v_mini_mcu
   obi_resp_t [core_v_mini_mcu_pkg::NUM_BANKS-1:0] ram_slave_resp;
 
   // w25q128jw controller signals
-  obi_req_t w25q128jw_controller_obi_req;
-  obi_resp_t w25q128jw_controller_obi_resp;
   logic w25q128jw_controller_intr;
 
   // debug signals
@@ -627,9 +625,7 @@ module core_v_mini_mcu
       .ext_dma_write_req_o(ext_dma_write_req_o),
       .ext_dma_write_resp_i(ext_dma_write_resp_i),
       .ext_dma_addr_req_o(ext_dma_addr_req_o),
-      .ext_dma_addr_resp_i(ext_dma_addr_resp_i),
-      .w25q128jw_controller_req_i(w25q128jw_controller_obi_req),
-      .w25q128jw_controller_resp_o(w25q128jw_controller_obi_resp)
+      .ext_dma_addr_resp_i(ext_dma_addr_resp_i)
   );
 
   memory_subsystem #(
@@ -662,8 +658,6 @@ module core_v_mini_mcu
       .spimemio_req_i(flash_mem_slave_req),
       .spimemio_resp_o(flash_mem_slave_resp),
       .w25q128jw_controller_intr_o(w25q128jw_controller_intr),
-      .w25q128jw_controller_obi_req_o(w25q128jw_controller_obi_req),
-      .w25q128jw_controller_obi_resp_i(w25q128jw_controller_obi_resp),
       .spi_flash_sck_o,
       .spi_flash_sck_en_o(spi_flash_sck_oe_o),
       .spi_flash_csb_o({spi_flash_cs_1_o, spi_flash_cs_0_o}),

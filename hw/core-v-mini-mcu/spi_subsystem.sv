@@ -28,10 +28,6 @@ module spi_subsystem
     input  reg_req_t flash_ctr_reg_req_i,
     output reg_rsp_t flash_ctr_reg_rsp_o,
 
-    // Master ports on the system bus
-    output obi_pkg::obi_req_t  w25q128jw_controller_obi_req_o,
-    input  obi_pkg::obi_resp_t w25q128jw_controller_obi_resp_i,
-
     //dma hw controller
     output dma_reg_pkg::dma_hw2reg_t external_dma_hw2reg_o,
     // flash controller interrupt
@@ -224,8 +220,6 @@ module spi_subsystem
       .spi_host_reg_req_o(spi_host_reg_req),
       .spi_host_reg_rsp_i(spi_host_reg_rsp),
 
-      .w25q128jw_controller_obi_req_o,
-      .w25q128jw_controller_obi_resp_i,
       .dma_ready_i,
       .dma_done_i
   );

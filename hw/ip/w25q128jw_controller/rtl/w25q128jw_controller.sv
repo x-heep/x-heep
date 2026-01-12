@@ -389,7 +389,7 @@ module w25q128jw_controller
             // STATUS[7:0] = TXQD (TX FIFO depth). Proceed if not full.
             // See hw/vendor/lowrisc_opentitan_spi_host/data/spi_host.hjson for status register bit mapping
             // See hw/vendor/lowrisc_opentitan_spi_host/rtl/spi_host_reg_pkg.sv for TXQD depth definition
-            if (external_spi_host_hw2reg_status_i.txqd.d < SPI_FLASH_TX_FIFO_DEPTH[7:0]) begin //TODO: update similar states checking this
+            if (external_spi_host_hw2reg_status_i.txqd.d < SPI_FLASH_TX_FIFO_DEPTH[7:0]) begin
               read_state_d = READ_SPI_FILL_TX_FIFO;
             end
           end
@@ -602,13 +602,8 @@ module w25q128jw_controller
 
           // -------- Check if TX FIFO has space --------
           FWAIT_SPI_CHECK_TX_FIFO: begin
-            // address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
-            // mem_op_start = 1'b1;
-            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
-            spi_host_reg_req_o.write = 1'b0;
-            spi_host_reg_req_o.valid = 1'b1;
             // STATUS[7:0] = TXQD (TX FIFO depth)
-            if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error && spi_host_reg_rsp_i.rdata[7:0] < SPI_FLASH_TX_FIFO_DEPTH[7:0]) begin
+            if (external_spi_host_hw2reg_status_i.txqd.d < SPI_FLASH_TX_FIFO_DEPTH[7:0]) begin
               fwait_state_d = FWAIT_SPI_FILL_TX_FIFO;
             end
           end
@@ -626,12 +621,8 @@ module w25q128jw_controller
 
           // -------- Wait for SPI Host ready --------
           FWAIT_SPI_WAIT_READY_1: begin
-            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
-            spi_host_reg_req_o.write = 1'b0;
-            spi_host_reg_req_o.valid = 1'b1;
-
             // STATUS[31] = READY bit
-            if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error && spi_host_reg_rsp_i.rdata[31]) begin
+            if (external_spi_host_hw2reg_status_i.ready.d) begin
               fwait_state_d = FWAIT_SPI_SEND_CMD_1;
             end
           end
@@ -656,11 +647,8 @@ module w25q128jw_controller
 
           // -------- Wait for SPI Host ready --------
           FWAIT_SPI_WAIT_READY_2: begin
-            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
-            spi_host_reg_req_o.write = 1'b0;
-            spi_host_reg_req_o.valid = 1'b1;
             // STATUS[31] = READY bit
-            if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error && spi_host_reg_rsp_i.rdata[31]) begin
+            if (external_spi_host_hw2reg_status_i.ready.d) begin
               fwait_state_d = FWAIT_SPI_SEND_CMD_2;
             end
           end
@@ -779,11 +767,8 @@ module w25q128jw_controller
 
           // -------- Check if TX FIFO has space --------
           ERASE_WE_CHECK_TX_FIFO: begin
-            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
-            spi_host_reg_req_o.write = 1'b0;
-            spi_host_reg_req_o.valid = 1'b1;
             // STATUS[7:0] = TXQD (TX FIFO depth)
-            if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error && spi_host_reg_rsp_i.rdata[7:0] < SPI_FLASH_TX_FIFO_DEPTH[7:0]) begin
+            if (external_spi_host_hw2reg_status_i.txqd.d < SPI_FLASH_TX_FIFO_DEPTH[7:0]) begin
               erase_state_d = ERASE_WE_FILL_TX_FIFO;
             end
           end
@@ -801,11 +786,8 @@ module w25q128jw_controller
 
           // -------- Wait for SPI Host ready --------
           ERASE_WE_WAIT_READY: begin
-            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
-            spi_host_reg_req_o.write = 1'b0;
-            spi_host_reg_req_o.valid = 1'b1;
             // STATUS[31] = READY bit
-            if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error && spi_host_reg_rsp_i.rdata[31]) begin
+            if (external_spi_host_hw2reg_status_i.ready.d) begin
               erase_state_d = ERASE_WE_SEND_CMD;
             end
           end
@@ -832,12 +814,8 @@ module w25q128jw_controller
 
           // -------- Check if TX FIFO has space --------
           ERASE_SE_CHECK_TX_FIFO: begin
-            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
-            spi_host_reg_req_o.write = 1'b0;
-            spi_host_reg_req_o.valid = 1'b1;
-            sector_iter_offset_d     = '0;
             // STATUS[7:0] = TXQD (TX FIFO depth)
-            if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error && spi_host_reg_rsp_i.rdata[7:0] < SPI_FLASH_TX_FIFO_DEPTH[7:0]) begin
+            if (external_spi_host_hw2reg_status_i.txqd.d < SPI_FLASH_TX_FIFO_DEPTH[7:0]) begin
               erase_state_d = ERASE_SE_FILL_TX_FIFO;
             end
           end
@@ -861,11 +839,8 @@ module w25q128jw_controller
 
           // -------- Wait for SPI Host ready --------
           ERASE_SE_WAIT_READY: begin
-            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
-            spi_host_reg_req_o.write = 1'b0;
-            spi_host_reg_req_o.valid = 1'b1;
             // STATUS[31] = READY bit
-            if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error && spi_host_reg_rsp_i.rdata[31]) begin
+            if (external_spi_host_hw2reg_status_i.ready.d) begin
               erase_state_d = ERASE_SE_SEND_CMD;
             end
           end
@@ -1032,11 +1007,8 @@ module w25q128jw_controller
 
           // -------- Check if TX FIFO has space --------
           WRITE_WE_CHECK_TX_FIFO: begin
-            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
-            spi_host_reg_req_o.write = 1'b0;
-            spi_host_reg_req_o.valid = 1'b1;
             // STATUS[7:0] = TXQD (TX FIFO depth)
-            if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error && spi_host_reg_rsp_i.rdata[7:0] < SPI_FLASH_TX_FIFO_DEPTH[7:0]) begin
+            if (external_spi_host_hw2reg_status_i.txqd.d < SPI_FLASH_TX_FIFO_DEPTH[7:0]) begin
               write_state_d = WRITE_WE_FILL_TX_FIFO;
             end
           end
@@ -1055,13 +1027,8 @@ module w25q128jw_controller
 
           // -------- Wait for SPI Host ready --------
           WRITE_WE_WAIT_READY: begin
-            // address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
-            // mem_op_start = 1'b1;
-            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
-            spi_host_reg_req_o.write = 1'b0;
-            spi_host_reg_req_o.valid = 1'b1;
             // STATUS[31] = READY bit
-            if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error && spi_host_reg_rsp_i.rdata[31]) begin
+            if (external_spi_host_hw2reg_status_i.ready.d) begin
               write_state_d = WRITE_WE_SEND_CMD;
             end
           end
@@ -1088,11 +1055,8 @@ module w25q128jw_controller
 
           // -------- Check if TX FIFO has space --------
           WRITE_PP_CHECK_TX_FIFO: begin
-            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
-            spi_host_reg_req_o.write = 1'b0;
-            spi_host_reg_req_o.valid = 1'b1;
             // STATUS[7:0] = TXQD (TX FIFO depth)
-            if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error && spi_host_reg_rsp_i.rdata[7:0] < SPI_FLASH_TX_FIFO_DEPTH[7:0]) begin
+            if (external_spi_host_hw2reg_status_i.txqd.d < SPI_FLASH_TX_FIFO_DEPTH[7:0]) begin
               write_state_d = WRITE_PP_FILL_TX_FIFO;
             end
           end
@@ -1114,11 +1078,8 @@ module w25q128jw_controller
 
           // -------- Wait for SPI Host ready --------
           WRITE_PP_WAIT_READY: begin
-            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
-            spi_host_reg_req_o.write = 1'b0;
-            spi_host_reg_req_o.valid = 1'b1;
             // STATUS[31] = READY bit
-            if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error && spi_host_reg_rsp_i.rdata[31]) begin
+            if (external_spi_host_hw2reg_status_i.ready.d) begin
               write_state_d = WRITE_PP_SEND_CMD;
             end
           end
@@ -1191,15 +1152,8 @@ module w25q128jw_controller
 
           // -------- Wait for SPI Host ready (finalize page program after DMA has transferred required data in SPI TX FIFO) --------
           WRITE_PP_WAIT_READY_2: begin
-            // address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
-            // mem_op_start = 1'b1;
-            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
-            spi_host_reg_req_o.write = 1'b0;
-            spi_host_reg_req_o.valid = 1'b1;
-
             // STATUS[31] = READY bit
-            //            if (memory_op_finish && read_value[31] == 1'b1) begin
-            if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error && spi_host_reg_rsp_i.rdata[31]) begin
+            if (external_spi_host_hw2reg_status_i.ready.d) begin
               write_state_d = WRITE_PP_SEND_CMD_2;
             end
           end

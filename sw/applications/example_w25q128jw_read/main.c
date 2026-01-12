@@ -51,7 +51,7 @@ uint32_t check_result(uint8_t *test_buffer, uint32_t len);
  * 3. Waits for read completion (polling)
  *
  */
-__attribute__((optimize("O0"))) int w25q128jw_controller_run(){
+__attribute__ ((noinline)) int w25q128jw_controller_run() {
     spi_host_t* spi;
     spi = spi_flash;
 

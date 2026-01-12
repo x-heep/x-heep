@@ -23,7 +23,7 @@ uint32_t w25q128jw_controller_is_ready_polling()
     uint32_t ret = ( w25q128jw_controller_peri->STATUS & (1<<W25Q128JW_CONTROLLER_STATUS_READY_BIT) ); 
 
     // Tell the DMA to do not accept write operations from w25q128jw_controller in HW anymore
-    dma_set_hw_configuration_mode(0,0);
+    if (ret) dma_set_hw_configuration_mode(0,0);
 
     return ret;
 }

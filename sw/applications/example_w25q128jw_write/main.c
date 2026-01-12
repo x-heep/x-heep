@@ -58,7 +58,8 @@ uint32_t check_result(uint8_t *test_buffer, uint32_t len);
  * 5. Waits for read completion (polling)
  *
  */
-__attribute__((optimize("O0"))) void w25q128jw_controller_run(){
+__attribute__ ((noinline)) int w25q128jw_controller_run() {
+
     spi_host_t* spi;
     spi = spi_flash;
 
@@ -71,11 +72,11 @@ __attribute__((optimize("O0"))) void w25q128jw_controller_run(){
     w25q128jw_controller_rnw(1, LENGTH_BYTES, flash_address, rb_address, 0x00000000);
 
     while(!w25q128jw_controller_is_ready_polling());
+
+    return EXIT_SUCCESS;
 }
 
 int main(void) {
-
-    printf("Write test with 4100 bytes\n");
 
     w25q128jw_controller_run();
 

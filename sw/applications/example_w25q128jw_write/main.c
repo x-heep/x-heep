@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include "memory.h"
 
 #include "core_v_mini_mcu.h"
 #include "x-heep.h"
@@ -20,6 +21,8 @@
 
 #include "w25q128jw_controller.h"
 #include "ram_new_data.h"
+#include "csr.h" // For CSR macros
+#include "rv_plic.h" // For PLIC functions
 
 // Number of bytes to transfer
 #define LENGTH_BYTES 4100
@@ -58,35 +61,78 @@ uint32_t check_result(uint8_t *test_buffer, uint32_t len);
  * 5. Waits for read completion (polling)
  *
  */
-__attribute__ ((noinline)) int w25q128jw_controller_run() {
+__attribute__ ((noinline)) int w25q128jw_controller_run(char interrupt_test) {
 
     spi_host_t* spi;
     spi = spi_flash;
 
     if (w25q128jw_init(spi) != FLASH_OK) return EXIT_FAILURE;
 
-    w25q128jw_controller_rnw(0, LENGTH_BYTES, flash_address, rb_address, rnd_address);
+    //write
+    w25q128jw_controller_rnw(0, LENGTH_BYTES, (uint32_t)flash_address, rb_address, rnd_address);
 
-    while(!w25q128jw_controller_is_ready_polling());
+    if(interrupt_test) {
+        // Wait for interrupt
+        while(!w25q128jw_controller_is_ready_intr()) {
+            asm volatile("wfi");  // Wait For Interrupt - CPU sleeps
+        }
+    } else {
+        while(!w25q128jw_controller_is_ready_polling());
+    }
 
-    w25q128jw_controller_rnw(1, LENGTH_BYTES, flash_address, rb_address, 0x00000000);
+    //read back what you wrote
+    w25q128jw_controller_rnw(1, LENGTH_BYTES, (uint32_t)flash_address, rb_address, 0x00000000);
 
-    while(!w25q128jw_controller_is_ready_polling());
+    if(interrupt_test) {
+        // Wait for interrupt
+        while(!w25q128jw_controller_is_ready_intr()) {
+            asm volatile("wfi");  // Wait For Interrupt - CPU sleeps
+        }
+    } else {
+        while(!w25q128jw_controller_is_ready_polling());
+    }
 
     return EXIT_SUCCESS;
 }
 
 int main(void) {
 
-    w25q128jw_controller_run();
+    if (w25q128jw_controller_run(0)!= EXIT_SUCCESS) return EXIT_FAILURE;
+    uint32_t res =  check_result((uint8_t *)ram_new_data, LENGTH_BYTES);
 
-    uint32_t res =  check_result(ram_new_data, LENGTH_BYTES);
-
-    if (res == 0){
-        return EXIT_SUCCESS;
-    } else {
+    if (res){
         return EXIT_FAILURE;
     }
+
+    // Clear the interrupt status register (of previous transaction)
+    w25q128jw_controller_clear_status_register();
+
+    memset(ram_buffer, 0, sizeof(ram_buffer));
+
+    // Clear flag before starting operation
+    w25q128jw_controller_clear_done_flag();
+
+    // Activate interrupt in PLIC
+    plic_Init();
+    plic_irq_set_priority(W25Q128JW_CONTROLLER_INTR_EVENT, 1);
+    plic_irq_set_enabled(W25Q128JW_CONTROLLER_INTR_EVENT, kPlicToggleEnabled);
+
+    // Activate global interrupts
+    CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);   // Global interrupt enable for machine mode (MIE) bit in Machine Status Registers
+    CSR_SET_BITS(CSR_REG_MIE, (1 << 11)); // Machine External Interrupt Enable (MEIE) bit in Machine Interrupt Pending Register
+
+    w25q128jw_controller_enable_interrupt(1);
+    if (w25q128jw_controller_run(1) != EXIT_SUCCESS) return EXIT_FAILURE;
+
+    res =  check_result((uint8_t *)ram_new_data, LENGTH_BYTES);
+
+    if (res){
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
+
+
 }
 
 uint32_t check_result(uint8_t *test_buffer, uint32_t len) {

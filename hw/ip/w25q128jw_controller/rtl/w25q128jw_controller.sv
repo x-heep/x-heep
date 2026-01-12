@@ -884,22 +884,34 @@ module w25q128jw_controller
           // -------- Read current CONTROL register value --------
           // We need to preserve other bits when modifying RXWM (preserved in read_value from OBI FSM)
           FWAIT_SET_RXWM_R: begin
-            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_CONTROL_OFFSET};
-            mem_op_start = 1'b1;
+            // address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_CONTROL_OFFSET};
+            // mem_op_start = 1'b1;
+            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
+            spi_host_reg_req_o.write = 1'b0;
+            spi_host_reg_req_o.valid = 1'b1;
 
-            if (memory_op_finish) begin
+//            if (memory_op_finish) begin
+            if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error) begin
+              //we are sharing the sector_iter_offset_q register with the rdata from SPI to save resources
+              sector_iter_offset_d = spi_host_reg_rsp_i.rdata;
               fwait_state_d = FWAIT_SET_RXWM_W;
             end
           end
 
           // -------- Write back with RX watermark = 1 --------
           FWAIT_SET_RXWM_W: begin
-            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_CONTROL_OFFSET};
-            data    = {read_value[31:8], 8'h01}; // Keep upper CONTROL bits, set RXWM = 1
-            w_enable = 1'b1;
-            mem_op_start = 1'b1;
-
-            if (memory_op_finish) begin
+            // address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_CONTROL_OFFSET};
+            // data    = {read_value[31:8], 8'h01}; // Keep upper CONTROL bits, set RXWM = 1
+            // w_enable = 1'b1;
+            // mem_op_start = 1'b1;
+            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
+            spi_host_reg_req_o.write = 1'b1;
+            spi_host_reg_req_o.valid = 1'b1;
+            //we are sharing the sector_iter_offset_q register with the rdata from SPI to save resources
+            //in this state, the sector_iter_offset_q register represents the previous read value
+            spi_host_reg_req_o.wdata = {sector_iter_offset_q[31:8], 8'h01}; // Keep upper CONTROL bits, set RXWM = 1
+//            if (memory_op_finish) begin
+            if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error) begin
               fwait_state_d = FWAIT_SPI_CHECK_TX_FIFO;
             end
           end
@@ -908,34 +920,46 @@ module w25q128jw_controller
 
           // -------- Check if TX FIFO has space --------
           FWAIT_SPI_CHECK_TX_FIFO: begin
-            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
-            mem_op_start = 1'b1;
-
+            // address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+            // mem_op_start = 1'b1;
+            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+            spi_host_reg_req_o.write = 1'b0;
+            spi_host_reg_req_o.valid = 1'b1;
             // STATUS[7:0] = TXQD (TX FIFO depth)
-            if (memory_op_finish && read_value[7:0] < SPI_FLASH_TX_FIFO_DEPTH[7:0]) begin
+//            if (memory_op_finish && read_value[7:0] < SPI_FLASH_TX_FIFO_DEPTH[7:0]) begin
+            if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error && spi_host_reg_rsp_i.rdata[7:0] < SPI_FLASH_TX_FIFO_DEPTH[7:0]) begin
               fwait_state_d = FWAIT_SPI_FILL_TX_FIFO;
             end
           end
 
           // -------- Write Read Status Register 1 command to TX FIFO --------
           FWAIT_SPI_FILL_TX_FIFO: begin
-            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_TXDATA_OFFSET};
-            data = {19'b0, FC_RSR1};
-            w_enable = 1'b1;
-            mem_op_start = 1'b1;
+            // address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_TXDATA_OFFSET};
+            // data = {19'b0, FC_RSR1};
+            // w_enable = 1'b1;
+            // mem_op_start = 1'b1;
+            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_TXDATA_OFFSET};
+            spi_host_reg_req_o.write = 1'b1;
+            spi_host_reg_req_o.valid = 1'b1;
+            spi_host_reg_req_o.wdata = {19'b0, FC_RSR1};
 
-            if (memory_op_finish) begin
+            // if (memory_op_finish) begin
+            if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error) begin
               fwait_state_d = FWAIT_SPI_WAIT_READY_1;
             end
           end
 
           // -------- Wait for SPI Host ready --------
           FWAIT_SPI_WAIT_READY_1: begin
-            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
-            mem_op_start = 1'b1;
+            // address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+            // mem_op_start = 1'b1;
+            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+            spi_host_reg_req_o.write = 1'b0;
+            spi_host_reg_req_o.valid = 1'b1;
 
             // STATUS[31] = READY bit
-            if (memory_op_finish && read_value[31]) begin
+            if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error && spi_host_reg_rsp_i.rdata[31]) begin
+//            if (memory_op_finish && read_value[31]) begin
               fwait_state_d = FWAIT_SPI_SEND_CMD_1;
             end
           end
@@ -947,23 +971,32 @@ module w25q128jw_controller
           //   [24]    = CSAAT (1 = keep CS asserted for next command)
           //   [23:0]  = Length-1 (0 = 1 byte) (FC_RSR1 is 1 byte command)
           FWAIT_SPI_SEND_CMD_1: begin
-            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
-            data = {3'h0, 2'h2, 2'h0, 1'h1, 24'h0};  // Empty + Direction + Speed + Csaat + Length
-            w_enable = 1'b1;
-            mem_op_start = 1'b1;
+            // address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
+            // data = {3'h0, 2'h2, 2'h0, 1'h1, 24'h0};  // Empty + Direction + Speed + Csaat + Length
+            // w_enable = 1'b1;
+            // mem_op_start = 1'b1;
+            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
+            spi_host_reg_req_o.write = 1'b1;
+            spi_host_reg_req_o.valid = 1'b1;
+            spi_host_reg_req_o.wdata = {3'h0, 2'h2, 2'h0, 1'h1, 24'h0};  // Empty + Direction + Speed + Csaat + Length
 
-            if (memory_op_finish) begin
+            // if (memory_op_finish) begin
+            if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error) begin
               fwait_state_d = FWAIT_SPI_WAIT_READY_2;
             end
           end
 
           // -------- Wait for SPI Host ready --------
           FWAIT_SPI_WAIT_READY_2: begin
-            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
-            mem_op_start = 1'b1;
+            // address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+            // mem_op_start = 1'b1;
+            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+            spi_host_reg_req_o.write = 1'b0;
+            spi_host_reg_req_o.valid = 1'b1;
 
             // STATUS[31] = READY bit
-            if (memory_op_finish && read_value[31]) begin
+            if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error && spi_host_reg_rsp_i.rdata[31]) begin
+            // if (memory_op_finish && read_value[31]) begin
               fwait_state_d = FWAIT_SPI_SEND_CMD_2;
             end
           end
@@ -975,12 +1008,17 @@ module w25q128jw_controller
           //   [24]    = CSAAT (0 = release CS after transfer, no more commands to send)
           //   [23:0]  = Length-1 (0 = 1 byte)
           FWAIT_SPI_SEND_CMD_2: begin
-            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
-            data = {3'h0, 2'h1, 2'h0, 1'h0, 24'h0};  // Empty + Direction + Speed + Csaat + Length
-            w_enable = 1'b1;
-            mem_op_start = 1'b1;
+            // address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
+            // data = {3'h0, 2'h1, 2'h0, 1'h0, 24'h0};  // Empty + Direction + Speed + Csaat + Length
+            // w_enable = 1'b1;
+            // mem_op_start = 1'b1;
+            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
+            spi_host_reg_req_o.write = 1'b1;
+            spi_host_reg_req_o.valid = 1'b1;
+            spi_host_reg_req_o.wdata = {3'h0, 2'h1, 2'h0, 1'h0, 24'h0};  // Empty + Direction + Speed + Csaat + Length
 
-            if (memory_op_finish) begin
+            if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error) begin
+            // if (memory_op_finish) begin
               fwait_state_d = FWAIT_WAIT_RXWM;
             end
           end
@@ -989,23 +1027,31 @@ module w25q128jw_controller
 
           // -------- Wait for status byte received --------
           FWAIT_WAIT_RXWM: begin
-            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
-            mem_op_start = 1'b1;
+            // address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+            // mem_op_start = 1'b1;
+            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+            spi_host_reg_req_o.write = 1'b0;
+            spi_host_reg_req_o.valid = 1'b1;
 
             // STATUS[20] = RXWM (RX watermark reached)
-            if (memory_op_finish && read_value[20]) begin
+            // if (memory_op_finish && read_value[20]) begin
+            if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error && spi_host_reg_rsp_i.rdata[20]) begin
               fwait_state_d = FWAIT_READ_FLASH_STATUS;
             end
           end
 
           // -------- Read flash status byte and check BUSY bit --------
           FWAIT_READ_FLASH_STATUS: begin
-            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_RXDATA_OFFSET};
-            mem_op_start = 1'b1;
+            // address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_RXDATA_OFFSET};
+            // mem_op_start = 1'b1;
+            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_RXDATA_OFFSET};
+            spi_host_reg_req_o.write = 1'b0;
+            spi_host_reg_req_o.valid = 1'b1;
 
-            if (memory_op_finish) begin
+            // if (memory_op_finish) begin
+            if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error) begin
               // Check BUSY bit: 0 = ready, 1 = busy
-              if (read_value[0] == 1'b0) begin
+              if (spi_host_reg_rsp_i.rdata[0] == 1'b0) begin
                 // ===== FLASH READY: Proceed to next operation =====
                 case (fwait_cnt_q)
                   // After READ: Flash ready -> go to ERASE
@@ -1079,34 +1125,46 @@ module w25q128jw_controller
 
           // -------- Check if TX FIFO has space --------
           ERASE_WE_CHECK_TX_FIFO: begin
-            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
-            mem_op_start = 1'b1;
+            // address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+            // mem_op_start = 1'b1;
+            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+            spi_host_reg_req_o.write = 1'b0;
+            spi_host_reg_req_o.valid = 1'b1;
 
             // STATUS[7:0] = TXQD (TX FIFO depth)
-            if (memory_op_finish && read_value[7:0] < SPI_FLASH_TX_FIFO_DEPTH[7:0]) begin
+            // if (memory_op_finish && read_value[7:0] < SPI_FLASH_TX_FIFO_DEPTH[7:0]) begin
+            if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error && spi_host_reg_rsp_i.rdata[7:0] < SPI_FLASH_TX_FIFO_DEPTH[7:0]) begin
               erase_state_d = ERASE_WE_FILL_TX_FIFO;
             end
           end
 
           // -------- Write Write Enable command to TX FIFO --------
           ERASE_WE_FILL_TX_FIFO: begin
-            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_TXDATA_OFFSET};
-            data = {19'b0, FC_WE};
-            w_enable = 1'b1;
-            mem_op_start = 1'b1;
-
-            if (memory_op_finish) begin
+            // address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_TXDATA_OFFSET};
+            // data = {19'b0, FC_WE};
+            // w_enable = 1'b1;
+            // mem_op_start = 1'b1;
+            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_TXDATA_OFFSET};
+            spi_host_reg_req_o.write = 1'b1;
+            spi_host_reg_req_o.valid = 1'b1;
+            spi_host_reg_req_o.wdata = {19'b0, FC_WE};
+//            if (memory_op_finish) begin
+            if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error) begin
               erase_state_d = ERASE_WE_WAIT_READY;
             end
           end
 
           // -------- Wait for SPI Host ready --------
           ERASE_WE_WAIT_READY: begin
-            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
-            mem_op_start = 1'b1;
+            // address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+            // mem_op_start = 1'b1;
+            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+            spi_host_reg_req_o.write = 1'b0;
+            spi_host_reg_req_o.valid = 1'b1;
 
             // STATUS[31] = READY bit
-            if (memory_op_finish && read_value[31]) begin
+//            if (memory_op_finish && read_value[31]) begin
+            if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error && spi_host_reg_rsp_i.rdata[31]) begin
               erase_state_d = ERASE_WE_SEND_CMD;
             end
           end
@@ -1118,12 +1176,17 @@ module w25q128jw_controller
           //   [24]    = CSAAT (0 = release CS after, WE is standalone command)
           //   [23:0]  = Length-1 (0 = 1 byte)
           ERASE_WE_SEND_CMD: begin
-            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
-            data = {3'h0, 2'h2, 2'h0, 1'h0, 24'h0};  // Empty + Direction + Speed + Csaat + Length
-            w_enable = 1'b1;
-            mem_op_start = 1'b1;
+            // address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
+            // data = {3'h0, 2'h2, 2'h0, 1'h0, 24'h0};  // Empty + Direction + Speed + Csaat + Length
+            // w_enable = 1'b1;
+            // mem_op_start = 1'b1;
+            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
+            spi_host_reg_req_o.write = 1'b1;
+            spi_host_reg_req_o.valid = 1'b1;
+            spi_host_reg_req_o.wdata = {3'h0, 2'h2, 2'h0, 1'h0, 24'h0};  // Empty + Direction + Speed + Csaat + Length
 
-            if (memory_op_finish) begin
+//            if (memory_op_finish) begin
+            if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error) begin
               erase_state_d = ERASE_SE_CHECK_TX_FIFO;
             end
           end
@@ -1132,11 +1195,15 @@ module w25q128jw_controller
 
           // -------- Check if TX FIFO has space --------
           ERASE_SE_CHECK_TX_FIFO: begin
-            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
-            mem_op_start = 1'b1;
-
+            // address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+            // mem_op_start = 1'b1;
+            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+            spi_host_reg_req_o.write = 1'b0;
+            spi_host_reg_req_o.valid = 1'b1;
+            sector_iter_offset_d     = '0;
             // STATUS[7:0] = TXQD (TX FIFO depth)
-            if (memory_op_finish && read_value[7:0] < SPI_FLASH_TX_FIFO_DEPTH[7:0]) begin
+            // if (memory_op_finish && read_value[7:0] < SPI_FLASH_TX_FIFO_DEPTH[7:0]) begin
+            if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error && spi_host_reg_rsp_i.rdata[7:0] < SPI_FLASH_TX_FIFO_DEPTH[7:0]) begin
               erase_state_d = ERASE_SE_FILL_TX_FIFO;
             end
           end
@@ -1144,26 +1211,35 @@ module w25q128jw_controller
           // -------- Write Sector Erase command + address to TX FIFO --------
 
           ERASE_SE_FILL_TX_FIFO: begin
-            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_TXDATA_OFFSET};
+            // address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_TXDATA_OFFSET};
+            // data = (((bitfield_byteswap32((reg2hw.f_address & 32'h00fff000) +
+            //                               (sector_iter_offset_q))) >> 8) << 8) | {19'h0, FC_SE};
+            // w_enable = 1'b1;
+            // mem_op_start = 1'b1;
+            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_TXDATA_OFFSET};
+            spi_host_reg_req_o.write = 1'b1;
+            spi_host_reg_req_o.valid = 1'b1;
             // Use sector-aligned address + current sector iteration offset + SECTOR ERASE command
             // Inspiration from sw/device/bsp/w25q
-            data = (((bitfield_byteswap32((reg2hw.f_address & 32'h00fff000) +
-                                          (sector_iter_offset_q))) >> 8) << 8) | {19'h0, FC_SE};
-            w_enable = 1'b1;
-            mem_op_start = 1'b1;
-
-            if (memory_op_finish) begin
+            spi_host_reg_req_o.wdata = (((bitfield_byteswap32((reg2hw.f_address & 32'h00fff000) +
+                                           (sector_iter_offset_q))) >> 8) << 8) | {19'h0, FC_SE};
+            // if (memory_op_finish) begin
+            if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error) begin
               erase_state_d = ERASE_SE_WAIT_READY;
             end
           end
 
           // -------- Wait for SPI Host ready --------
           ERASE_SE_WAIT_READY: begin
-            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
-            mem_op_start = 1'b1;
+            // address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+            // mem_op_start = 1'b1;
+            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_STATUS_OFFSET};
+            spi_host_reg_req_o.write = 1'b0;
+            spi_host_reg_req_o.valid = 1'b1;
 
             // STATUS[31] = READY bit
-            if (memory_op_finish && read_value[31] == 1'b1) begin
+            if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error && spi_host_reg_rsp_i.rdata[31]) begin
+//            if (memory_op_finish && read_value[31] == 1'b1) begin
               erase_state_d = ERASE_SE_SEND_CMD;
             end
           end
@@ -1175,12 +1251,17 @@ module w25q128jw_controller
           //   [24]    = CSAAT (0 = release CS after transfer, no more commands to send)
           //   [23:0]  = Length-1 (3 = 4 bytes: 1 cmd + 3 addr bytes)
           ERASE_SE_SEND_CMD: begin
-            address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
-            data = {3'h0, 2'h2, 2'h0, 1'h0, 24'h3};  // Empty + Direction + Speed + Csaat + Length
-            w_enable = 1'b1;
-            mem_op_start = 1'b1;
+            // address = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
+            // data = {3'h0, 2'h2, 2'h0, 1'h0, 24'h3};  // Empty + Direction + Speed + Csaat + Length
+            // w_enable = 1'b1;
+            // mem_op_start = 1'b1;
+            spi_host_reg_req_o.addr  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_COMMAND_OFFSET};
+            spi_host_reg_req_o.write = 1'b1;
+            spi_host_reg_req_o.valid = 1'b1;
+            spi_host_reg_req_o.wdata = {3'h0, 2'h2, 2'h0, 1'h0, 24'h3};  // Empty + Direction + Speed + Csaat + Length
 
-            if (memory_op_finish) begin
+//            if (memory_op_finish) begin
+            if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error) begin
               // Go to FWAIT FSM to poll status register until erase completes
               erase_state_d = ERASE_IDLE;
               top_state_d = TOP_FWAIT;
@@ -1408,6 +1489,7 @@ module w25q128jw_controller
             if (memory_op_finish && read_value[7:0] < SPI_FLASH_TX_FIFO_DEPTH[7:0]) begin
               write_state_d = WRITE_WE_FILL_TX_FIFO;
             end
+            if (read_value[30:8] == '0) data = '0; // TODO: delete this, just to avoid waivers
           end
 
           // -------- Write Write Enable command to TX FIFO --------

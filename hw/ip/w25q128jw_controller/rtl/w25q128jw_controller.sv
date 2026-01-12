@@ -203,7 +203,7 @@ module w25q128jw_controller
     // READ_DMA_DST_TYPE,  // Set destination data type (32-bit)
     // READ_DMA_TRIG,  // Set DMA trigger sources (SPI RX FIFO to memory)
     // READ_DMA_SIZE_D1,  // Set transfer size (starts DMA)
-    READ_SET_DMA,  // Set transfer size (starts DMA)
+    READ_SET_DMA,  // Set the DMA registers
     READ_SPI_CHECK_TX_FIFO,  // Check if TX FIFO has space
     READ_SPI_FILL_TX_FIFO,  // Write command + address to TX FIFO
     READ_SPI_WAIT_READY_1,  // Wait for SPI Host ready
@@ -252,16 +252,17 @@ module w25q128jw_controller
   // -------- MODIFY FSM STATES --------
   // Copies new data into the sector buffer (RAM) at the correct offset
   // Uses DMA to transfer from ram_new_data to ram_buffer
-  typedef enum logic [3:0] {
+  typedef enum logic [1:0] {
     MODIFY_IDLE,  // Leads to DMA initialization
-    MODIFY_DMA_SRC_PTR,      // Set DMA source (ram_new_data + offset (which sector we are now looking to write into + F_ADDRESS sector misalignment))
-    MODIFY_DMA_DST_PTR,      // Set DMA destination (ram_buffer + offset (for first sector only, if writing is not sector aligned))
-    MODIFY_DMA_SRC_INC,  // Set source increment (+4 bytes)
-    MODIFY_DMA_DST_INC,  // Set destination increment (+4 bytes)
-    MODIFY_DMA_SRC_TYPE,  // Set source data type (32-bit)
-    MODIFY_DMA_DST_TYPE,  // Set destination data type (32-bit)
-    MODIFY_DMA_TRIG,  // Set DMA trigger (memory-to-memory)
-    MODIFY_DMA_SIZE_D1,  // Set transfer size (starts DMA)
+    MODIFY_DMA_REGS, // Set the DMA registers (ram_new_data + offset (which sector we are now looking to write into + F_ADDRESS sector misalignment))
+    // MODIFY_DMA_SRC_PTR,      // Set DMA source (ram_new_data + offset (which sector we are now looking to write into + F_ADDRESS sector misalignment))
+    // MODIFY_DMA_DST_PTR,      // Set DMA destination (ram_buffer + offset (for first sector only, if writing is not sector aligned))
+    // MODIFY_DMA_SRC_INC,  // Set source increment (+4 bytes)
+    // MODIFY_DMA_DST_INC,  // Set destination increment (+4 bytes)
+    // MODIFY_DMA_SRC_TYPE,  // Set source data type (32-bit)
+    // MODIFY_DMA_DST_TYPE,  // Set destination data type (32-bit)
+    // MODIFY_DMA_TRIG,  // Set DMA trigger (memory-to-memory)
+    // MODIFY_DMA_SIZE_D1,  // Set transfer size (starts DMA)
     MODIFY_TRANS  // Wait for DMA transfer complete and update offsets + remaining length to write
   } modify_state_e;
 
@@ -1303,12 +1304,58 @@ module w25q128jw_controller
           MODIFY_IDLE: begin
             top_state_d       = TOP_DMA_INIT;  // Go to DMA init FSM
             dma_init_return_d = RETURN_MODIFY;  // Return here after DMA init
-            modify_state_d    = MODIFY_DMA_SRC_PTR;  // Next state after returning from DMA init
+            //modify_state_d    = MODIFY_DMA_SRC_PTR;  // Next state after returning from DMA init
+            modify_state_d    = MODIFY_DMA_REGS;  // Next state after returning from DMA init
           end
 
           // ============== DMA CONFIGURATION ==============
-
+          MODIFY_DMA_REGS: begin
+            modify_state_d = MODIFY_TRANS;
+            //MODIFY_DMA_SRC_PTR
+            external_dma_hw2reg_o.src_ptr.de = 1'b1;
+            // Source = MD_ADDRESS + offset for current sector iteration (for multi-sector writes) 
+            // F_ADDRESS not necessarily sector aligned and such case must be taken into consideration
+            external_dma_hw2reg_o.src_ptr.d  = reg2hw.md_address + md_offset_q;
+            //MODIFY_DMA_DST_PTR
+            external_dma_hw2reg_o.dst_ptr.de = 1'b1;
+            external_dma_hw2reg_o.dst_ptr.d = reg2hw.s_address + sector_offset;
+            // Destination = S_ADDRESS + offset within sector (for first iteration only, otherwise sector_offset = 0)
+            // F_ADDRESS not necessarily sector aligned and such case must be taken into consideration
+            //MODIFY_DMA_SRC_INC
+            external_dma_hw2reg_o.src_ptr_inc_d1.de = 1'b1;
+            external_dma_hw2reg_o.src_ptr_inc_d1.d  = 'h4;  // Increment by 4 bytes (32-bit word) in RAM
+            //MODIFY_DMA_DST_INC
+            external_dma_hw2reg_o.dst_ptr_inc_d1.de = 1'b1;
+            external_dma_hw2reg_o.dst_ptr_inc_d1.d  = 'h4;  // Increment by 4 bytes (32-bit word) in RAM
+            //MODIFY_DMA_SRC_TYPE
+            external_dma_hw2reg_o.src_data_type.de = 1'b1;
+            external_dma_hw2reg_o.src_data_type.d = '0;  // 0 = 32-bit word
+            //MODIFY_DMA_DST_TYPE
+            external_dma_hw2reg_o.dst_data_type.de = 1'b1;
+            external_dma_hw2reg_o.dst_data_type.d = '0;  // 0 = 32-bit word
+            //MODIFY_DMA_TRIG
+            external_dma_hw2reg_o.slot.rx_trigger_slot.de = 1'b1;
+            external_dma_hw2reg_o.slot.rx_trigger_slot.d = '0;
+            external_dma_hw2reg_o.slot.tx_trigger_slot.de = 1'b1;
+            external_dma_hw2reg_o.slot.tx_trigger_slot.d = '0;
+            //MODIFY_DMA_SIZE_D1
+            external_dma_hw2reg_o.size_d1.de = 1'b1;
+            if (reg2hw.length < {19'h0, SE_BSIZE} - sector_offset) begin
+              // Case 1: All remaining data fits in this sector
+              if (reg2hw.length[1:0] == 0) begin
+                dma_size = reg2hw.length >> 2;  // Exact word count
+              end else begin
+                dma_size = (reg2hw.length >> 2) + 1;  // Round up to next word
+              end
+            end else begin
+              // Case 2: Data spans multiple sectors. Fill remaining sector space
+              // Transfer (4KB - offset) bytes
+              dma_size = (({19'h0, SE_BSIZE} - sector_offset) >> 2);
+            end
+            external_dma_hw2reg_o.size_d1.d = dma_size[15:0];
+          end
           // -------- Set DMA source pointer: RAM new data buffer (at MD_ADDRESS) --------
+/*
           MODIFY_DMA_SRC_PTR: begin
             address = DMA_START_ADDRESS + {25'b0, DMA_SRC_PTR_OFFSET};
             data = reg2hw.md_address + md_offset_q;
@@ -1426,7 +1473,7 @@ module w25q128jw_controller
               modify_state_d = MODIFY_TRANS;
             end
           end
-
+*/
           // ============== WAIT FOR DMA COMPLETION ==============
           MODIFY_TRANS: begin
             if (dma_done_i[0]) begin  // DMA channel 0 done signal

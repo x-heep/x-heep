@@ -4,16 +4,16 @@
 #
 # Author: Juan Sapriza <juan.sapriza@epfl.ch>
 #
-# Info: This script parses the generated main.map and core_v_mini_mcu_pkg.sv files to 
-# display the usage of the different memory banks of the generated MCU for code (text) and data. 
+# Info: This script parses the generated main.ld and core_v_mini_mcu_pkg.sv files to
+# display the usage of the different memory banks of the generated MCU for code (text) and data.
 # The script considers the possibility of having interleaved (IL) memory banks at the end of the
 # continuous memory banks. In the IL banks, data is distributed homogeneously across banks (although
-# this does not necessarily need to be the case). 
-# The code extracts the number and size of the memory banks from the MCU package. 
-# Then extracts the regions (code and data) from the main.map file -- i.e. where code and data can 
-# be stored.  
+# this does not necessarily need to be the case).
+# The code extracts the number and size of the memory banks from the MCU package.
+# Then extracts the regions (code and data) from the main.ld file -- i.e. where code and data can
+# be stored.
 # Later extracts the utilization of those regions by looking for the addresses in which text and data
-# has been written in the main.map file. 
+# has been written in the main.ld file.
 # For the IL data (ildt) only the length is extracted, for simplicity. We assume an homogeneous distribution.
 
 import subprocess
@@ -30,22 +30,22 @@ def is_readelf_available():
 
 def get_banks_and_sizes(mcu_pkg_size):
     """
-    Parses the core_v_mini_mcu_pkg.sv file to extract the count of memory banks and their sizes. 
+    Parses the core_v_mini_mcu_pkg.sv file to extract the count of memory banks and their sizes.
     It looks for the definitions:
     localparam int unsigned NUM_BANKS = 5;
     localparam int unsigned NUM_BANKS_IL = 2;
 
-    To obtain the total and IL count. 
+    To obtain the total and IL count.
 
-    Later looks for 
+    Later looks for
     localparam logic [31:0] RAM0_SIZE = 32'h00008000;
-    To extract the size of each. 
-    They are all assumed to be contiguous. 
+    To extract the size of each.
+    They are all assumed to be contiguous.
 
     Parameters:
     mcu_pkg_size - path of the .sv file, relative to the location from which this script is called (e.g. the Makefile)
 
-    Returns: 
+    Returns:
     num_banks       - Total count of memory banks
     num_il_banks    - How many of those banks are IL
     sizes_B         - Size in bytes of each bank
@@ -60,11 +60,11 @@ def get_banks_and_sizes(mcu_pkg_size):
                     num_banks = int(line.split('=')[1].strip().strip(';'))
                 elif "NUM_BANKS_IL =" in line:
                     num_il_banks = int(line.split('=')[1].strip().strip(';'))
-                else: 
+                else:
                     match = re.search(r"RAM(\d+)_SIZE = 32'h([0-9A-Fa-f]+);", line)
                     if match:
                         size_B      = int(match.group(2), 16)
-                        sizes_B.append(size_B)               
+                        sizes_B.append(size_B)
     except FileNotFoundError:
         print("File not found. Please check the path and try again.")
     return num_banks, num_il_banks, sizes_B
@@ -80,7 +80,7 @@ def get_memory_sections(ld_path):
     Parameters:
     ld_path - path of the .ld file, relative to the location from which this script is called (e.g. the Makefile)
 
-    Returns: 
+    Returns:
     sections - Dictionary with the sections found
     """
     sections = {}
@@ -158,7 +158,8 @@ def get_regions(program_headers, section_to_segment):
     code_sections = {'.vectors', '.init', '.text', '.eh_frame'}
     data_sections = {'.power_manager', '.rodata', '.data', '.sdata', '.sbss', '.bss', '.heap', '.stack'}
     interleaved_data_sections = {'.data_interleaved'}
-    
+    flash_data_sections = {'.data_flash_only'}
+
     # List to store region dictionaries
     regions = []
 
@@ -174,6 +175,9 @@ def get_regions(program_headers, section_to_segment):
         elif any(sec in sections for sec in interleaved_data_sections):
             region_type = 'i'  # Special data handling like interleaved can be marked differently if needed
             name = 'IL data'
+        elif any(sec in sections for sec in flash_data_sections):
+            region_type = 'f'  # Special data handling to avoid FLASH-only data to be included in the RAM report
+            name = 'FLASH data'
         # Create dictionary for the region
         region_dict = {
             'name': name,
@@ -182,7 +186,7 @@ def get_regions(program_headers, section_to_segment):
             'size_B': ph['MemSiz'],
             'end_add': ph['VirtAddr'] + ph['MemSiz']
         }
-        
+
         # Append to the list
         regions.append(region_dict)
 
@@ -241,7 +245,7 @@ sections = get_memory_sections('sw/build/main.ld')
 try:
     sections['code'] = sections.pop('ram0')
     sections['data'] = sections.pop('ram1')
-    sections['ildt'] = sections.pop('ram2') if num_il_banks else {'origin':sections['data']['origin'] +sections['data']['length'], 'length':0}
+    sections['ildt'] = sections.pop('ram2') if num_il_banks else {'origin':sections['data']['origin'] + sections['data']['length'], 'length':0}
 except:
     print("Memory distribution analysis not available for LINKER=flash_exec")
     quit()
@@ -269,14 +273,14 @@ max_ildt_end = max(region['end_add'] for region in ildt_regions) if ildt_regions
 total_space_required_ildt = max_ildt_end - min_ildt_start
 
 # # PRINT THE SUMMARY OF UTILIZATION
-print( "Region \t Start \tEnd\tSz(kB)\tUsd(kB)\tReq(kB)\tUtilz(%) ")
-print(f"Code:  \t{sections['code']['origin']/1024:5.1f}\t{(sections['code']['origin']+sections['code']['length'])/1024:5.1f}\t{sections['code']['length']/1024:5.1f}\t{total_space_used_code/1024:0.1f}\t{total_space_required_code/1024:5.1f}\t{100*total_space_required_code/sections['code']['length']:0.1f}")
-print(f"Data:  \t{sections['data']['origin']/1024:5.1f}\t{(sections['data']['origin']+sections['data']['length'])/1024:5.1f}\t{sections['data']['length']/1024:5.1f}\t{total_space_used_data/1024:0.1f}\t{total_space_required_data/1024:5.1f}\t{100*total_space_required_data/sections['data']['length']:0.1f}")
+print("Region\tStart\tEnd\tSz(kB)\tUsd(kB)\tReq(kB)\tUtilz(%)")
+print(f"Code:\t{sections['code']['origin']/1024:5.1f}\t{(sections['code']['origin']+sections['code']['length'])/1024:5.1f}\t{sections['code']['length']/1024:5.1f}\t{total_space_used_code/1024:5.1f}\t{total_space_required_code/1024:5.1f}\t{100*total_space_required_code/sections['code']['length']:5.1f}")
+print(f"Data:\t{sections['data']['origin']/1024:5.1f}\t{(sections['data']['origin']+sections['data']['length'])/1024:5.1f}\t{sections['data']['length']/1024:5.1f}\t{total_space_used_data/1024:5.1f}\t{total_space_required_data/1024:5.1f}\t{100*total_space_required_data/sections['data']['length']:5.1f}")
 if num_il_banks:
-    print(f"ILdata:\t{sections['ildt']['origin']/1024:5.1f}\t{(sections['ildt']['origin']+sections['ildt']['length'])/1024:5.1f}\t{sections['ildt']['length']/1024:5.1f}\t{total_space_used_ildt/1024:0.1f}\t{total_space_required_ildt/1024:5.1f}\t{100*total_space_required_ildt/sections['ildt']['length']:0.1f}")
+    print(f"ILdata:\t{sections['ildt']['origin']/1024:5.1f}\t{(sections['ildt']['origin']+sections['ildt']['length'])/1024:5.1f}\t{sections['ildt']['length']/1024:5.1f}\t{total_space_used_ildt/1024:5.1f}\t{total_space_required_ildt/1024:5.1f}\t{100*total_space_required_ildt/sections['ildt']['length']:5.1f}")
 
 
-# DISPLAY THE UTILIZATION BY SHOWING THE BANKS 
+# DISPLAY THE UTILIZATION BY SHOWING THE BANKS
 # Cont for continuous, IntL for interleaved
 # The area used by code is identified with a C
 # The area used by data is identified with a d
@@ -295,24 +299,48 @@ for bank_idx, bank in enumerate(banks):
 
     if bank['type'] == 'Cont':
         for piece in range(len(bank['use'])):
-            address += granularity_B
-
             bank['use'][piece] = '-'
             for region in regions:
-                if address > region['start_add'] and address <= region['end_add']:
+                # Region starts before and finishes after current segment
+                if region['start_add'] < address and region['end_add'] > (address + granularity_B):
                     bank['use'][piece] = region['symbol']
                     utilization += granularity_B
-            
+                # Region starts before but finishes in current segment
+                if region['start_add'] < address and region['end_add'] > address and region['end_add'] <= (address + granularity_B):
+                    bank['use'][piece] = region['symbol']
+                    utilization += region['end_add'] - address
+                # Region starts in but finishes after current segment
+                if region['start_add'] >= address and region['start_add'] < (address + granularity_B) and region['end_add'] > (address + granularity_B):
+                    bank['use'][piece] = region['symbol']
+                    utilization += (address + granularity_B) - region['start_add']
+                # Region starts and finishes in current segment
+                if region['start_add'] >= address and region['start_add'] < (address + granularity_B) and region['end_add'] > address and region['end_add'] <= (address + granularity_B):
+                    bank['use'][piece] = region['symbol']
+                    utilization += region['end_add'] - region['start_add']
+            address += granularity_B
+
     if bank['type'] == "IntL":
         for piece in range(len(bank['use'])):
             address = start_IL_B + granularity_B*piece
             bank['use'][piece] = '-'
             for region in regions:
-                used_by_others = (region['size_B']*(num_il_banks-1)/num_il_banks)
-                if address >= region['start_add'] and address < region['end_add'] - used_by_others:
+                used_by_others = int(region['size_B']*(num_il_banks-1)/num_il_banks)
+                # Region starts before and finishes after current segment
+                if region['start_add'] < address and (region['end_add'] - used_by_others) > (address + granularity_B):
                     bank['use'][piece] = region['symbol']
                     utilization += granularity_B
+                # Region starts before but finishes in current segment
+                if region['start_add'] < address and (region['end_add'] - used_by_others) > address and (region['end_add'] - used_by_others) <= (address + granularity_B):
+                    bank['use'][piece] = region['symbol']
+                    utilization += (region['end_add'] - used_by_others) - address
+                # Region starts in but finishes after current segment
+                if region['start_add'] >= address and region['start_add'] < (address + granularity_B) and (region['end_add'] - used_by_others) > (address + granularity_B):
+                    bank['use'][piece] = region['symbol']
+                    utilization += (address + granularity_B) - region['start_add']
+                # Region starts and finishes in current segment
+                if region['start_add'] >= address and region['start_add'] < (address + granularity_B) and (region['end_add'] - used_by_others) > address and (region['end_add'] - used_by_others) <= (address + granularity_B):
+                    bank['use'][piece] = region['symbol']
+                    utilization += (region['end_add'] - used_by_others) - region['start_add']
 
     bank['use'] = ''.join([''.join(sublist) for sublist in bank['use']])
-    print(bank['type'],bank_idx,bank['use'], f"\t{100*(utilization/bank['size']):0.1f}%")
-
+    print(bank['type'], bank_idx, bank['use'], f"\t{100*(utilization/bank['size']):5.1f}%")

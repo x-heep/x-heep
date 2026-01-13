@@ -29,3 +29,11 @@ class CPU:
         :return: True if the parameter is defined, False otherwise.
         """
         return param_name in self.params
+
+    def get_param(self, param_name: str):
+        """
+        Get the value of a given parameter.
+        :param param_name: Name of the parameter to get.
+        :return: Value of the parameter or None if not defined.
+        """
+        return self.params.get(param_name, None)

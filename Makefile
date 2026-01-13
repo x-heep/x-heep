@@ -88,6 +88,7 @@ MCU_GEN_TEMPLATES = \
 	hw/fpga/sram_wrapper.sv.tpl \
 	hw/fpga/scripts/generate_sram.tcl.tpl \
 	tb/tb_util.svh.tpl \
+	tb/testharness.sv.tpl \
 	$(LINK_FOLDER)/link.ld.tpl \
 	$(LINK_FOLDER)/link_flash_load.ld.tpl \
 	$(LINK_FOLDER)/link_flash_exec.ld.tpl \

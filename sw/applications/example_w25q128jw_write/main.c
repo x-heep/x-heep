@@ -54,6 +54,17 @@ int32_t sram_buffer_read_flash_back[NUM_WORDS];
  */
 uint32_t check_result(uint8_t *test_buffer, uint32_t len);
 
+//
+// ISR
+//
+void handler_irq_w25q128jw_controller(uint32_t id) {
+    // Set the done flag
+    w25q128jw_controller_set_done_flag();
+
+    // Clear the interrupt status register (interrupt handled)
+    w25q128jw_controller_clear_status_register();
+}
+
 /**
  * @brief Runs the flash write test sequence.
  *
@@ -84,9 +95,11 @@ __attribute__ ((noinline)) int w25q128jw_controller_run(char interrupt_test, int
         while(!w25q128jw_controller_is_ready_polling());
     }
 
-    //read back what you wrote
-    w25q128jw_controller_read(((void*) &sram_buffer_read_flash_back[0], (void*) &flash_ptr[0], (size_t) LENGTH_BYTES);
+    //reset flag
+    w25q128jw_controller_clear_done_flag();
 
+    //read back what you wrote
+    w25q128jw_controller_read((void*) &sram_buffer_read_flash_back[0], (void*) &flash_ptr[0], (size_t) LENGTH_BYTES);
     if(interrupt_test) {
         // Wait for interrupt
         while(!w25q128jw_controller_is_ready_intr()) {
@@ -101,6 +114,7 @@ __attribute__ ((noinline)) int w25q128jw_controller_run(char interrupt_test, int
 
 int main(void) {
 
+    w25q128jw_controller_enable_interrupt(0);
     if (w25q128jw_controller_run(0, flash_buffer_test1)!= EXIT_SUCCESS) return EXIT_FAILURE;
     uint32_t res =  check_result((uint8_t *)sram_buffer_read_flash_back, LENGTH_BYTES);
 
@@ -145,7 +159,7 @@ uint32_t check_result(uint8_t *test_buffer, uint32_t len) {
 
     for (uint32_t i = 0; i < len; i++) {
         if (test_buffer[i] != sram_data_ptr[i]) {
-            PRINTF("Error at position %d: expected %x, got %x\n", i, test_buffer[i], ram_buffer_char[i]);
+            printf("Error at position %d: expected %x, got %x\n", i, sram_data_ptr[i], test_buffer[i]);
             errors++;
             break; // Stop at first error
         }

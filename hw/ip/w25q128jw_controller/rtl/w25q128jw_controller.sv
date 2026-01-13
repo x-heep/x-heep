@@ -897,7 +897,6 @@ module w25q128jw_controller
           MODIFY_IDLE: begin
             top_state_d       = TOP_DMA_INIT;  // Go to DMA init FSM
             dma_init_return_d = RETURN_MODIFY;  // Return here after DMA init
-            //modify_state_d    = MODIFY_DMA_SRC_PTR;  // Next state after returning from DMA init
             modify_state_d    = MODIFY_DMA_REGS;  // Next state after returning from DMA init
           end
 

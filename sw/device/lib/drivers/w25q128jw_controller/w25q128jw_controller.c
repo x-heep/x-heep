@@ -39,27 +39,27 @@ uint32_t w25q128jw_controller_is_ready_polling()
 }
 
 // ============== INTERRUPT  ==============
-__attribute__((optimize("O0"))) uint32_t w25q128jw_controller_is_ready_intr()
+uint32_t w25q128jw_controller_is_ready_intr()
 {
     return w25q128jw_controller_done_flag;
 }
 
-__attribute__((optimize("O0"))) void w25q128jw_controller_clear_done_flag()
+void w25q128jw_controller_clear_done_flag()
 {
     w25q128jw_controller_done_flag = 0;
 }
 
-__attribute__((optimize("O0"))) void w25q128jw_controller_set_done_flag()
+void w25q128jw_controller_set_done_flag()
 {
     w25q128jw_controller_done_flag = 1;
 }
 
-__attribute__((optimize("O0"))) void w25q128jw_controller_clear_status_register()
+void w25q128jw_controller_clear_status_register()
 {
    w25q128jw_controller_peri->INTR_STATUS &= ~(1 << W25Q128JW_CONTROLLER_INTR_STATUS_INTR_STATUS_BIT);
 }
 
-__attribute__((optimize("O0"))) void w25q128jw_controller_enable_interrupt(uint32_t intr_enable)
+void w25q128jw_controller_enable_interrupt(uint32_t intr_enable)
 {
    w25q128jw_controller_peri->INTR_ENABLE = intr_enable;
 }

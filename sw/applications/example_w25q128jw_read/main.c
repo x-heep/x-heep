@@ -24,17 +24,23 @@
 #include "csr.h" // For CSR macros
 #include "rv_plic.h" // For PLIC functions
 
+/* By default, printfs are activated for FPGA and disabled for simulation. */
+#define PRINTF_IN_FPGA  1
+#define PRINTF_IN_SIM   0
+
+#if TARGET_SIM && PRINTF_IN_SIM
+        #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#elif PRINTF_IN_FPGA && !TARGET_SIM
+    #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#else
+    #define PRINTF(...)
+#endif
+
 // Number of bytes to transfer
-#define LENGTH_BYTES 128 
-// Number of words to transfer
-#define LENGTH_WORDS ((LENGTH_BYTES + 3) / 4) // To deal with non-multiple of 4 bytes
+#define LENGTH_BYTES 4*NUM_WORDS
 
 // RAM buffer to store data read from FLASH
-uint32_t ram_buffer[256];
-// flash buffer address
-uint32_t *flash_address = flash_buffer;
-// RAM buffer address
-uint32_t *ram_buffer_address = ram_buffer;
+uint32_t ram_buffer[NUM_WORDS];
 
 /**
  * @brief Compares read data against expected data.
@@ -60,8 +66,7 @@ __attribute__ ((noinline)) int w25q128jw_controller_run(char interrupt_test) {
 
     if (w25q128jw_init(spi) != FLASH_OK) return EXIT_FAILURE;
 
-    w25q128jw_controller_rnw(1, LENGTH_BYTES, (uint32_t)flash_address, ram_buffer_address, 0x00000000);
-
+    w25q128jw_controller_read((void*) &ram_buffer[0], (void*) &flash_buffer[0], (size_t) LENGTH_BYTES);
 
     if(interrupt_test) {
         // Wait for interrupt
@@ -91,7 +96,7 @@ int main(void) {
     w25q128jw_controller_enable_interrupt(0);
     if (w25q128jw_controller_run(0) != EXIT_SUCCESS) return EXIT_FAILURE;
 
-    uint32_t res =  check_result((uint8_t *)ram_golden_data, LENGTH_BYTES);
+    uint32_t res = check_result((uint8_t *)ram_golden_data, LENGTH_BYTES);
 
     if (res){
         return EXIT_FAILURE;
@@ -129,11 +134,11 @@ int main(void) {
 
 uint32_t check_result(uint8_t *test_buffer, uint32_t len) {
     uint32_t errors = 0;
-    uint8_t *ram_buffer_char = (uint8_t *)ram_buffer;
+    uint8_t *ram_buffer_ptr = (uint8_t *)ram_buffer;
 
     for (uint32_t i = 0; i < len; i++) {
-        if (test_buffer[i] != ram_buffer_char[i]) {
-            printf("Error at position %d: expected %x, got %x\n", i, test_buffer[i], ram_buffer_char[i]);
+        if (test_buffer[i] != ram_buffer_ptr[i]) {
+            PRINTF("Error at position %d: expected %x, got %x\n", i, test_buffer[i], ram_buffer_ptr[i]);
             errors++;
             break;
         }

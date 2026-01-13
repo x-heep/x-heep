@@ -20,26 +20,30 @@
 #include "w25q128jw.h"
 
 #include "w25q128jw_controller.h"
-#include "ram_new_data.h"
+#include "sram_data.h"
 #include "csr.h" // For CSR macros
 #include "rv_plic.h" // For PLIC functions
 
+/* By default, printfs are activated for FPGA and disabled for simulation. */
+#define PRINTF_IN_FPGA  1
+#define PRINTF_IN_SIM   0
+
+#if TARGET_SIM && PRINTF_IN_SIM
+        #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#elif PRINTF_IN_FPGA && !TARGET_SIM
+    #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#else
+    #define PRINTF(...)
+#endif
+
 // Number of bytes to transfer
-#define LENGTH_BYTES 4100
-// Number of words to transfer
-#define LENGTH_WORDS ((LENGTH_BYTES + 3) / 4) // To deal with non-multiple of 4 bytes
+#define LENGTH_BYTES NUM_WORDS*4
 
-// RAM buffer of size of a sector + 1 word (to hold verification + sectors reads before data modification and write-back to the flash memory)
-uint32_t ram_buffer[1025];
-// Flash buffer
-int32_t __attribute__((section(".xheep_data_flash_only"))) __attribute__ ((aligned (16))) flash_buffer[LENGTH_WORDS]; 
+// Flash buffer - use two buffers for the two tests to be sure we wrote twice
+int32_t __attribute__((section(".xheep_data_flash_only"))) __attribute__ ((aligned (16))) flash_buffer_test1[NUM_WORDS];
+int32_t __attribute__((section(".xheep_data_flash_only"))) __attribute__ ((aligned (16))) flash_buffer_test2[NUM_WORDS];
 
-// flash buffer address
-uint32_t *flash_address = flash_buffer;
-// RAM buffer address
-uint32_t *rb_address = ram_buffer;
-// RAM new data address (with data to be written to flash)
-uint32_t *rnd_address = ram_new_data;
+int32_t sram_buffer_read_flash_back[NUM_WORDS];
 
 /**
  * @brief Compares read data against expected data.
@@ -61,7 +65,7 @@ uint32_t check_result(uint8_t *test_buffer, uint32_t len);
  * 5. Waits for read completion (polling)
  *
  */
-__attribute__ ((noinline)) int w25q128jw_controller_run(char interrupt_test) {
+__attribute__ ((noinline)) int w25q128jw_controller_run(char interrupt_test, int32_t* flash_ptr) {
 
     spi_host_t* spi;
     spi = spi_flash;
@@ -69,7 +73,7 @@ __attribute__ ((noinline)) int w25q128jw_controller_run(char interrupt_test) {
     if (w25q128jw_init(spi) != FLASH_OK) return EXIT_FAILURE;
 
     //write
-    w25q128jw_controller_rnw(0, LENGTH_BYTES, (uint32_t)flash_address, rb_address, rnd_address);
+    w25q128jw_controller_write((void*)&flash_ptr[0], (void*) &sram_data[0], (size_t) LENGTH_BYTES);
 
     if(interrupt_test) {
         // Wait for interrupt
@@ -81,7 +85,7 @@ __attribute__ ((noinline)) int w25q128jw_controller_run(char interrupt_test) {
     }
 
     //read back what you wrote
-    w25q128jw_controller_rnw(1, LENGTH_BYTES, (uint32_t)flash_address, rb_address, 0x00000000);
+    w25q128jw_controller_read(((void*) &sram_buffer_read_flash_back[0], (void*) &flash_ptr[0], (size_t) LENGTH_BYTES);
 
     if(interrupt_test) {
         // Wait for interrupt
@@ -97,8 +101,8 @@ __attribute__ ((noinline)) int w25q128jw_controller_run(char interrupt_test) {
 
 int main(void) {
 
-    if (w25q128jw_controller_run(0)!= EXIT_SUCCESS) return EXIT_FAILURE;
-    uint32_t res =  check_result((uint8_t *)ram_new_data, LENGTH_BYTES);
+    if (w25q128jw_controller_run(0, flash_buffer_test1)!= EXIT_SUCCESS) return EXIT_FAILURE;
+    uint32_t res =  check_result((uint8_t *)sram_buffer_read_flash_back, LENGTH_BYTES);
 
     if (res){
         return EXIT_FAILURE;
@@ -107,7 +111,7 @@ int main(void) {
     // Clear the interrupt status register (of previous transaction)
     w25q128jw_controller_clear_status_register();
 
-    memset(ram_buffer, 0, sizeof(ram_buffer));
+    memset(sram_buffer_read_flash_back, 0, sizeof(sram_buffer_read_flash_back));
 
     // Clear flag before starting operation
     w25q128jw_controller_clear_done_flag();
@@ -122,9 +126,9 @@ int main(void) {
     CSR_SET_BITS(CSR_REG_MIE, (1 << 11)); // Machine External Interrupt Enable (MEIE) bit in Machine Interrupt Pending Register
 
     w25q128jw_controller_enable_interrupt(1);
-    if (w25q128jw_controller_run(1) != EXIT_SUCCESS) return EXIT_FAILURE;
+    if (w25q128jw_controller_run(1, flash_buffer_test2) != EXIT_SUCCESS) return EXIT_FAILURE;
 
-    res =  check_result((uint8_t *)ram_new_data, LENGTH_BYTES);
+    res =  check_result((uint8_t *)sram_buffer_read_flash_back, LENGTH_BYTES);
 
     if (res){
         return EXIT_FAILURE;
@@ -137,11 +141,11 @@ int main(void) {
 
 uint32_t check_result(uint8_t *test_buffer, uint32_t len) {
     uint32_t errors = 0;
-    uint8_t *ram_buffer_char = (uint8_t *)ram_buffer;
+    uint8_t *sram_data_ptr = (uint8_t *)sram_data;
 
     for (uint32_t i = 0; i < len; i++) {
-        if (test_buffer[i] != ram_buffer_char[i]) {
-            printf("Error at position %d: expected %x, got %x\n", i, test_buffer[i], ram_buffer_char[i]);
+        if (test_buffer[i] != sram_data_ptr[i]) {
+            PRINTF("Error at position %d: expected %x, got %x\n", i, test_buffer[i], ram_buffer_char[i]);
             errors++;
             break; // Stop at first error
         }

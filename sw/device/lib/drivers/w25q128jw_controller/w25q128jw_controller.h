@@ -74,31 +74,18 @@ __attribute__((optimize("O0"))) void w25q128jw_controller_clear_status_register(
 __attribute__((optimize("O0"))) void w25q128jw_controller_enable_interrupt(uint32_t intr_enable);
 
 // ============== OPERATION ==============
+/**
+ * @param dest Pointer to the on-chip SRAM
+ * @param src  Pointer to the Flash
+ * @param length_bytes Number of bytes to transfer.
+ */
+void w25q128jw_controller_read(void* dest, void* src, size_t length_bytes);
 
 /**
- * This function initiates a transfer between RAM and flash memory W25Q128JW.
- *
- * For a read operation (rnw=1):
- *   - Data is read from flash at `flash_address`
- *   - Data is written to RAM at `ram_buffer`
- *   - `ram_w_new_data` is ignored
- *
- * For a write operation (rnw=0):
- *   - Data from 'flash_address' is read into 'ram_buffer'
- *   - Data at 'flash_address' is erased to enable new writing at this location
- *   - Data from 'ram_buffer' is modified with data from 'ram_w_new_data'
- *   - Data from 'ram_buffer' is written back to flash at 'flash_address'
- *
- * @param rnw Read (1) or Write (0) operation. Read Not Write.
- * @param length_bytes Number of bytes to transfer. Byte precision for read operation and word precision for write operation.
- * @param flash_address Target address in flash memory.
- * @param ram_buffer Pointer to RAM buffer for read operation/sector save for write operation.
- * @param ram_w_new_data Pointer to RAM buffer containing data to write into flash memory.
+ * @param dest Pointer to the Flash
+ * @param src  Pointer to the on-chip SRAM
+ * @param length_bytes Number of bytes to transfer.
  */
-void w25q128jw_controller_rnw(uint32_t rnw, 
-                            uint32_t length_bytes, 
-                            uint32_t flash_address, 
-                            uint32_t *ram_buffer, 
-                            uint32_t *ram_w_new_data);
+void w25q128jw_controller_write(void* dest, void* src, size_t length_bytes);
 
 #endif // W25Q128JW_CONTROLLER_H

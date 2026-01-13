@@ -9,9 +9,11 @@
 
 #include <stdint.h>
 
+#define NUM_WORDS 32
+
 // Copy of data stored in flash to be able to verify read operation 
 // After a read operation, ram_buffer should match this golden data.
-int32_t __attribute__ ((aligned (16))) ram_golden_data[32] = {
+int32_t __attribute__ ((aligned (16))) ram_golden_data[NUM_WORDS] = {
     0xABCDEF00,
     0xABCDEF01,
     0xABCDEF02,
@@ -47,7 +49,7 @@ int32_t __attribute__ ((aligned (16))) ram_golden_data[32] = {
 };
 
 // Generate artificial FLASH memory data
-int32_t __attribute__((section(".xheep_data_flash_only"))) __attribute__ ((aligned (16))) flash_buffer[32] = {
+int32_t __attribute__((section(".xheep_data_flash_only"))) __attribute__ ((aligned (16))) flash_buffer[NUM_WORDS] = {
     0xABCDEF00,
     0xABCDEF01,
     0xABCDEF02,

@@ -1,5 +1,5 @@
 /**
- * @file ram_new_data.h
+ * @file sram_data.h
  * @brief Test data buffer for flash write operations.
  *
  * This file contains the data to be written to flash memory during
@@ -8,11 +8,12 @@
 
 #include <stdint.h>
 
+#define NUM_WORDS 1025
 /**
  * @note Buffer size is 1025 words (4100 bytes) hence going over 2 sectors (1 sector being 4096 bytes).
  * Data is organized in pages (256 bytes).
  */
-uint32_t ram_new_data[1025] = {
+uint32_t sram_data[NUM_WORDS] = {
     0x76543211, 0xfedcba99, 0x579a6f91, 0x657d5bef, 0x758ee420, 0x01234568, 0xfedbca97, 0x89abde00,
     0x76543212, 0xfedcba9a, 0x579a6f92, 0x657d5bf0, 0x758ee421, 0x01234569, 0xfedbca98, 0x89abde01,
     0x76543213, 0xfedcba9b, 0x579a6f93, 0x657d5bf1, 0x758ee422, 0x0123456a, 0xfedbca99, 0x89abde02,

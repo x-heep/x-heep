@@ -337,7 +337,6 @@ module w25q128jw_controller
           READ_IDLE: begin
             top_state_d       = TOP_DMA_INIT;  // Go to DMA init FSM
             dma_init_return_d = RETURN_READ;  // Return here after DMA init
-            //read_state_d      = READ_DMA_SRC_PTR;  // Next state after returning from DMA init
             read_state_d      = READ_SET_DMA;  // Next state after returning from DMA init
           end
 

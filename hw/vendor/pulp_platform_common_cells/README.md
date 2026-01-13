@@ -15,14 +15,15 @@ Please note that cells with status *deprecated* are not to be used for new desig
 
 ### Clocks and Resets
 
-| Name                    | Description                                                                          | Status       | Superseded By |
-| ----------------------- | ------------------------------------------------------------------------------------ | ------------ | ------------- |
-| `clk_int_div`           | Arbitrary integer clock divier with config interface and 50% output clock duty cycle | active       |               |
-| `clk_div`               | Clock divider with integer divisor                                                   | *deprecated* | `clk_int_div` |
-| `clock_divider`         | Clock divider with configuration registers                                           | *deprecated* | `clk_int_div` |
-| `clock_divider_counter` | Clock divider using a counter                                                        | *deprecated* | `clk_int_div` |
-| `rstgen`                | Reset synchronizer                                                                   | active       |               |
-| `rstgen_bypass`         | Reset synchronizer with dedicated test reset bypass                                  | active       |               |
+| Name                    | Description                                                                           | Status       | Superseded By |
+|-------------------------|---------------------------------------------------------------------------------------|--------------|---------------|
+| `clk_int_div`           | Arbitrary integer clock divider with config interface and 50% output clock duty cycle | active       |               |
+| `clk_int_div_static`    | A convenience wrapper around `clk_int_div` with static division factor.               | active       |               |
+| `clk_div`               | Clock divider with integer divisor                                                    | *deprecated* | `clk_int_div` |
+| `clock_divider`         | Clock divider with configuration registers                                            | *deprecated* | `clk_int_div` |
+| `clock_divider_counter` | Clock divider using a counter                                                         | *deprecated* | `clk_int_div` |
+| `rstgen`                | Reset synchronizer                                                                    | active       |               |
+| `rstgen_bypass`         | Reset synchronizer with dedicated test reset bypass                                   | active       |               |
 
 ### Clock Domains and Asynchronous Crossings
 
@@ -54,6 +55,7 @@ Please note that cells with status *deprecated* are not to be used for new desig
 | Name                | Description                                                       | Status       | Superseded By |
 | ------------------- | ----------------------------------------------------------------- | ------------ | ------------- |
 | `counter`           | Generic up/down counter with overflow detection                   | active       |               |
+| `credit_counter`    | Up/down counter for credit                                        | active       |               |
 | `delta_counter`     | Up/down counter with variable delta and overflow detection        | active       |               |
 | `generic_LFSR_8bit` | 8-bit linear feedback shift register (LFSR)                       | *deprecated* | `lfsr_8bit`   |
 | `lfsr_8bit`         | 8-bit linear feedback shift register (LFSR)                       | active       |               |
@@ -65,9 +67,11 @@ Please note that cells with status *deprecated* are not to be used for new desig
 ### Data Path Elements
 
 | Name                       | Description                                                                                               | Status       | Superseded By |
-| -------------------------- | --------------------------------------------------------------------------------------------------------- | ------------ | ------------- |
+|----------------------------|-----------------------------------------------------------------------------------------------------------|--------------|---------------|
 | `addr_decode`              | Address map decoder                                                                                       | active       |               |
+| `addr_decode_dync`         | Address map decoder extended to support dynamic online configuration                                      | active       |               |
 | `addr_decode_napot`        | Address map decoder using naturally-aligned power of two (NAPOT) regions                                  | active       |               |
+| `multiaddr_decode`         | Address map decoder using NAPOT regions and allowing for multiple address inputs                          | active       |               |
 | `ecc_decode`               | SECDED Decoder (Single Error Correction, Double Error Detection)                                          | active       |               |
 | `ecc_encode`               | SECDED Encoder (Single Error Correction, Double Error Detection)                                          | active       |               |
 | `binary_to_gray`           | Binary to gray code converter                                                                             | active       |               |
@@ -86,7 +90,9 @@ Please note that cells with status *deprecated* are not to be used for new desig
 | `stream_arbiter`           | Round-robin arbiter for ready/valid stream interface                                                      | active       |               |
 | `stream_arbiter_flushable` | Round-robin arbiter for ready/valid stream interface and flush functionality                              | active       |               |
 | `stream_demux`             | Ready/valid interface demultiplexer                                                                       | active       |               |
+| `lossy_valid_to_stream`    | Convert Valid-only to ready/valid by updating in-flight transaction                                       | active       |               |
 | `stream_join`              | Ready/valid handshake join multiple to one common                                                         | active       |               |
+| `stream_join_dynamic`      | Ready/valid handshake join multiple to one common, dynamically configurable subset selection              | active       |               |
 | `stream_mux`               | Ready/valid interface multiplexer                                                                         | active       |               |
 | `stream_register`          | Register with ready/valid interface                                                                       | active       |               |
 | `stream_fork`              | Ready/valid fork                                                                                          | active       |               |
@@ -99,24 +105,26 @@ Please note that cells with status *deprecated* are not to be used for new desig
 | `stream_throttle`          | Restrict the number of outstanding transfers in a stream.                                                 | active       |               |
 | `sub_per_hash`             | Substitution-permutation hash function                                                                    | active       |               |
 | `popcount`                 | Combinatorial popcount (hamming weight)                                                                   | active       |               |
+| `mem_to_banks_detailed`    | Split memory access over multiple parallel banks with detailed response signals                           | active       |               |
 | `mem_to_banks`             | Split memory access over multiple parallel banks                                                          | active       |               |
 
 ### Data Structures
 
-| Name                       | Description                                                             | Status       | Superseded By |
-| -------------------------- | ----------------------------------------------------------------------- | ------------ | ------------- |
-| `cb_filter`                | Counting-Bloom-Filter with combinational lookup                         | active       |               |
-| `fifo`                     | FIFO register with upper threshold                                      | *deprecated* | `fifo_v3`     |
-| `fifo_v2`                  | FIFO register with upper and lower threshold                            | *deprecated* | `fifo_v3`     |
-| `fifo_v3`                  | FIFO register with generic fill counts                                  | active       |               |
-| `stream_fifo`              | FIFO register with ready/valid interface                                | active       |               |
-| `stream_fifo_optimal_wrap` | Wrapper that optimally selects either a spill register or a FIFO        | active       |               |
-| `generic_fifo`             | FIFO register without thresholds                                        | *deprecated* | `fifo_v3`     |
-| `generic_fifo_adv`         | FIFO register without thresholds                                        | *deprecated* | `fifo_v3`     |
-| `sram`                     | SRAM behavioral model                                                   | active       |               |
-| `plru_tree`                | Pseudo least recently used tree                                         | active       |               |
-| `unread`                   | Empty module to sink unconnected outputs into                           | active       |               |
-| `read`                     | Dummy module that prevents a signal from being removed during synthesis | active       |               |
+| Name                       | Description                                                                 | Status       | Superseded By |
+| -------------------------- | --------------------------------------------------------------------------- | ------------ | ------------- |
+| `cb_filter`                | Counting-Bloom-Filter with combinational lookup                             | active       |               |
+| `fifo`                     | FIFO register with upper threshold                                          | *deprecated* | `fifo_v3`     |
+| `fifo_v2`                  | FIFO register with upper and lower threshold                                | *deprecated* | `fifo_v3`     |
+| `fifo_v3`                  | FIFO register with generic fill counts                                      | active       |               |
+| `passthrough_stream_fifo`  | FIFO register with ready/valid interface and same-cycle push/pop when full  | active       |               |
+| `stream_fifo`              | FIFO register with ready/valid interface                                    | active       |               |
+| `stream_fifo_optimal_wrap` | Wrapper that optimally selects either a spill register or a FIFO            | active       |               |
+| `generic_fifo`             | FIFO register without thresholds                                            | *deprecated* | `fifo_v3`     |
+| `generic_fifo_adv`         | FIFO register without thresholds                                            | *deprecated* | `fifo_v3`     |
+| `sram`                     | SRAM behavioral model                                                       | active       |               |
+| `plru_tree`                | Pseudo least recently used tree                                             | active       |               |
+| `unread`                   | Empty module to sink unconnected outputs into                               | active       |               |
+| `read`                     | Dummy module that prevents a signal from being removed during synthesis     | active       |               |
 
 
 ## Header Contents
@@ -153,42 +161,45 @@ The use of linter rules that flag explicit uses of `always_ff` in source code is
 
 The header file `assertions.svh` contains macros that expand to assertion blocks.
 These macros should recduce the effort in writing many assertions and make it
-easier to use them. They are identical with the macros used by [lowrisc](https://github.com/lowRISC/opentitan/blob/master/hw/ip/prim/rtl/prim_assert.sv)
-and just re-implemented here for the sake of easier use in PULP projects (the same include guard is used so they should not clash).
+easier to use them. They are similar to but incompatible with the macros used by [lowrisc](https://github.com/lowRISC/opentitan/blob/master/hw/ip/prim/rtl/prim_assert.sv).
 
 #### Simple Assertion and Cover Macros
-| Macro                                                       | Arguments                                                                  | Description |
-| ----------------------------------------------------------- | -------------------------------------------------------------------------- | ----------- |
-| `` `ASSERT_I``     | `__name`, `__prop`                     | Immediate assertion                                                        |
-| `` `ASSERT_INIT``  | `__name`, `__prop`                     | Assertion in initial block. Can be used for things like parameter checking |
-| `` `ASSERT_FINAL`` | `__name`, `__prop`                     | Assertion in final block                                                   |
-| `` `ASSERT``       | `__name`, `__prop`, (`__clk`, `__rst`) | Assert a concurrent property directly                                      |
-| `` `ASSERT_NEVER`` | `__name`, `__prop`, (`__clk`, `__rst`) | Assert a concurrent property NEVER happens                                 |
-| `` `ASSERT_KNOWN`` | `__name`, `__sig`, (`__clk`, `__rst`)  | Concurrent clocked assertion with custom error message                     |
-| `` `COVER``        | `__name`, `__prop`, (`__clk`, `__rst`) | Cover a concurrent property                                                |
+| Macro              | Arguments                                        | Description                                                                |
+| ------------------ | ------------------------------------------------ | -------------------------------------------------------------------------- |
+| `` `ASSERT_I``     | `__name`, `__prop`, (`__desc`)                   | Immediate assertion                                                        |
+| `` `ASSERT_INIT``  | `__name`, `__prop`, (`__desc`)                   | Assertion in initial block. Can be used for things like parameter checking |
+| `` `ASSERT_FINAL`` | `__name`, `__prop`, (`__desc`)                   | Assertion in final block                                                   |
+| `` `ASSERT``       | `__name`, `__prop`, (`__clk`, `__rst`, `__desc`) | Assert a concurrent property directly                                      |
+| `` `ASSERT_NEVER`` | `__name`, `__prop`, (`__clk`, `__rst`, `__desc`) | Assert a concurrent property NEVER happens                                 |
+| `` `ASSERT_KNOWN`` | `__name`, `__sig`, (`__clk`, `__rst`, `__desc`)  | Concurrent clocked assertion with custom error message                     |
+| `` `COVER``        | `__name`, `__prop`, (`__clk`, `__rst`)           | Cover a concurrent property                                                |
 - *The name of the clock and reset signals for implicit variants is `clk_i` and `rst_ni`, respectively.*
+- *`__desc` is an optional string argument describing the failure causing the assertion to be violated that is embedded into the error report and defaults to `""`.*
 
 #### Complex Assertion Macros
-| Macro                                                                      | Arguments                                                                                         | Description |
-| -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ----------- |
-| `` `ASSERT_PULSE``    | `__name`, `__sig`, (`__clk`, `__rst`)              | Assert that signal is an active-high pulse with pulse length of 1 clock cycle                     |
-| `` `ASSERT_IF``       | `__name`, `__prop`, `__enable`, (`__clk`, `__rst`) | Assert that a property is true only when an enable signal is set                                  |
-| `` `ASSERT_KNOWN_IF`` | `__name`, `__sig`, `__enable`, (`__clk`, `__rst`)  | Assert that signal has a known value (each bit is either '0' or '1') after reset if enable is set |
+| Macro                 | Arguments                                                    | Description                                                                                       |
+| --------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------- |
+| `` `ASSERT_PULSE``    | `__name`, `__sig`, (`__clk`, `__rst`, `__desc`)              | Assert that signal is an active-high pulse with pulse length of 1 clock cycle                     |
+| `` `ASSERT_IF``       | `__name`, `__prop`, `__enable`, (`__clk`, `__rst`, `__desc`) | Assert that a property is true only when an enable signal is set                                  |
+| `` `ASSERT_KNOWN_IF`` | `__name`, `__sig`, `__enable`, (`__clk`, `__rst`, `__desc`)  | Assert that signal has a known value (each bit is either '0' or '1') after reset if enable is set |
 - *The name of the clock and reset signals for implicit variants is `clk_i` and `rst_ni`, respectively.*
+- *`__desc` is an optional string argument describing the failure causing the assertion to be violated that is embedded into the error report and defaults to `""`.*
 
 #### Assumption Macros
 
-| Macro                                                   | Arguments                    | Description |
-| ------------------------------------------------------- | ---------------------------- | ----------- |
-| `` `ASSUME``   | `__name`, `__prop`, (`__clk`, `__rst`) | Assume a concurrent property |
-| `` `ASSUME_I`` | `__name`, `__prop`                     | Assume an immediate property |
+| Macro          | Arguments                                        | Description                  |
+| -------------- | ------------------------------------------------ | ---------------------------- |
+| `` `ASSUME``   | `__name`, `__prop`, (`__clk`, `__rst`, `__desc`) | Assume a concurrent property |
+| `` `ASSUME_I`` | `__name`, `__prop`, (`__desc`)                   | Assume an immediate property |
 - *The name of the clock and reset signals for implicit variants is `clk_i` and `rst_ni`, respectively.*
+- *`__desc` is an optional string argument describing the failure causing the assertion to be violated that is embedded into the error report and defaults to `""`.*
 
 #### Formal Verification Macros
 
-| Macro                                                       | Arguments                                                    | Description |
-| ----------------------------------------------------------- | ------------------------------------------------------------ | ----------- |
-| `` `ASSUME_FPV``   | `__name`, `__prop`, (`__clk`, `__rst`) | Assume a concurrent property during formal verification only |
-| `` `ASSUME_I_FPV`` | `__name`, `__prop`                     | Assume a concurrent property during formal verification only |
-| `` `COVER_FPV``    | `__name`, `__prop`, (`__clk`, `__rst`) | Cover a concurrent property during formal verification       |
+| Macro              | Arguments                                        | Description                                                  |
+| ------------------ | ------------------------------------------------ | ------------------------------------------------------------ |
+| `` `ASSUME_FPV``   | `__name`, `__prop`, (`__clk`, `__rst`, `__desc`) | Assume a concurrent property during formal verification only |
+| `` `ASSUME_I_FPV`` | `__name`, `__prop`, (`__desc`)                   | Assume a concurrent property during formal verification only |
+| `` `COVER_FPV``    | `__name`, `__prop`, (`__clk`, `__rst`)           | Cover a concurrent property during formal verification       |
 - *The name of the clock and reset signals for implicit variants is `clk_i` and `rst_ni`, respectively.*
+- *`__desc` is an optional string argument describing the failure causing the assertion to be violated that is embedded into the error report and defaults to `""`.*

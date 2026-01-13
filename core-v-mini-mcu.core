@@ -273,6 +273,16 @@ parameters:
     paramtype: vlogdefine
     description: Primitives implementation to use, e.g. "prim_pkg::ImplGeneric".
     default: prim_pkg::ImplGeneri
+  COMMON_CELLS_ASSERTS_OFF:
+    datatype: bool
+    description: Turn off asserts for PULP common cells
+    paramtype: vlogdefine
+    default: false
+  ASSERTS_OFF:
+    datatype: bool
+    description: Turn off asserts for PULP common cells
+    paramtype: vlogdefine
+    default: false
 
 scripts:
   # Build utils
@@ -357,6 +367,8 @@ targets:
     - USE_EXTERNAL_DEVICE_EXAMPLE
     - USE_UPF
     - REMOVE_OBI_FIFO
+    - COMMON_CELLS_ASSERTS_OFF
+    - ASSERTS_OFF
     tools:
       modelsim:
         vlog_options:

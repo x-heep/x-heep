@@ -10,6 +10,8 @@
 
 // Franceco Conti <fconti@iis.ee.ethz.ch>
 
+`include "common_cells/assertions.svh"
+
 module onehot_to_bin #(
     parameter int unsigned ONEHOT_WIDTH = 16,
     // Do Not Change
@@ -23,16 +25,13 @@ module onehot_to_bin #(
         logic [ONEHOT_WIDTH-1:0] tmp_mask;
             for (genvar i = 0; i < ONEHOT_WIDTH; i++) begin : gen_il
                 logic [BIN_WIDTH-1:0] tmp_i;
-                assign tmp_i = i;
+                assign tmp_i = BIN_WIDTH'(i);
                 assign tmp_mask[i] = tmp_i[j];
             end
         assign bin[j] = |(tmp_mask & onehot);
     end
 
-// pragma translate_off
-`ifndef VERILATOR
-    assert final ($onehot0(onehot)) else
-        $fatal(1, "[onehot_to_bin] More than two bit set in the one-hot signal");
+`ifndef COMMON_CELLS_ASSERTS_OFF
+    `ASSERT_FINAL(more_than_2_bits, $onehot0(onehot), "More than two bit set in the one-hot signal")
 `endif
-// pragma translate_on
 endmodule

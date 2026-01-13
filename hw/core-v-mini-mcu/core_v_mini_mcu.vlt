@@ -55,3 +55,6 @@ lint_off -rule UNUSED -file "*/cve2_xif_wrapper.sv" -match "Signal is not used: 
 lint_off -rule UNUSED -file "*/cve2_xif_wrapper.sv" -match "Signal is not used: 'cve2_x_register_id*"
 lint_off -rule UNUSED -file "*/cve2_xif_wrapper.sv" -match "Bits of signal are not used: 'x_result_i'[17:0]*"
 lint_off -rule UNUSED -file "*/cpu_subsystem.sv" -match "Signal is not used: 'hart_id_i'*"
+// new common cells redefine these macros - as they aren't used - just ignore
+lint_off -rule REDEFMACRO -file "*/prim_assert_dummy_macros.svh" -match "*"
+lint_off -rule REDEFMACRO -file "*/prim_assert.sv" -match "*"

@@ -4,6 +4,95 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## 1.38.0 - 2025-02-28
+### Changed
+- Assertions no longer disabled for Verilator. Define `ASSERTS_OFF` to disable.
+- Define `ASSERTS_OVERRIDE_ON` to override any defines that turn assertions off otherwise.
+- `id_queue`: Parametrize number of compare ports.
+- `assertions.svh`: Add optional argument to assertion macros to display custom error message.
+- `stream_to_mem`: Disable assertions during reset.
+- `addr_decode_dync`, `cdc_fifo_gray_clearable`, `multiaddr_decode`, `spill_register_flushable`: Promote `$warning` to `$error`.
+- `rr_arb_tree`, `stream_omega_net`, `stream_xbar`: Remove default assertion disable.
+
+### Fixed
+- `delta_counter`: Fix inverted reset.
+- `stream_join_dynamic`: Handshake only selected streams.
+- Various tool compatibility improvements.
+
+## 1.37.0 - 2024-07-18
+### Added
+- `credit_counter`: Add up/down counter for credit.
+
+### Fixed
+- `mem_to_banks_detailed`: Ensure no spurious response after full dead write.
+
+## 1.36.0 - 2024-07-08
+### Fixed
+- `registers`: Fix else statement in FFARNC macro.
+- `stream_arbiter_flushable`: Do not lock priority arbiter.
+
+## 1.35.0 - 2024-04-22
+### Changed
+- `id_queue`: Add parameter to cut a critical path.
+
+## 1.34.0 - 2024-04-09
+### Changed
+- `stream_xbar`: Add payload assertion stability mask.
+
+## 1.33.1 - 2024-03-16
+### Fixed
+- `stream_omega_net`: Fix assertion.
+- Revert gitlab-ci trigger condition to `pull_request`.
+
+## 1.33.0 - 2024-03-07
+### Added
+- Add `passthrough_stream_fifo`: Stream FIFO which does not cut the timing path, this allows it to do a simultaneous push and pop when full.
+- Registers: Add FFARNC macro: Flip-Flop with asynchronous active-low reset and synchronous clear.
+
+### Changed
+- Enable assertions in verilator.
+- Change `pragma translate_off` statements to ```ifndef SYNTHESIS`` according to IEEE 1364.1-2005 spec 6.3.2.
+- `plru_tree`: Add assertion that output is onehot.
+- Update CI trigger condition.
+
+### Fixed
+- `onehot_to_bin`: Fix width mismatch in assignment.
+- `plru_tree`: Improve tool compatibility.
+- `stream_xbar`: Fix masked assertion.
+
+## 1.32.0 - 2023-09-26
+### Added
+- Add `stream_join_dynamic`: `stream_join` with a dynamically configurable subset selection.
+- Add `multiaddr_decode`: Address map decoder using NAPOT regions and allowing for multiple address inputs.
+- Add `addr_decode_dync`: `addr_decode` with support for dynamic online configuration.
+
+### Changed
+- `mem_to_banks`: Change default value for `NumBanks` from `0` to `1` to avoid division by zero.
+
+## 1.31.1 - 2023-08-09
+### Fixed
+- `mem_to_banks`: Keep defaut values for localparams
+
+## 1.31.0 - 2023-08-08
+### Added
+- Add `mem_to_banks_detailed`: `mem_to_banks` with detailed response signals
+
+### Fixed
+- `unread`: Add dummy signal assignment when targeting Vivado to avoid blackbox inference
+
+## 1.30.0 - 2023-06-09
+### Added
+- Add `lossy_valid_to_stream`: A converter between valid-only protocols and ready-valid where the latest transaction overwrites the most recently queue one.
+- Add `clk_int_div_static`: A wrapper for `clk_int_div` for static clock division.
+
+### Changed
+- `popcount`: Refactor and support all input widths.
+- `clk_int_div`: Support clock output during reset.
+- `stream_delay`: Support larger counts.
+
+### Fixed
+- `clk_int_div`: Fix possible deadlock and avoid hold issues.
+
 ## 1.29.0 - 2023-04-14
 ### Added
 - Add `shift_reg_gated`: Shift register with ICG for arbitrary types.

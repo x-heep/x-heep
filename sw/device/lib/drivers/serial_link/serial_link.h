@@ -21,11 +21,11 @@
 
 
 // ADDRESSING
-
+#define EXT_SLAVE_LENGTH 0x400 // the end address of the previous slave on the external bus (size of the Slow memory in testharness pkg))
 #define SL_INTERNAL_WRITE  (int32_t *)(SERIAL_LINK_START_ADDRESS)
 #define SL_INTERNAL_READ   (int32_t *)(SERIAL_LINK_RECEIVER_FIFO_START_ADDRESS)
 
-#define SL_EXTERNAL_WRITE  (int32_t *)(EXT_SLAVE_START_ADDRESS + 0x400) // the end address of the previous slave on the external bus
+#define SL_EXTERNAL_WRITE  (int32_t *)(EXT_SLAVE_START_ADDRESS + EXT_SLAVE_LENGTH) 
 #define SL_EXTERNAL_READ  
 
 // CFG REGISTERS

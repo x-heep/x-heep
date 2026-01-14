@@ -11,6 +11,7 @@
 extern "C" {
 #endif  // __cplusplus
 
+
 #define REFERENCE_CLOCK_Hz 15*1000*1000
 #define UART_BAUDRATE 9600
 // Calculation formula: NCO = 16 * 2^nco_width * baud / fclk.
@@ -27,7 +28,8 @@ extern "C" {
  * As the hw is configurable, we can have setups with different number of
  * Gpio pins
  */
-#define MAX_PIN 32
+#define MAX_PIN     32
+
 
 #ifdef __cplusplus
 }  // extern "C"

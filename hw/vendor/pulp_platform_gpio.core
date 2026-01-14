@@ -48,3 +48,4 @@ targets:
     - target_zcu104? (no-clock-gate)
     - target_zcu102? (no-clock-gate)
     - target_aup-zu3? (no-clock-gate)
+    - target_genesys2? (no-clock-gate)

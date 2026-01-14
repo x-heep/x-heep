@@ -13,6 +13,7 @@ The following FPGA boards are supported:
 | AMD         | [Zynq™ UltraScale+™ MPSoC ZCU104](https://www.amd.com/en/products/adaptive-socs-and-fpgas/evaluation-boards/zcu104.html)           | zcu104        |
 | AMD         | [Zynq™ UltraScale+™ MPSoC ZCU102](https://www.amd.com/en/products/adaptive-socs-and-fpgas/evaluation-boards/ek-u1-zcu102-g.html)   | zcu102        |
 | Digilent    | [Nexys-A7-100t](https://digilent.com/reference/programmable-logic/nexys-a7/start)                                                  | nexys-a7-100t |
+| Digilent    | [Genesys2](https://digilent.com/reference/programmable-logic/genesys-2/start)                                                      | genesys2      |
 | RealDigital | [AUP-ZU3 (8GB)](https://www.amd.com/en/corporate/university-program/aup-boards/realdigital-aup-zu3.html)                           | aup-zu3       |
 
 1. Make sure you have the FPGA board files installed in your Vivado.

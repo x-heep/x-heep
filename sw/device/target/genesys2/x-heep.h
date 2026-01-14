@@ -5,7 +5,7 @@
 #ifndef X_HEEP
 #define X_HEEP
 
-#pragma message ( "the x-heep.h for ZCU102 is used" )
+#pragma message ( "the x-heep.h for GENESYS2 is used" )
 
 #ifdef __cplusplus
 extern "C" {
@@ -21,7 +21,7 @@ extern "C" {
 // Given this range, by dividing by 100 it always remains integer and below 32-bits.
 // This saves us the need of performing 64-bit divisions to compute NCO. 
 #define UART_NCO ((uint32_t)(((uint32_t)((uint32_t)(UART_BAUDRATE/100))<<20)/((uint32_t)(REFERENCE_CLOCK_Hz/100))))
-#define TARGET_ZCU102 1
+#define TARGET_GENESYS2 1
 #define TARGET_IS_FPGA 1
 
 /**

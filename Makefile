@@ -98,7 +98,8 @@ MCU_GEN_TEMPLATES = \
 	scripts/pnr/core-v-mini-mcu.upf.tpl \
 	scripts/pnr/core-v-mini-mcu.dc.upf.tpl \
 	util/profile/run_profile.sh.tpl
-
+	tb/testharness.sv.tpl
+	tb/testharness_pkg.sv.tpl
 # Compiler options are 'gcc' (default) and 'clang'
 COMPILER 		?= gcc
 # Compiler prefix options are 'riscv32-corev-' (default) and 'riscv32-unknown-'

@@ -2,7 +2,7 @@
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 
-# Description: Script to generate the pdm2pcm registers
+# Description: Script to generate the serial link registers
 
 PERIPHERAL_NAME=serial_link
 
@@ -25,11 +25,6 @@ printf -- "Generating $PERIPHERAL_NAME software header..."
 $REGTOOL --cdefines -o ${SW_DIR}/${PERIPHERAL_NAME}_regs.h $HJSON_FILE
 [ $? -eq 0 ] && printf " OK\n" || exit $?
 
-#printf -- "Generating $PERIPHERAL_NAME software header structs..."
-#python $PERIPH_STRUCTS_GEN --template_filename $TEMPLATE_FILE \
-#                           --hjson_filename $HJSON_FILE \
-#                           --output_filename ${SW_DIR}/${PERIPHERAL_NAME}_structs.h
-#[ $? -eq 0 ] && printf " OK\n" || exit $?
 
 printf -- "Generating $PERIPHERAL_NAME documentation..."
 $REGTOOL -d $HJSON_FILE > ${SW_DIR}/${PERIPHERAL_NAME}_regs.md

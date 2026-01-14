@@ -1,7 +1,7 @@
 from ..abstractions import UserPeripheral
 
 
-class SERIAL_LINK(UserPeripheral):
+class serial_link(UserPeripheral):
     """
     dedicated address space for writing/reading data.
     """

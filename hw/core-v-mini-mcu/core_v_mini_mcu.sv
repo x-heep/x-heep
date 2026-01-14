@@ -349,7 +349,6 @@ module core_v_mini_mcu
     output logic [EXT_DOMAINS_RND-1:0] external_subsystem_clkgate_en_no,
 
     output logic [31:0] exit_value_o,
-
     //Serial Link
     input logic [serial_link_single_channel_reg_pkg::NumChannels-1:0] ddr_rcv_clk_i,
     output logic [serial_link_single_channel_reg_pkg::NumChannels-1:0] ddr_rcv_clk_o,

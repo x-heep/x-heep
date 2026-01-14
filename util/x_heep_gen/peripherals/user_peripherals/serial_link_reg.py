@@ -1,7 +1,7 @@
 from ..abstractions import UserPeripheral
 
 
-class SERIAL_LINK_REG(UserPeripheral):
+class serial_link_reg(UserPeripheral):
     """
     dedicated address space for configuring serial link IP registers.
     """

@@ -144,7 +144,7 @@ mcu-gen:
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CONFIG_CACHE) --cached --outtpl hw/ip/pdm2pcm/rtl/pdm_core.sv.tpl
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CONFIG_CACHE) --cached --outtpl hw/ip/dma/data/dma.hjson.tpl
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CONFIG_CACHE) --cached --outtpl hw/ip/dma/data/dma_conf.svh.tpl
-	bash -c "cd hw/ip/serial_link; source serial_link_gen.sh; cd ../../../"	 
+	
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CONFIG_CACHE) --cached --outtpl hw/fpga/sram_wrapper.sv.tpl
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CONFIG_CACHE) --cached --outtpl hw/fpga/scripts/generate_sram.tcl.tpl
 	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CONFIG_CACHE) --cached --outtpl tb/tb_util.svh.tpl
@@ -165,6 +165,7 @@ mcu-gen:
 	bash -c "cd hw/ip/pdm2pcm; source pdm2pcm_gen.sh; cd ../../../"
 	bash -c "cd hw/system/pad_control; source pad_control_gen.sh; cd ../../../"
 	bash -c "cd hw/ip/dma; source dma_gen.sh; cd ../../../"
+	bash -c "cd hw/ip/serial_link; source serial_link_gen.sh; cd ../../../"	 
 	$(MAKE) verible
 
 ## Display mcu_gen.py help

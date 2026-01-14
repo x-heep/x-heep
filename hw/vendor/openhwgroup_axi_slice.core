@@ -1,8 +1,9 @@
 CAPI=2:
-name : pulp-platform.org::axi_slice
 # Copyright 2025
 # Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 # SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+name : pulp-platform.org::axi_slice
 filesets:
   rtl:
     depend:

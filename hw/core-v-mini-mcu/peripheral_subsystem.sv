@@ -71,15 +71,14 @@ module peripheral_subsystem
     //I2s
     output logic i2s_sck_o,
     output logic i2s_sck_oe_o,
-    input  logic i2s_sck_i,
+    input logic i2s_sck_i,
     output logic i2s_ws_o,
     output logic i2s_ws_oe_o,
-    input  logic i2s_ws_i,
+    input logic i2s_ws_i,
     output logic i2s_sd_o,
     output logic i2s_sd_oe_o,
-    input  logic i2s_sd_i,
+    input logic i2s_sd_i,
     output logic i2s_rx_valid_o,
-
     //Serial Link
     input logic [serial_link_single_channel_reg_pkg::NumChannels-1:0] ddr_rcv_clk_i,
     output logic [serial_link_single_channel_reg_pkg::NumChannels-1:0] ddr_rcv_clk_o,
@@ -511,7 +510,6 @@ module peripheral_subsystem
       .intr_rx_timeout_o(uart_intr_rx_timeout),
       .intr_rx_parity_err_o(uart_intr_rx_parity_err)
   );
-
 
 
   serial_link_xheep_wrapper #(

@@ -38,9 +38,9 @@ from .peripherals.user_peripherals import (
     PDM2PCM,
     I2S,
     UART,
-    SERIAL_LINK,
-    SERIAL_LINK_REG,
-    SERIAL_LINK_RECEIVER_FIFO,
+    serial_link,
+    serial_link_reg,
+    serial_link_receiver_fifo,
 )
 
 
@@ -407,11 +407,11 @@ def load_peripherals_config(system: XHeep, config_path: str):
                     elif peripheral_name == "uart":
                         peripheral = UART(offset, length)
                     elif peripheral_name == "serial_link":
-                        peripheral = SERIAL_LINK(offset, length)
+                        peripheral = serial_link(offset, length)
                     elif peripheral_name == "serial_link_reg":
-                        peripheral = SERIAL_LINK_REG(offset, length)
+                        peripheral = serial_link_reg(offset, length)
                     elif peripheral_name == "serial_link_receiver_fifo":
-                        peripheral = SERIAL_LINK_RECEIVER_FIFO(offset, length)
+                        peripheral = serial_link_receiver_fifo(offset, length)
                     else:
                         raise ValueError(
                             f"Peripheral {peripheral_name} does not exist."

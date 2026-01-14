@@ -23,8 +23,8 @@ module xilinx_core_v_mini_mcu_wrapper
     inout logic clk_100mhz_n,
     inout logic clk_100mhz_p,
 `elsif FPGA_GENESYS2
-    inout  logic clk_200mhz_n,
-    inout  logic clk_200mhz_p,
+    inout logic clk_200mhz_n,
+    inout logic clk_200mhz_p,
 `else
     inout logic clk_i,
 `endif

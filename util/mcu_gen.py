@@ -23,6 +23,16 @@ from x_heep_gen.cpu.cpu import CPU
 import os
 
 
+# ANSI color codes for pretty printing
+class Colors:
+    BLUE = "\033[94m"
+    GREEN = "\033[92m"
+    YELLOW = "\033[93m"
+    RED = "\033[91m"
+    RESET = "\033[0m"
+    BOLD = "\033[1m"
+
+
 # Compile a regex to trim trailing whitespaces on lines.
 re_trailws = re.compile(r"[ \t\r]+$", re.MULTILINE)
 
@@ -210,8 +220,12 @@ def main():
             )
 
         # X-Heep object has been generated
+        print(
+            f"{Colors.BLUE}[MCU-GEN]{Colors.RESET} Loading cached configuration from: {Colors.BOLD}{args.cached_path}{Colors.RESET}"
+        )
         with open(args.cached_path, "rb") as f:
             kwargs = pickle.load(f)
+        print(f"{Colors.GREEN}[MCU-GEN]{Colors.RESET} Cache loaded successfully")
 
         parser.add_argument(
             "--outfile",
@@ -224,16 +238,51 @@ def main():
         parser.add_argument(
             "--outtpl",
             "-ot",
-            type=pathlib.Path,
+            type=str,
             required=True,
-            help="Target template filename",
+            help="Target template filename or comma-separated list of template filenames",
         )
 
         args = parser.parse_args()
         outtpl = args.outtpl
         outfile = args.outfile
 
-        write_template(outtpl, outfile, **kwargs)
+        # Handle single template or multiple templates
+        outtpl_list = [t.strip() for t in outtpl.split(",")]
+
+        if len(outtpl_list) == 1:
+            # Single template case
+            print(
+                f"{Colors.BLUE}[MCU-GEN]{Colors.RESET} Processing template: {Colors.BOLD}{outtpl_list[0]}{Colors.RESET}"
+            )
+            write_template(pathlib.Path(outtpl_list[0]), outfile, **kwargs)
+            print(
+                f"{Colors.GREEN}[MCU-GEN]{Colors.RESET} Template processed successfully"
+            )
+        else:
+            # Multiple templates case
+            if outfile is not None:
+                parser.error(
+                    "Cannot specify --outfile when using multiple templates. Filenames will be generated from template names."
+                )
+            print(
+                f"{Colors.BLUE}[MCU-GEN]{Colors.RESET} Processing {Colors.BOLD}{len(outtpl_list)}{Colors.RESET} templates..."
+            )
+            for idx, tpl in enumerate(outtpl_list, 1):
+                tpl_path = pathlib.Path(tpl.strip())
+                # Generate output filename from template name by removing .tpl extension
+                tpl_str = str(tpl_path)
+                if tpl_str.endswith(".tpl"):
+                    generated_outfile = pathlib.Path(tpl_str[:-4])
+                else:
+                    generated_outfile = tpl_path
+                print(
+                    f"{Colors.YELLOW}[MCU-GEN]{Colors.RESET} [{idx}/{len(outtpl_list)}] {tpl_path.name} {Colors.YELLOW}→{Colors.RESET} {generated_outfile.name}"
+                )
+                write_template(tpl_path, generated_outfile, **kwargs)
+            print(
+                f"{Colors.GREEN}[MCU-GEN]{Colors.RESET} All templates processed successfully"
+            )
 
     else:
         # X-Heep object must be generated
@@ -311,12 +360,24 @@ def main():
         )
 
         args = parser.parse_args()
+        print(
+            f"{Colors.BLUE}[MCU-GEN]{Colors.RESET} Generating X-HEEP configuration..."
+        )
         kwargs = generate_xheep(args)
+        print(
+            f"{Colors.GREEN}[MCU-GEN]{Colors.RESET} X-HEEP configuration generated successfully"
+        )
 
         # Create directory structure if it doesn't exist
+        print(
+            f"{Colors.BLUE}[MCU-GEN]{Colors.RESET} Saving configuration cache to: {Colors.BOLD}{cached_path}{Colors.RESET}"
+        )
         os.makedirs(os.path.dirname(cached_path), exist_ok=True)
         with open(cached_path, "wb") as f:
             pickle.dump(kwargs, f)
+        print(
+            f"{Colors.GREEN}[MCU-GEN]{Colors.RESET} Configuration cache saved successfully"
+        )
 
 
 if __name__ == "__main__":

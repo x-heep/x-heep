@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "csr.h"
-#include "matrixMul8.h"
 #include "x-heep.h"
 
 /* By default, printfs are activated for FPGA and disabled for simulation. */
@@ -20,9 +19,31 @@
     #define PRINTF(...)
 #endif
 
-void __attribute__ ((noinline)) matrixMul8_blocksize(int8_t *  A, int8_t *  B, int32_t *  C, int N);
+#if defined(MATMUL8)
+    #define input_type_t int8_t
+    #include "matrixMul8.h"
+    #define SIZE_BYTE 1
+    #pragma message ( "Compiling for 8bit input data" )
+#elif defined(MATMUL16)
+    #define input_type_t int16_t
+    #include "matrixMul16.h"
+    #define SIZE_BYTE 2
+    #pragma message ( "Compiling for 16bit input data" )
+#elif defined(MATMUL32)
+    #define input_type_t int32_t
+    #include "matrixMul32.h"
+    #define SIZE_BYTE 4
+    #pragma message ( "Compiling for 32bit input data" )
+#else
+    #define input_type_t int8_t
+    #define SIZE_BYTE 1
+    #include "matrixMul8.h"
+    #pragma message ( "Compiling for 8bit input data" )
+#endif
 
-void __attribute__ ((noinline)) matrixMul8_tiled(int8_t *  A, int8_t *  B, int32_t *  C, int N);
+void __attribute__ ((noinline)) matrixMul_blocksize(input_type_t *  A, input_type_t *  B, int32_t *  C, int N);
+
+void __attribute__ ((noinline)) matrixMul_tiled(input_type_t *  A, input_type_t *  B, int32_t *  C, int N);
 
 uint32_t check_results(int32_t * C, int N);
 
@@ -55,10 +76,21 @@ int main()
     CSR_WRITE(CSR_REG_MCYCLE, 0);
 
 #ifdef HIGHEST_PERF
-    matrixMul8_blocksize(m_a, m_b, m_c, SIZE);
+    #pragma message ( "single block MatMul is compiled" )
+    #if defined(__COREV_OPT_ASM) && (defined(MATMUL8) || defined(MATMUL16))
+        #pragma message ( "using hand-optimized XCOREV_PULP kernel with transposed matrix B" )
+        matrixMul_blocksize(m_a, m_b_t, m_c, SIZE);
+    #else
+        #if defined(__COREV_OPT_ASM)
+            #pragma message ( "using hand-optimized XCOREV_PULP kernel" )
+        #else
+            #pragma message ( "using standard matmul kernel" )
+        #endif
+        matrixMul_blocksize(m_a, m_b, m_c, SIZE);
+    #endif
 #else
     //execute the kernel
-    matrixMul8_tiled(m_a, m_b, m_c, SIZE);
+    matrixMul_tiled(m_a, m_b, m_c, SIZE);
 #endif
 
     CSR_READ(CSR_REG_MCYCLE, &cycles);
@@ -69,7 +101,8 @@ int main()
     return errors;
 }
 
-void __attribute__ ((noinline)) matrixMul8_blocksize(int8_t *  A, int8_t *  B, int32_t *  C, int N)
+#ifndef __COREV_OPT_ASM
+void __attribute__ ((noinline)) matrixMul_blocksize(input_type_t *  A, input_type_t *  B, int32_t *  C, int N)
 {
 
     for(int i = 0; i < N; i++) {
@@ -83,26 +116,101 @@ void __attribute__ ((noinline)) matrixMul8_blocksize(int8_t *  A, int8_t *  B, i
     }
 
 }
+#else
+void __attribute__ ((noinline)) matrixMul_blocksize(input_type_t *  A, input_type_t *  B, int32_t *  C, int N)
+{
 
+    for(int i = 0; i < N; i++) {
+        //if(i==0) printf("A %x\n", &A[i]);
+        for(int j = 0; j < N; j++) {
+            int32_t acc = 0;
+            //if(j==1 || j==0) printf("B %x\n", &B[j]);
+#if defined(MATMUL32)
+            input_type_t* b_ptr = &B[j];
+#else
+            input_type_t* b_ptr = &B[j*SIZE]; //because it's transposed
+#endif
+            input_type_t* a_ptr = &A[i*SIZE];
+            int32_t* c_ptr = &C[i*SIZE+j];
+            //for(int k = 0; k < N; k+=2) {
+                input_type_t a0;
+                input_type_t b0;
+                input_type_t a1;
+                input_type_t b1;
+                // a0 = A[i*SIZE+k];
+                // b0 = B[k*SIZE+j];
+                // a1 = A[i*SIZE+k+1];
+                // b1 = B[(k+1)*SIZE+j];
+                // acc = __builtin_riscv_cv_mac_mac(a0, b0, acc);
+                // acc = __builtin_riscv_cv_mac_mac(a1, b1, acc);
+                // Due to the fact that the two MAC above gets scheduled differently,
+                // use the assembly below to implement the code above in the best way
+#if defined(MATMUL32)
+            asm volatile(
+            "cv.setup 1,%10,store_mac \n\t" //for(int k = 0; k < N; k+=2) {
+                    "lw	%1,4(%5)\n\t"
+                    "lw	%2,%7(%6)\n\t"
+                    "cv.lw	%3,(%5),8\n\t"
+                    "cv.lw	%4,(%6),%8\n\t"
+                    "cv.mac  %0, %1, %2\n\t"
+                    "cv.mac  %0, %3, %4\n\t"
+            "store_mac: sw %0, 0(%9)\n\t"
+                    : "+r"(acc), "=&r"(a0), "=&r"(b0), "=&r"(a1), "=&r"(b1), "+r"(a_ptr),"+r"(b_ptr)
+                    : "i"(SIZE*SIZE_BYTE) , "i"(2*SIZE*SIZE_BYTE), "r"(c_ptr), "r"(N>>1)
+                );
+#elif defined(MATMUL16)
+            asm volatile(
+            "cv.setup 1,%8,store_mac \n\t" //for(int k = 0; k < N; k+=2) {
+                    "lw	%1,4(%5)\n\t"
+                    "lw	%2,4(%6)\n\t"
+                    "cv.lw	%3,(%5),8\n\t"
+                    "cv.lw	%4,(%6),8\n\t"
+                    "cv.sdotsp.h  %0, %1, %2\n\t"
+                    "cv.sdotsp.h  %0, %3, %4\n\t"
+            "store_mac: sw %0, 0(%7)\n\t"
+                    : "+r"(acc), "=&r"(a0), "=&r"(b0), "=&r"(a1), "=&r"(b1), "+r"(a_ptr),"+r"(b_ptr)
+                    : "r"(c_ptr), "r"(N>>2)
+                );
+#elif defined(MATMUL8)
+            asm volatile(
+            "cv.setup 1,%8,store_mac \n\t" //for(int k = 0; k < N; k+=2) {
+                    "lw	%1,4(%5)\n\t"
+                    "lw	%2,4(%6)\n\t"
+                    "cv.lw	%3,(%5),8\n\t"
+                    "cv.lw	%4,(%6),8\n\t"
+                    "cv.sdotsp.b  %0, %1, %2\n\t"
+                    "cv.sdotsp.b  %0, %3, %4\n\t"
+            "store_mac: sw %0, 0(%7)\n\t"
+                    : "+r"(acc), "=&r"(a0), "=&r"(b0), "=&r"(a1), "=&r"(b1), "+r"(a_ptr),"+r"(b_ptr)
+                    : "r"(c_ptr), "r"(N>>3)
+                );
+#endif
+
+            //}
+            //C[i*SIZE+j] += acc;
+        }
+    }
+}
+#endif
 
 // Define a recursive function that multiplies two matrices using the tiled algorithm
-void __attribute__ ((noinline)) matrixMul8_tiled(int8_t* A, int8_t* B, int32_t* C, int N) {
+void __attribute__ ((noinline)) matrixMul_tiled(input_type_t* A, input_type_t* B, int32_t* C, int N) {
     // use the elementary function
     if (N == BLOCK_SIZE) {
-        matrixMul8_blocksize(A, B, C, N);
+        matrixMul_blocksize(A, B, C, N);
     }
     //split the matrices into four blocks each
     else {
         N = N >> 1; // Half the size
         // Multiply the blocks and add them to the corresponding blocks of C
-        matrixMul8_tiled(A(0, 0), B(0, 0), C(0, 0), N); // C_00 += A_00 * B_00
-        matrixMul8_tiled(A(0, N), B(N, 0), C(0, 0), N); // C_00 += A_01 * B_10
-        matrixMul8_tiled(A(0, 0), B(0, N), C(0, N), N); // C_01 += A_00 * B_01
-        matrixMul8_tiled(A(0, N), B(N, N), C(0, N), N); // C_01 += A_01 * B_11
-        matrixMul8_tiled(A(N, 0), B(0, 0), C(N, 0), N); // C_10 += A_10 * B_00
-        matrixMul8_tiled(A(N, N), B(N, 0), C(N, 0), N); // C_10 += A_11 * B_10
-        matrixMul8_tiled(A(N, 0), B(0, N), C(N, N), N); // C_11 += A_10 * B_01
-        matrixMul8_tiled(A(N, N), B(N, N), C(N, N), N); // C_11 += A_11 * B_11
+        matrixMul_tiled(A(0, 0), B(0, 0), C(0, 0), N); // C_00 += A_00 * B_00
+        matrixMul_tiled(A(0, N), B(N, 0), C(0, 0), N); // C_00 += A_01 * B_10
+        matrixMul_tiled(A(0, 0), B(0, N), C(0, N), N); // C_01 += A_00 * B_01
+        matrixMul_tiled(A(0, N), B(N, N), C(0, N), N); // C_01 += A_01 * B_11
+        matrixMul_tiled(A(N, 0), B(0, 0), C(N, 0), N); // C_10 += A_10 * B_00
+        matrixMul_tiled(A(N, N), B(N, 0), C(N, 0), N); // C_10 += A_11 * B_10
+        matrixMul_tiled(A(N, 0), B(0, N), C(N, N), N); // C_11 += A_10 * B_01
+        matrixMul_tiled(A(N, N), B(N, N), C(N, N), N); // C_11 += A_11 * B_11
     }
 }
 

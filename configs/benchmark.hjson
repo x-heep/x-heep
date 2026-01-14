@@ -1,0 +1,225 @@
+{
+    bus_type: "NtoM"
+    ram_banks: {
+        code_and_data: {
+            num: 2
+            sizes: [32]
+        }
+    }
+
+    linker_sections:
+    [
+        {
+            name: code
+            start: 0
+            #1 32kB memory banks, so that data get allocated from the 2nd bank on 
+            size: 0x000008000           
+        }
+        {
+            name: data
+            start: 0x000008000
+        }
+    ]
+
+    // Copyright 2020 ETH Zurich and University of Bologna.
+    // Solderpad Hardware License, Version 0.51, see LICENSE for details.
+    // SPDX-License-Identifier: SHL-0.51
+    // Derived from Occamy: https://github.com/pulp-platform/snitch/blob/master/hw/system/occamy/src/occamy_cfg.hjson
+    // Peripherals configuration for core-v-mini-mcu.
+
+    cpu_type: cv32e40p
+
+    linker_script: {
+        stack_size: 0x800
+        heap_size: 0x800
+    }
+
+    debug: {
+        address: 0x10000000
+        length:  0x00100000
+        has_spi_slave: "yes"
+    }
+
+    //if is_include is missing, it means it is always instantiated (like is_included "yes")
+    // spi_memio is included is the same of the spi_flash (little hack, this peripheral is going to be removed)
+    ao_peripherals: {
+        address: 0x20000000
+        length:  0x00100000
+        soc_ctrl: {
+            offset:  0x00000000
+            length:  0x00010000
+        }
+        bootrom: {
+            offset:  0x00010000
+            length:  0x00010000
+        }
+        spi_flash: {
+            offset:  0x00020000
+            length:  0x00008000
+            is_included: "yes"
+        }
+        spi_memio: {
+            offset:  0x00028000
+            length:  0x00008000
+        }
+        dma: {
+            offset:  0x00030000
+            length:  0x00010000
+            ch_length:    0x100
+            num_channels:   0x4
+            num_master_ports: 0x2
+            num_channels_per_master_port: 0x2
+            fifo_depth: 0x4
+            addr_mode_en: "yes"
+            subaddr_mode_en: "yes"
+            hw_fifo_mode_en: "yes"
+            zero_padding_en: "yes"
+            is_included: "yes"
+        }
+        power_manager: {
+            offset:  0x00040000
+            length:  0x00010000
+        }
+        rv_timer_ao: {
+            offset:  0x00050000
+            length:  0x00010000
+        }
+        fast_intr_ctrl: {
+            offset:  0x00060000
+            length:  0x00010000
+        }
+        ext_peripheral: {
+            offset:  0x00070000
+            length:  0x00010000
+        }
+        pad_control: {
+            offset:  0x00080000
+            length:  0x00010000
+            is_included: "yes"
+        }
+        gpio_ao: {
+            offset:  0x00090000
+            length:  0x00010000
+            is_included: "yes"
+        }
+    }
+
+    peripherals: {
+        address: 0x30000000
+        length:  0x00100000
+        rv_plic: {
+            offset:  0x00000000
+            length:  0x00010000
+            is_included: "yes"
+        }
+        spi_host: {
+            offset:  0x00010000
+            length:  0x00010000
+            is_included: "yes"
+        }
+        gpio: {
+            offset:  0x00020000
+            length:  0x00010000
+            is_included: "yes"
+        }
+        i2c: {
+            offset:  0x00030000
+            length:  0x00010000
+            is_included: "yes"
+        }
+        rv_timer: {
+            offset:  0x00040000
+            length:  0x00010000
+            is_included: "yes"
+        }
+        spi2: {
+            offset:  0x00050000
+            length:  0x00010000
+            is_included: "yes"
+        }
+        pdm2pcm: {
+            offset:  0x00060000
+            length:  0x00010000
+            is_included: "no"
+            cic_only: 0x1
+        }
+        i2s: {
+            offset:  0x00070000
+            length:  0x00010000
+            is_included: "yes"
+        }
+        uart: {
+            offset:  0x00080000
+            length:  0x00010000
+            is_included: "yes"
+        }
+    }
+
+    flash_mem: {
+        address: 0x40000000
+        length:  0x01000000
+    }
+
+    ext_slaves: {
+        address: 0xF0000000
+        length:  0x01000000
+    }
+
+    interrupts: {
+        number: 64 // Do not change this number!
+        list: {
+            // First one is always zero
+            null_intr:               0
+            uart_intr_tx_watermark:  1
+            uart_intr_rx_watermark:  2
+            uart_intr_tx_empty:      3
+            uart_intr_rx_overflow:   4
+            uart_intr_rx_frame_err:  5
+            uart_intr_rx_break_err:  6
+            uart_intr_rx_timeout:    7
+            uart_intr_rx_parity_err: 8
+            gpio_intr_8:             9
+            gpio_intr_9:             10
+            gpio_intr_10:            11
+            gpio_intr_11:            12
+            gpio_intr_12:            13
+            gpio_intr_13:            14
+            gpio_intr_14:            15
+            gpio_intr_15:            16
+            gpio_intr_16:            17
+            gpio_intr_17:            18
+            gpio_intr_18:            19
+            gpio_intr_19:            20
+            gpio_intr_20:            21
+            gpio_intr_21:            22
+            gpio_intr_22:            23
+            gpio_intr_23:            24
+            gpio_intr_24:            25
+            gpio_intr_25:            26
+            gpio_intr_26:            27
+            gpio_intr_27:            28
+            gpio_intr_28:            29
+            gpio_intr_29:            30
+            gpio_intr_30:            31
+            gpio_intr_31:            32
+            intr_fmt_watermark:      33
+            intr_rx_watermark:       34
+            intr_fmt_overflow:       35
+            intr_rx_overflow:        36
+            intr_nak:                37
+            intr_scl_interference:   38
+            intr_sda_interference:   39
+            intr_stretch_timeout:    40
+            intr_sda_unstable:       41
+            intr_trans_complete:     42
+            intr_tx_empty:           43
+            intr_tx_nonempty:        44
+            intr_tx_overflow:        45
+            intr_acq_overflow:       46
+            intr_ack_stop:           47
+            intr_host_timeout:       48
+            spi2_intr_event:         49
+            i2s_intr_event:          50
+        }
+    }
+}

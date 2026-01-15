@@ -728,6 +728,14 @@ module testharness #(
             .quadrilatero_ch3_req_o (ext_master_req[testharness_pkg::EXT_MASTER7_IDX]),
             .quadrilatero_ch3_resp_i(ext_master_resp[testharness_pkg::EXT_MASTER7_IDX])
         );
+      end else begin : gen_no_quadrilatero_wrapper
+
+        // Tie-off unused Quadrilatero master ports
+        assign ext_master_req[testharness_pkg::EXT_MASTER4_IDX] = '0;
+        assign ext_master_req[testharness_pkg::EXT_MASTER5_IDX] = '0;
+        assign ext_master_req[testharness_pkg::EXT_MASTER6_IDX] = '0;
+        assign ext_master_req[testharness_pkg::EXT_MASTER7_IDX] = '0;
+
       end
 
 

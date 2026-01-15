@@ -58,6 +58,9 @@ module spi_host
   reg_req_t [1:0] fifo_win_h2d;
   reg_rsp_t [1:0] fifo_win_d2h;
 
+  reg_req_t reg_req_fsm;
+  reg_rsp_t reg_rsp_fsm;
+
   // Register module
   logic [NumAlerts-1:0] alert_test, alerts;
   spi_host_reg_top #(
@@ -66,8 +69,8 @@ module spi_host
   ) u_reg (
     .clk_i,
     .rst_ni,
-    .reg_req_i,
-    .reg_rsp_o,
+    .reg_req_i(reg_req_fsm),
+    .reg_rsp_o(reg_rsp_fsm),
     .reg_req_win_o (fifo_win_h2d),
     .reg_rsp_win_i (fifo_win_d2h),
     .reg2hw,

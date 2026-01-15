@@ -102,7 +102,7 @@ module dma_read_unit
   logic [31:0] data_in_addr;
   logic [31:0] data_in_rdata;
 
-  logic data_req_cond;
+  logic data_req_cond, data_req_cond_preobi;
 
   logic [1:0] read_data_offset;
   logic [AddrFifoDepth-1:0] read_data_offset_usage;
@@ -117,6 +117,13 @@ module dma_read_unit
 
   dma_data_type_t src_data_type;
   logic sign_ext;
+
+  typedef enum logic {
+    OBI_DATA_REQ,
+    OBI_WAIT_GNT
+  } obi_state_type_t;
+  
+  obi_state_type_t obi_data_req_q, obi_data_req_d;
 
   /*_________________________________________________________________________________________________________________________________ */
 
@@ -133,7 +140,9 @@ module dma_read_unit
     if (~rst_ni) begin
       dma_src_cnt_d1 <= '0;
       dma_src_cnt_d2 <= '0;
+      obi_data_req_q <= OBI_DATA_REQ;
     end else begin
+      obi_data_req_q <= obi_data_req_d;
       if (dma_start == 1'b1) begin
         dma_src_cnt_d1 <= {1'h0, reg2hw.size_d1.q};
         dma_src_cnt_d2 <= {1'h0, reg2hw.size_d2.q};
@@ -334,15 +343,32 @@ module dma_read_unit
   generate
     if (RVALID_FIFO_DEPTH != 1) begin : gen_rvalid_fifo
       assign read_data_offset_alm_full = (read_data_offset_usage == LastFifoUsage[AddrFifoDepth-1:0]);
-      assign data_req_cond = (buffer_full == 1'b0 && buffer_alm_full == 1'b0 && 
+      assign data_req_cond_preobi = (buffer_full == 1'b0 && buffer_alm_full == 1'b0 && 
                           read_data_offset_full == 1'b0 && read_data_offset_alm_full == 1'b0 &&
                           wait_for_rx == 1'b0);
     end else begin : gen_no_rvalid_fifo
       assign read_data_offset_alm_full = 1'b0;
-      assign data_req_cond = (buffer_full == 1'b0 && buffer_alm_full == 1'b0 && 
+      assign data_req_cond_preobi = (buffer_full == 1'b0 && buffer_alm_full == 1'b0 && 
                           wait_for_rx == 1'b0);
     end
   endgenerate
+
+  always_comb begin
+    data_req_cond = data_req_cond_preobi;
+    obi_data_req_d = obi_data_req_q;
+    unique case(obi_data_req_q)
+
+      OBI_DATA_REQ: begin
+        if(data_in_req && !data_in_gnt)
+          obi_data_req_d = OBI_WAIT_GNT;
+      end
+
+      OBI_WAIT_GNT: begin
+        data_req_cond = 1'b1;
+        obi_data_req_d = data_in_gnt ? OBI_DATA_REQ : OBI_WAIT_GNT;
+      end
+    endcase
+  end
 
   /* Renaming */
   assign reg2hw = reg2hw_i;

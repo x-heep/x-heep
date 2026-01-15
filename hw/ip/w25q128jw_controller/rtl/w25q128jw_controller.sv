@@ -216,8 +216,10 @@ module w25q128jw_controller
 
   // Simulation Bypass Signal
   logic pass_fwait;
-
   logic [31:0] dma_size;
+
+  logic [31:0] flash_address;
+
 
   // In simulation (not FPGA_SYNTHESIS and not SYNTHESIS), we skip the flash wait and erase FSMs
   // This is mandatory as otherwise the controller will be stuck in FWAIT FSM in simulation
@@ -296,6 +298,7 @@ module w25q128jw_controller
     external_dma_hw2reg_o   = '0;
 
     dma_size = '0;
+    flash_address = '0;
 
     spi_host_reg_req_o.valid = '0;
     spi_host_reg_req_o.wstrb = 4'b1111;
@@ -313,6 +316,8 @@ module w25q128jw_controller
     // Note that:
     //   - FWAIT AND ERASE are bypassed in SIM
     //   - Read operation is byte precise while Write operation is word precise
+    //   - meaning that, if you write 5bytes, it writes 8 bytes (round to next word size)
+    //   - this is because the MODIFY FSM (SRAM to SRAM) uses WORDs type transfers
 
     case (top_state_q)
       // -------- IDLE STATE --------
@@ -404,12 +409,13 @@ module w25q128jw_controller
 
             if (reg2hw.control.rnw) begin
               // READ: Use exact flash address from F_ADDRESS register
-              spi_host_reg_req_o.wdata = (((bitfield_byteswap32(reg2hw.f_address & 32'h00ffffff)) >>
+              flash_address            = reg2hw.f_address & 32'h00ffffff;
+              spi_host_reg_req_o.wdata = (((bitfield_byteswap32(flash_address)) >>
                                            8) << 8) | {19'h0, FC_RD};
             end else begin
               // WRITE: Use sector-aligned address + current sector iteration offset
-              spi_host_reg_req_o.wdata = (((bitfield_byteswap32((reg2hw.f_address & 32'h00fff000) +
-                                                                (sector_iter_offset_q))) >> 8) <<
+              flash_address            = (reg2hw.f_address & 32'h00fff000) + (sector_iter_offset_q);
+              spi_host_reg_req_o.wdata = (((bitfield_byteswap32(flash_address)) >> 8) <<
                                           8) | {19'h0, FC_RD};
             end
             if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error) begin
@@ -688,7 +694,6 @@ module w25q128jw_controller
             spi_host_reg_req_o.write = 1'b0;
             spi_host_reg_req_o.valid = 1'b1;
 
-            // if (memory_op_finish) begin
             if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error) begin
               // Check BUSY bit: 0 = ready, 1 = busy
               if (spi_host_reg_rsp_i.rdata[0] == 1'b0) begin
@@ -825,10 +830,8 @@ module w25q128jw_controller
             spi_host_reg_req_o.valid = 1'b1;
             // Use sector-aligned address + current sector iteration offset + SECTOR ERASE command
             // Inspiration from sw/device/bsp/w25q
-            spi_host_reg_req_o.wdata = (((bitfield_byteswap32((reg2hw.f_address & 32'h00fff000) +
-                                                              (sector_iter_offset_q))) >> 8) << 8) |
-                {19'h0, FC_SE};
-            // if (memory_op_finish) begin
+            flash_address            = (reg2hw.f_address & 32'h00fff000) + (sector_iter_offset_q);
+            spi_host_reg_req_o.wdata = ((bitfield_byteswap32(flash_address) >> 8) << 8) | {19'h0, FC_SE};
             if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error) begin
               erase_state_d = ERASE_SE_WAIT_READY;
             end
@@ -1104,7 +1107,6 @@ module w25q128jw_controller
           WRITE_DMA_CHECK_READY: begin
             top_state_d       = TOP_DMA_INIT;  // Go to DMA init FSM
             dma_init_return_d = RETURN_WRITE;  // Return here after DMA init
-            //write_state_d     = WRITE_DMA_SRC_PTR;  // Next state after returning from DMA init
             write_state_d     = WRITE_DMA_REGS;  // Next state after returning from DMA init
           end
 
@@ -1168,7 +1170,6 @@ module w25q128jw_controller
               3'h0, 2'h2, 2'h0, 1'h0, {11'b0, PAGE_BSIZE - 1'h1}
             };  // Empty + Direction + Speed + Csaat + Length
 
-            // if (memory_op_finish) begin
             if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error) begin
               // ===== CHECK IF MORE PAGES/SECTORS TO PROCESS =====
               if (page_cnt_q == 4'hf) begin

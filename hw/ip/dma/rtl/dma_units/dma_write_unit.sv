@@ -74,7 +74,7 @@ module dma_write_unit
 
   dma_data_type_t dst_data_type;
 
-  logic data_req_cond;
+  logic data_req_cond, data_req_cond_preobi;
   logic dma_done_override;
 
   logic data_out_req;
@@ -100,6 +100,14 @@ module dma_write_unit
   logic write_buffer_empty;
   logic read_addr_buffer_empty;
   logic [31:0] write_buffer_data;
+
+  typedef enum logic {
+    OBI_WRITE_DATA_REQ,
+    OBI_WRITE_WAIT_GNT
+   } obi_write_state_type_t;
+  
+  obi_write_state_type_t obi_data_req_q, obi_data_req_d;
+
 
   /*_________________________________________________________________________________________________________________________________ */
 
@@ -127,7 +135,9 @@ module dma_write_unit
     if (~rst_ni) begin
       dma_dst_cnt_d1 <= '0;
       dma_dst_cnt_d2 <= '0;
+      obi_data_req_q <= OBI_WRITE_DATA_REQ;
     end else begin
+      obi_data_req_q <= obi_data_req_d;
       if (dma_start == 1'b1) begin
         dma_dst_cnt_d1 <= dma_size_d1;
         dma_dst_cnt_d2 <= dma_size_d2;
@@ -286,10 +296,28 @@ module dma_write_unit
     endcase
   end
 
+  always_comb begin
+    data_req_cond = data_req_cond_preobi;
+    obi_data_req_d = obi_data_req_q;
+    unique case(obi_data_req_q)
+
+      OBI_WRITE_DATA_REQ: begin
+        if(data_out_req && !data_out_gnt)
+          obi_data_req_d = OBI_WRITE_WAIT_GNT;
+      end
+
+      OBI_WRITE_WAIT_GNT: begin
+        data_req_cond = 1'b1;
+        obi_data_req_d = data_out_gnt ? OBI_WRITE_DATA_REQ : OBI_WRITE_WAIT_GNT;
+      end
+    endcase
+  end
+
+
   /*_________________________________________________________________________________________________________________________________ */
 
   /* Signal assignments */
-  assign data_req_cond = (write_buffer_empty == 1'b0 && wait_for_tx == 1'b0 && (read_addr_buffer_empty && address_mode) == 1'b0);
+  assign data_req_cond_preobi = (write_buffer_empty == 1'b0 && wait_for_tx == 1'b0 && (read_addr_buffer_empty && address_mode) == 1'b0);
   assign data_out_we = 1'b1;
   assign data_out_addr = write_address;
   assign address_mode = reg2hw.mode.q == 2;

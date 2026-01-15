@@ -524,6 +524,8 @@ w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32
     // Size is in data units (words in this case)
     trans.size_d1_du = length>>2;
 
+    asm volatile("davide3: add x0, x0, %0\n\t" : : "r"(length>>2));
+
     // Validate, load and launch DMA transaction
 
     dma_config_flags_t res;

@@ -9,7 +9,6 @@ import UPF::*;
 <%
   user_peripheral_domain = xheep.get_user_peripheral_domain()
 %>
-
 module testharness #(
     parameter bit COREV_PULP                  = 0,
     parameter bit FPU                         = 0,
@@ -215,9 +214,9 @@ module testharness #(
   initial begin
     $display("%t: the parameter COREV_PULP is %x", $time, COREV_PULP);
     $display("%t: the parameter FPU is %x", $time, FPU);
-    $display("%t: the parameter X_EXT is %x", $time, X_EXT);
     $display("%t: the parameter ZFINX is %x", $time, ZFINX);
     $display("%t: the parameter QUADRILATERO is %x", $time, QUADRILATERO);
+    $display("%t: the parameter X_EXT is %x", $time, X_EXT);
     $display("%t: the parameter JTAG_DPI is %x", $time, JTAG_DPI);
     $display("%t: the parameter EXT_DOMAINS is %x", $time, core_v_mini_mcu_pkg::EXTERNAL_DOMAINS);
     $display("%t: the parameter USE_EXTERNAL_DEVICE_EXAMPLE is %x", $time,
@@ -404,19 +403,22 @@ module testharness #(
 
   // Power switch emulation
   // ----------------------
-  assign external_subsystem_powergate_switch_ack_n[0] = external_subsystem_powergate_switch_n;
-  assign cpu_subsystem_powergate_switch_ack_n[0] = cpu_subsystem_powergate_switch_n;
-  assign peripheral_subsystem_powergate_switch_ack_n[0] = peripheral_subsystem_powergate_switch_n;
   always_ff @(posedge clk_i) begin : blockName
-    for (int unsigned i = 0; i < SWITCH_ACK_LATENCY; i++) begin
-      external_subsystem_powergate_switch_ack_n[i+1] <= external_subsystem_powergate_switch_ack_n[i];
-      cpu_subsystem_powergate_switch_ack_n[i+1] <= cpu_subsystem_powergate_switch_ack_n[i];
-      peripheral_subsystem_powergate_switch_ack_n[i+1] <= peripheral_subsystem_powergate_switch_ack_n[i];
+    for (int unsigned i = 0; i <= SWITCH_ACK_LATENCY; i++) begin
+      if (i == 0) begin
+        external_subsystem_powergate_switch_ack_n[0] <= external_subsystem_powergate_switch_n;
+        cpu_subsystem_powergate_switch_ack_n[0] <= cpu_subsystem_powergate_switch_n;
+        peripheral_subsystem_powergate_switch_ack_n[0] <= peripheral_subsystem_powergate_switch_n;
+      end else begin
+        external_subsystem_powergate_switch_ack_n[i] <= external_subsystem_powergate_switch_ack_n[i-1];
+        cpu_subsystem_powergate_switch_ack_n[i] <= cpu_subsystem_powergate_switch_ack_n[i-1];
+        peripheral_subsystem_powergate_switch_ack_n[i] <= peripheral_subsystem_powergate_switch_ack_n[i-1];
+      end
     end
   end
 
   uartdpi #(
-      .BAUD('d256000),
+      .BAUD(CLK_FREQUENCY * 1000 / 20),
       .FREQ(CLK_FREQUENCY * 1000),  //Hz
       .NAME("uart0")
   ) i_uart0 (
@@ -723,7 +725,7 @@ module testharness #(
             .xif_mem_if             (ext_if),
             .xif_mem_result_if      (ext_if),
             .xif_result_if          (ext_if),
-            // OBI signals 
+            // OBI signals
             .quadrilatero_ch0_req_o (ext_master_req[testharness_pkg::EXT_MASTER4_IDX]),
             .quadrilatero_ch0_resp_i(ext_master_resp[testharness_pkg::EXT_MASTER4_IDX]),
             .quadrilatero_ch1_req_o (ext_master_req[testharness_pkg::EXT_MASTER5_IDX]),

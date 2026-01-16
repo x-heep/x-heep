@@ -201,8 +201,8 @@ proc create_root_design { parentCell } {
   # Create ports
   set tck_0 [ create_bd_port -dir O tck_0 ]
   set tdi_0 [ create_bd_port -dir O tdi_0 ]
-  set tdo_0 [ create_bd_port -dir I tdo_0 ]
   set tms_0 [ create_bd_port -dir O tms_0 ]
+  set tdo_0 [ create_bd_port -dir I tdo_0 ]
 
   # Create instance: zynq_ultra_ps_e_0, and set properties
   set zynq_ultra_ps_e_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:zynq_ultra_ps_e:3.5 zynq_ultra_ps_e_0 ]
@@ -393,6 +393,8 @@ proc create_root_design { parentCell } {
     CONFIG.PSU__GEM__TSU__ENABLE {0} \
     CONFIG.PSU__GPIO0_MIO__PERIPHERAL__ENABLE {0} \
     CONFIG.PSU__GPIO1_MIO__PERIPHERAL__ENABLE {0} \
+    CONFIG.PSU__GPIO_EMIO_WIDTH {1} \
+    CONFIG.PSU__GPIO_EMIO__PERIPHERAL__ENABLE {0} \
     CONFIG.PSU__GT__LINK_SPEED {HBR} \
     CONFIG.PSU__GT__PRE_EMPH_LVL_4 {0} \
     CONFIG.PSU__GT__VLT_SWNG_LVL_4 {0} \
@@ -494,7 +496,10 @@ Port;FD4A0000;FD4AFFFF;1|FPD;DPDMA;FD4C0000;FD4CFFFF;1|FPD;DDR_XMPU5_CFG;FD05000
 
   # Create instance: axi_smc, and set properties
   set axi_smc [ create_bd_cell -type ip -vlnv xilinx.com:ip:smartconnect:1.0 axi_smc ]
-  set_property CONFIG.NUM_SI {2} $axi_smc
+  set_property -dict [list \
+    CONFIG.NUM_MI {2} \
+    CONFIG.NUM_SI {2} \
+  ] $axi_smc
 
 
   # Create instance: rst_ps8_0_100M, and set properties
@@ -532,7 +537,6 @@ Port;FD4A0000;FD4AFFFF;1|FPD;DPDMA;FD4C0000;FD4CFFFF;1|FPD;DDR_XMPU5_CFG;FD05000
 
   # Restore current instance
   current_bd_instance $oldCurInst
-
   validate_bd_design
   save_bd_design
 }
@@ -546,7 +550,3 @@ create_root_design ""
 # Create Wrapper
 set wrapper_path [ make_wrapper -fileset sources_1 -files [ get_files -norecurse axi_jtag_bridge.bd ] -top ]
 add_files -norecurse -fileset sources_1 $wrapper_path
-
-
-
-

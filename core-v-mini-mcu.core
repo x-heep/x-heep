@@ -101,6 +101,7 @@ filesets:
   rtl-fpga:
     depend:
     - openhwgroup.org:systems:core-v-mini-mcu-fpga
+    - pulp-platform.org:ip:quadrilatero #<- Quadrilatero dependency
     files:
     - hw/fpga/xilinx_core_v_mini_mcu_wrapper.sv
     file_type: systemVerilogSource

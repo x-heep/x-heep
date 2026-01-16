@@ -1,4 +1,4 @@
-// Copyright 2022 EPFL
+// Copyright 2024 EPFL
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
@@ -10,6 +10,7 @@ module xilinx_core_v_mini_mcu_wrapper
     parameter FPU                  = 0,
     parameter ZFINX                = 0,
     parameter X_EXT                = 0,  // eXtension interface in cv32e40x
+    parameter QUADRILATERO         = 0,
     parameter CLK_LED_COUNT_LENGTH = 27
 ) (
 
@@ -73,19 +74,24 @@ module xilinx_core_v_mini_mcu_wrapper
 
 );
 
-  wire                               clk_gen;
-  logic [                      31:0] exit_value;
-  wire                               rst_n;
-  logic [CLK_LED_COUNT_LENGTH - 1:0] clk_count;
+  // ADD THESE DEFINITIONS AND SIGNALS
+  localparam EXT_XBAR_NMASTER = QUADRILATERO ? 8 : 0;
+
+  wire                                    clk_gen;
+  logic      [                      31:0] exit_value;
+  wire                                    rst_n;
+  logic      [CLK_LED_COUNT_LENGTH - 1:0] clk_count;
 
   // Internal JTAG wires
   // This is to control the JTAG through the CPU
-  wire                               int_jtag_tck_i;
-  wire                               int_jtag_tms_i;
-  wire                               int_jtag_tdi_i;
-  wire                               int_jtag_tdo_o;
+  wire                                    int_jtag_tck_i;
+  wire                                    int_jtag_tms_i;
+  wire                                    int_jtag_tdi_i;
+  wire                                    int_jtag_tdo_o;
 
-
+  // OBI Connections to quadrilatero
+  obi_req_t  [      EXT_XBAR_NMASTER-1:0] ext_master_req;
+  obi_resp_t [      EXT_XBAR_NMASTER-1:0] ext_master_rsp;
   // low active reset
 `ifdef FPGA_NEXYS
   assign rst_n = rst_i;
@@ -107,6 +113,12 @@ module xilinx_core_v_mini_mcu_wrapper
     end
   end
 
+  always_comb begin
+    for (int i = 0; i < EXT_XBAR_NMASTER; i++) begin
+      ext_master_req[i] = '0;
+    end
+  end
+
   // eXtension Interface
   if_xif #() ext_if ();
 
@@ -119,8 +131,8 @@ module xilinx_core_v_mini_mcu_wrapper
   axi_jtag_bridge_wrapper axi_jtag_bridge_wrapper_i (
       .tck_0(int_jtag_tck_i),
       .tdi_0(int_jtag_tdi_i),
-      .tdo_0(int_jtag_tdo_o),
-      .tms_0(int_jtag_tms_i)
+      .tms_0(int_jtag_tms_i),
+      .tdo_0(int_jtag_tdo_o)
   );
 `elsif FPGA_ZCU102
   xilinx_clk_wizard_wrapper xilinx_clk_wizard_wrapper_i (
@@ -140,11 +152,38 @@ module xilinx_core_v_mini_mcu_wrapper
   );
 `endif
 
+  // Quadrilatero Instantiation
+  if (QUADRILATERO) begin : gen_quadrilatero_wrapper
+    quadrilatero_wrapper #(
+        .MATRIX_FPU(0)
+    ) quadrilatero_wrapper_i (
+        .clk_i                  (clk_gen),
+        .rst_ni                 (rst_n),
+        // eXtension Interface
+        .xif_compressed_if      (ext_if),
+        .xif_issue_if           (ext_if),
+        .xif_commit_if          (ext_if),
+        .xif_mem_if             (ext_if),
+        .xif_mem_result_if      (ext_if),
+        .xif_result_if          (ext_if),
+        // OBI signals (Map these to specific indices, e.g., 4, 5, 6, 7)
+        .quadrilatero_ch0_req_o (ext_master_req[4]),
+        .quadrilatero_ch0_resp_i(ext_master_rsp[4]),
+        .quadrilatero_ch1_req_o (ext_master_req[5]),
+        .quadrilatero_ch1_resp_i(ext_master_rsp[5]),
+        .quadrilatero_ch2_req_o (ext_master_req[6]),
+        .quadrilatero_ch2_resp_i(ext_master_rsp[6]),
+        .quadrilatero_ch3_req_o (ext_master_req[7]),
+        .quadrilatero_ch3_resp_i(ext_master_rsp[7])
+    );
+  end
+
   x_heep_system #(
       .X_EXT(X_EXT),
       .COREV_PULP(COREV_PULP),
       .FPU(FPU),
-      .ZFINX(ZFINX)
+      .ZFINX(ZFINX),
+      .EXT_XBAR_NMASTER(EXT_XBAR_NMASTER)
   ) x_heep_system_i (
       .hart_id_i('0),
       .xheep_instance_id_i('0),
@@ -155,8 +194,8 @@ module xilinx_core_v_mini_mcu_wrapper
       .xif_mem_if(ext_if),
       .xif_mem_result_if(ext_if),
       .xif_result_if(ext_if),
-      .ext_xbar_master_req_i('0),
-      .ext_xbar_master_resp_o(),
+      .ext_xbar_master_req_i(ext_master_req),
+      .ext_xbar_master_resp_o(ext_master_rsp),
       .ext_core_instr_req_o(),
       .ext_core_instr_resp_i('0),
       .ext_core_data_req_o(),

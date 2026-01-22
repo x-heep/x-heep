@@ -124,9 +124,7 @@ module dma_read_unit
     OBI_DATA_REQ,
     OBI_WAIT_GNT
   } obi_state_type_t;
-
   obi_state_type_t obi_data_req_q, obi_data_req_d;
-
 
   typedef enum logic {
     WAIT_FOR_RX_OUTSTANDING_IDLE,

@@ -2,12 +2,10 @@
  * @file main.c
  * @brief Example application for W25Q128JW flash read test.
  *
- * This application demonstrates reading data from the W25Q128JW flash memory 
- * and verifying the contents match to the golden data.
+ * This application demonstrates reading data from the W25Q128JW flash memory
  *
  * Test parameters:
- * - Transfer size: 128 bytes (read operation is byte precise)
- * - Mode: Polling-based completion detection (see "example_w25q128jw_interrupt" for interrupt-based)
+ * - Transfer size: 4100 bytes (spanning over 2 sectors)
  */
 
 #include <stdio.h>
@@ -20,9 +18,10 @@
 #include "w25q128jw.h"
 
 #include "w25q128jw_controller.h"
-#include "flash_data.h"
+#include "sram_data.h"
 #include "csr.h" // For CSR macros
 #include "rv_plic.h" // For PLIC functions
+#include "w25q128jw.h"
 
 /* By default, printfs are activated for FPGA and disabled for simulation. */
 #define PRINTF_IN_FPGA  1
@@ -36,11 +35,9 @@
     #define PRINTF(...)
 #endif
 
-// Number of bytes to transfer
-#define LENGTH_BYTES 4*NUM_WORDS
+#define MAGIC_TEST_NUM 0xda41de
 
-// RAM buffer to store data read from FLASH
-uint32_t ram_buffer[NUM_WORDS];
+int32_t sram_buffer_read_flash_back[NUM_WORDS];
 
 /**
  * @brief Compares read data against expected data.
@@ -50,35 +47,6 @@ uint32_t ram_buffer[NUM_WORDS];
  * @return              0 if data matches, 1 otherwise.
  */
 uint32_t check_result(uint8_t *test_buffer, uint32_t len);
-
-/**
- * @brief Runs the flash read test sequence.
- *
- * This function:
- * 1. Initializes the SPI flash
- * 2. Launches read operation
- * 3. Waits for read completion (polling)
- *
- */
-__attribute__ ((noinline)) int w25q128jw_controller_run(char interrupt_test) {
-    spi_host_t* spi;
-    spi = spi_flash;
-
-    if (w25q128jw_init(spi) != FLASH_OK) return EXIT_FAILURE;
-
-    w25q128jw_controller_read((void*) &ram_buffer[0], (void*) &flash_buffer[0], (size_t) LENGTH_BYTES);
-
-    if(interrupt_test) {
-        // Wait for interrupt
-        while(!w25q128jw_controller_is_ready_intr()) {
-            asm volatile("wfi");  // Wait For Interrupt - CPU sleeps
-        }
-    } else {
-        while(!w25q128jw_controller_is_ready_polling());
-    }
-
-    return EXIT_SUCCESS;
-}
 
 //
 // ISR
@@ -91,58 +59,169 @@ void handler_irq_w25q128jw_controller(uint32_t id) {
     w25q128jw_controller_clear_status_register();
 }
 
-int main(void) {
+/**
+ * @brief Runs the flash write test sequence.
+ *
+ * This function:
+ * 1. Initializes the SPI flash
+ * 2. Launches write operation
+ * 3. Waits for write completion (polling)
+ * 4. Launches read operation
+ * 5. Waits for read completion (polling)
+ *
+ */
+__attribute__ ((noinline)) void w25q128jw_controller_run(char use_interrupt, int32_t* flash_ptr) {
 
-    w25q128jw_controller_enable_interrupt(0);
-    if (w25q128jw_controller_run(0) != EXIT_SUCCESS) return EXIT_FAILURE;
+    spi_host_t* spi;
+    spi = spi_flash;
 
-    uint32_t res = check_result((uint8_t *)ram_golden_data, LENGTH_BYTES);
+    w25q128jw_controller_enable_interrupt(use_interrupt);
 
-    if (res){
-        return EXIT_FAILURE;
+    //read
+    w25q128jw_controller_read((void*) &sram_buffer_read_flash_back[0], (void*) &flash_ptr[0], (size_t) LENGTH_BYTES);
+
+    if(use_interrupt) {
+        // Wait for interrupt
+        while(!w25q128jw_controller_is_ready_intr()) {
+            asm volatile("wfi");  // Wait For Interrupt - CPU sleeps
+        }
+    } else {
+        while(!w25q128jw_controller_is_ready_polling());
     }
 
-    // Clear the interrupt status register (of previous transaction)
-    w25q128jw_controller_clear_status_register();
-
-    memset(ram_buffer, 0, sizeof(ram_buffer));
-
-    // Clear flag before starting operation
+    //reset flag
     w25q128jw_controller_clear_done_flag();
 
+}
+
+int main(void) {
+
+    uint32_t res;
+
+    // Initialize the DMA
+    dma_init(NULL);
+    // Pick the correct spi device based on simulation type
+    spi_host_t* spi;
+    spi = spi_flash;
+
+    // Init SPI host and SPI<->Flash bridge parameters and Flash Power Up
+    if (w25q128jw_init(spi) != FLASH_OK) return EXIT_FAILURE;
+
+
+    /**************************************************************
+     * _______  ______   _____  _______        __   
+     * |__   __||  ____| / ____||__   __|      /_ |  
+     * | |   | |__   | (___     | |          | |  
+     * | |   |  __|   \___ \    | |          | |  
+     * | |   | |____  ____) |   | |          | |  
+     * |_|   |______||_____/    |_|          |_|  
+     * * [ TEST ]                            [ NO. 1 ]
+     **************************************************************/
+
+    // First, check that the Flash has been programmed/initialized correctly
+    // we read in SW as we assume the SW is the golden model
+    w25q128jw_read_standard_dma(flash_buffer_test1, sram_buffer_read_flash_back, LENGTH_BYTES, 0, 0);
+    for(int i=0;i<NUM_WORDS;i++) {
+        //in the .h, flash_buffer_test1 contains numbers from 0 to NUM_WORDS in order
+        if(sram_buffer_read_flash_back[i]!=i) {
+            PRINTF("At %d: expected %x, got %x\n", i, i, sram_buffer_read_flash_back[i]);
+            return 1;
+        }
+    }
+
+    /**************************************************************
+     * _______  ______   _____  _______        ___  
+     * |__   __||  ____| / ____||__   __|      |__ \ 
+     * | |   | |__   | (___     | |            ) |
+     * | |   |  __|   \___ \    | |           / / 
+     * | |   | |____  ____) |   | |          / /_ 
+     * |_|   |______||_____/    |_|         |____|
+     * * [ TEST ]                            [ NO. 2 ]
+     * **************************************************************/
+
+    // Reset the flash data buffer
+    memset(sram_buffer_read_flash_back, 0, LENGTH_BYTES);
+
+    // Read from flash memory at specific address (i.e. flash_buffer_test1) in HW
+    // we use polling
+    //disable interrupts
+    w25q128jw_controller_enable_interrupt(0);
+    w25q128jw_controller_run(0, flash_buffer_test1);
+
+    // Check Results
+    for(int i=0;i<NUM_WORDS;i++) {
+        //in the .h, flash_buffer_test1 contains numbers from 0 to NUM_WORDS in order
+        if(sram_buffer_read_flash_back[i]!=i) {
+            PRINTF("At %d: expected %x, got %x\n", i, i, sram_buffer_read_flash_back[i]);
+            return 2;
+        }
+    }
+
+    /**************************************************************
+     * _______  ______   _____  _______        ____  
+     * |__   __||  ____| / ____||__   __|      |___ \ 
+     * | |   | |__   | (___     | |            __) |
+     * | |   |  __|   \___ \    | |           |__ < 
+     * | |   | |____  ____) |   | |           ___) |
+     * |_|   |______||_____/    |_|          |____/ 
+     * * [ TEST ]                            [ NO. 3 ]
+     * **************************************************************/
+
+    // Reset the flash data buffer
+    memset(sram_buffer_read_flash_back, 0, LENGTH_BYTES);
+
+    // First, check that the Flash has been programmed/initialized correctly
+    // we read in SW as we assume the SW is the golden model
+    w25q128jw_read_standard_dma(flash_buffer_test2, sram_buffer_read_flash_back, LENGTH_BYTES, 0, 0);
+
+    // Check Results
+    for(int i=0;i<NUM_WORDS;i++) {
+        if(sram_buffer_read_flash_back[i]!=(i+0x800)) {
+            PRINTF("At %d: expected %x, got %x\n", i, (i+0x800), sram_buffer_read_flash_back[i]);
+            return 3;
+        }
+    }
+
+    /**************************************************************
+     * _______  ______   _____  _______        _  _   
+     * |__   __||  ____| / ____||__   __|      | || |  
+     * | |   | |__   | (___     | |         | || |_ 
+     * | |   |  __|   \___ \    | |         |__   _|
+     * | |   | |____  ____) |   | |            | |  
+     * |_|   |______||_____/    |_|            |_|  
+     * * [ TEST ]                            [ NO. 4 ]
+     * **************************************************************/
+
+    // Reset the flash data buffer
+    memset(sram_buffer_read_flash_back, 0, LENGTH_BYTES);
+
+    // Read the flash memory at specific address (i.e. flash_buffer_test2) in HW
+    // we use interrupt now
+    // Clear HW regs before starting operation
+    w25q128jw_controller_clear_status_register();
+    // Clear SW flag of ISR before starting operation
+    w25q128jw_controller_clear_done_flag();
     // Activate interrupt in PLIC
     plic_Init();
     plic_irq_set_priority(W25Q128JW_CONTROLLER_INTR_EVENT, 1);
     plic_irq_set_enabled(W25Q128JW_CONTROLLER_INTR_EVENT, kPlicToggleEnabled);
-
-    // Activate global interrupts
+    // Activate global CPU interrupts
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);   // Global interrupt enable for machine mode (MIE) bit in Machine Status Registers
     CSR_SET_BITS(CSR_REG_MIE, (1 << 11)); // Machine External Interrupt Enable (MEIE) bit in Machine Interrupt Pending Register
-
+    // Enable interrupts
     w25q128jw_controller_enable_interrupt(1);
-    if (w25q128jw_controller_run(1) != EXIT_SUCCESS) return EXIT_FAILURE;
 
-    res =  check_result((uint8_t *)ram_golden_data, LENGTH_BYTES);
+    w25q128jw_controller_run(1, flash_buffer_test2);
 
-    if (res){
-        return EXIT_FAILURE;
+     // Check Results
+    for(int i=0;i<NUM_WORDS;i++) {
+        if(sram_buffer_read_flash_back[i]!=(i+0x800)) {
+            PRINTF("At %d: expected %x, got %x\n", i, (i+0x800), sram_buffer_read_flash_back[i]);
+            return 3;
+        }
     }
 
     return EXIT_SUCCESS;
 
-}
 
-uint32_t check_result(uint8_t *test_buffer, uint32_t len) {
-    uint32_t errors = 0;
-    uint8_t *ram_buffer_ptr = (uint8_t *)ram_buffer;
-
-    for (uint32_t i = 0; i < len; i++) {
-        if (test_buffer[i] != ram_buffer_ptr[i]) {
-            PRINTF("Error at position %d: expected %x, got %x\n", i, test_buffer[i], ram_buffer_ptr[i]);
-            errors++;
-            break;
-        }
-    }
-
-    return errors;
 }

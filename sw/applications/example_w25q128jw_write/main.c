@@ -7,7 +7,6 @@
  *
  * Test parameters:
  * - Transfer size: 4100 bytes (spanning over 2 sectors) (write operation is word precise)
- * - Mode: Polling-based completion detection (see "example_w25q128jw_interrupt" for interrupt-based)
  */
 
 #include <stdio.h>
@@ -220,11 +219,7 @@ int main(void) {
     // Enable interrupts
     w25q128jw_controller_enable_interrupt(1);
 
-    asm volatile("davide_write: nop");
-
     w25q128jw_controller_run(1, flash_buffer_test2);
-
-    asm volatile("davide_read: nop");
 
     // we read back in SW as we assume the SW is the golden model
     w25q128jw_read_standard_dma(flash_buffer_test2, sram_buffer_read_flash_back, LENGTH_BYTES, 0, 0);

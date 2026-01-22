@@ -69,6 +69,12 @@ module dma_read_addr_unit
   logic [31:0] addr_ptr_reg;
   logic [31:0] dma_addr_cnt;
 
+  typedef enum logic {
+    OBI_DATA_REQ,
+    OBI_WAIT_GNT
+  } obi_write_state_type_t;
+  obi_write_state_type_t obi_data_req_q, obi_data_req_d;
+
   /*_________________________________________________________________________________________________________________________________ */
 
   /* FSMs instantiation */

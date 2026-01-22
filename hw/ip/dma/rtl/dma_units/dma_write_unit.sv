@@ -105,17 +105,15 @@ module dma_write_unit
   logic [31:0] write_buffer_data;
 
   typedef enum logic {
-    OBI_WRITE_DATA_REQ,
-    OBI_WRITE_WAIT_GNT
+    OBI_DATA_REQ,
+    OBI_WAIT_GNT
   } obi_write_state_type_t;
-
   obi_write_state_type_t obi_data_req_q, obi_data_req_d;
 
   typedef enum logic {
     WAIT_FOR_TX_OUTSTANDING_IDLE,
     WAIT_FOR_TX_OUTSTANDING_WAIT
   } wait_for_tx_state_type_t;
-
   wait_for_tx_state_type_t wait_for_tx_state_q, wait_for_tx_state_d;
 
   /*_________________________________________________________________________________________________________________________________ */
@@ -144,7 +142,7 @@ module dma_write_unit
     if (~rst_ni) begin
       dma_dst_cnt_d1 <= '0;
       dma_dst_cnt_d2 <= '0;
-      obi_data_req_q <= OBI_WRITE_DATA_REQ;
+      obi_data_req_q <= OBI_DATA_REQ;
       wait_for_tx_state_q <= WAIT_FOR_TX_OUTSTANDING_IDLE;
     end else begin
       obi_data_req_q <= obi_data_req_d;
@@ -312,13 +310,13 @@ module dma_write_unit
     obi_data_req_d = obi_data_req_q;
     unique case (obi_data_req_q)
 
-      OBI_WRITE_DATA_REQ: begin
-        if (data_out_req && !data_out_gnt) obi_data_req_d = OBI_WRITE_WAIT_GNT;
+      OBI_DATA_REQ: begin
+        if (data_out_req && !data_out_gnt) obi_data_req_d = OBI_WAIT_GNT;
       end
 
-      OBI_WRITE_WAIT_GNT: begin
+      OBI_WAIT_GNT: begin
         data_req_cond  = 1'b1;
-        obi_data_req_d = data_out_gnt ? OBI_WRITE_DATA_REQ : OBI_WRITE_WAIT_GNT;
+        obi_data_req_d = data_out_gnt ? OBI_DATA_REQ : OBI_WAIT_GNT;
       end
     endcase
   end

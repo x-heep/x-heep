@@ -339,5 +339,14 @@
         { bits: "0", name: "HW_CONFIG_MODE", desc: "Whether the registers are configured in HW (1) or SW (0, default)" }
       ]
     }
+    { name:    "SLOT_WAIT_COUNTER"
+      desc:    '''A counter to wait before submitting the next req when using slots'''
+      swaccess: "rw"
+      hwaccess: "hrw"
+      resval:        0
+      fields: [
+        { bits: "7:0", name: "SLOT_WAIT_COUNTER", desc: "A counter to wait before submitting the next req when using slots"}
+      ]
+    }
   ]
 }

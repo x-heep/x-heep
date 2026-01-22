@@ -25,6 +25,7 @@ module dma_read_unit
 
     input logic wait_for_rx_i,
     input logic enable_wait_for_rx_i,
+    input logic [7:0] slot_wait_counter_i,
 
     input logic read_buffer_full_i,
     input logic read_buffer_alm_full_i,
@@ -120,6 +121,8 @@ module dma_read_unit
 
   dma_pkg::dma_wait_for_state_type_t wait_for_rx_state_q, wait_for_rx_state_d;
 
+  logic [7:0] slot_wait_counter_d, slot_wait_counter_q;
+
   /*_________________________________________________________________________________________________________________________________ */
 
   /* FSMs instantiation */
@@ -137,9 +140,11 @@ module dma_read_unit
       dma_src_cnt_d2 <= '0;
       obi_data_req_q <= OBI_DATA_REQ;
       wait_for_rx_state_q <= WAIT_FOR_OUTSTANDING_IDLE;
+      slot_wait_counter_q <= '0;
     end else begin
       obi_data_req_q <= obi_data_req_d;
       wait_for_rx_state_q <= wait_for_rx_state_d;
+      slot_wait_counter_q <= slot_wait_counter_d;
       if (dma_start == 1'b1) begin
         dma_src_cnt_d1 <= {1'h0, reg2hw.size_d1.q};
         dma_src_cnt_d2 <= {1'h0, reg2hw.size_d2.q};
@@ -374,6 +379,7 @@ module dma_read_unit
   always_comb begin
     wait_for_rx_state_d = wait_for_rx_state_q;
     wait_for_rx = wait_for_rx_i;
+    slot_wait_counter_d = slot_wait_counter_q;
 
     unique case (wait_for_rx_state_q)
 
@@ -384,8 +390,28 @@ module dma_read_unit
 
       WAIT_FOR_OUTSTANDING_WAIT: begin
         wait_for_rx = 1'b1;
-        wait_for_rx_state_d = data_in_rvalid ? WAIT_FOR_OUTSTANDING_IDLE : WAIT_FOR_OUTSTANDING_WAIT;
+        if (data_in_rvalid) begin
+          if (slot_wait_counter_q == '0) begin
+            wait_for_rx_state_d = WAIT_FOR_OUTSTANDING_IDLE;
+          end else begin
+            wait_for_rx_state_d = WAIT_FOR_OUTSTANDING_COUNTER;
+          end
+        end
       end
+
+      WAIT_FOR_OUTSTANDING_COUNTER: begin
+        wait_for_rx = 1'b1;
+        if (slot_wait_counter_q == '0) begin
+          wait_for_rx_state_d = WAIT_FOR_OUTSTANDING_IDLE;
+          slot_wait_counter_d = slot_wait_counter_i;
+        end else begin
+          wait_for_rx_state_d = WAIT_FOR_OUTSTANDING_COUNTER;
+          slot_wait_counter_d = slot_wait_counter_q - 1;
+        end
+      end
+
+      default: ;
+
     endcase
   end
 

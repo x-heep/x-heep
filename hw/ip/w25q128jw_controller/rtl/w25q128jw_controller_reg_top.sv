@@ -10,7 +10,7 @@
 module w25q128jw_controller_reg_top #(
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic,
-    parameter int AW = 5
+    parameter int AW = 6
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -95,6 +95,9 @@ module w25q128jw_controller_reg_top #(
   logic intr_enable_qs;
   logic intr_enable_wd;
   logic intr_enable_we;
+  logic [7:0] dma_slot_wait_counter_qs;
+  logic [7:0] dma_slot_wait_counter_wd;
+  logic dma_slot_wait_counter_we;
 
   // Register instances
   // R[control]: V(False)
@@ -340,9 +343,36 @@ module w25q128jw_controller_reg_top #(
   );
 
 
+  // R[dma_slot_wait_counter]: V(False)
+
+  prim_subreg #(
+      .DW      (8),
+      .SWACCESS("RW"),
+      .RESVAL  (8'h0)
+  ) u_dma_slot_wait_counter (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(dma_slot_wait_counter_we),
+      .wd(dma_slot_wait_counter_wd),
+
+      // from internal hardware
+      .de(hw2reg.dma_slot_wait_counter.de),
+      .d (hw2reg.dma_slot_wait_counter.d),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.dma_slot_wait_counter.q),
+
+      // to register interface (read)
+      .qs(dma_slot_wait_counter_qs)
+  );
 
 
-  logic [7:0] addr_hit;
+
+
+  logic [8:0] addr_hit;
   always_comb begin
     addr_hit = '0;
     addr_hit[0] = (reg_addr == W25Q128JW_CONTROLLER_CONTROL_OFFSET);
@@ -353,6 +383,7 @@ module w25q128jw_controller_reg_top #(
     addr_hit[5] = (reg_addr == W25Q128JW_CONTROLLER_LENGTH_OFFSET);
     addr_hit[6] = (reg_addr == W25Q128JW_CONTROLLER_INTR_STATUS_OFFSET);
     addr_hit[7] = (reg_addr == W25Q128JW_CONTROLLER_INTR_ENABLE_OFFSET);
+    addr_hit[8] = (reg_addr == W25Q128JW_CONTROLLER_DMA_SLOT_WAIT_COUNTER_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0;
@@ -367,7 +398,8 @@ module w25q128jw_controller_reg_top #(
                (addr_hit[4] & (|(W25Q128JW_CONTROLLER_PERMIT[4] & ~reg_be))) |
                (addr_hit[5] & (|(W25Q128JW_CONTROLLER_PERMIT[5] & ~reg_be))) |
                (addr_hit[6] & (|(W25Q128JW_CONTROLLER_PERMIT[6] & ~reg_be))) |
-               (addr_hit[7] & (|(W25Q128JW_CONTROLLER_PERMIT[7] & ~reg_be)))));
+               (addr_hit[7] & (|(W25Q128JW_CONTROLLER_PERMIT[7] & ~reg_be))) |
+               (addr_hit[8] & (|(W25Q128JW_CONTROLLER_PERMIT[8] & ~reg_be)))));
   end
 
   assign control_start_we = addr_hit[0] & reg_we & !reg_error;
@@ -396,6 +428,9 @@ module w25q128jw_controller_reg_top #(
 
   assign intr_enable_we = addr_hit[7] & reg_we & !reg_error;
   assign intr_enable_wd = reg_wdata[0];
+
+  assign dma_slot_wait_counter_we = addr_hit[8] & reg_we & !reg_error;
+  assign dma_slot_wait_counter_wd = reg_wdata[7:0];
 
   // Read data return
   always_comb begin
@@ -434,6 +469,10 @@ module w25q128jw_controller_reg_top #(
         reg_rdata_next[0] = intr_enable_qs;
       end
 
+      addr_hit[8]: begin
+        reg_rdata_next[7:0] = dma_slot_wait_counter_qs;
+      end
+
       default: begin
         reg_rdata_next = '1;
       end
@@ -455,7 +494,7 @@ module w25q128jw_controller_reg_top #(
 endmodule
 
 module w25q128jw_controller_reg_top_intf #(
-    parameter  int AW = 5,
+    parameter  int AW = 6,
     localparam int DW = 32
 ) (
     input logic clk_i,

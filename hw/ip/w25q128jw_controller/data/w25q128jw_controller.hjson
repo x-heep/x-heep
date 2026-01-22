@@ -76,5 +76,14 @@
         { bits: "0", name: "INTR_ENABLE", desc: "interrupt enable"}
      ]
     }
+    { name:    "DMA_SLOT_WAIT_COUNTER"
+      desc:    '''A DMA counter used to wait before submitting the next req when using slots'''
+      swaccess: "rw"
+      hwaccess: "hrw"
+      resval:        0
+      fields: [
+        { bits: "7:0", name: "DMA_SLOT_WAIT_COUNTER", desc: "A DMA counter used to wait before submitting the next req when using slots"}
+      ]
+    }
   ]
 }

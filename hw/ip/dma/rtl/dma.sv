@@ -235,6 +235,7 @@ module dma
 
       .wait_for_rx_i(wait_for_rx),
       .enable_wait_for_rx_i(enable_wait_for_rx),
+      .slot_wait_counter_i(reg2hw.slot_wait_counter.q),
 
       .read_buffer_full_i(read_buffer_full),
       .read_buffer_alm_full_i(read_buffer_alm_full),
@@ -336,6 +337,7 @@ module dma
       .dma_start_i(dma_start),
       .wait_for_tx_i(wait_for_tx),
       .enable_wait_for_tx_i(enable_wait_for_tx),
+      .slot_wait_counter_i(reg2hw.slot_wait_counter.q),
 
       .dma_done_o(dma_done),
       .dma_done_override_i(dma_write_done_override),

@@ -131,3 +131,11 @@ void w25q128jw_controller_read(void* dest, void* src, size_t length_bytes) {
 void w25q128jw_controller_write(void* dest, void* src, size_t length_bytes) {
     w25q128jw_controller_rnw(0, length_bytes, dest, w25q128jw_sector_data_buffer, src);
 }
+
+/**
+ * @param slot_wait_counter Number of bytes to transfer.
+ */
+void w25q128jw_set_dma_slot_wait_counter(uint32_t slot_wait_counter)
+{
+    w25q128jw_controller_peri->DMA_SLOT_WAIT_COUNTER = slot_wait_counter;
+}

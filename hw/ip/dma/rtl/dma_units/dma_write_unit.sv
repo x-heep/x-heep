@@ -21,6 +21,8 @@ module dma_write_unit
     input logic dma_start_i,
     input logic wait_for_tx_i,
     input logic enable_wait_for_tx_i,
+    input logic [7:0] slot_wait_counter_i,
+
     input logic dma_done_override_i,
 
     input logic write_buffer_empty_i,
@@ -102,6 +104,8 @@ module dma_write_unit
 
   dma_pkg::dma_wait_for_state_type_t wait_for_tx_state_q, wait_for_tx_state_d;
 
+  logic [7:0] slot_wait_counter_d, slot_wait_counter_q;
+
   /*_________________________________________________________________________________________________________________________________ */
 
   /* FSMs instantiation */
@@ -130,9 +134,11 @@ module dma_write_unit
       dma_dst_cnt_d2 <= '0;
       obi_data_req_q <= OBI_DATA_REQ;
       wait_for_tx_state_q <= WAIT_FOR_OUTSTANDING_IDLE;
+      slot_wait_counter_q <= '0;
     end else begin
       obi_data_req_q <= obi_data_req_d;
       wait_for_tx_state_q <= wait_for_tx_state_d;
+      slot_wait_counter_q <= slot_wait_counter_d;
       if (dma_start == 1'b1) begin
         dma_dst_cnt_d1 <= dma_size_d1;
         dma_dst_cnt_d2 <= dma_size_d2;
@@ -310,6 +316,7 @@ module dma_write_unit
   always_comb begin
     wait_for_tx_state_d = wait_for_tx_state_q;
     wait_for_tx = wait_for_tx_i;
+    slot_wait_counter_d = slot_wait_counter_q;
 
     unique case (wait_for_tx_state_q)
 
@@ -320,9 +327,30 @@ module dma_write_unit
 
       WAIT_FOR_OUTSTANDING_WAIT: begin
         wait_for_tx = 1'b1;
-        wait_for_tx_state_d = data_out_rvalid ? WAIT_FOR_OUTSTANDING_IDLE : WAIT_FOR_OUTSTANDING_WAIT;
+        if (data_out_rvalid) begin
+          if (slot_wait_counter_q == '0) begin
+            wait_for_tx_state_d = WAIT_FOR_OUTSTANDING_IDLE;
+          end else begin
+            wait_for_tx_state_d = WAIT_FOR_OUTSTANDING_COUNTER;
+          end
+        end
       end
+
+      WAIT_FOR_OUTSTANDING_COUNTER: begin
+        wait_for_tx = 1'b1;
+        if (slot_wait_counter_q == '0) begin
+          wait_for_tx_state_d = WAIT_FOR_OUTSTANDING_IDLE;
+          slot_wait_counter_d = slot_wait_counter_i;
+        end else begin
+          wait_for_tx_state_d = WAIT_FOR_OUTSTANDING_COUNTER;
+          slot_wait_counter_d = slot_wait_counter_q - 1;
+        end
+      end
+
+      default: ;
+
     endcase
+
   end
 
   /*_________________________________________________________________________________________________________________________________ */

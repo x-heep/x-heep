@@ -7,7 +7,7 @@
 package w25q128jw_controller_reg_pkg;
 
   // Address widths within the block
-  parameter int BlockAw = 5;
+  parameter int BlockAw = 6;
 
   ////////////////////////////
   // Typedefs for registers //
@@ -31,6 +31,8 @@ package w25q128jw_controller_reg_pkg;
   typedef struct packed {logic q;} w25q128jw_controller_reg2hw_intr_status_reg_t;
 
   typedef struct packed {logic q;} w25q128jw_controller_reg2hw_intr_enable_reg_t;
+
+  typedef struct packed {logic [7:0] q;} w25q128jw_controller_reg2hw_dma_slot_wait_counter_reg_t;
 
   typedef struct packed {
     struct packed {
@@ -73,38 +75,46 @@ package w25q128jw_controller_reg_pkg;
     logic de;
   } w25q128jw_controller_hw2reg_intr_status_reg_t;
 
+  typedef struct packed {
+    logic [7:0] d;
+    logic       de;
+  } w25q128jw_controller_hw2reg_dma_slot_wait_counter_reg_t;
+
   // Register -> HW type
   typedef struct packed {
-    w25q128jw_controller_reg2hw_control_reg_t control;  // [132:131]
-    w25q128jw_controller_reg2hw_status_reg_t status;  // [130:130]
-    w25q128jw_controller_reg2hw_f_address_reg_t f_address;  // [129:98]
-    w25q128jw_controller_reg2hw_s_address_reg_t s_address;  // [97:66]
-    w25q128jw_controller_reg2hw_md_address_reg_t md_address;  // [65:34]
-    w25q128jw_controller_reg2hw_length_reg_t length;  // [33:2]
-    w25q128jw_controller_reg2hw_intr_status_reg_t intr_status;  // [1:1]
-    w25q128jw_controller_reg2hw_intr_enable_reg_t intr_enable;  // [0:0]
+    w25q128jw_controller_reg2hw_control_reg_t control;  // [140:139]
+    w25q128jw_controller_reg2hw_status_reg_t status;  // [138:138]
+    w25q128jw_controller_reg2hw_f_address_reg_t f_address;  // [137:106]
+    w25q128jw_controller_reg2hw_s_address_reg_t s_address;  // [105:74]
+    w25q128jw_controller_reg2hw_md_address_reg_t md_address;  // [73:42]
+    w25q128jw_controller_reg2hw_length_reg_t length;  // [41:10]
+    w25q128jw_controller_reg2hw_intr_status_reg_t intr_status;  // [9:9]
+    w25q128jw_controller_reg2hw_intr_enable_reg_t intr_enable;  // [8:8]
+    w25q128jw_controller_reg2hw_dma_slot_wait_counter_reg_t dma_slot_wait_counter;  // [7:0]
   } w25q128jw_controller_reg2hw_t;
 
   // HW -> register type
   typedef struct packed {
-    w25q128jw_controller_hw2reg_control_reg_t control;  // [139:136]
-    w25q128jw_controller_hw2reg_status_reg_t status;  // [135:134]
-    w25q128jw_controller_hw2reg_f_address_reg_t f_address;  // [133:101]
-    w25q128jw_controller_hw2reg_s_address_reg_t s_address;  // [100:68]
-    w25q128jw_controller_hw2reg_md_address_reg_t md_address;  // [67:35]
-    w25q128jw_controller_hw2reg_length_reg_t length;  // [34:2]
-    w25q128jw_controller_hw2reg_intr_status_reg_t intr_status;  // [1:0]
+    w25q128jw_controller_hw2reg_control_reg_t control;  // [148:145]
+    w25q128jw_controller_hw2reg_status_reg_t status;  // [144:143]
+    w25q128jw_controller_hw2reg_f_address_reg_t f_address;  // [142:110]
+    w25q128jw_controller_hw2reg_s_address_reg_t s_address;  // [109:77]
+    w25q128jw_controller_hw2reg_md_address_reg_t md_address;  // [76:44]
+    w25q128jw_controller_hw2reg_length_reg_t length;  // [43:11]
+    w25q128jw_controller_hw2reg_intr_status_reg_t intr_status;  // [10:9]
+    w25q128jw_controller_hw2reg_dma_slot_wait_counter_reg_t dma_slot_wait_counter;  // [8:0]
   } w25q128jw_controller_hw2reg_t;
 
   // Register offsets
-  parameter logic [BlockAw-1:0] W25Q128JW_CONTROLLER_CONTROL_OFFSET = 5'h0;
-  parameter logic [BlockAw-1:0] W25Q128JW_CONTROLLER_STATUS_OFFSET = 5'h4;
-  parameter logic [BlockAw-1:0] W25Q128JW_CONTROLLER_F_ADDRESS_OFFSET = 5'h8;
-  parameter logic [BlockAw-1:0] W25Q128JW_CONTROLLER_S_ADDRESS_OFFSET = 5'hc;
-  parameter logic [BlockAw-1:0] W25Q128JW_CONTROLLER_MD_ADDRESS_OFFSET = 5'h10;
-  parameter logic [BlockAw-1:0] W25Q128JW_CONTROLLER_LENGTH_OFFSET = 5'h14;
-  parameter logic [BlockAw-1:0] W25Q128JW_CONTROLLER_INTR_STATUS_OFFSET = 5'h18;
-  parameter logic [BlockAw-1:0] W25Q128JW_CONTROLLER_INTR_ENABLE_OFFSET = 5'h1c;
+  parameter logic [BlockAw-1:0] W25Q128JW_CONTROLLER_CONTROL_OFFSET = 6'h0;
+  parameter logic [BlockAw-1:0] W25Q128JW_CONTROLLER_STATUS_OFFSET = 6'h4;
+  parameter logic [BlockAw-1:0] W25Q128JW_CONTROLLER_F_ADDRESS_OFFSET = 6'h8;
+  parameter logic [BlockAw-1:0] W25Q128JW_CONTROLLER_S_ADDRESS_OFFSET = 6'hc;
+  parameter logic [BlockAw-1:0] W25Q128JW_CONTROLLER_MD_ADDRESS_OFFSET = 6'h10;
+  parameter logic [BlockAw-1:0] W25Q128JW_CONTROLLER_LENGTH_OFFSET = 6'h14;
+  parameter logic [BlockAw-1:0] W25Q128JW_CONTROLLER_INTR_STATUS_OFFSET = 6'h18;
+  parameter logic [BlockAw-1:0] W25Q128JW_CONTROLLER_INTR_ENABLE_OFFSET = 6'h1c;
+  parameter logic [BlockAw-1:0] W25Q128JW_CONTROLLER_DMA_SLOT_WAIT_COUNTER_OFFSET = 6'h20;
 
   // Register index
   typedef enum int {
@@ -115,11 +125,12 @@ package w25q128jw_controller_reg_pkg;
     W25Q128JW_CONTROLLER_MD_ADDRESS,
     W25Q128JW_CONTROLLER_LENGTH,
     W25Q128JW_CONTROLLER_INTR_STATUS,
-    W25Q128JW_CONTROLLER_INTR_ENABLE
+    W25Q128JW_CONTROLLER_INTR_ENABLE,
+    W25Q128JW_CONTROLLER_DMA_SLOT_WAIT_COUNTER
   } w25q128jw_controller_id_e;
 
   // Register width information to check illegal writes
-  parameter logic [3:0] W25Q128JW_CONTROLLER_PERMIT[8] = '{
+  parameter logic [3:0] W25Q128JW_CONTROLLER_PERMIT[9] = '{
       4'b0001,  // index[0] W25Q128JW_CONTROLLER_CONTROL
       4'b0001,  // index[1] W25Q128JW_CONTROLLER_STATUS
       4'b1111,  // index[2] W25Q128JW_CONTROLLER_F_ADDRESS
@@ -127,7 +138,8 @@ package w25q128jw_controller_reg_pkg;
       4'b1111,  // index[4] W25Q128JW_CONTROLLER_MD_ADDRESS
       4'b1111,  // index[5] W25Q128JW_CONTROLLER_LENGTH
       4'b0001,  // index[6] W25Q128JW_CONTROLLER_INTR_STATUS
-      4'b0001  // index[7] W25Q128JW_CONTROLLER_INTR_ENABLE
+      4'b0001,  // index[7] W25Q128JW_CONTROLLER_INTR_ENABLE
+      4'b0001  // index[8] W25Q128JW_CONTROLLER_DMA_SLOT_WAIT_COUNTER
   };
 
 endpackage

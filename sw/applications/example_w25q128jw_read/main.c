@@ -217,7 +217,49 @@ int main(void) {
     for(int i=0;i<NUM_WORDS;i++) {
         if(sram_buffer_read_flash_back[i]!=(i+0x800)) {
             PRINTF("At %d: expected %x, got %x\n", i, (i+0x800), sram_buffer_read_flash_back[i]);
-            return 3;
+            return 4;
+        }
+    }
+
+    /**************************************************************
+     * _______  ______   _____  _______        _____ 
+     * |__   __||  ____| / ____||__   __|      | ____|
+     * | |   | |__   | (___     | |         | |__  
+     * | |   |  __|   \___ \    | |         |___ \ 
+     * | |   | |____  ____) |   | |          ___) |
+     * |_|   |______||_____/    |_|         |____/ 
+     * * [ TEST ]                            [ NO. 5 ]
+     * **************************************************************/
+
+     // Reset the flash data buffer
+    memset(sram_buffer_read_flash_back, 0, LENGTH_BYTES);
+
+    // Read the flash memory at specific address (i.e. flash_buffer_test1) in HW
+    // we use interrupt now
+    // Clear HW regs before starting operation
+    w25q128jw_controller_clear_status_register();
+    // Clear SW flag of ISR before starting operation
+    w25q128jw_controller_clear_done_flag();
+    // Activate interrupt in PLIC
+    plic_Init();
+    plic_irq_set_priority(W25Q128JW_CONTROLLER_INTR_EVENT, 1);
+    plic_irq_set_enabled(W25Q128JW_CONTROLLER_INTR_EVENT, kPlicToggleEnabled);
+    // Activate global CPU interrupts
+    CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);   // Global interrupt enable for machine mode (MIE) bit in Machine Status Registers
+    CSR_SET_BITS(CSR_REG_MIE, (1 << 11)); // Machine External Interrupt Enable (MEIE) bit in Machine Interrupt Pending Register
+    // Enable interrupts
+    w25q128jw_controller_enable_interrupt(1);
+
+    //we also use the dma slot delay counter (we wait 12 cycles after rvalid in both reads and writes)
+    w25q128jw_set_dma_slot_wait_counter(12);
+
+    w25q128jw_controller_run(1, flash_buffer_test1);
+
+     // Check Results
+    for(int i=0;i<NUM_WORDS;i++) {
+        if(sram_buffer_read_flash_back[i]!=i) {
+            PRINTF("At %d: expected %x, got %x\n", i, (i+0x800), sram_buffer_read_flash_back[i]);
+            return 5;
         }
     }
 

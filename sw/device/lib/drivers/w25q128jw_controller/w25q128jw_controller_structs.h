@@ -5,7 +5,7 @@
 **                                                                         **
 ** project  : x-heep                                                       **
 ** filename : w25q128jw_controller_structs.h                                 **
-** date     : 12/01/2026                                                      **
+** date     : 22/01/2026                                                      **
 **                                                                         **
 *****************************************************************************
 **                                                                         **
@@ -16,7 +16,7 @@
 
 /**
 * @file   w25q128jw_controller_structs.h
-* @date   12/01/2026
+* @date   22/01/2026
 * @brief  Contains structs for every register
 *
 * This file contains the structs of the registes of the peripheral.
@@ -70,6 +70,8 @@ typedef struct {
   uint32_t INTR_STATUS;                           /*!< Interrupt status register*/
 
   uint32_t INTR_ENABLE;                           /*!< Interrupt enable register*/
+
+  uint32_t DMA_SLOT_WAIT_COUNTER;                 /*!< A DMA counter used to wait before submitting the next req when using slots*/
 
 } w25q128jw_controller;
 

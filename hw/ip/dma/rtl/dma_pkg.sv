@@ -21,9 +21,10 @@ package dma_pkg;
     OBI_WAIT_GNT
   } dma_obi_state_type_t;
 
-  typedef enum logic {
+  typedef enum logic [1:0] {
     WAIT_FOR_OUTSTANDING_IDLE,
-    WAIT_FOR_OUTSTANDING_WAIT
+    WAIT_FOR_OUTSTANDING_WAIT,
+    WAIT_FOR_OUTSTANDING_COUNTER
   } dma_wait_for_state_type_t;
 
 endpackage

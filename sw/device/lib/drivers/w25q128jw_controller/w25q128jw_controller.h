@@ -88,4 +88,10 @@ void w25q128jw_controller_read(void* dest, void* src, size_t length_bytes);
  */
 void w25q128jw_controller_write(void* dest, void* src, size_t length_bytes);
 
+/**
+ * @brief This function sets the DMA_SLOT_WAIT_COUNTER so that the DMA
+ * waits the given cycles before sending another request to its slot target.
+*/
+void w25q128jw_set_dma_slot_wait_counter(uint32_t slot_wait_counter);
+
 #endif // W25Q128JW_CONTROLLER_H

@@ -575,6 +575,12 @@ uint8_t dma_window_ratio_warning_threshold(void);
 */
 uint32_t dma_set_hw_configuration_mode(uint32_t hw_config_mode, int dma_ch);
 
+/**
+ * @brief This function sets the SLOT_WAIT_COUNTER so that the DMA
+ * waits the given cycles before sending another request to its slot target.
+*/
+uint32_t dma_set_slot_wait_counter(uint32_t slot_wait_counter, int dma_ch);
+
 /****************************************************************************/
 /**                                                                        **/
 /**                          INLINE FUNCTIONS                              **/

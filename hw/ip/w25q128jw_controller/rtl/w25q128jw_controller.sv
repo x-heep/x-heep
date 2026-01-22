@@ -323,7 +323,7 @@ module w25q128jw_controller
       // -------- IDLE STATE --------
       // Wait for SW to set the START bit in CONTROL register
       TOP_IDLE: begin
-        if (reg2hw.control.start) begin
+        if (reg2hw.control.start.q) begin
           top_state_d = TOP_READ;  // Always start with READ (for both read and write operations)
         end
       end
@@ -353,7 +353,7 @@ module w25q128jw_controller
             external_dma_hw2reg_o.src_ptr.d  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_RXDATA_OFFSET}; // SPI RX FIFO address;
             //Set DMA destination pointer: RAM sector buffer
             external_dma_hw2reg_o.dst_ptr.de = 1'b1;
-            external_dma_hw2reg_o.dst_ptr.d = reg2hw.s_address; // RAM buffer address from S_ADDRESS register
+            external_dma_hw2reg_o.dst_ptr.d = reg2hw.s_address.q; // RAM buffer address from S_ADDRESS register
             //Set source increment: 0 (stay at FIFO address)
             external_dma_hw2reg_o.src_ptr_inc_d1.de = 1'b1;
             external_dma_hw2reg_o.src_ptr_inc_d1.d  = '0; // No increment - always read from RX FIFO address
@@ -371,14 +371,18 @@ module w25q128jw_controller
             external_dma_hw2reg_o.slot.rx_trigger_slot.d = 'h4;
             external_dma_hw2reg_o.slot.tx_trigger_slot.de = 1'b1;
             external_dma_hw2reg_o.slot.tx_trigger_slot.d = '0;
+            //Set slot wait counter
+            external_dma_hw2reg_o.slot_wait_counter.de = 1'b1;
+            external_dma_hw2reg_o.slot_wait_counter.d   = reg2hw.dma_slot_wait_counter.q; // slot_wait_counter to write to DMA
+
             //Set transfer size and START DMA
             external_dma_hw2reg_o.size_d1.de = 1'b1;
-            if (reg2hw.control.rnw) begin
+            if (reg2hw.control.rnw.q) begin
               // READ operation: transfer user-specified length
-              if (reg2hw.length[1:0] == 0) begin
-                dma_size = reg2hw.length >> 2;  // Exact word count (length divisible by 4)
+              if (reg2hw.length.q[1:0] == 0) begin
+                dma_size = reg2hw.length.q >> 2;  // Exact word count (length divisible by 4)
               end else begin
-                dma_size = (reg2hw.length >> 2) + 1;  // Round up to next word
+                dma_size = (reg2hw.length.q >> 2) + 1;  // Round up to next word
               end
             end else begin
               // WRITE operation: always read one sector (1024 words = 4KB)
@@ -407,14 +411,14 @@ module w25q128jw_controller
             spi_host_reg_req_o.write = 1'b1;
             spi_host_reg_req_o.valid = 1'b1;
 
-            if (reg2hw.control.rnw) begin
+            if (reg2hw.control.rnw.q) begin
               // READ: Use exact flash address from F_ADDRESS register
-              flash_address = reg2hw.f_address & 32'h00ffffff;
+              flash_address = reg2hw.f_address.q & 32'h00ffffff;
               spi_host_reg_req_o.wdata = (((bitfield_byteswap32(flash_address)) >> 8) << 8) |
                   {19'h0, FC_RD};
             end else begin
               // WRITE: Use sector-aligned address + current sector iteration offset
-              flash_address = (reg2hw.f_address & 32'h00fff000) + (sector_iter_offset_q);
+              flash_address = (reg2hw.f_address.q & 32'h00fff000) + (sector_iter_offset_q);
               spi_host_reg_req_o.wdata = (((bitfield_byteswap32(flash_address)) >> 8) << 8) |
                   {19'h0, FC_RD};
             end
@@ -470,10 +474,10 @@ module w25q128jw_controller
             spi_host_reg_req_o.write = 1'b1;
             spi_host_reg_req_o.valid = 1'b1;
 
-            if (reg2hw.control.rnw) begin
+            if (reg2hw.control.rnw.q) begin
               // READ: receive user-specified number of bytes
               spi_host_reg_req_o.wdata = {
-                3'h0, 2'h1, 2'h0, 1'h0, reg2hw.length[23:0] - 1'h1
+                3'h0, 2'h1, 2'h0, 1'h0, reg2hw.length.q[23:0] - 1'h1
               };  // Empty + Direction + Speed + Csaat + Length
             end else begin
               // WRITE: read full sector (4096 bytes)
@@ -489,7 +493,7 @@ module w25q128jw_controller
           // ============== WAIT FOR DMA COMPLETION ==============
           READ_TRANS: begin
             if (dma_done_i[0]) begin  // DMA channel 0 done signal
-              if (reg2hw.control.rnw) begin
+              if (reg2hw.control.rnw.q) begin
                 // ===== READ OPERATION COMPLETE =====
                 read_state_d            = READ_IDLE;
                 top_state_d             = TOP_IDLE;
@@ -830,7 +834,7 @@ module w25q128jw_controller
             spi_host_reg_req_o.valid = 1'b1;
             // Use sector-aligned address + current sector iteration offset + SECTOR ERASE command
             // Inspiration from sw/device/bsp/w25q
-            flash_address = (reg2hw.f_address & 32'h00fff000) + (sector_iter_offset_q);
+            flash_address = (reg2hw.f_address.q & 32'h00fff000) + (sector_iter_offset_q);
             spi_host_reg_req_o.wdata = ((bitfield_byteswap32(flash_address) >> 8) << 8) |
                 {19'h0, FC_SE};
             if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error) begin
@@ -891,7 +895,7 @@ module w25q128jw_controller
 
         // -------- Compute sector offset --------
         if (sector_iter_offset_q == 0) begin
-          sector_offset = reg2hw.f_address & 32'h00000fff;  // Offset within sector for first iteration
+          sector_offset = reg2hw.f_address.q & 32'h00000fff;  // Offset within sector for first iteration
         end else begin
           sector_offset = 32'h0;  // Begin from start of sector for next iterations
         end
@@ -911,10 +915,10 @@ module w25q128jw_controller
             external_dma_hw2reg_o.src_ptr.de = 1'b1;
             // Source = MD_ADDRESS + offset for current sector iteration (for multi-sector writes) 
             // F_ADDRESS not necessarily sector aligned and such case must be taken into consideration
-            external_dma_hw2reg_o.src_ptr.d = reg2hw.md_address + md_offset_q;
+            external_dma_hw2reg_o.src_ptr.d = reg2hw.md_address.q + md_offset_q;
             //Set DMA destination pointer: RAM sector buffer
             external_dma_hw2reg_o.dst_ptr.de = 1'b1;
-            external_dma_hw2reg_o.dst_ptr.d = reg2hw.s_address + sector_offset;
+            external_dma_hw2reg_o.dst_ptr.d = reg2hw.s_address.q + sector_offset;
             // Destination = S_ADDRESS + offset within sector (for first iteration only, otherwise sector_offset = 0)
             // F_ADDRESS not necessarily sector aligned and such case must be taken into consideration
             //Set source increment: +4 bytes per word
@@ -934,16 +938,20 @@ module w25q128jw_controller
             external_dma_hw2reg_o.slot.rx_trigger_slot.d = '0;
             external_dma_hw2reg_o.slot.tx_trigger_slot.de = 1'b1;
             external_dma_hw2reg_o.slot.tx_trigger_slot.d = '0;
+            //Set slot wait counter
+            external_dma_hw2reg_o.slot_wait_counter.de = 1'b1;
+            external_dma_hw2reg_o.slot_wait_counter.d = '0;
+
             //Set transfer size and START DMA
             external_dma_hw2reg_o.size_d1.de = 1'b1;
             // Writing to SIZE_D1 register triggers DMA transaction (See hw/ip/dma/data/dma.hjson)
             // Compute how many words to transfer for this sector
-            if (reg2hw.length < {19'h0, SE_BSIZE} - sector_offset) begin
+            if (reg2hw.length.q < {19'h0, SE_BSIZE} - sector_offset) begin
               // Case 1: All remaining data fits in this sector
-              if (reg2hw.length[1:0] == 0) begin
-                dma_size = reg2hw.length >> 2;  // Exact word count
+              if (reg2hw.length.q[1:0] == 0) begin
+                dma_size = reg2hw.length.q >> 2;  // Exact word count
               end else begin
-                dma_size = (reg2hw.length >> 2) + 1;  // Round up to next word
+                dma_size = (reg2hw.length.q >> 2) + 1;  // Round up to next word
               end
             end else begin
               // Case 2: Data spans multiple sectors. Fill remaining sector space
@@ -958,13 +966,13 @@ module w25q128jw_controller
             if (dma_done_i[0]) begin  // DMA channel 0 done signal
               // Update LENGTH register for next iteration (if any)
               hw2reg.length.de = 1'b1;
-              if (reg2hw.length < {19'h0, SE_BSIZE} - sector_offset) begin
+              if (reg2hw.length.q < {19'h0, SE_BSIZE} - sector_offset) begin
                 // All remaining data has been transferred at this iteration: set length to 0 and reset md_offset
                 hw2reg.length.d = 32'h0;
                 md_offset_d = 32'h0;
               end else begin
                 // More data remains: compute remaining length for next sector iteration and update md_offset
-                hw2reg.length.d = reg2hw.length - ({19'h0, SE_BSIZE} - sector_offset);
+                hw2reg.length.d = reg2hw.length.q - ({19'h0, SE_BSIZE} - sector_offset);
                 md_offset_d = md_offset_q + ({19'h0, SE_BSIZE} - sector_offset);
               end
               // Proceed with WRITE FSM to program modified sector (page by page (page: 256 bytes)) back to flash
@@ -1068,7 +1076,7 @@ module w25q128jw_controller
             spi_host_reg_req_o.write = 1'b1;
             spi_host_reg_req_o.valid = 1'b1;
             // Compute page address: sector base + sector offset + page offset
-            spi_host_reg_req_o.wdata = (((bitfield_byteswap32(((reg2hw.f_address & 32'h00fff000) + (sector_iter_offset_q)) |
+            spi_host_reg_req_o.wdata = (((bitfield_byteswap32(((reg2hw.f_address.q & 32'h00fff000) + (sector_iter_offset_q)) |
                                            ({28'h0, page_cnt_q} << 8))) >> 8) << 8) |
                 {19'h0, FC_PP};
             if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error) begin
@@ -1116,7 +1124,7 @@ module w25q128jw_controller
             write_state_d = WRITE_TRANS;
             //Set DMA source pointer: RAM sector buffer (at S_ADDRESS) with page offset
             external_dma_hw2reg_o.src_ptr.de = 1'b1;
-            external_dma_hw2reg_o.src_ptr.d = reg2hw.s_address + ({28'h0, page_cnt_q} << 8);
+            external_dma_hw2reg_o.src_ptr.d = reg2hw.s_address.q + ({28'h0, page_cnt_q} << 8);
             //Set DMA destination pointer: SPI Host TX FIFO 
             external_dma_hw2reg_o.dst_ptr.de = 1'b1;
             external_dma_hw2reg_o.dst_ptr.d = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_TXDATA_OFFSET};
@@ -1137,6 +1145,9 @@ module w25q128jw_controller
             external_dma_hw2reg_o.slot.rx_trigger_slot.d = '0;
             external_dma_hw2reg_o.slot.tx_trigger_slot.de = 1'b1;
             external_dma_hw2reg_o.slot.tx_trigger_slot.d = 'h8;
+            //Set slot wait counter
+            external_dma_hw2reg_o.slot_wait_counter.de = 1'b1;
+            external_dma_hw2reg_o.slot_wait_counter.d = reg2hw.dma_slot_wait_counter.q;
             //Set transfer size and START DMA
             external_dma_hw2reg_o.size_d1.de = 1'b1;
             external_dma_hw2reg_o.size_d1.d = {3'h0, PAGE_WSIZE};
@@ -1175,7 +1186,7 @@ module w25q128jw_controller
               // ===== CHECK IF MORE PAGES/SECTORS TO PROCESS =====
               if (page_cnt_q == 4'hf) begin
                 // All 16 pages in current sector programmed
-                if (reg2hw.length == 0) begin
+                if (reg2hw.length.q == 0) begin
                   // ===== ALL DATA WRITTEN: Go to FWAIT then complete =====
                   write_state_d = WRITE_IDLE;
                   top_state_d = TOP_FWAIT;
@@ -1271,6 +1282,8 @@ module w25q128jw_controller
             external_dma_hw2reg_o.interrupt_en.transaction_done.d  = '0;
             external_dma_hw2reg_o.interrupt_en.window_done.de      = 1'b1;
             external_dma_hw2reg_o.interrupt_en.window_done.d       = '0;
+            external_dma_hw2reg_o.slot_wait_counter.de             = 1'b1;
+            external_dma_hw2reg_o.slot_wait_counter.d              = '0;
 `ifdef ZERO_PADDING_EN
             external_dma_hw2reg_o.pad_top.de    = 1'b1;
             external_dma_hw2reg_o.pad_top.d     = '0;
@@ -1322,7 +1335,7 @@ module w25q128jw_controller
   // Assignments
   assign hw2reg.status.d = (top_state_q == TOP_IDLE); // READY = 1 when TOP FSM is in IDLE state, 0 otherwise
   assign hw2reg.status.de = 1'b1;  // Always update status register
-  assign w25q128jw_controller_intr_o = reg2hw.intr_status; // ISR Handler lowers interrupt status register (interrupt register is risen in hw2reg by FSM when done)
+  assign w25q128jw_controller_intr_o = reg2hw.intr_status.q; // ISR Handler lowers interrupt status register (interrupt register is risen in hw2reg by FSM when done)
 
   // Registers 
   w25q128jw_controller_reg_top #(

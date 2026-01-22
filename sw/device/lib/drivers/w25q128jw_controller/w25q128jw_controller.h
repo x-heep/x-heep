@@ -53,7 +53,7 @@ __attribute__((weak, optimize("O0"))) void handler_irq_w25q128jw_controller(uint
  * This function should be called before/after starting a new operation
  * when using interrupt-based completion detection.
  */
-__attribute__((optimize("O0"))) void w25q128jw_controller_clear_done_flag();
+void w25q128jw_controller_clear_done_flag();
 
 /**
  * Sets the internal done flag.
@@ -61,17 +61,17 @@ __attribute__((optimize("O0"))) void w25q128jw_controller_clear_done_flag();
  * This function is typically called by the interrupt handler to
  * signal that an operation has completed.
  */
-__attribute__((optimize("O0"))) void w25q128jw_controller_set_done_flag();
+void w25q128jw_controller_set_done_flag();
 
 /**
  * Clear the interrupt status flag.
  */
-__attribute__((optimize("O0"))) void w25q128jw_controller_clear_status_register();
+void w25q128jw_controller_clear_status_register();
 
 /**
  * Enable interrupts (1 enable, 0 not enable).
  */
-__attribute__((optimize("O0"))) void w25q128jw_controller_enable_interrupt(uint32_t intr_enable);
+void w25q128jw_controller_enable_interrupt(uint32_t intr_enable);
 
 // ============== OPERATION ==============
 /**

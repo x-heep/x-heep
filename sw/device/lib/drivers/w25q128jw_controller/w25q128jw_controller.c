@@ -104,13 +104,13 @@ void w25q128jw_controller_rnw(uint32_t rnw,
     // Send length (in bytes) to controller (byte precision for read operation and word precision for write operation)
     w25q128jw_controller_peri->LENGTH = (uint32_t)length_bytes;
     // Specify operation type (rnw = 1 for read, 0 for write)
-    w25q128jw_controller_peri->CONTROL = w25q128jw_controller_peri->CONTROL & ~(1 << W25Q128JW_CONTROLLER_CONTROL_RNW_BIT);
-    w25q128jw_controller_peri->CONTROL = w25q128jw_controller_peri->CONTROL | ((rnw & 0x1) << W25Q128JW_CONTROLLER_CONTROL_RNW_BIT);
+    w25q128jw_controller_peri->CONTROL &= ~(1 << W25Q128JW_CONTROLLER_CONTROL_RNW_BIT);
+    w25q128jw_controller_peri->CONTROL |= ((rnw & 0x1) << W25Q128JW_CONTROLLER_CONTROL_RNW_BIT);
     // Tell the DMA to accept write operations from w25q128jw_controller in HW
     dma_set_hw_configuration_mode(1,0);
     // Start operation
-    w25q128jw_controller_peri->CONTROL = w25q128jw_controller_peri->CONTROL & ~(1 << W25Q128JW_CONTROLLER_CONTROL_START_BIT);
-    w25q128jw_controller_peri->CONTROL = w25q128jw_controller_peri->CONTROL | (0x1 << W25Q128JW_CONTROLLER_CONTROL_START_BIT);
+    w25q128jw_controller_peri->CONTROL &= ~(1 << W25Q128JW_CONTROLLER_CONTROL_START_BIT);
+    w25q128jw_controller_peri->CONTROL |= (0x1 << W25Q128JW_CONTROLLER_CONTROL_START_BIT);
 
 }
 

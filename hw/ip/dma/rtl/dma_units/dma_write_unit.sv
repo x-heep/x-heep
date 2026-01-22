@@ -104,8 +104,8 @@ module dma_write_unit
   typedef enum logic {
     OBI_WRITE_DATA_REQ,
     OBI_WRITE_WAIT_GNT
-   } obi_write_state_type_t;
-  
+  } obi_write_state_type_t;
+
   obi_write_state_type_t obi_data_req_q, obi_data_req_d;
 
 
@@ -297,17 +297,16 @@ module dma_write_unit
   end
 
   always_comb begin
-    data_req_cond = data_req_cond_preobi;
+    data_req_cond  = data_req_cond_preobi;
     obi_data_req_d = obi_data_req_q;
-    unique case(obi_data_req_q)
+    unique case (obi_data_req_q)
 
       OBI_WRITE_DATA_REQ: begin
-        if(data_out_req && !data_out_gnt)
-          obi_data_req_d = OBI_WRITE_WAIT_GNT;
+        if (data_out_req && !data_out_gnt) obi_data_req_d = OBI_WRITE_WAIT_GNT;
       end
 
       OBI_WRITE_WAIT_GNT: begin
-        data_req_cond = 1'b1;
+        data_req_cond  = 1'b1;
         obi_data_req_d = data_out_gnt ? OBI_WRITE_DATA_REQ : OBI_WRITE_WAIT_GNT;
       end
     endcase

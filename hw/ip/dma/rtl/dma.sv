@@ -160,38 +160,38 @@ module dma
   enum {
     COUNTER_COUNT,
     COUNTER_RESET
-  } counter_state_q, counter_state_d;
+  }
+      counter_state_q, counter_state_d;
 
   logic [31:0] counter_write_d, counter_write_q;
   enum {
     COUNTER_WRITE_COUNT,
     COUNTER_WRITE_RESET
-  } counter_write_state_q, counter_write_state_d;
+  }
+      counter_write_state_q, counter_write_state_d;
 
   always_ff @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-        counter_state_q <= COUNTER_COUNT;
-        counter_q       <= '0;
-        counter_write_state_q <= COUNTER_WRITE_COUNT;
-        counter_write_q       <= '0;
+      counter_state_q       <= COUNTER_COUNT;
+      counter_q             <= '0;
+      counter_write_state_q <= COUNTER_WRITE_COUNT;
+      counter_write_q       <= '0;
     end else begin
-        counter_state_q <= counter_state_d;
-        counter_q       <= counter_d;
-        counter_write_state_q <= counter_write_state_d;
-        counter_write_q       <= counter_write_d;
+      counter_state_q       <= counter_state_d;
+      counter_q             <= counter_d;
+      counter_write_state_q <= counter_write_state_d;
+      counter_write_q       <= counter_write_d;
     end
   end
 
-  always_comb
-  begin
+  always_comb begin
 
     counter_write_d = counter_write_q;
     counter_write_state_d = counter_write_state_q;
-    unique case(counter_write_state_q)
+    unique case (counter_write_state_q)
 
       COUNTER_WRITE_COUNT: begin
-        if(dma_write_req_o.req && dma_write_resp_i.gnt)
-          counter_write_d = counter_write_q + 1;
+        if (dma_write_req_o.req && dma_write_resp_i.gnt) counter_write_d = counter_write_q + 1;
         if (dma_done_o) counter_write_state_d = COUNTER_WRITE_RESET;
       end
 
@@ -202,16 +202,14 @@ module dma
     endcase
   end
 
-  always_comb
-  begin
+  always_comb begin
 
     counter_d = counter_q;
     counter_state_d = counter_state_q;
-    unique case(counter_state_q)
+    unique case (counter_state_q)
 
       COUNTER_COUNT: begin
-        if(dma_read_req_o.req && dma_read_resp_i.gnt)
-          counter_d = counter_q + 1;
+        if (dma_read_req_o.req && dma_read_resp_i.gnt) counter_d = counter_q + 1;
         if (dma_done_o) counter_state_d = COUNTER_RESET;
       end
 

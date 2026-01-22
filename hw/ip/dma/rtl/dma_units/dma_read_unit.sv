@@ -122,8 +122,16 @@ module dma_read_unit
     OBI_DATA_REQ,
     OBI_WAIT_GNT
   } obi_state_type_t;
-  
+
   obi_state_type_t obi_data_req_q, obi_data_req_d;
+
+
+  typedef enum logic {
+    WAIT_FOR_RX_OUTSTANDING_IDLE,
+    WAIT_FOR_RX_OUTSTANDING_WAIT
+  } wait_for_rx_state_type_t;
+
+  wait_for_rx_state_type_t wait_for_rx_state_q, wait_for_rx_state_d;
 
   /*_________________________________________________________________________________________________________________________________ */
 
@@ -141,8 +149,10 @@ module dma_read_unit
       dma_src_cnt_d1 <= '0;
       dma_src_cnt_d2 <= '0;
       obi_data_req_q <= OBI_DATA_REQ;
+      wait_for_rx_state_q <= WAIT_FOR_RX_OUTSTANDING_IDLE;
     end else begin
       obi_data_req_q <= obi_data_req_d;
+      wait_for_rx_state_q <= wait_for_rx_state_d;
       if (dma_start == 1'b1) begin
         dma_src_cnt_d1 <= {1'h0, reg2hw.size_d1.q};
         dma_src_cnt_d2 <= {1'h0, reg2hw.size_d2.q};
@@ -354,18 +364,34 @@ module dma_read_unit
   endgenerate
 
   always_comb begin
-    data_req_cond = data_req_cond_preobi;
+    data_req_cond  = data_req_cond_preobi;
     obi_data_req_d = obi_data_req_q;
-    unique case(obi_data_req_q)
+    unique case (obi_data_req_q)
 
       OBI_DATA_REQ: begin
-        if(data_in_req && !data_in_gnt)
-          obi_data_req_d = OBI_WAIT_GNT;
+        if (data_in_req && !data_in_gnt) obi_data_req_d = OBI_WAIT_GNT;
       end
 
       OBI_WAIT_GNT: begin
-        data_req_cond = 1'b1;
+        data_req_cond  = 1'b1;
         obi_data_req_d = data_in_gnt ? OBI_DATA_REQ : OBI_WAIT_GNT;
+      end
+    endcase
+  end
+
+  always_comb begin
+    wait_for_rx_state_d = wait_for_rx_state_q;
+    wait_for_rx = wait_for_rx_i;
+
+    unique case (wait_for_rx_state_q)
+
+      WAIT_FOR_RX_OUTSTANDING_IDLE: begin
+        if (data_in_req && data_in_gnt) wait_for_rx_state_d = WAIT_FOR_RX_OUTSTANDING_WAIT;
+      end
+
+      WAIT_FOR_RX_OUTSTANDING_WAIT: begin
+        wait_for_rx  = 1'b1;
+        wait_for_rx_state_d = data_in_rvalid ? WAIT_FOR_RX_OUTSTANDING_IDLE : WAIT_FOR_RX_OUTSTANDING_WAIT;
       end
     endcase
   end
@@ -385,7 +411,6 @@ module dma_read_unit
   assign data_in_req_o = data_in_req;
   assign data_in_we_o = data_in_we;
   assign general_buffer_flush_o = buffer_flush;
-  assign wait_for_rx = wait_for_rx_i;
   assign data_in_rvalid = data_in_rvalid_i;
   assign data_in_rdata = data_in_rdata_i;
   assign read_buffer_input_o = read_buffer_input;

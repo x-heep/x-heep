@@ -409,14 +409,14 @@ module w25q128jw_controller
 
             if (reg2hw.control.rnw) begin
               // READ: Use exact flash address from F_ADDRESS register
-              flash_address            = reg2hw.f_address & 32'h00ffffff;
-              spi_host_reg_req_o.wdata = (((bitfield_byteswap32(flash_address)) >>
-                                           8) << 8) | {19'h0, FC_RD};
+              flash_address = reg2hw.f_address & 32'h00ffffff;
+              spi_host_reg_req_o.wdata = (((bitfield_byteswap32(flash_address)) >> 8) << 8) |
+                  {19'h0, FC_RD};
             end else begin
               // WRITE: Use sector-aligned address + current sector iteration offset
-              flash_address            = (reg2hw.f_address & 32'h00fff000) + (sector_iter_offset_q);
-              spi_host_reg_req_o.wdata = (((bitfield_byteswap32(flash_address)) >> 8) <<
-                                          8) | {19'h0, FC_RD};
+              flash_address = (reg2hw.f_address & 32'h00fff000) + (sector_iter_offset_q);
+              spi_host_reg_req_o.wdata = (((bitfield_byteswap32(flash_address)) >> 8) << 8) |
+                  {19'h0, FC_RD};
             end
             if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error) begin
               read_state_d = READ_SPI_WAIT_READY_1;
@@ -830,8 +830,9 @@ module w25q128jw_controller
             spi_host_reg_req_o.valid = 1'b1;
             // Use sector-aligned address + current sector iteration offset + SECTOR ERASE command
             // Inspiration from sw/device/bsp/w25q
-            flash_address            = (reg2hw.f_address & 32'h00fff000) + (sector_iter_offset_q);
-            spi_host_reg_req_o.wdata = ((bitfield_byteswap32(flash_address) >> 8) << 8) | {19'h0, FC_SE};
+            flash_address = (reg2hw.f_address & 32'h00fff000) + (sector_iter_offset_q);
+            spi_host_reg_req_o.wdata = ((bitfield_byteswap32(flash_address) >> 8) << 8) |
+                {19'h0, FC_SE};
             if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error) begin
               erase_state_d = ERASE_SE_WAIT_READY;
             end

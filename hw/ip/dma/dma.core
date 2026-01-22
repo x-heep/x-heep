@@ -13,6 +13,7 @@ filesets:
       - pulp-platform.org::common_cells
     files:
     - rtl/dma_reg_pkg.sv
+    - rtl/dma_pkg.sv
     - rtl/dma_reg_top.sv
     - rtl/dma_units/dma_processing_unit.sv
     - rtl/dma_units/dma_read_unit.sv

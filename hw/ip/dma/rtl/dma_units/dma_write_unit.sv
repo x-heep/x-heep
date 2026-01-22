@@ -46,6 +46,7 @@ module dma_write_unit
   /* Parameter definition */
 
   import dma_reg_pkg::*;
+  import dma_pkg::*;
   `include "dma_conf.svh"
 
   /*_________________________________________________________________________________________________________________________________ */
@@ -67,14 +68,7 @@ module dma_write_unit
   }
       dma_write_unit_state, dma_write_unit_n_state;
 
-  typedef enum logic [1:0] {
-    DMA_DATA_TYPE_WORD,
-    DMA_DATA_TYPE_HALF_WORD,
-    DMA_DATA_TYPE_BYTE,
-    DMA_DATA_TYPE_BYTE_
-  } dma_data_type_t;
-
-  dma_data_type_t dst_data_type;
+  dma_pkg::dma_data_type_t dst_data_type;
 
   logic data_req_cond, data_req_cond_preobi;
   logic dma_done_override;
@@ -104,17 +98,9 @@ module dma_write_unit
   logic read_addr_buffer_empty;
   logic [31:0] write_buffer_data;
 
-  typedef enum logic {
-    OBI_DATA_REQ,
-    OBI_WAIT_GNT
-  } obi_write_state_type_t;
-  obi_write_state_type_t obi_data_req_q, obi_data_req_d;
+  dma_pkg::dma_obi_state_type_t obi_data_req_q, obi_data_req_d;
 
-  typedef enum logic {
-    WAIT_FOR_TX_OUTSTANDING_IDLE,
-    WAIT_FOR_TX_OUTSTANDING_WAIT
-  } wait_for_tx_state_type_t;
-  wait_for_tx_state_type_t wait_for_tx_state_q, wait_for_tx_state_d;
+  dma_pkg::dma_wait_for_state_type_t wait_for_tx_state_q, wait_for_tx_state_d;
 
   /*_________________________________________________________________________________________________________________________________ */
 
@@ -143,7 +129,7 @@ module dma_write_unit
       dma_dst_cnt_d1 <= '0;
       dma_dst_cnt_d2 <= '0;
       obi_data_req_q <= OBI_DATA_REQ;
-      wait_for_tx_state_q <= WAIT_FOR_TX_OUTSTANDING_IDLE;
+      wait_for_tx_state_q <= WAIT_FOR_OUTSTANDING_IDLE;
     end else begin
       obi_data_req_q <= obi_data_req_d;
       wait_for_tx_state_q <= wait_for_tx_state_d;
@@ -327,14 +313,14 @@ module dma_write_unit
 
     unique case (wait_for_tx_state_q)
 
-      WAIT_FOR_TX_OUTSTANDING_IDLE: begin
-        if(enable_wait_for_tx_i)
-          wait_for_tx_state_d = (data_out_req && data_out_gnt) ? WAIT_FOR_TX_OUTSTANDING_WAIT : WAIT_FOR_TX_OUTSTANDING_IDLE;
+      WAIT_FOR_OUTSTANDING_IDLE: begin
+        if (enable_wait_for_tx_i)
+          wait_for_tx_state_d = (data_out_req && data_out_gnt) ? WAIT_FOR_OUTSTANDING_WAIT : WAIT_FOR_OUTSTANDING_IDLE;
       end
 
-      WAIT_FOR_TX_OUTSTANDING_WAIT: begin
-        wait_for_tx  = 1'b1;
-        wait_for_tx_state_d = data_out_rvalid ? WAIT_FOR_TX_OUTSTANDING_IDLE : WAIT_FOR_TX_OUTSTANDING_WAIT;
+      WAIT_FOR_OUTSTANDING_WAIT: begin
+        wait_for_tx = 1'b1;
+        wait_for_tx_state_d = data_out_rvalid ? WAIT_FOR_OUTSTANDING_IDLE : WAIT_FOR_OUTSTANDING_WAIT;
       end
     endcase
   end

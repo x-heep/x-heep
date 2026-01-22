@@ -1178,7 +1178,7 @@ module w25q128jw_controller
                 if (reg2hw.length == 0) begin
                   // ===== ALL DATA WRITTEN: Go to FWAIT then complete =====
                   write_state_d = WRITE_IDLE;
-                  top_state_d   = TOP_FWAIT;
+                  top_state_d = TOP_FWAIT;
                   fwait_state_d = FWAIT_IDLE;
                   page_cnt_d = 4'b0;  // Reset page counter for time you use the controller
                 end else begin

@@ -29,7 +29,11 @@ module dma_buffer_control
 
     output logic [31:0] read_buffer_output_o
 );
+
+
+  import dma_pkg::*;
   `include "dma_conf.svh"
+
 dma_reg2hw_t reg2hw;
 
   logic dma_start;
@@ -42,14 +46,7 @@ dma_reg2hw_t reg2hw;
   logic [31:0] read_buffer_output;
   logic [31:0] read_fifo_output;
 
-  typedef enum logic [1:0] {
-    DMA_DATA_TYPE_WORD,
-    DMA_DATA_TYPE_HALF_WORD,
-    DMA_DATA_TYPE_BYTE,
-    DMA_DATA_TYPE_BYTE_
-  } dma_data_type_t;
-
-  dma_data_type_t src_data_type;
+  dma_pkg::dma_data_type_t src_data_type;
 
   /* This logic enables Subaddressing Mode, when enabled */
 `ifdef SUBADDR_MODE_EN

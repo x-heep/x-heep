@@ -48,6 +48,8 @@ module dma_read_unit
   /* Parameter definition */
 
   import dma_reg_pkg::*;
+  import dma_pkg::*;
+
   `include "dma_conf.svh"
   localparam int unsigned LastFifoUsage = RVALID_FIFO_DEPTH - 1;
   localparam int unsigned AddrFifoDepth = (RVALID_FIFO_DEPTH > 1) ? $clog2(RVALID_FIFO_DEPTH) : 1;
@@ -58,13 +60,6 @@ module dma_read_unit
 
   /* Registers */
   dma_reg2hw_t reg2hw;
-
-  typedef enum logic [1:0] {
-    DMA_DATA_TYPE_WORD,
-    DMA_DATA_TYPE_HALF_WORD,
-    DMA_DATA_TYPE_BYTE,
-    DMA_DATA_TYPE_BYTE_
-  } dma_data_type_t;
 
   enum logic {
     DMA_READ_UNIT_IDLE,
@@ -117,21 +112,13 @@ module dma_read_unit
   /* FIFO signals */
   logic [31:0] read_buffer_input;
 
-  dma_data_type_t src_data_type;
+  dma_pkg::dma_data_type_t src_data_type;
+
   logic sign_ext;
 
-  typedef enum logic {
-    OBI_DATA_REQ,
-    OBI_WAIT_GNT
-  } obi_state_type_t;
-  obi_state_type_t obi_data_req_q, obi_data_req_d;
+  dma_pkg::dma_obi_state_type_t obi_data_req_q, obi_data_req_d;
 
-  typedef enum logic {
-    WAIT_FOR_RX_OUTSTANDING_IDLE,
-    WAIT_FOR_RX_OUTSTANDING_WAIT
-  } wait_for_rx_state_type_t;
-
-  wait_for_rx_state_type_t wait_for_rx_state_q, wait_for_rx_state_d;
+  dma_pkg::dma_wait_for_state_type_t wait_for_rx_state_q, wait_for_rx_state_d;
 
   /*_________________________________________________________________________________________________________________________________ */
 
@@ -149,7 +136,7 @@ module dma_read_unit
       dma_src_cnt_d1 <= '0;
       dma_src_cnt_d2 <= '0;
       obi_data_req_q <= OBI_DATA_REQ;
-      wait_for_rx_state_q <= WAIT_FOR_RX_OUTSTANDING_IDLE;
+      wait_for_rx_state_q <= WAIT_FOR_OUTSTANDING_IDLE;
     end else begin
       obi_data_req_q <= obi_data_req_d;
       wait_for_rx_state_q <= wait_for_rx_state_d;
@@ -390,14 +377,14 @@ module dma_read_unit
 
     unique case (wait_for_rx_state_q)
 
-      WAIT_FOR_RX_OUTSTANDING_IDLE: begin
+      WAIT_FOR_OUTSTANDING_IDLE: begin
         if (enable_wait_for_rx_i)
-          wait_for_rx_state_d = (data_in_req && data_in_gnt) ? WAIT_FOR_RX_OUTSTANDING_WAIT : WAIT_FOR_RX_OUTSTANDING_IDLE;
+          wait_for_rx_state_d = (data_in_req && data_in_gnt) ? WAIT_FOR_OUTSTANDING_WAIT : WAIT_FOR_OUTSTANDING_IDLE;
       end
 
-      WAIT_FOR_RX_OUTSTANDING_WAIT: begin
-        wait_for_rx  = 1'b1;
-        wait_for_rx_state_d = data_in_rvalid ? WAIT_FOR_RX_OUTSTANDING_IDLE : WAIT_FOR_RX_OUTSTANDING_WAIT;
+      WAIT_FOR_OUTSTANDING_WAIT: begin
+        wait_for_rx = 1'b1;
+        wait_for_rx_state_d = data_in_rvalid ? WAIT_FOR_OUTSTANDING_IDLE : WAIT_FOR_OUTSTANDING_WAIT;
       end
     endcase
   end

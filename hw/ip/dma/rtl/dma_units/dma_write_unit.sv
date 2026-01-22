@@ -20,6 +20,7 @@ module dma_write_unit
 
     input logic dma_start_i,
     input logic wait_for_tx_i,
+    input logic enable_wait_for_tx_i,
     input logic dma_done_override_i,
 
     input logic write_buffer_empty_i,
@@ -29,6 +30,7 @@ module dma_write_unit
     input logic [31:0] read_addr_buffer_output_i,
 
     input logic data_out_gnt_i,
+    input logic data_out_rvalid_i,
 
     output logic data_out_req_o,
     output logic data_out_we_o,
@@ -80,6 +82,7 @@ module dma_write_unit
   logic data_out_req;
   logic data_out_we;
   logic data_out_gnt;
+  logic data_out_rvalid;
   logic [31:0] data_out_addr;
   logic [31:0] data_out_wdata;
   logic [31:0] write_address;
@@ -108,6 +111,12 @@ module dma_write_unit
 
   obi_write_state_type_t obi_data_req_q, obi_data_req_d;
 
+  typedef enum logic {
+    WAIT_FOR_TX_OUTSTANDING_IDLE,
+    WAIT_FOR_TX_OUTSTANDING_WAIT
+  } wait_for_tx_state_type_t;
+
+  wait_for_tx_state_type_t wait_for_tx_state_q, wait_for_tx_state_d;
 
   /*_________________________________________________________________________________________________________________________________ */
 
@@ -136,8 +145,10 @@ module dma_write_unit
       dma_dst_cnt_d1 <= '0;
       dma_dst_cnt_d2 <= '0;
       obi_data_req_q <= OBI_WRITE_DATA_REQ;
+      wait_for_tx_state_q <= WAIT_FOR_TX_OUTSTANDING_IDLE;
     end else begin
       obi_data_req_q <= obi_data_req_d;
+      wait_for_tx_state_q <= wait_for_tx_state_d;
       if (dma_start == 1'b1) begin
         dma_dst_cnt_d1 <= dma_size_d1;
         dma_dst_cnt_d2 <= dma_size_d2;
@@ -312,6 +323,23 @@ module dma_write_unit
     endcase
   end
 
+  always_comb begin
+    wait_for_tx_state_d = wait_for_tx_state_q;
+    wait_for_tx = wait_for_tx_i;
+
+    unique case (wait_for_tx_state_q)
+
+      WAIT_FOR_TX_OUTSTANDING_IDLE: begin
+        if(enable_wait_for_tx_i)
+          wait_for_tx_state_d = (data_out_req && data_out_gnt) ? WAIT_FOR_TX_OUTSTANDING_WAIT : WAIT_FOR_TX_OUTSTANDING_IDLE;
+      end
+
+      WAIT_FOR_TX_OUTSTANDING_WAIT: begin
+        wait_for_tx  = 1'b1;
+        wait_for_tx_state_d = data_out_rvalid ? WAIT_FOR_TX_OUTSTANDING_IDLE : WAIT_FOR_TX_OUTSTANDING_WAIT;
+      end
+    endcase
+  end
 
   /*_________________________________________________________________________________________________________________________________ */
 
@@ -345,12 +373,12 @@ module dma_write_unit
   assign dma_start = dma_start_i;
   assign reg2hw = reg2hw_i;
   assign data_out_gnt = data_out_gnt_i;
+  assign data_out_rvalid = data_out_rvalid_i;
   assign dma_done_o = dma_done;
   assign dst_data_type = dma_data_type_t'(reg2hw.dst_data_type.q);
   assign data_out_wdata_o = data_out_wdata;
   assign write_buffer_empty = write_buffer_empty_i;
   assign write_buffer_data = write_buffer_output_i;
-  assign wait_for_tx = wait_for_tx_i;
   assign data_out_be_o = byte_enable_out;
   assign data_out_addr_o = data_out_addr;
   assign data_out_req_o = data_out_req;

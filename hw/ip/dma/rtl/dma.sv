@@ -147,6 +147,8 @@ module dma
   /* Trigger signals */
   logic wait_for_rx;
   logic wait_for_tx;
+  logic enable_wait_for_rx;
+  logic enable_wait_for_tx;
 
   /* FSM states */
   enum {
@@ -296,6 +298,7 @@ module dma
       .dma_done_override_i(dma_read_done_override),
 
       .wait_for_rx_i(wait_for_rx),
+      .enable_wait_for_rx_i(enable_wait_for_rx),
 
       .read_buffer_full_i(read_buffer_full),
       .read_buffer_alm_full_i(read_buffer_alm_full),
@@ -396,6 +399,8 @@ module dma
 
       .dma_start_i(dma_start),
       .wait_for_tx_i(wait_for_tx),
+      .enable_wait_for_tx_i(enable_wait_for_tx),
+
       .dma_done_o(dma_done),
       .dma_done_override_i(dma_write_done_override),
 
@@ -406,6 +411,7 @@ module dma
       .read_addr_buffer_output_i(read_addr_buffer_output),
 
       .data_out_gnt_i(data_out_gnt),
+      .data_out_rvalid_i(data_out_rvalid),
 
       .data_out_req_o(data_out_req),
       .data_out_we_o(data_out_we),
@@ -656,6 +662,8 @@ module dma
 
   assign wait_for_rx = |(reg2hw.slot.rx_trigger_slot.q[SLOT_NUM-1:0] & (~trigger_slot_i));
   assign wait_for_tx = |(reg2hw.slot.tx_trigger_slot.q[SLOT_NUM-1:0] & (~trigger_slot_i));
+  assign enable_wait_for_rx = |(reg2hw.slot.rx_trigger_slot.q[SLOT_NUM-1:0]);
+  assign enable_wait_for_tx = |(reg2hw.slot.tx_trigger_slot.q[SLOT_NUM-1:0]);
 
   /* Logic for window counter */
   //TODO: is it really necessary? Do we need to write into a register how many events are done?

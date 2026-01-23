@@ -264,6 +264,10 @@ int main(void) {
         }
     }
 
+    //put back the counter to 0
+    w25q128jw_set_dma_slot_wait_counter(0);
+
+
     return EXIT_SUCCESS;
 
 

@@ -321,8 +321,10 @@ module dma_write_unit
     unique case (wait_for_tx_state_q)
 
       WAIT_FOR_OUTSTANDING_IDLE: begin
-        if (enable_wait_for_tx_i)
+        if (enable_wait_for_tx_i) begin
           wait_for_tx_state_d = (data_out_req && data_out_gnt) ? WAIT_FOR_OUTSTANDING_WAIT : WAIT_FOR_OUTSTANDING_IDLE;
+          slot_wait_counter_d = slot_wait_counter_i;
+        end
       end
 
       WAIT_FOR_OUTSTANDING_WAIT: begin
@@ -340,7 +342,6 @@ module dma_write_unit
         wait_for_tx = 1'b1;
         if (slot_wait_counter_q == '0) begin
           wait_for_tx_state_d = WAIT_FOR_OUTSTANDING_IDLE;
-          slot_wait_counter_d = slot_wait_counter_i;
         end else begin
           wait_for_tx_state_d = WAIT_FOR_OUTSTANDING_COUNTER;
           slot_wait_counter_d = slot_wait_counter_q - 1;

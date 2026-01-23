@@ -384,8 +384,10 @@ module dma_read_unit
     unique case (wait_for_rx_state_q)
 
       WAIT_FOR_OUTSTANDING_IDLE: begin
-        if (enable_wait_for_rx_i)
+        if (enable_wait_for_rx_i) begin
           wait_for_rx_state_d = (data_in_req && data_in_gnt) ? WAIT_FOR_OUTSTANDING_WAIT : WAIT_FOR_OUTSTANDING_IDLE;
+          slot_wait_counter_d = slot_wait_counter_i;
+        end
       end
 
       WAIT_FOR_OUTSTANDING_WAIT: begin
@@ -403,7 +405,6 @@ module dma_read_unit
         wait_for_rx = 1'b1;
         if (slot_wait_counter_q == '0) begin
           wait_for_rx_state_d = WAIT_FOR_OUTSTANDING_IDLE;
-          slot_wait_counter_d = slot_wait_counter_i;
         end else begin
           wait_for_rx_state_d = WAIT_FOR_OUTSTANDING_COUNTER;
           slot_wait_counter_d = slot_wait_counter_q - 1;

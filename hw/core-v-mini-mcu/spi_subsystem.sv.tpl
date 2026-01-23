@@ -80,11 +80,6 @@ module spi_subsystem
 
   import spi_host_reg_pkg::*;
   spi_host_reg_pkg::spi_host_hw2reg_status_reg_t external_spi_host_hw2reg_status;
-  // Master ports to the SPI HOST from Flash Controller
-  reg_req_t spi_host_reg_req;
-  reg_rsp_t spi_host_reg_rsp;
-  reg_req_t spi_host_reg_req_mux;
-  reg_rsp_t spi_host_reg_rsp_mux;
 
   // Multiplexer
   always_comb begin
@@ -145,40 +140,14 @@ module spi_subsystem
       .spimemio_resp_o(spimemio_resp_o)
   );
 
-  // OpenTitan SPI Snitch Version used for booting
-  spi_host #(
-      .reg_req_t(reg_pkg::reg_req_t),
-      .reg_rsp_t(reg_pkg::reg_rsp_t)
-  ) ot_spi_i (
-      .clk_i,
-      .rst_ni,
-% if base_peripheral_domain.contains_peripheral('w25q128jw_controller'):
-      .reg_req_i(spi_host_reg_req_mux),
-      .reg_rsp_o(spi_host_reg_rsp_mux),
-% else:
-      .reg_req_i(ot_reg_req_i),
-      .reg_rsp_o(ot_reg_rsp_o),
-% endif
-      .alert_rx_i(),
-      .alert_tx_o(),
-      .passthrough_i(spi_device_pkg::PASSTHROUGH_REQ_DEFAULT),
-      .passthrough_o(),
-      .cio_sck_o(ot_spi_sck),
-      .cio_sck_en_o(ot_spi_sck_en),
-      .cio_csb_o(ot_spi_csb),
-      .cio_csb_en_o(ot_spi_csb_en),
-      .cio_sd_o(ot_spi_sd_out),
-      .cio_sd_en_o(ot_spi_sd_en),
-      .cio_sd_i(ot_spi_sd_in),
-      .rx_valid_o(ot_spi_rx_valid),
-      .tx_ready_o(ot_spi_tx_ready),
-      .hw2reg_status_o(external_spi_host_hw2reg_status),
-      .intr_error_o(ot_spi_intr_error),
-      .intr_spi_event_o(ot_spi_intr_event)
-  );
 
 % if base_peripheral_domain.contains_peripheral('w25q128jw_controller'):
 
+  // Master ports to the SPI HOST from Flash Controller
+  reg_req_t spi_host_reg_req;
+  reg_rsp_t spi_host_reg_rsp;
+  reg_req_t spi_host_reg_req_mux;
+  reg_rsp_t spi_host_reg_rsp_mux;
   reg_req_t [1:0] spi_host_reg_packet_req;
   reg_rsp_t [1:0] spi_host_reg_packet_rsp;
 
@@ -230,16 +199,46 @@ module spi_subsystem
   );
 
 % else:
-  assign w25q128jw_controller_obi_req_o = '0;
   assign w25q128jw_controller_intr_o = '0;
-  assign spi_host_reg_req = '0;
-  assign spi_host_reg_rsp = '0;
-  assign spi_host_reg_req_mux = '0;
-  asggin spi_host_reg_rsp_mux = '0;
   assign flash_ctr_reg_rsp_o = '0;
+  assign external_dma_hw2reg_o = '0;
+  logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_ready_unused = dma_ready_i;
+  spi_host_reg_pkg::spi_host_hw2reg_status_reg_t external_spi_host_hw2reg_status_unused = external_spi_host_hw2reg_status;
 % endif
 
 
+
+  // OpenTitan SPI Snitch Version used for booting
+  spi_host #(
+      .reg_req_t(reg_pkg::reg_req_t),
+      .reg_rsp_t(reg_pkg::reg_rsp_t)
+  ) ot_spi_i (
+      .clk_i,
+      .rst_ni,
+% if base_peripheral_domain.contains_peripheral('w25q128jw_controller'):
+      .reg_req_i(spi_host_reg_req_mux),
+      .reg_rsp_o(spi_host_reg_rsp_mux),
+% else:
+      .reg_req_i(ot_reg_req_i),
+      .reg_rsp_o(ot_reg_rsp_o),
+% endif
+      .alert_rx_i(),
+      .alert_tx_o(),
+      .passthrough_i(spi_device_pkg::PASSTHROUGH_REQ_DEFAULT),
+      .passthrough_o(),
+      .cio_sck_o(ot_spi_sck),
+      .cio_sck_en_o(ot_spi_sck_en),
+      .cio_csb_o(ot_spi_csb),
+      .cio_csb_en_o(ot_spi_csb_en),
+      .cio_sd_o(ot_spi_sd_out),
+      .cio_sd_en_o(ot_spi_sd_en),
+      .cio_sd_i(ot_spi_sd_in),
+      .rx_valid_o(ot_spi_rx_valid),
+      .tx_ready_o(ot_spi_tx_ready),
+      .hw2reg_status_o(external_spi_host_hw2reg_status),
+      .intr_error_o(ot_spi_intr_error),
+      .intr_spi_event_o(ot_spi_intr_event)
+  );
 
 `ifndef SYNTHESIS
 

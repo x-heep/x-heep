@@ -40,6 +40,7 @@
 #define MAGIC_TEST_NUM 0xda41de
 
 int32_t sram_buffer_read_flash_back[NUM_WORDS];
+int32_t dma_mem_copy[NUM_WORDS];
 
 /**
  * @brief Compares read data against expected data.
@@ -284,7 +285,118 @@ int main(void) {
         }
     }
 
-    return EXIT_SUCCESS;
+     /**************************************************************
+     * _______  ______   _____  _______         __   
+     * |__   __||  ____| / ____||__   __|       / /   
+     * | |   | |__   | (___     | |         / /_   
+     * | |   |  __|   \___ \    | |        |  _ \  
+     * | |   | |____  ____) |   | |        | (_) | 
+     * |_|   |______||_____/    |_|         \___/  
+     * * [ TEST ]                            [ NO. 6 ]
+     * **************************************************************/
 
+    // Reset the flash data buffer
+    memset(sram_buffer_read_flash_back, 0, LENGTH_BYTES);
+    //change sram_data
+    for(int i=0;i<NUM_WORDS;i++)
+       sram_data[i] = MAGIC_TEST_NUM + (2*i);
+
+    // Write to flash memory at specific address (i.e. flash_buffer_test2) in HW, but we use wait counters
+    // we use interrupt now
+    // Clear HW regs before starting operation
+    w25q128jw_controller_clear_status_register();
+    // Clear SW flag of ISR before starting operation
+    w25q128jw_controller_clear_done_flag();
+    // Activate interrupt in PLIC
+    plic_Init();
+    plic_irq_set_priority(W25Q128JW_CONTROLLER_INTR_EVENT, 1);
+    plic_irq_set_enabled(W25Q128JW_CONTROLLER_INTR_EVENT, kPlicToggleEnabled);
+    // Activate global CPU interrupts
+    CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);   // Global interrupt enable for machine mode (MIE) bit in Machine Status Registers
+    CSR_SET_BITS(CSR_REG_MIE, (1 << 11)); // Machine External Interrupt Enable (MEIE) bit in Machine Interrupt Pending Register
+    // Enable interrupts
+    w25q128jw_controller_enable_interrupt(1);
+
+    //we also use the dma slot delay counter (we wait 12 cycles after rvalid in both reads and writes)
+    w25q128jw_set_dma_slot_wait_counter(2);
+
+    w25q128jw_controller_run(1, flash_buffer_test2);
+
+    // we read back in HW to test READ-After-WRITE
+    
+    // we use interrupt now
+    // Clear HW regs before starting operation
+    w25q128jw_controller_clear_status_register();
+    // Clear SW flag of ISR before starting operation
+    w25q128jw_controller_clear_done_flag();
+    //no need for PLIC or INT enable as done before
+
+    w25q128jw_controller_read((void*) &sram_buffer_read_flash_back[0], (void*) &flash_buffer_test2[0], LENGTH_BYTES);
+
+    while(!w25q128jw_controller_is_ready_intr()) {
+        asm volatile("wfi");  // Wait For Interrupt - CPU sleeps
+    }
+
+    // Check Results
+    for(int i=0;i<NUM_WORDS;i++) {
+        if(sram_buffer_read_flash_back[i]!=sram_data[i]) {
+            PRINTF("At %d: expected %x, got %x\n", i, sram_data[i], sram_buffer_read_flash_back[i]);
+            return 6;
+        }
+    }
+
+    /**************************************************************
+     * _______  ______   _____  _______        ______ 
+     * |__   __||  ____| / ____||__   __|      |____  |
+     * | |   | |__   | (___     | |              / / 
+     * | |   |  __|   \___ \    | |             / /  
+     * | |   | |____  ____) |   | |            / /   
+     * |_|   |______||_____/    |_|           /_/    
+     * * [ TEST ]                            [ NO. 7 ]
+     * **************************************************************/
+
+
+    //As the controller uses the DMA, check you can use it as before soon after
+    dma_init(NULL);
+    dma_trans_t dma_trans;
+    dma_target_t tgt_src;
+    dma_target_t tgt_dst;
+
+    memset(sram_buffer_read_flash_back, 0, LENGTH_BYTES);
+    for(int i=0;i<NUM_WORDS;i++) dma_mem_copy[i] = i*i;
+
+    // Initialize the DMA for the next tests
+    tgt_src.ptr = (uint8_t *)dma_mem_copy;
+    tgt_src.inc_d1_du = 1;
+    tgt_src.trig = DMA_TRIG_MEMORY;
+    tgt_src.type = DMA_DATA_TYPE_WORD;
+
+    tgt_dst.ptr = (uint8_t *)sram_buffer_read_flash_back;
+    tgt_dst.inc_d1_du = 1;
+    tgt_dst.trig = DMA_TRIG_MEMORY;
+    tgt_dst.type = DMA_DATA_TYPE_WORD;
+
+    dma_trans.src = &tgt_src;
+    dma_trans.dst = &tgt_dst;
+    dma_trans.src_addr = NULL;
+    dma_trans.size_d1_du = NUM_WORDS;
+    dma_trans.src_type = DMA_DATA_TYPE_WORD;
+    dma_trans.dst_type = DMA_DATA_TYPE_WORD;
+    dma_trans.mode = DMA_TRANS_MODE_SINGLE;
+    dma_trans.win_du = 0;
+    dma_trans.sign_ext = 0;
+    dma_trans.end = DMA_TRANS_END_POLLING;
+    dma_load_transaction(&dma_trans);                                                       \
+    dma_launch(&dma_trans);
+
+     // Check Results
+    for(int i=0;i<NUM_WORDS;i++) {
+        if(sram_buffer_read_flash_back[i]!=dma_mem_copy[i]) {
+            PRINTF("At %d: expected %x, got %x\n", i, dma_mem_copy[i], sram_buffer_read_flash_back[i]);
+            return 7;
+        }
+    }
+
+     return EXIT_SUCCESS;
 
 }

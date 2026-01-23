@@ -237,7 +237,7 @@ int main(void) {
      // Reset the flash data buffer
     memset(sram_buffer_read_flash_back, 0, LENGTH_BYTES);
 
-    // Read the flash memory at specific address (i.e. flash_buffer_test1) in HW
+    // Read the flash memory at specific address (i.e. flash_buffer_test1) in HW, but we use wait counters
     // we use interrupt now
     // Clear HW regs before starting operation
     w25q128jw_controller_clear_status_register();
@@ -316,7 +316,6 @@ int main(void) {
             return 6;
         }
     }
-
 
 
     return EXIT_SUCCESS;

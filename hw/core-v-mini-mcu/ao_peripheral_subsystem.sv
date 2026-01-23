@@ -183,7 +183,9 @@ module ao_peripheral_subsystem
     for (genvar i = 0; i < core_v_mini_mcu_pkg::DMA_CH_NUM; i++) begin : dma_trigger_slots_gen
       assign dma_ext_trigger_slots[2*i]   = ext_dma_slot_tx_i[i];
       assign dma_ext_trigger_slots[2*i+1] = ext_dma_slot_rx_i[i];
-      if (i > 0) assign external_dma_hw2reg[i] = '0;  //TODO: make it programmable
+      if (i > 0) begin : external_dma_hw2reg_gen
+        assign external_dma_hw2reg[i] = '0;  //TODO: make it programmable
+      end
     end
   endgenerate
 

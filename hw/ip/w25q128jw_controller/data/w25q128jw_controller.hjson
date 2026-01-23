@@ -28,7 +28,7 @@
     { name: "F_ADDRESS"
       desc: "Address in flash to read from/write to"
       swaccess: "rw"
-      hwaccess: "hrw"
+      hwaccess: "hro"
       fields: [
         { bits: "31:0", name: "F_ADDRESS", desc: "Address in flash to read from/write to" }
       ]
@@ -37,7 +37,7 @@
     { name: "S_ADDRESS"
       desc: "Address to store read data from SPI_FLASH"
       swaccess: "rw"
-      hwaccess: "hrw"
+      hwaccess: "hro"
       fields: [
         { bits: "31:0", name: "S_ADDRESS", desc: "Address to store read data from SPI_FLASH" }
       ]
@@ -46,7 +46,7 @@
     { name: "MD_ADDRESS"
       desc: "Address where data with which we have to modify the flash is"
       swaccess: "rw"
-      hwaccess: "hrw"
+      hwaccess: "hro"
       fields: [
         { bits: "31:0", name: "MD_ADDRESS", desc: "Address where data with which we have to modify the flash is" }
       ]
@@ -79,7 +79,7 @@
     { name:    "DMA_SLOT_WAIT_COUNTER"
       desc:    '''A DMA counter used to wait before submitting the next req when using slots'''
       swaccess: "rw"
-      hwaccess: "hrw"
+      hwaccess: "hro"
       resval:        0
       fields: [
         { bits: "7:0", name: "DMA_SLOT_WAIT_COUNTER", desc: "A DMA counter used to wait before submitting the next req when using slots"}

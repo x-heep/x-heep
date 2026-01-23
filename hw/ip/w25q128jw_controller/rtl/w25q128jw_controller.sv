@@ -290,6 +290,8 @@ module w25q128jw_controller
 
     hw2reg.control.start.de = 1'b0;
     hw2reg.control.start.d = 1'b0;
+    hw2reg.control.rnw.de = 1'b0;
+    hw2reg.control.rnw.d = 1'b0;
     hw2reg.length.de = 1'b0;
     hw2reg.length.d = 32'h0;
     hw2reg.intr_status.de   = 1'b0;

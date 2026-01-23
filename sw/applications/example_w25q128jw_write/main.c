@@ -358,9 +358,9 @@ int main(void) {
 
     //As the controller uses the DMA, check you can use it as before soon after
     dma_init(NULL);
-    dma_trans_t dma_trans;
-    dma_target_t tgt_src;
-    dma_target_t tgt_dst;
+    dma_trans_t dma_trans = {0};
+    dma_target_t tgt_src  = {0};
+    dma_target_t tgt_dst  = {0};
 
     memset(sram_buffer_read_flash_back, 0, LENGTH_BYTES);
     for(int i=0;i<NUM_WORDS;i++) dma_mem_copy[i] = i*i;

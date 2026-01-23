@@ -5,7 +5,7 @@
 **                                                                         **
 ** project  : x-heep                                                       **
 ** filename : w25q128jw_controller_structs.h                                 **
-** date     : 22/01/2026                                                      **
+** date     : 23/01/2026                                                      **
 **                                                                         **
 *****************************************************************************
 **                                                                         **
@@ -16,7 +16,7 @@
 
 /**
 * @file   w25q128jw_controller_structs.h
-* @date   22/01/2026
+* @date   23/01/2026
 * @brief  Contains structs for every register
 *
 * This file contains the structs of the registes of the peripheral.

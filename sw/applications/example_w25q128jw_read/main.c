@@ -40,6 +40,8 @@
 
 int32_t sram_buffer_read_flash_back[NUM_WORDS];
 
+int32_t dma_mem_copy[NUM_WORDS];
+
 /**
  * @brief Compares read data against expected data.
  *
@@ -264,8 +266,57 @@ int main(void) {
         }
     }
 
-    //put back the counter to 0
-    w25q128jw_set_dma_slot_wait_counter(0);
+    /**************************************************************
+     * _______  ______   _____  _______         __   
+     * |__   __||  ____| / ____||__   __|       / /   
+     * | |   | |__   | (___     | |         / /_   
+     * | |   |  __|   \___ \    | |        |  _ \  
+     * | |   | |____  ____) |   | |        | (_) | 
+     * |_|   |______||_____/    |_|         \___/  
+     * * [ TEST ]                            [ NO. 6 ]
+     * **************************************************************/
+
+    //As the controller uses the DMA, check you can use it as before soon after
+    dma_init(NULL);
+    dma_trans_t dma_trans;
+    dma_target_t tgt_src;
+    dma_target_t tgt_dst;
+
+    memset(sram_buffer_read_flash_back, 0, LENGTH_BYTES);
+    for(int i=0;i<NUM_WORDS;i++) dma_mem_copy[i] = i*i;
+
+    // Initialize the DMA for the next tests
+    tgt_src.ptr = (uint8_t *)dma_mem_copy;
+    tgt_src.inc_d1_du = 1;
+    tgt_src.trig = DMA_TRIG_MEMORY;
+    tgt_src.type = DMA_DATA_TYPE_WORD;
+
+    tgt_dst.ptr = (uint8_t *)sram_buffer_read_flash_back;
+    tgt_dst.inc_d1_du = 1;
+    tgt_dst.trig = DMA_TRIG_MEMORY;
+    tgt_dst.type = DMA_DATA_TYPE_WORD;
+
+    dma_trans.src = &tgt_src;
+    dma_trans.dst = &tgt_dst;
+    dma_trans.src_addr = NULL;
+    dma_trans.size_d1_du = NUM_WORDS;
+    dma_trans.src_type = DMA_DATA_TYPE_WORD;
+    dma_trans.dst_type = DMA_DATA_TYPE_WORD;
+    dma_trans.mode = DMA_TRANS_MODE_SINGLE;
+    dma_trans.win_du = 0;
+    dma_trans.sign_ext = 0;
+    dma_trans.end = DMA_TRANS_END_POLLING;
+    dma_load_transaction(&dma_trans);                                                       \
+    dma_launch(&dma_trans);
+
+     // Check Results
+    for(int i=0;i<NUM_WORDS;i++) {
+        if(sram_buffer_read_flash_back[i]!=dma_mem_copy[i]) {
+            PRINTF("At %d: expected %x, got %x\n", i, dma_mem_copy[i], sram_buffer_read_flash_back[i]);
+            return 6;
+        }
+    }
+
 
 
     return EXIT_SUCCESS;

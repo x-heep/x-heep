@@ -5,19 +5,20 @@
 #ifndef X_HEEP
 #define X_HEEP
 
-#pragma message ( "the x-heep.h for SIMULATION in SYSTEMC is used" )
+#pragma message ( "the x-heep.h for AUP-ZU3-8GB is used" )
 
 #ifdef __cplusplus
 extern "C" {
 #endif  // __cplusplus
 
 
-#define REFERENCE_CLOCK_Hz (100*1000*1000) // 100 MHz for simulation
-#define UART_BAUDRATE (REFERENCE_CLOCK_Hz / 20) // close to maximum baud rate (/16)
+#define REFERENCE_CLOCK_Hz (15*1000*1000) // 15 MHz for FPGA synthesis
+#define UART_BAUDRATE 9600
 // Calculation formula: NCO = 16 * 2^nco_width * baud / fclk.
 // Note that this will be calculated at compile time, so no 64-bit operations will be performed in CPU.
 #define UART_NCO ((uint32_t)( (((uint64_t)UART_BAUDRATE * 16) << 16) / REFERENCE_CLOCK_Hz ))
-#define TARGET_SYSTEMC 1
+#define TARGET_AUP_ZU3 1
+#define TARGET_IS_FPGA 1
 
 /**
  * As the hw is configurable, we can have setups with different number of

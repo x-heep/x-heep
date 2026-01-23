@@ -6,7 +6,15 @@ This project offers X-HEEP implementetions on Xilinx FPGAs.
 
 In this version, the X-HEEP architecture is implemented on the programmable logic (PL) side of the FPGA, and its input/output are connected to the available headers on the FPGA board.
 
-Four FPGA boards are supported: the Xilinx Pynq-z2, Nexys-A7-100t, the ZCU104 and the ZCU102.
+The following FPGA boards are supported: 
+| Vendor      | Board                                                                                                                              | BOARD_NAME    |
+|-------------|------------------------------------------------------------------------------------------------------------------------------------|---------------|
+| TUL         | [Pynq-Z2](https://www.amd.com/en/corporate/university-program/aup-boards/pynq-z2.html)                                             | pynq-z2       |
+| AMD         | [Zynq™ UltraScale+™ MPSoC ZCU104](https://www.amd.com/en/products/adaptive-socs-and-fpgas/evaluation-boards/zcu104.html)           | zcu104        |
+| AMD         | [Zynq™ UltraScale+™ MPSoC ZCU102](https://www.amd.com/en/products/adaptive-socs-and-fpgas/evaluation-boards/ek-u1-zcu102-g.html)   | zcu102        |
+| Digilent    | [Nexys-A7-100t](https://digilent.com/reference/programmable-logic/nexys-a7/start)                                                  | nexys-a7-100t |
+| Digilent    | [Genesys2](https://digilent.com/reference/programmable-logic/genesys-2/start)                                                      | genesys2      |
+| RealDigital | [AUP-ZU3 (8GB)](https://www.amd.com/en/corporate/university-program/aup-boards/realdigital-aup-zu3.html)                           | aup-zu3       |
 
 1. Make sure you have the FPGA board files installed in your Vivado.
 > For example, for the Pynq-Z2 board, use the documentation provided at the following [link](https://pynq.readthedocs.io/en/v2.5/overlay_design_methodology/board_settings.html) to download and install them.
@@ -29,7 +37,7 @@ To build and program the bitstream for your FPGA with vivado, make sure you have
 make vivado-fpga FPGA_BOARD=<BOARD_NAME>
 ```
 
-where `<BOARD_NAME>` can be `pynq-z2`, `nexys-a7-100t`, `zcu104` or `zcu102`. From now on we will refer to it as `<BOARD_NAME>`.
+where `<BOARD_NAME>` can be choosen among the supported boards from the above table. From now on we will refer to it as `<BOARD_NAME>`.
 
 Adding the fusesoc flag `use_bscane_xilinx` enables the native Xilinx scanchain for the JTAG interface in the on chip debug module (Currently only supported for the `pynq-z2` board):
 

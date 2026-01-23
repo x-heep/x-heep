@@ -23,6 +23,7 @@
 #include "csr.h" // For CSR macros
 #include "rv_plic.h" // For PLIC functions
 #include "w25q128jw.h"
+#include "dma.h"
 
 /* By default, printfs are activated for FPGA and disabled for simulation. */
 #define PRINTF_IN_FPGA  1
@@ -121,7 +122,7 @@ int main(void) {
 
     // First, check that the Flash has been programmed/initialized correctly
     // we read in SW as we assume the SW is the golden model
-    w25q128jw_read_standard_dma(flash_buffer_test1, sram_buffer_read_flash_back, LENGTH_BYTES, 0, 0);
+    w25q128jw_read_standard_dma((uint32_t)flash_buffer_test1, sram_buffer_read_flash_back, LENGTH_BYTES, 0, 0);
     for(int i=0;i<NUM_WORDS;i++) {
         //in the .h, flash_buffer_test1 contains numbers from 0 to NUM_WORDS in order
         if(sram_buffer_read_flash_back[i]!=i) {
@@ -150,7 +151,7 @@ int main(void) {
     w25q128jw_controller_run(0, flash_buffer_test1);
 
     // we read back in SW as we assume the SW is the golden model
-    w25q128jw_read_standard_dma(flash_buffer_test1, sram_buffer_read_flash_back, LENGTH_BYTES, 0, 0);
+    w25q128jw_read_standard_dma((uint32_t)flash_buffer_test1, sram_buffer_read_flash_back, LENGTH_BYTES, 0, 0);
 
     // Check Results
     for(int i=0;i<NUM_WORDS;i++) {
@@ -176,7 +177,7 @@ int main(void) {
 
     // First, check that the Flash has been programmed/initialized correctly
     // we read in SW as we assume the SW is the golden model
-    w25q128jw_read_standard_dma(flash_buffer_test2, sram_buffer_read_flash_back, LENGTH_BYTES, 0, 0);
+    w25q128jw_read_standard_dma((uint32_t)flash_buffer_test2, sram_buffer_read_flash_back, LENGTH_BYTES, 0, 0);
 
     // Check Results
     for(int i=0;i<NUM_WORDS;i++) {
@@ -222,7 +223,7 @@ int main(void) {
     w25q128jw_controller_run(1, flash_buffer_test2);
 
     // we read back in SW as we assume the SW is the golden model
-    w25q128jw_read_standard_dma(flash_buffer_test2, sram_buffer_read_flash_back, LENGTH_BYTES, 0, 0);
+    w25q128jw_read_standard_dma((uint32_t)flash_buffer_test2, sram_buffer_read_flash_back, LENGTH_BYTES, 0, 0);
 
     // Check Results
     for(int i=0;i<NUM_WORDS;i++) {

@@ -110,6 +110,8 @@ int main(void) {
     // Init SPI host and SPI<->Flash bridge parameters and Flash Power Up
     if (w25q128jw_init(spi) != FLASH_OK) return EXIT_FAILURE;
 
+    int32_t* flash_ptr_test1 = heep_get_flash_address_offset(flash_buffer_test1);
+    int32_t* flash_ptr_test2 = heep_get_flash_address_offset(flash_buffer_test2);
 
     /**************************************************************
      * _______  ______   _____  _______        __   
@@ -123,7 +125,7 @@ int main(void) {
 
     // First, check that the Flash has been programmed/initialized correctly
     // we read in SW as we assume the SW is the golden model
-    w25q128jw_read_standard_dma((uint32_t)flash_buffer_test1, sram_buffer_read_flash_back, LENGTH_BYTES, 0, 0);
+    w25q128jw_read_standard_dma((uint32_t)flash_ptr_test1, sram_buffer_read_flash_back, LENGTH_BYTES, 0, 0);
     for(int i=0;i<NUM_WORDS;i++) {
         //in the .h, flash_buffer_test1 contains numbers from 0 to NUM_WORDS in order
         if(sram_buffer_read_flash_back[i]!=i) {
@@ -149,7 +151,7 @@ int main(void) {
     // we use polling
     //disable interrupts
     w25q128jw_controller_enable_interrupt(0);
-    w25q128jw_controller_run(0, flash_buffer_test1);
+    w25q128jw_controller_run(0, flash_ptr_test1);
 
     // Check Results
     for(int i=0;i<NUM_WORDS;i++) {
@@ -175,7 +177,7 @@ int main(void) {
 
     // First, check that the Flash has been programmed/initialized correctly
     // we read in SW as we assume the SW is the golden model
-    w25q128jw_read_standard_dma((uint32_t)flash_buffer_test2, sram_buffer_read_flash_back, LENGTH_BYTES, 0, 0);
+    w25q128jw_read_standard_dma((uint32_t)flash_ptr_test2, sram_buffer_read_flash_back, LENGTH_BYTES, 0, 0);
 
     // Check Results
     for(int i=0;i<NUM_WORDS;i++) {
@@ -214,7 +216,7 @@ int main(void) {
     // Enable interrupts
     w25q128jw_controller_enable_interrupt(1);
 
-    w25q128jw_controller_run(1, flash_buffer_test2);
+    w25q128jw_controller_run(1, flash_ptr_test2);
 
      // Check Results
     for(int i=0;i<NUM_WORDS;i++) {
@@ -256,7 +258,7 @@ int main(void) {
     //we also use the dma slot delay counter (we wait 12 cycles after rvalid in both reads and writes)
     w25q128jw_set_dma_slot_wait_counter(12);
 
-    w25q128jw_controller_run(1, flash_buffer_test1);
+    w25q128jw_controller_run(1, flash_ptr_test1);
 
      // Check Results
     for(int i=0;i<NUM_WORDS;i++) {

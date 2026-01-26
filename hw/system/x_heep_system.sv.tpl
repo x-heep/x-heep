@@ -8,11 +8,7 @@ module x_heep_system
   import fifo_pkg::*;
 #(
     parameter logic [31:0] XHEEP_INSTANCE_ID = 0,
-    parameter COREV_PULP = 0,
-    parameter FPU = 0,
-    parameter ZFINX = 0,
     parameter EXT_XBAR_NMASTER = 0,
-    parameter X_EXT = 0,  // eXtension interface in cv32e40x
     parameter AO_SPC_NUM = 0,
     //do not touch these parameters
     parameter AO_SPC_NUM_RND = AO_SPC_NUM == 0 ? 0 : AO_SPC_NUM - 1,
@@ -121,11 +117,7 @@ ${pad.internal_signals}
 % endfor
 
   core_v_mini_mcu #(
-    .COREV_PULP(COREV_PULP),
-    .FPU(FPU),
-    .ZFINX(ZFINX),
     .EXT_XBAR_NMASTER(EXT_XBAR_NMASTER),
-    .X_EXT(X_EXT),
     .AO_SPC_NUM(AO_SPC_NUM),
     .EXT_HARTS(EXT_HARTS)
   ) core_v_mini_mcu_i (

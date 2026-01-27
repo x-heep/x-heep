@@ -6,10 +6,6 @@ module xilinx_core_v_mini_mcu_wrapper
   import obi_pkg::*;
   import reg_pkg::*;
 #(
-    parameter COREV_PULP           = 0,
-    parameter FPU                  = 0,
-    parameter ZFINX                = 0,
-    parameter X_EXT                = 0,  // eXtension interface in cv32e40x
     parameter CLK_LED_COUNT_LENGTH = 27
 ) (
 
@@ -19,6 +15,12 @@ module xilinx_core_v_mini_mcu_wrapper
 `elsif FPGA_ZCU102
     inout logic clk_125mhz_n,
     inout logic clk_125mhz_p,
+`elsif FPGA_AUP_ZU3
+    inout logic clk_100mhz_n,
+    inout logic clk_100mhz_p,
+`elsif FPGA_GENESYS2
+    inout logic clk_200mhz_n,
+    inout logic clk_200mhz_p,
 `else
     inout logic clk_i,
 `endif
@@ -81,6 +83,8 @@ module xilinx_core_v_mini_mcu_wrapper
   // low active reset
 `ifdef FPGA_NEXYS
   assign rst_n = rst_i;
+`elsif FPGA_GENESYS2
+  assign rst_n = rst_i;
 `else
   assign rst_n = !rst_i;
 `endif
@@ -114,6 +118,18 @@ module xilinx_core_v_mini_mcu_wrapper
       .CLK_IN1_D_0_clk_p(clk_125mhz_p),
       .clk_out1_0(clk_gen)
   );
+`elsif FPGA_AUP_ZU3
+  xilinx_clk_wizard_wrapper xilinx_clk_wizard_wrapper_i (
+      .CLK_IN1_D_0_clk_n(clk_100mhz_n),
+      .CLK_IN1_D_0_clk_p(clk_100mhz_p),
+      .clk_out1_0(clk_gen)
+  );
+`elsif FPGA_GENESYS2
+  xilinx_clk_wizard_wrapper xilinx_clk_wizard_wrapper_i (
+      .CLK_IN1_D_0_clk_n(clk_200mhz_n),
+      .CLK_IN1_D_0_clk_p(clk_200mhz_p),
+      .clk_out1_0(clk_gen)
+  );
 `elsif FPGA_NEXYS
   xilinx_clk_wizard_wrapper xilinx_clk_wizard_wrapper_i (
       .clk_100MHz(clk_i),
@@ -126,12 +142,7 @@ module xilinx_core_v_mini_mcu_wrapper
   );
 `endif
 
-  x_heep_system #(
-      .X_EXT(X_EXT),
-      .COREV_PULP(COREV_PULP),
-      .FPU(FPU),
-      .ZFINX(ZFINX)
-  ) x_heep_system_i (
+  x_heep_system x_heep_system_i (
       .hart_id_i('0),
       .xheep_instance_id_i('0),
       .intr_vector_ext_i('0),

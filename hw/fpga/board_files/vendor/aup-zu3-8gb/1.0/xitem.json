@@ -1,0 +1,35 @@
+{
+  "config": {
+    "items": [
+      {
+        "infra": {
+          "name": "aup-zu3-8gb",
+          "display": "Zynq UltraScale+ AUP-ZU3 8GB Development Board",
+          "revision": "1.1",
+          "description": "Zynq UltraScale+ AUP-ZU3 8GB Development Board",
+          "company": "realdigital.org",
+          "company_display": "Real Digital",
+          "author": "Real Digital",
+          "contributors": [
+            {
+              "group": "Real Digital",
+              "url": "http://realdigital.org"
+            }
+          ],
+          "category": "Single Part",
+          "website": "http://realdigital.org",
+          "logo": "aup_zu3_board.png",
+          "search-keywords": [
+            "aup-zu3",
+	    "pynq",
+            "realdigital.org",
+            "board",
+            "Single Part"
+          ]
+        }
+      }
+    ]
+  },
+  "_major": 1,
+  "_minor": 0
+}

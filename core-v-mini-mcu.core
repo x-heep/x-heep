@@ -188,23 +188,11 @@ filesets:
       - hw/asic/sky130/constraint.sdc : {file_type: SDC}
 
 parameters:
-  COREV_PULP:
+  FPU_SS_ZFINX:
     datatype: int
     paramtype: vlogparam
     description: |
-      Enables COREV_PULP custom RISC-V extensions. Admitted values: 1|0.
-    default: 0
-  FPU:
-    datatype: int
-    paramtype: vlogparam
-    description: |
-      Enables RV32F RISC-V extensions. Admitted values: 1|0.
-    default: 0
-  ZFINX:
-    datatype: int
-    paramtype: vlogparam
-    description: |
-      Enables RV32Zfinx RISC-V extensions. Admitted values: 1|0.
+      Enables RV32Zfinx RISC-V extensions in the FPU_ss. Admitted values: 1|0.
     default: 0
   QUADRILATERO:
     datatype: int
@@ -217,12 +205,6 @@ parameters:
     paramtype: vlogparam
     description: |
       Enables testbench JTAG DIPs. Admitted values: 1|0.
-    default: 0
-  X_EXT:
-    datatype: int
-    paramtype: vlogparam
-    description: |
-      Enables CORE-V-XIF interface for the CV32E40X and CV32E40PX cores. Admitted values: 1|0.
     default: 0
   USE_EXTERNAL_DEVICE_EXAMPLE:
     datatype: int
@@ -265,6 +247,14 @@ parameters:
     paramtype: vlogdefine
     default: false
   FPGA_ZCU102:
+    datatype: bool
+    paramtype: vlogdefine
+    default: false
+  FPGA_AUP_ZU3:
+    datatype: bool
+    paramtype: vlogdefine
+    default: false
+  FPGA_GENESYS2:
     datatype: bool
     paramtype: vlogdefine
     default: false
@@ -350,12 +340,9 @@ targets:
       post_run:
         - print_uart_log
     parameters:
-    - COREV_PULP
-    - FPU
-    - ZFINX
+    - FPU_SS_ZFINX
     - QUADRILATERO
     - JTAG_DPI
-    - X_EXT
     - USE_EXTERNAL_DEVICE_EXAMPLE
     - USE_UPF
     - REMOVE_OBI_FIFO
@@ -421,11 +408,8 @@ targets:
     toplevel:
     - tool_verilator? (testharness)
     parameters:
-    - COREV_PULP
-    - FPU
-    - ZFINX
+    - FPU_SS_ZFINX
     - JTAG_DPI
-    - X_EXT
     - USE_EXTERNAL_DEVICE_EXAMPLE
     - USE_UPF
     - REMOVE_OBI_FIFO
@@ -460,10 +444,7 @@ targets:
     - x_heep_system
     - rtl-fpga
     parameters:
-    - COREV_PULP
-    - FPU
-    - ZFINX
-    - X_EXT
+    - FPU_SS_ZFINX
     - SYNTHESIS=true
     - REMOVE_OBI_FIFO
     - FPGA_SYNTHESIS=true
@@ -483,10 +464,7 @@ targets:
     - x_heep_system
     - rtl-fpga
     parameters:
-    - COREV_PULP
-    - FPU
-    - ZFINX
-    - X_EXT
+    - FPU_SS_ZFINX
     - SYNTHESIS=true
     - REMOVE_OBI_FIFO
     - FPGA_SYNTHESIS=true
@@ -505,10 +483,7 @@ targets:
     - x_heep_system
     - rtl-fpga
     parameters:
-    - COREV_PULP
-    - FPU
-    - ZFINX
-    - X_EXT
+    - FPU_SS_ZFINX
     - SYNTHESIS=true
     - REMOVE_OBI_FIFO
     - FPGA_SYNTHESIS=true
@@ -519,7 +494,7 @@ targets:
         board_part: xilinx.com:zcu104:part0:1.0
         board_repo_paths: [../../../hw/fpga/board_files/vendor/esl_epfl_zcu104_board_files]
     toplevel: [xilinx_core_v_mini_mcu_wrapper]
-    
+
   zcu102:
     <<: *default_target
     default_tool: vivado
@@ -528,9 +503,7 @@ targets:
     - x_heep_system
     - rtl-fpga
     parameters:
-    - COREV_PULP
-    - FPU
-    - X_EXT
+    - FPU_SS_ZFINX
     - SYNTHESIS=true
     - REMOVE_OBI_FIFO
     - FPGA_SYNTHESIS=true
@@ -542,16 +515,53 @@ targets:
         board_repo_paths: [../../../hw/fpga/board_files/vendor/zcu102]
     toplevel: [xilinx_core_v_mini_mcu_wrapper]
 
+  aup-zu3:
+    <<: *default_target
+    default_tool: vivado
+    description: RD aup-zu3 Board
+    filesets_append:
+    - x_heep_system
+    - rtl-fpga
+    parameters:
+    - FPU_SS_ZFINX
+    - SYNTHESIS=true
+    - REMOVE_OBI_FIFO
+    - FPGA_SYNTHESIS=true
+    - FPGA_AUP_ZU3=true
+    tools:
+      vivado:
+        part: xczu3eg-sfvc784-2-e
+        board_part: realdigital.org:aup-zu3-8gb:part0:1.0
+        board_repo_paths: [../../../hw/fpga/board_files/vendor/aup-zu3-8gb/1.0]
+    toplevel: [xilinx_core_v_mini_mcu_wrapper]
+
+  genesys2:
+    <<: *default_target
+    default_tool: vivado
+    description: Genesys2 Evaluation Board
+    filesets_append:
+    - x_heep_system
+    - rtl-fpga
+    parameters:
+    - FPU_SS_ZFINX
+    - SYNTHESIS=true
+    - REMOVE_OBI_FIFO
+    - FPGA_SYNTHESIS=true
+    - FPGA_GENESYS2=true
+    tools:
+      vivado:
+        part: xc7k325tffg900-2
+        board_part: digilentinc.com:genesys2:part0:1.1
+        board_repo_paths: [../../../hw/fpga/board_files/vendor/genesys2]
+    toplevel: [xilinx_core_v_mini_mcu_wrapper]
+
   asic_synthesis:
     <<: *default_target
     default_tool: design_compiler
     description: Design Compiler Script
     parameters:
     - PRIM_DEFAULT_IMPL=prim_pkg::your_target_technology
-    - COREV_PULP
-    - X_EXT
-    - FPU
-    - ZFINX
+    - FPU_SS_ZFINX
     - SYNTHESIS=true
     - REMOVE_OBI_FIFO
     filesets_append:
@@ -571,10 +581,7 @@ targets:
     default_tool: openroad
     description: yosys
     parameters:
-      - COREV_PULP
-      - FPU
-      - ZFINX
-      - X_EXT
+      - FPU_SS_ZFINX
       - SYNTHESIS=true
       - VERILATOR=true
       - REMOVE_OBI_FIFO

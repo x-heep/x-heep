@@ -306,6 +306,7 @@ module w25q128jw_controller
     spi_host_reg_req_o.wstrb = 4'b1111;
     spi_host_reg_req_o.write = 1'b0;
     spi_host_reg_req_o.wdata = '0;
+    spi_host_reg_req_offset  = '0;
 
     // ============================================================================
     // TOP FSM

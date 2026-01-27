@@ -1,16 +1,18 @@
-from x_heep_gen.pads.PadDef import (
-    Dimension, Layout, PadMapping, PadActive, Orientation,
-    Input, Output, Inout, DVss, DVdd, DVddIO, DVddPOC, DVss, AVdd, AVss, Asignal, Physical,
-    assign_to_side, print_pad_table, generate_padlist, print_pad_frame, space_by_pitch
-)
-import x_heep_gen.pads.PadDef as PadDef
-from x_heep_gen.pads.PadRing import PadRing
+from x_heep_gen.pads.PadRing import *
+from x_heep_gen.pads.Floorplan import *
+from x_heep_gen.pads.Pin import *
 
 import numpy as np
 
-PAD_QTY = 92
-WIDTH   = 2000
-HEIGHT  = 2000
+PAD_QTY                     = 92
+DIE_WIDTH                   = 2000
+DIE_HEIGHT                  = 2000
+SPACE_FROM_CORNER_CELL      = 20
+PITCH_BETWEEN_IO_DEFAULT    = 65
+BONDPAD_MARGIN              = 24
+IOCELL_MARGIN               = 95
+CORE_MARGIN                 = 160
+
 
 
 def config() -> PadRing:
@@ -19,30 +21,47 @@ def config() -> PadRing:
     This is the Python class-based equivalent of configs/pad_cfg.hjson.
     """
 
-
+    fp_dim = FloorplanDimensions(   die_dimensions  = Dimension( height=DIE_WIDTH, width=DIE_HEIGHT ),
+                                    bondpad_margin  = { Side.LEFT   : BONDPAD_MARGIN,
+                                                        Side.BOTTOM : BONDPAD_MARGIN,
+                                                        Side.RIGHT  : BONDPAD_MARGIN,
+                                                        Side.TOP    : BONDPAD_MARGIN 
+                                                    },
+                                    iocell_margin   = { Side.LEFT   : IOCELL_MARGIN,
+                                                        Side.BOTTOM : IOCELL_MARGIN,
+                                                        Side.RIGHT  : IOCELL_MARGIN,
+                                                        Side.TOP    : IOCELL_MARGIN 
+                                                    },
+                                    core_margin     = { Side.LEFT   : CORE_MARGIN,
+                                                        Side.BOTTOM : CORE_MARGIN,
+                                                        Side.RIGHT  : CORE_MARGIN,
+                                                        Side.TOP    : CORE_MARGIN 
+                                                    }
+                                 )
+    
     ##############################################
     # Define the library and technology's dimensions
 
-    PadDef.bp_a         = Dimension(width=60, length=80, name="BPAD6A")
-    PadDef.bp_d         = Dimension(width=60, length=80, name="BPADD")
+    Cell.cell_bondpad_a     = Dimension(width=60, length=80, name="BPAD6A")
+    Cell.cell_bondpad_d     = Dimension(width=60, length=80, name="BPADD")
 
-    PadDef.pad_d        = Dimension(width=60, length=80, name="PD")
-    PadDef.pad_clk      = PadDef.pad_d
-    PadDef.pad_dVdd     = Dimension(width=60, length=80, name="PS1")
-    PadDef.pad_ioVdd    = Dimension(width=60, length=80, name="PS2")
-    PadDef.pad_ioPoc    = Dimension(width=60, length=80, name="PS3")
-    PadDef.pad_dVss     = Dimension(width=60, length=80, name="PS4")
-    PadDef.pad_ioVss    = PadDef.pad_dVss
+    Cell.cell_iocell_d      = Dimension(width=60, length=80, name="PD")
+    Cell.cell_iocell_clk    = Cell.cell_iocell_d
+    Cell.cell_iocell_dVdd   = Dimension(width=60, length=80, name="PS1")
+    Cell.cell_iocell_ioVdd  = Dimension(width=60, length=80, name="PS2")
+    Cell.cell_iocell_ioPoc  = Dimension(width=60, length=80, name="PS3")
+    Cell.cell_iocell_dVss   = Dimension(width=60, length=80, name="PS4")
+    Cell.cell_iocell_ioVss  = Cell.cell_iocell_dVss
 
-    PadDef.pad_a        = Dimension(width=60, length=80, name="PA")
-    PadDef.pad_aVdd     = Dimension(width=60, length=80, name="PSA1")
-    PadDef.pad_aVss     = Dimension(width=60, length=80, name="PSA2")
+    Cell.cell_iocell_a      = Dimension(width=60, length=80, name="PA")
+    Cell.cell_iocell_aVdd   = Dimension(width=60, length=80, name="PSA1")
+    Cell.cell_iocell_aVss   = Dimension(width=60, length=80, name="PSA2")
 
-    PadDef.aPrcut       = Dimension(width=30, length=80, name="PCA")
-    PadDef.aPrcut       = Dimension(width=60, length=80, name="PCD")
+    Cell.cell_aPrcut        = Dimension(width=30, length=80, name="PCA")
+    Cell.cell_aPrcut        = Dimension(width=60, length=80, name="PCD")
 
-    PadDef.aCorner      = Dimension(width=60, length=80, name="PCA")
-    PadDef.dCorner      = Dimension(width=60, length=80, name="PCD")
+    Cell.cell_aCorner       = Dimension(width=60, length=80, name="PCA")
+    Cell.cell_dCorner       = Dimension(width=60, length=80, name="PCD")
 
 
     ##############################################
@@ -50,7 +69,7 @@ def config() -> PadRing:
 
     digital_pins = [
         (Input,     "clk",                  [1],  {"driven_manually": True} ),
-        (Input,     "rst",                  [4],  {"active":PadActive.LOW.value, "driven_manually": True}),
+        (Input,     "rst",                  [4],  {"active":"low", "driven_manually": True}),
         (Input,     "execute_from_flash",   [5],  {} ),
         (Output,    "exit_valid",           [6],  {} ),
         (Output,    "exit_value",           [7],  {"driven_manually": True} ),
@@ -69,7 +88,7 @@ def config() -> PadRing:
         (Input,     "spi_slave_sck",        [53], {} ),
         (Inout,     "spi_slave_miso",       [54], {} ),
         (Input,     "spi_slave_mosi",       [55], {} ),
-        (Input,     "jtag_trst",            [56], {"active":PadActive.LOW.value}),
+        (Input,     "jtag_trst",            [56], {"active":"low"}),
         (Input,     "jtag_tms",             [57], {} ),
         (Input,     "jtag_tdi",             [58], {} ),
         (Input,     "jtag_tck",             [59], {} ),
@@ -137,19 +156,25 @@ def config() -> PadRing:
     # Assign a gpio to the last pad just to make sure that the mcu-gen does not die
     pins["gpio_7"].pads = [PAD_QTY]
 
-    ##############################################
-    # GENERATE A LIST OF ALL POSSIBLE PADS
-    # These do not include physical blocks yet
-    default_pin = next(pin for pin in pins.values() if hasattr(pin,"default"))
-    pads = generate_padlist(pins, PAD_QTY, default_pin=default_pin)
+
+
+
+
+
+    padring = PadRing(  floorplan_dimensions    = fp_dim,\
+                        pin_list                = list(pins.values()),\
+                        pad_list                = [None]*PAD_QTY 
+                    )
+
+
 
     ##############################################
     # ASSIGN PADS TO SIDES
 
-    assign_to_side( pads[1                     : int(PAD_QTY/4)*1 +1], PadMapping.LEFT )
-    assign_to_side( pads[int(PAD_QTY/4)*1 +1   : int(PAD_QTY/4)*2 +1], PadMapping.BOTTOM )
-    assign_to_side( pads[int(PAD_QTY/4)*2 +1   : int(PAD_QTY/4)*3 +1], PadMapping.RIGHT )
-    assign_to_side( pads[int(PAD_QTY/4)*3 +1   : int(PAD_QTY/4)*4 +1], PadMapping.TOP )
+    assign_to_side( padring.pad_list[1                     : int(PAD_QTY/4)*1 +1], Side.LEFT )
+    assign_to_side( padring.pad_list[int(PAD_QTY/4)*1 +1   : int(PAD_QTY/4)*2 +1], Side.BOTTOM )
+    assign_to_side( padring.pad_list[int(PAD_QTY/4)*2 +1   : int(PAD_QTY/4)*3 +1], Side.RIGHT )
+    assign_to_side( padring.pad_list[int(PAD_QTY/4)*3 +1   : int(PAD_QTY/4)*4 +1], Side.TOP )
 
     ##############################################
     # PLACE PHYSICAL COMPONENTS (pad ring cuts)
@@ -159,14 +184,14 @@ def config() -> PadRing:
 
     prcuta_top      = Physical( name            ="PRCUTA_TOP",
                                 layout          = Layout(bond_pad=PadDef.bp_skip, cell_pad=PadDef.aPrcut),
-                                side            = PadMapping.TOP,
+                                side            = Side.TOP,
                                 orient          = Orientation.R0,
                                 layout_index    = 15.5,
                                 space           = 5 )
 
     prcuta_bottom   = Physical( name            = "PRCUTA_BOTTOM",
                                 layout          = Layout(bond_pad=PadDef.bp_skip, cell_pad=PadDef.aPrcut),
-                                side            = PadMapping.BOTTOM,
+                                side            = Side.BOTTOM,
                                 orient          = Orientation.R180,
                                 layout_index    = 9.5,
                                 space           = 0 )
@@ -180,69 +205,12 @@ def config() -> PadRing:
     print_pad_frame(pads[1:])
     print_pad_table(pads[1:])
 
-    ##############################################
-    # DIMENSIONS
-
-    pad_group = PadGroup(
-        name                =   "cheep_top",
-        physical_properties =   {"io_to_core_offset": 30},
-        pad_edge_offset     =   100,    # Ignored
-        bondpad_edge_offset =   29,     # Ignored
-        bp_spacing          =   15,     # Ignored
-        cell_spacing        =   None,   # Ignored
-        fp_dim              =   Dimension(width=WIDTH, length=HEIGHT),
-
-    )
-
-
-    ##############################################
-    # MANUALLY SET MARGINS
-    # There are four rings, each has an offset
-    # 1: sealring
-    # 2: CDU
-    # 3: bondpads
-    # 4: pads
-    # For each ring, there is a side
-    ring_margin_default = [0, 0, 12.2, 24, 95]
-    ring_margins = {
-        "top":      ring_margin_default.copy(),
-        "bottom":   ring_margin_default.copy(),
-        "left":     ring_margin_default.copy(),
-        "right":    ring_margin_default.copy(),
-    }
-
-    ##############################################
-    # MANUALLY SET OFFSETS
-
-    SPACE_FROM_CORNER_CELL      = 20
-    PITCH_BETWEEN_IO_DEFAULT    = 65
 
     # Arbitrarily assign a fixed position to some pad
-    pads[31].pc_center_from_ring = 586
-
-    for side in ["left", "bottom", "right","top"]:
-        side_margins    = ring_margins[side]
-        side_pads       = [ pad for pad in pads[1:] if pad.mapping.value == side ]
-        space_by_pitch( side_pads, side_margins, SPACE_FROM_CORNER_CELL, PITCH_BETWEEN_IO_DEFAULT )
+    padring.pad_list[31].iocell_center_to_ring_edge = 586
 
     ##############################################
-    # ADD PADS TO PAD GROUP
-    # and prepare them to be received by the mcu-gen
-
-    pads = pads[1:]
-    pads.sort(key=lambda x: x.global_index)
-
-    from copy import deepcopy
-    backup = deepcopy(pads)
-
-    [pad_group.add_pad(pad) for pad in pads]
-
-
-
-    padring = PadRing(pad_group)
-    padring.build()
-
-    padring.customPadList = backup
-    padring.ring_margins = ring_margins
+    # MANUALLY SET SPACING
+    for side in Side: padring.space_by_pitch(side, SPACE_FROM_CORNER_CELL, PITCH_BETWEEN_IO_DEFAULT )
 
     return padring

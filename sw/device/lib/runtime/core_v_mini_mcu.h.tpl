@@ -43,9 +43,7 @@ extern "C" {
 #define ${peripheral.get_name().upper()}_SIZE ${hex(peripheral.get_length())}
 #define ${peripheral.get_name().upper()}_END_ADDRESS (${peripheral.get_name().upper()}_START_ADDRESS + ${peripheral.get_name().upper()}_SIZE)
 #define ${peripheral.get_name().upper()}_IDX ${loop.index}
-% if peripheral.get_name() == "dma" and dma.get_is_included():
 #define ${peripheral.get_name().upper()}_IS_INCLUDED
-% endif
 %endfor
 
 // This section is here to have default values for the peripherals that are not included in the user peripheral domain. Their are used in their respective structs.h files.

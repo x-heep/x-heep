@@ -11,8 +11,12 @@
 extern "C" {
 #endif  // __cplusplus
 
-#define REFERENCE_CLOCK_Hz 15*1000*1000
+
+#define REFERENCE_CLOCK_Hz (15*1000*1000) // 15 MHz for FPGA synthesis
 #define UART_BAUDRATE 9600
+// Calculation formula: NCO = 16 * 2^nco_width * baud / fclk.
+// Note that this will be calculated at compile time, so no 64-bit operations will be performed in CPU.
+#define UART_NCO ((uint32_t)( (((uint64_t)UART_BAUDRATE * 16) << 16) / REFERENCE_CLOCK_Hz ))
 #define TARGET_ZCU102 1
 #define TARGET_IS_FPGA 1
 
@@ -20,7 +24,8 @@ extern "C" {
  * As the hw is configurable, we can have setups with different number of
  * Gpio pins
  */
-#define MAX_PIN 32
+#define MAX_PIN     32
+
 
 #ifdef __cplusplus
 }  // extern "C"

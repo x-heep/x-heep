@@ -496,3 +496,63 @@ def load_cfg_file(f: PurePath) -> XHeep:
 
     else:
         raise RuntimeError(f"unsupported file extension {f.suffix}")
+
+def load_pad_cfg(f: PurePath):
+    """
+    Load pad configuration from HJSON or Python file and build PadRing.
+
+    This function supports two configuration formats:
+        - HJSON (.hjson): Parses HJSON, builds PadGroup via build_pad_group(),
+          then creates PadRing
+        - Python (.py): Imports module and calls config() function which must
+          return a PadRing instance
+
+    Both formats must produce equivalent PadRing objects to ensure consistency.
+
+    :param PurePath f: Path to configuration file (.hjson or .py)
+    :return: Built PadRing object ready for template generation
+    :rtype: PadRing
+    :raises TypeError: If f is not a PurePath
+    :raises RuntimeError: If file extension is not supported
+    :raises ValueError: If configuration is invalid or PadRing creation fails
+    :raises SystemExit: If HJSON parsing fails
+
+    Example:
+        # HJSON format
+        pad_ring = load_pad_cfg(Path("configs/pad_cfg.hjson"))
+
+        # Python format
+        pad_ring = load_pad_cfg(Path("configs/pad_cfg.py"))
+    """
+    if not isinstance(f, PurePath):
+        raise TypeError("parameter should be of type PurePath")
+
+    if f.suffix == ".hjson":
+        with open(f, "r") as file:
+            try:
+                srcfull = file.read()
+                pad_cfg = hjson.loads(srcfull, use_decimal=True)
+                pad_cfg = JsonRef.replace_refs(pad_cfg)
+                pad_group = PadGroup.build_pad_group(pad_cfg, "x_heep_top")
+
+                if pad_group is None:
+                    raise ValueError(
+                        "PadGroup could not be created from configuration."
+                    )
+                pad_ring = PadRing(pad_group)
+                if pad_ring is None:
+                    raise ValueError("PadRing could not be created from configuration.")
+                return pad_ring
+            except ValueError:
+                raise SystemExit(sys.exc_info()[1])
+
+    elif f.suffix == ".py":
+        # The python script should have a function config() that takes no parameters and
+        # returns an instance of the PadRing type.
+        spec = importlib.util.spec_from_file_location("configs._config", f)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return mod.config()
+
+    else:
+        raise RuntimeError(f"unsupported file extension {f.suffix}")

@@ -1,5 +1,3 @@
-
-
 class Pad:
 
     def __init__(

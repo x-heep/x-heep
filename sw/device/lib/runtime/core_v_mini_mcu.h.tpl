@@ -53,6 +53,9 @@ extern "C" {
 % if not base_peripheral_domain.contains_peripheral('spi_flash'):
 #define SPI_FLASH_START_ADDRESS 0
 % endif
+% if not base_peripheral_domain.contains_peripheral('w25q128jw_controller'):
+#define W25Q128JW_CONTROLLER_START_ADDRESS 0
+% endif
 % if not base_peripheral_domain.contains_peripheral('gpio_ao'):
 #define GPIO_AO_START_ADDRESS 0
 % endif

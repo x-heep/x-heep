@@ -6,7 +6,9 @@
 import UPF::*;
 `endif
 
-
+<%
+  cpu = xheep.cpu()
+%>
 
 module testharness #(
     parameter bit FPU_SS_ZFINX                = 1,
@@ -667,7 +669,7 @@ module testharness #(
           .io3(spi_flash_sd_io[3])
       );
 
-      if ((core_v_mini_mcu_pkg::CpuType == cv32e40x || core_v_mini_mcu_pkg::CpuType == cv32e40px || (FPU_SS_ZFINX && core_v_mini_mcu_pkg::CpuType == cv32e20)) && 0 && (QUADRILATERO == 0)) begin: gen_fpu_ss_wrapper
+      if ((core_v_mini_mcu_pkg::CpuType == cv32e40x || core_v_mini_mcu_pkg::CpuType == cv32e40px || (FPU_SS_ZFINX && core_v_mini_mcu_pkg::CpuType == cv32e20)) && ${cpu.get_sv_str("cv_x_if") if cpu.is_defined("cv_x_if") else "0"} && (QUADRILATERO == 0)) begin: gen_fpu_ss_wrapper
         fpu_ss_wrapper #(
             .PULP_ZFINX(FPU_SS_ZFINX),
             .INPUT_BUFFER_DEPTH(1),
@@ -689,7 +691,7 @@ module testharness #(
             .xif_result_if(ext_if)
         );
       end
-      if ((core_v_mini_mcu_pkg::CpuType == cv32e40x || core_v_mini_mcu_pkg::CpuType == cv32e40px || core_v_mini_mcu_pkg::CpuType == cv32e20) && 0 && (QUADRILATERO != 0)) begin: gen_quadrilatero_wrapper
+      if ((core_v_mini_mcu_pkg::CpuType == cv32e40x || core_v_mini_mcu_pkg::CpuType == cv32e40px || core_v_mini_mcu_pkg::CpuType == cv32e20) && ${cpu.get_sv_str("cv_x_if") if cpu.is_defined("cv_x_if") else "0"} && (QUADRILATERO != 0)) begin: gen_quadrilatero_wrapper
         quadrilatero_wrapper #(
             .MATRIX_FPU(0)
         ) quadrilatero_wrapper_i (
@@ -702,7 +704,7 @@ module testharness #(
             .xif_mem_if             (ext_if),
             .xif_mem_result_if      (ext_if),
             .xif_result_if          (ext_if),
-            // OBI signals
+            // OBI signals 
             .quadrilatero_ch0_req_o (ext_master_req[testharness_pkg::EXT_MASTER4_IDX]),
             .quadrilatero_ch0_resp_i(ext_master_resp[testharness_pkg::EXT_MASTER4_IDX]),
             .quadrilatero_ch1_req_o (ext_master_req[testharness_pkg::EXT_MASTER5_IDX]),

@@ -20,62 +20,62 @@ class cv32e40p(CPU):
         if fpu is not None:
             if isinstance(fpu, str):
                 if fpu.lower() not in ("true", "false", "1", "0"):
-                    raise ValueError(f"FPU must be 0, 1, True, or False, got '{fpu}'")
+                    raise ValueError(f"fpu must be 0, 1, True, or False, got '{fpu}'")
                 fpu = fpu.lower() in ("true", "1")
 
             if fpu not in (0, 1, True, False):
-                raise ValueError(f"FPU must be 0, 1, True, or False, got '{fpu}'")
+                raise ValueError(f"fpu must be 0, 1, True, or False, got '{fpu}'")
 
             self.params["fpu"] = bool(fpu)
 
         if fpu_addmul_lat is not None:
             if fpu is None or fpu in (0, False):
-                raise ValueError("FPU_ADDMUL_LAT requires FPU enabled")
+                raise ValueError("fpu_addmul_lat requires fpu enabled")
             if isinstance(fpu_addmul_lat, str):
                 try:
                     fpu_addmul_lat = int(fpu_addmul_lat.lower())
                 except:
                     raise ValueError(
-                        f"FPU_ADDMUL_LAT must be a number, got '{fpu_addmul_lat}'"
+                        f"fpu_addmul_lat must be a number, got '{fpu_addmul_lat}'"
                     )
 
             if fpu_addmul_lat < 0:
                 raise ValueError(
-                    f"FPU_ADDMUL_LAT must be a positive number, got '{fpu_addmul_lat}'"
+                    f"fpu_addmul_lat must be a positive number, got '{fpu_addmul_lat}'"
                 )
 
             self.params["fpu_addmul_lat"] = fpu_addmul_lat
 
         if fpu_others_lat is not None:
             if fpu is None or fpu in (0, False):
-                raise ValueError("FPU_OTHERS_LAT requires FPU enabled")
+                raise ValueError("fpu_others_lat requires fpu enabled")
             if isinstance(fpu_others_lat, str):
                 try:
                     fpu_others_lat = int(fpu_others_lat.lower())
                 except:
                     raise ValueError(
-                        f"FPU_OTHERS_LAT must be a number, got '{fpu_others_lat}'"
+                        f"fpu_others_lat must be a number, got '{fpu_others_lat}'"
                     )
 
             if fpu_others_lat < 0:
                 raise ValueError(
-                    f"FPU_OTHERS_LAT must be a positive number, got '{fpu_others_lat}'"
+                    f"fpu_others_lat must be a positive number, got '{fpu_others_lat}'"
                 )
 
             self.params["fpu_others_lat"] = fpu_others_lat
 
         if zfinx is not None:
             if fpu is None or fpu in (0, False):
-                raise ValueError("ZFINX requires FPU enabled")
+                raise ValueError("zfinx requires fpu enabled")
             if isinstance(zfinx, str):
                 if zfinx.lower() not in ("true", "false", "1", "0"):
                     raise ValueError(
-                        f"ZFINX must be 0, 1, True, or False, got '{zfinx}'"
+                        f"zfinx must be 0, 1, True, or False, got '{zfinx}'"
                     )
                 zfinx = zfinx.lower() in ("true", "1")
 
             if zfinx not in (0, 1, True, False):
-                raise ValueError(f"ZFINX must be 0, 1, True, or False, got '{zfinx}'")
+                raise ValueError(f"zfinx must be 0, 1, True, or False, got '{zfinx}'")
 
             self.params["zfinx"] = bool(zfinx)
 
@@ -83,13 +83,13 @@ class cv32e40p(CPU):
             if isinstance(corev_pulp, str):
                 if corev_pulp.lower() not in ("true", "false", "1", "0"):
                     raise ValueError(
-                        f"COREV_PULP must be 0, 1, True, or False, got '{corev_pulp}'"
+                        f"corev_pulp must be 0, 1, True, or False, got '{corev_pulp}'"
                     )
                 corev_pulp = corev_pulp.lower() in ("true", "1")
 
             if corev_pulp not in (0, 1, True, False):
                 raise ValueError(
-                    f"COREV_PULP must be 0, 1, True, or False, got '{corev_pulp}'"
+                    f"corev_pulp must be 0, 1, True, or False, got '{corev_pulp}'"
                 )
 
             self.params["corev_pulp"] = bool(corev_pulp)
@@ -100,12 +100,12 @@ class cv32e40p(CPU):
                     num_mhpmcounters = int(num_mhpmcounters.lower())
                 except:
                     raise ValueError(
-                        f"NUM_MHPMCOUNTERS must be a number, got '{num_mhpmcounters}'"
+                        f"num_mhpmcounters must be a number, got '{num_mhpmcounters}'"
                     )
 
             if num_mhpmcounters < 0:
                 raise ValueError(
-                    f"NUM_MHPMCOUNTERS must be a positive number, got '{num_mhpmcounters}'"
+                    f"num_mhpmcounters must be a positive number, got '{num_mhpmcounters}'"
                 )
 
             self.params["num_mhpmcounters"] = num_mhpmcounters

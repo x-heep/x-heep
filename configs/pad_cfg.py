@@ -1,6 +1,7 @@
 from x_heep_gen.pads.PadRing import *
 from x_heep_gen.pads.Floorplan import *
 from x_heep_gen.pads.Pin import *
+from x_heep_gen.pads.Pad import *
 
 import numpy as np
 
@@ -68,65 +69,65 @@ def config() -> PadRing:
     # DEFINE ALL THE AVAILABLE PINS
 
     digital_pins = [
-        (Input,     "clk",                  [1],  {"driven_manually": True} ),
-        (Input,     "rst",                  [4],  {"active":"low", "driven_manually": True}),
-        (Input,     "execute_from_flash",   [5],  {} ),
-        (Output,    "exit_valid",           [6],  {} ),
-        (Output,    "exit_value",           [7],  {"driven_manually": True} ),
-        (Input,     "boot_select",          [8],  {} ),
-        (Output,    "vco_counter_overflow", [9],  {"driven_manually": True} ),
-        (Output,    "lc_dir",               [10], {"driven_manually": True} ),
-        (Output,    "lc_xing",              [11], {"driven_manually": True} ),
-        (Output,    "dsm_clk",              [14], {"driven_manually": True} ),
-        (Input,     "dsm_in",               [15], {"driven_manually": True} ),
-        (Output,    "spi_flash_cs_1",       [16], {} ),
-        (Inout,     "spi_flash_sd_1",       [17], {} ),
-        (Inout,     "spi_flash_sd_0",       [18], {} ),
-        (Output,    "spi_flash_sck",        [19], {} ),
-        (Output,    "spi_flash_cs_0",       [20], {} ),
-        (Input,     "spi_slave_cs",         [52], {} ),
-        (Input,     "spi_slave_sck",        [53], {} ),
-        (Inout,     "spi_slave_miso",       [54], {} ),
-        (Input,     "spi_slave_mosi",       [55], {} ),
-        (Input,     "jtag_trst",            [56], {"active":"low"}),
-        (Input,     "jtag_tms",             [57], {} ),
-        (Input,     "jtag_tdi",             [58], {} ),
-        (Input,     "jtag_tck",             [59], {} ),
-        (Output,    "jtag_tdo",             [60], {} ),
-        (Output,    "uart_tx",              [63], {} ),
-        (Input,     "uart_rx",              [64], {} ),
+        (Input,     "clk",                  [1],  {"module": "cheep_top"} ),
+        (Input,     "rst",                  [4],  {"module": "cheep_top", "active":"low"}),
+        (Input,     "execute_from_flash",   [5],  {"module": "core_v_mini_mcu"} ),
+        (Output,    "exit_valid",           [6],  {"module": "core_v_mini_mcu"} ),
+        (Output,    "exit_value",           [7],  {"module": "cheep_top"} ),
+        (Input,     "boot_select",          [8],  {"module": "core_v_mini_mcu"} ),
+        (Output,    "vco_counter_overflow", [9],  {"module": "cheep_top"} ),
+        (Output,    "lc_dir",               [10], {"module": "cheep_top"} ),
+        (Output,    "lc_xing",              [11], {"module": "cheep_top"} ),
+        (Output,    "dsm_clk",              [14], {"module": "cheep_top"} ),
+        (Input,     "dsm_in",               [15], {"module": "cheep_top"} ),
+        (Output,    "spi_flash_cs_1",       [16], {"module": "core_v_mini_mcu"} ),
+        (Inout,     "spi_flash_sd_1",       [17], {"module": "core_v_mini_mcu"} ),
+        (Inout,     "spi_flash_sd_0",       [18], {"module": "core_v_mini_mcu"} ),
+        (Output,    "spi_flash_sck",        [19], {"module": "core_v_mini_mcu"} ),
+        (Output,    "spi_flash_cs_0",       [20], {"module": "core_v_mini_mcu"} ),
+        (Input,     "spi_slave_cs",         [52], {"module": "core_v_mini_mcu"} ),
+        (Input,     "spi_slave_sck",        [53], {"module": "core_v_mini_mcu"} ),
+        (Inout,     "spi_slave_miso",       [54], {"module": "core_v_mini_mcu"} ),
+        (Input,     "spi_slave_mosi",       [55], {"module": "core_v_mini_mcu"} ),
+        (Input,     "jtag_trst",            [56], {"module": "core_v_mini_mcu", "active":"low"}),
+        (Input,     "jtag_tms",             [57], {"module": "core_v_mini_mcu"} ),
+        (Input,     "jtag_tdi",             [58], {"module": "core_v_mini_mcu"} ),
+        (Input,     "jtag_tck",             [59], {"module": "core_v_mini_mcu"} ),
+        (Output,    "jtag_tdo",             [60], {"module": "core_v_mini_mcu"} ),
+        (Output,    "uart_tx",              [63], {"module": "core_v_mini_mcu"} ),
+        (Input,     "uart_rx",              [64], {"module": "core_v_mini_mcu"} ),
     ]
 
     analog_pins = [
-        (Asignal,   "DSM_VIN",              [23], {}),
-        (Asignal,   "DSM_VDD",              [24], {}),
-        (Asignal,   "VCO_VDD",              [26], {}),
-        (Asignal,   "VCO_VIN",              [27], {}),
-        (Asignal,   "VCO_VN0_VDD",          [28], {}),
-        (Asignal,   "VCO_VN0",              [29], {}),
-        (Asignal,   "LDO_VBAT",             [30], {}),
-        (Asignal,   "LDO_VOUT",             [32], {}),
-        (Asignal,   "LDO_VIN",              [33], {}),
-        (Asignal,   "VREF_VDD",             [36], {}),
-        (Asignal,   "VREF_VOUT",            [37], {}),
-        (Asignal,   "IDAC1_IOUT",           [38], {}),
-        (Asignal,   "IDAC1_IIN",            [39], {}),
-        (Asignal,   "IREF1_IOUT",           [40], {}),
-        (Asignal,   "IREF_VDD",             [42], {}),
-        (Asignal,   "IREF_IOUT",            [43], {}),
-        (Asignal,   "IDAC2_IIN",            [44], {}),
-        (Asignal,   "IDAC2_IOUT",           [45], {}),
-        (Asignal,   "AMUX_VDD",             [47], {}),
-        (Asignal,   "AMUX_VOUT",            [48], {}),
+        (Asignal,   "DSM_VIN",              [23], {"module": "analog_subsystem"}),
+        (Asignal,   "DSM_VDD",              [24], {"module": "analog_subsystem"}),
+        (Asignal,   "VCO_VDD",              [26], {"module": "analog_subsystem"}),
+        (Asignal,   "VCO_VIN",              [27], {"module": "analog_subsystem"}),
+        (Asignal,   "VCO_VN0_VDD",          [28], {"module": "analog_subsystem"}),
+        (Asignal,   "VCO_VN0",              [29], {"module": "analog_subsystem"}),
+        (Asignal,   "LDO_VBAT",             [30], {"module": "analog_subsystem"}),
+        (Asignal,   "LDO_VOUT",             [32], {"module": "analog_subsystem"}),
+        (Asignal,   "LDO_VIN",              [33], {"module": "analog_subsystem"}),
+        (Asignal,   "VREF_VDD",             [36], {"module": "analog_subsystem"}),
+        (Asignal,   "VREF_VOUT",            [37], {"module": "analog_subsystem"}),
+        (Asignal,   "IDAC1_IOUT",           [38], {"module": "analog_subsystem"}),
+        (Asignal,   "IDAC1_IIN",            [39], {"module": "analog_subsystem"}),
+        (Asignal,   "IREF1_IOUT",           [40], {"module": "analog_subsystem"}),
+        (Asignal,   "IREF_VDD",             [42], {"module": "analog_subsystem"}),
+        (Asignal,   "IREF_IOUT",            [43], {"module": "analog_subsystem"}),
+        (Asignal,   "IDAC2_IIN",            [44], {"module": "analog_subsystem"}),
+        (Asignal,   "IDAC2_IOUT",           [45], {"module": "analog_subsystem"}),
+        (Asignal,   "AMUX_VDD",             [47], {"module": "analog_subsystem"}),
+        (Asignal,   "AMUX_VOUT",            [48], {"module": "analog_subsystem"}),
     ]
 
     supply_pins = [
-        (DVss,      "VSS",                  [2, 12,22, 50, 61],     {"default":True}),
-        (DVdd,      "DCORE_VDD",            [3, 21, 51],            {}),
-        (DVddIO,    "IO_VDD",               [62],                   {}),
-        (DVddPOC,   "IO_VDD_POC",           [13],                   {}),
-        (AVdd,      "ACORE_VDD",            [34],                   {}),
-        (AVss,      "ACORE_VSS",            [25, 31, 35, 41, 46],   {}),
+        (DVss,      "VSS",                  [2, 12,22, 50, 61],     {"module": "cheep_top", "default":True}),
+        (DVdd,      "DCORE_VDD",            [3, 21, 51],            {"module": "cheep_top"}),
+        (DVddIO,    "IO_VDD",               [62],                   {"module": "cheep_top"}),
+        (DVddPOC,   "IO_VDD_POC",           [13],                   {"module": "cheep_top"}),
+        (AVdd,      "ACORE_VDD",            [34],                   {"module": "cheep_top"}),
+        (AVss,      "ACORE_VSS",            [25, 31, 35, 41, 46],   {"module": "cheep_top"}),
     ]
 
     ##############################################
@@ -157,12 +158,65 @@ def config() -> PadRing:
     pins["gpio_7"].pads = [PAD_QTY]
 
 
+# By this point, no matter how, you should have a list[Pin] with their attributes and assigned pads
+# ----------------------------------------------------------------------------------------------
+
+    '''
+    alternatively do something like:
+
+    pad_list = 
+    [
+        Pad( pins=[ pinA, pinB ] ),
+        Pad( pins=[ pinC ] ),
+        Pad( pins=[ pinD ] ),
+        Pad( pins=[ pinE, pinF ] ),
+        ...
+    ]
+
+    or even: 
+
+    pad_list = 
+    {
+        Side.TOP : [
+            Pad( pins=[ pinA, pinB ] ),
+            Pad( pins=[ pinC ] ),
+            ],
+        side.BOTTOM : [
+            Pad( pins=[ pinD ] ),
+            Pad( pins=[ pinE, pinF ] ),
+            ]
+        ...
+    }
+
+    or going even simpler:
+
+    pin_mapping = 
+    {
+        Side.TOP : [
+            [ pinA, pinB ],
+            [ pinC ] ,
+            ],
+        side.BOTTOM : [
+            [ pinD ] ,
+            [ pinE, pinF ] ,
+            ]
+        ...
+    }
+
+    And then move around the pads in the order to make them catch that order in the global_index
+
+    padring = PadRing(  floorplan_dimensions    = fp_dim,
+                        pin_list                = pin_list,
+                        pad_list                = pad_list 
+                    )
 
 
 
+    '''
 
-    padring = PadRing(  floorplan_dimensions    = fp_dim,\
-                        pin_list                = list(pins.values()),\
+
+    padring = PadRing(  floorplan_dimensions    = fp_dim,
+                        pin_list                = list(pins.values()),
                         pad_list                = [None]*PAD_QTY 
                     )
 
@@ -182,22 +236,28 @@ def config() -> PadRing:
     # starting from 0
     # clockwise (inverse wrt the global index
 
-    prcuta_top      = Physical( name            ="PRCUTA_TOP",
-                                layout          = Layout(bond_pad=PadDef.bp_skip, cell_pad=PadDef.aPrcut),
+    prcuta_top      = Physical( name            = "PRCUTA_TOP",
+                                module          = "cheep_top",
+                                iocell          = cell_aPrcut,
+                                bondpad         = None, 
                                 side            = Side.TOP,
-                                orient          = Orientation.R0,
-                                layout_index    = 15.5,
+                                orientation     = Orientation.R0,
+                                side_index      = 15.5,
                                 space           = 5 )
 
     prcuta_bottom   = Physical( name            = "PRCUTA_BOTTOM",
-                                layout          = Layout(bond_pad=PadDef.bp_skip, cell_pad=PadDef.aPrcut),
+                                module          = "cheep_top",
+                                iocell          = cell_aPrcut,
+                                bondpad         = None, 
                                 side            = Side.BOTTOM,
-                                orient          = Orientation.R180,
-                                layout_index    = 9.5,
+                                orientation     = Orientation.R180,
+                                side_index      = 9.5,
                                 space           = 0 )
 
-    pads.append(prcuta_top)
-    pads.append(prcuta_bottom)
+    
+
+    padring.pad_list.append(prcuta_top)
+    padring.pad_list.append(prcuta_bottom)
 
     ##############################################
     # PRINT A NICE DIAGRAM TO CHECK EVERYTHING IS OK

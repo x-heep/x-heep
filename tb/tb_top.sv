@@ -3,11 +3,8 @@
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
 module tb_top #(
-    parameter COREV_PULP                  = 0,
-    parameter FPU                         = 0,
-    parameter ZFINX                       = 0,
+    parameter FPU_SS_ZFINX                = 0,
     parameter JTAG_DPI                    = 0,
-    parameter X_EXT                       = 0,
     parameter USE_EXTERNAL_DEVICE_EXAMPLE = 1
 );
 
@@ -109,8 +106,8 @@ module tb_top #(
         end
       end else begin
         $display(
-            "[TESTBENCH]: No SPI Option specified, using execute from flash (execute_from_flash=1)");
-        execute_from_flash = 1;
+            "[TESTBENCH]: No SPI Option specified, using load from flash (execute_from_flash=0)");
+        execute_from_flash = 0;
       end
     end
 
@@ -193,10 +190,7 @@ module tb_top #(
 
   // wrapper for riscv, the memory system and stdout peripheral
   testharness #(
-      .COREV_PULP                 (COREV_PULP),
-      .FPU                        (FPU),
-      .ZFINX                      (ZFINX),
-      .X_EXT                      (X_EXT),
+      .FPU_SS_ZFINX               (FPU_SS_ZFINX),
       .JTAG_DPI                   (JTAG_DPI),
       .USE_EXTERNAL_DEVICE_EXAMPLE(USE_EXTERNAL_DEVICE_EXAMPLE),
       .CLK_FREQUENCY              (CLK_FREQUENCY_KHz)

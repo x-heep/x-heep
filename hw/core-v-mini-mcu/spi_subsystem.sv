@@ -2,9 +2,12 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
+
+
 module spi_subsystem
   import obi_pkg::*;
   import reg_pkg::*;
+  import core_v_mini_mcu_pkg::*;
 (
     input logic clk_i,
     input logic rst_ni,
@@ -14,13 +17,24 @@ module spi_subsystem
     // Memory mapped SPI
     input  obi_req_t  spimemio_req_i,
     output obi_resp_t spimemio_resp_o,
-    // Yosys SPI configuration
-    input  reg_req_t  yo_reg_req_i,
-    output reg_rsp_t  yo_reg_rsp_o,
 
+    // Yosys SPI configuration
+    input  reg_req_t yo_reg_req_i,
+    output reg_rsp_t yo_reg_rsp_o,
     // OpenTitan SPI configuration
     input  reg_req_t ot_reg_req_i,
     output reg_rsp_t ot_reg_rsp_o,
+    // w25q128jw flash controller configuration
+    input  reg_req_t flash_ctr_reg_req_i,
+    output reg_rsp_t flash_ctr_reg_rsp_o,
+
+    //dma hw controller
+    output dma_reg_pkg::dma_hw2reg_t external_dma_hw2reg_o,
+    // flash controller interrupt
+    output logic w25q128jw_controller_intr_o,
+
+    input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_ready_i,
+    input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_done_i,
 
     // SPI Interface
     output logic                               spi_flash_sck_o,
@@ -61,6 +75,9 @@ module spi_subsystem
   logic [                        3:0] yo_spi_sd_out;
   logic [                        3:0] yo_spi_sd_en;
   logic [                        3:0] yo_spi_sd_in;
+
+  import spi_host_reg_pkg::*;
+  spi_host_reg_pkg::spi_host_hw2reg_status_reg_t external_spi_host_hw2reg_status;
 
   // Multiplexer
   always_comb begin
@@ -121,6 +138,15 @@ module spi_subsystem
       .spimemio_resp_o(spimemio_resp_o)
   );
 
+
+  assign w25q128jw_controller_intr_o = '0;
+  assign flash_ctr_reg_rsp_o = '0;
+  assign external_dma_hw2reg_o = '0;
+  logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_ready_unused = dma_ready_i;
+  spi_host_reg_pkg::spi_host_hw2reg_status_reg_t external_spi_host_hw2reg_status_unused = external_spi_host_hw2reg_status;
+
+
+
   // OpenTitan SPI Snitch Version used for booting
   spi_host #(
       .reg_req_t(reg_pkg::reg_req_t),
@@ -143,6 +169,7 @@ module spi_subsystem
       .cio_sd_i(ot_spi_sd_in),
       .rx_valid_o(ot_spi_rx_valid),
       .tx_ready_o(ot_spi_tx_ready),
+      .hw2reg_status_o(external_spi_host_hw2reg_status),
       .intr_error_o(ot_spi_intr_error),
       .intr_spi_event_o(ot_spi_intr_event)
   );

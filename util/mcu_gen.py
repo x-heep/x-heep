@@ -248,7 +248,7 @@ def main():
         outfile = args.outfile
 
         # Handle single template or multiple templates
-        outtpl_list = [t.strip() for t in outtpl.split(",")]
+        outtpl_list = [t for t in re.split(r"[,\s]+", outtpl.strip()) if t]
 
         if len(outtpl_list) == 1:
             # Single template case

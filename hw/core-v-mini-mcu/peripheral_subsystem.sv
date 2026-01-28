@@ -25,6 +25,8 @@ module peripheral_subsystem
     output logic                    irq_plic_o,
     output logic                    msip_o,
 
+    input logic w25q128jw_controller_intr_i,
+
     // UART
     input  logic uart_rx_i,
     output logic uart_tx_o,
@@ -177,6 +179,7 @@ module peripheral_subsystem
   assign intr_vector[48] = i2c_intr_host_timeout;
   assign intr_vector[49] = spi2_intr_event;
   assign intr_vector[50] = i2s_intr_event;
+  assign intr_vector[51] = w25q128jw_controller_intr_i;
 
   // External interrupts assignement
   for (genvar i = 0; i < NEXT_INT; i++) begin : gen_external_intr_vect
@@ -328,6 +331,7 @@ module peripheral_subsystem
       .cio_sd_i(spi_sd_i),
       .rx_valid_o(spi_rx_valid_o),
       .tx_ready_o(spi_tx_ready_o),
+      .hw2reg_status_o(),
       .intr_error_o(),
       .intr_spi_event_o(spi_intr_event_o)
   );
@@ -441,6 +445,7 @@ module peripheral_subsystem
       .cio_sd_i(spi2_sd_i),
       .rx_valid_o(),
       .tx_ready_o(),
+      .hw2reg_status_o(),
       .intr_error_o(),
       .intr_spi_event_o(spi2_intr_event)
   );
@@ -470,6 +475,7 @@ module peripheral_subsystem
       .intr_i2s_event_o(i2s_intr_event),
       .i2s_rx_valid_o(i2s_rx_valid_o)
   );
+
 
 
   reg_to_tlul #(
@@ -506,7 +512,6 @@ module peripheral_subsystem
       .intr_rx_timeout_o(uart_intr_rx_timeout),
       .intr_rx_parity_err_o(uart_intr_rx_parity_err)
   );
-
 
 
 

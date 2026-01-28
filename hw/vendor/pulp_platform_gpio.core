@@ -47,3 +47,5 @@ targets:
     - target_pynq-z2-arm-emulation? (no-clock-gate)
     - target_zcu104? (no-clock-gate)
     - target_zcu102? (no-clock-gate)
+    - target_aup-zu3? (no-clock-gate)
+    - target_genesys2? (no-clock-gate)

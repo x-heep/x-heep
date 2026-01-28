@@ -353,6 +353,19 @@ void fic_irq_dma_done(void)
     }
     return;
 }
+uint32_t dma_set_hw_configuration_mode(uint32_t hw_config_mode, int dma_ch)
+{
+    uint32_t old_hw_config_mode = dma_subsys_per[dma_ch].peri->HW_CONFIG_MODE;
+    dma_peri(dma_ch)->HW_CONFIG_MODE = hw_config_mode;
+    return old_hw_config_mode;
+}
+
+uint32_t dma_set_slot_wait_counter(uint32_t slot_wait_counter, int dma_ch)
+{
+    uint32_t old_slot_wait_counter = dma_subsys_per[dma_ch].peri->SLOT_WAIT_COUNTER;
+    dma_peri(dma_ch)->SLOT_WAIT_COUNTER = (uint32_t)(slot_wait_counter & DMA_SLOT_WAIT_COUNTER_SLOT_WAIT_COUNTER_MASK);
+    return old_slot_wait_counter;
+}
 
 void dma_init( dma *dma_peri )
 {
@@ -369,23 +382,25 @@ void dma_init( dma *dma_peri )
         dma_subsys_per[i].trans = NULL;
 
         /* Clear all values in the DMA registers. */
-        dma_subsys_per[i].peri->SRC_PTR        = 0;
-        dma_subsys_per[i].peri->DST_PTR        = 0;
-        dma_subsys_per[i].peri->SIZE_D1        = 0;
-        dma_subsys_per[i].peri->SIZE_D2        = 0;
-        dma_subsys_per[i].peri->SRC_PTR_INC_D1 = 0;
-        dma_subsys_per[i].peri->SRC_PTR_INC_D2 = 0;
-        dma_subsys_per[i].peri->DST_PTR_INC_D1 = 0;
-        dma_subsys_per[i].peri->DST_PTR_INC_D2 = 0;
-        dma_subsys_per[i].peri->DIM_CONFIG     = 0;
-        dma_subsys_per[i].peri->DIM_INV        = 0;
-        dma_subsys_per[i].peri->SLOT           = 0;
-        dma_subsys_per[i].peri->SRC_DATA_TYPE  = 0;
-        dma_subsys_per[i].peri->DST_DATA_TYPE  = 0;
-        dma_subsys_per[i].peri->SIGN_EXT       = 0;
-        dma_subsys_per[i].peri->MODE           = 0;
-        dma_subsys_per[i].peri->WINDOW_SIZE    = 0;
-        dma_subsys_per[i].peri->INTERRUPT_EN   = 0;
+        dma_subsys_per[i].peri->SRC_PTR           = 0;
+        dma_subsys_per[i].peri->DST_PTR           = 0;
+        dma_subsys_per[i].peri->SIZE_D1           = 0;
+        dma_subsys_per[i].peri->SIZE_D2           = 0;
+        dma_subsys_per[i].peri->SRC_PTR_INC_D1    = 0;
+        dma_subsys_per[i].peri->SRC_PTR_INC_D2    = 0;
+        dma_subsys_per[i].peri->DST_PTR_INC_D1    = 0;
+        dma_subsys_per[i].peri->DST_PTR_INC_D2    = 0;
+        dma_subsys_per[i].peri->DIM_CONFIG        = 0;
+        dma_subsys_per[i].peri->DIM_INV           = 0;
+        dma_subsys_per[i].peri->SLOT              = 0;
+        dma_subsys_per[i].peri->SRC_DATA_TYPE     = 0;
+        dma_subsys_per[i].peri->DST_DATA_TYPE     = 0;
+        dma_subsys_per[i].peri->SIGN_EXT          = 0;
+        dma_subsys_per[i].peri->MODE              = 0;
+        dma_subsys_per[i].peri->WINDOW_SIZE       = 0;
+        dma_subsys_per[i].peri->INTERRUPT_EN      = 0;
+        dma_subsys_per[i].peri->HW_CONFIG_MODE    = 0;
+        dma_subsys_per[i].peri->SLOT_WAIT_COUNTER = 0;
 
         #if DMA_ADDR_MODE
         dma_subsys_per[i].peri->ADDR_PTR       = 0;

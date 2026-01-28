@@ -8,6 +8,7 @@
 
 module dma
   import fifo_pkg::*;
+  import dma_reg_pkg::*;
 #(
     parameter int FIFO_DEPTH = 4,
     parameter int RVALID_FIFO_DEPTH = 1,
@@ -41,13 +42,15 @@ module dma
 
     input logic [SLOT_NUM-1:0] trigger_slot_i,
 
-    output dma_done_intr_o,
-    output dma_window_intr_o,
+    input dma_hw2reg_t external_hw2reg_i,
 
-    output dma_done_o
+    output logic dma_done_intr_o,
+    output logic dma_window_intr_o,
+
+    output logic dma_ready_o,
+    output logic dma_done_o
 );
 
-  import dma_reg_pkg::*;
   `include "dma_conf.svh"
 
   /*_________________________________________________________________________________________________________________________________ */
@@ -144,6 +147,8 @@ module dma
   /* Trigger signals */
   logic wait_for_rx;
   logic wait_for_tx;
+  logic enable_wait_for_rx;
+  logic enable_wait_for_tx;
 
   /* FSM states */
   enum {
@@ -190,6 +195,8 @@ module dma
       .devmode_i(1'b1)
   );
 
+  assign dma_ready_o = hw2reg.status.ready.d;
+
   /* Buffer unit */
   dma_buffer_unit #(
       .FIFO_DEPTH(FIFO_DEPTH)
@@ -227,6 +234,8 @@ module dma
       .dma_done_override_i(dma_read_done_override),
 
       .wait_for_rx_i(wait_for_rx),
+      .enable_wait_for_rx_i(enable_wait_for_rx),
+      .slot_wait_counter_i(reg2hw.slot_wait_counter.q),
 
       .read_buffer_full_i(read_buffer_full),
       .read_buffer_alm_full_i(read_buffer_alm_full),
@@ -327,6 +336,9 @@ module dma
 
       .dma_start_i(dma_start),
       .wait_for_tx_i(wait_for_tx),
+      .enable_wait_for_tx_i(enable_wait_for_tx),
+      .slot_wait_counter_i(reg2hw.slot_wait_counter.q),
+
       .dma_done_o(dma_done),
       .dma_done_override_i(dma_write_done_override),
 
@@ -337,6 +349,7 @@ module dma
       .read_addr_buffer_output_i(read_addr_buffer_output),
 
       .data_out_gnt_i(data_out_gnt),
+      .data_out_rvalid_i(data_out_rvalid),
 
       .data_out_req_o(data_out_req),
       .data_out_we_o(data_out_we),
@@ -394,7 +407,7 @@ module dma
     end else begin
       if (dma_start == 1'b1) begin
         dma_start_pending <= 1'b0;
-      end else if ((reg2hw.size_d1.qe & |reg2hw.size_d1.q)) begin
+      end else if ((reg2hw.size_d1.qe & |reg2hw.size_d1.q) || (reg2hw.hw_config_mode.q && external_hw2reg_i.size_d1.de && (external_hw2reg_i.size_d1.d > '0))) begin
         dma_start_pending <= 1'b1;
       end
     end
@@ -565,11 +578,21 @@ module dma
   assign dma_window_intr = window_ifr;
   assign dma_window_intr_o = dma_window_intr_n;
 
-  assign hw2reg.transaction_ifr.d = transaction_ifr;
-  assign hw2reg.window_ifr.d = window_ifr;
+  always_comb begin
+    hw2reg = '0;
 
-  assign hw2reg.status.ready.d = (dma_state_q == DMA_READY);
-  assign hw2reg.status.window_done.d = window_event;
+    if (reg2hw.hw_config_mode.q) begin
+      hw2reg = external_hw2reg_i;
+    end
+    //these registers are controlled only by the DMA and never externally
+    //thus, they are overwritten
+    hw2reg.transaction_ifr.d = transaction_ifr;
+    hw2reg.window_ifr.d = window_ifr;
+    hw2reg.status.ready.d = (dma_state_q == DMA_READY);
+    hw2reg.status.window_done.d = window_event;
+    hw2reg.window_count.d = window_counter[7:0];
+  end
+
 
   assign circular_mode = reg2hw.mode.q == 1;
   assign address_mode = reg2hw.mode.q == 2;
@@ -577,11 +600,12 @@ module dma
 
   assign wait_for_rx = |(reg2hw.slot.rx_trigger_slot.q[SLOT_NUM-1:0] & (~trigger_slot_i));
   assign wait_for_tx = |(reg2hw.slot.tx_trigger_slot.q[SLOT_NUM-1:0] & (~trigger_slot_i));
+  assign enable_wait_for_rx = |(reg2hw.slot.rx_trigger_slot.q[SLOT_NUM-1:0]);
+  assign enable_wait_for_tx = |(reg2hw.slot.tx_trigger_slot.q[SLOT_NUM-1:0]);
 
   /* Logic for window counter */
   //TODO: is it really necessary? Do we need to write into a register how many events are done?
   //      Or do we need only the window donw signal?
   assign window_event = |reg2hw.window_size.q & data_out_gnt & (window_counter == {19'h0, reg2hw.window_size.q});
-  assign hw2reg.window_count.d = window_counter;
 
 endmodule : dma

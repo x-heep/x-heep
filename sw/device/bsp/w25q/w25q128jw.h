@@ -124,11 +124,6 @@
 #define FLASH_PAGE_SIZE 256
 
 /**
- * @brief Dimension of a flash sector, in bytes.
-*/
-#define FLASH_SECTOR_SIZE 4096
-
-/**
  * @brief Number of dummy clocks cycles required by the simulation model.
 */
 #define DUMMY_CLOCKS_SIM 8

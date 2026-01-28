@@ -27,6 +27,8 @@ module peripheral_subsystem
     output logic                irq_plic_o,
     output logic                msip_o,
 
+    input  logic                w25q128jw_controller_intr_i,
+
     // UART
     input  logic uart_rx_i,
     output logic uart_tx_o,
@@ -146,7 +148,7 @@ module peripheral_subsystem
   logic uart_intr_rx_break_err;
   logic uart_intr_rx_timeout;
   logic uart_intr_rx_parity_err;
-
+  
   // this avoids lint errors
   assign unused_irq_id = irq_id;
 
@@ -179,6 +181,7 @@ module peripheral_subsystem
   assign intr_vector[${interrupts["intr_host_timeout"]}] = i2c_intr_host_timeout;
   assign intr_vector[${interrupts["spi2_intr_event"]}] = spi2_intr_event;
   assign intr_vector[${interrupts["i2s_intr_event"]}] = i2s_intr_event;
+  assign intr_vector[${interrupts["w25q128jw_controller_intr_event"]}] = w25q128jw_controller_intr_i;
 
   // External interrupts assignement
   for (genvar i = 0; i < NEXT_INT; i++) begin : gen_external_intr_vect
@@ -342,6 +345,7 @@ module peripheral_subsystem
       .cio_sd_i(spi_sd_i),
       .rx_valid_o(spi_rx_valid_o),
       .tx_ready_o(spi_tx_ready_o),
+      .hw2reg_status_o(),
       .intr_error_o(),
       .intr_spi_event_o(spi_intr_event_o)
   );
@@ -503,6 +507,7 @@ module peripheral_subsystem
       .cio_sd_i(spi2_sd_i),
       .rx_valid_o(),
       .tx_ready_o(),
+      .hw2reg_status_o(),
       .intr_error_o(),
       .intr_spi_event_o(spi2_intr_event)
   );
@@ -568,6 +573,7 @@ module peripheral_subsystem
   assign i2s_rx_valid_o   = 1'b0;
 % endif
 
+  
 % if user_peripheral_domain.contains_peripheral('uart'):
 
   reg_to_tlul #(
@@ -619,7 +625,6 @@ module peripheral_subsystem
   assign uart_tx_o               = 1'b0;
 
 % endif
-
 
 % if len(user_peripheral_domain.get_peripherals()) == 0:
   // If no peripherals are selected, tie off the slave response

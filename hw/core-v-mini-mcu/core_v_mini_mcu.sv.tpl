@@ -12,11 +12,7 @@ module core_v_mini_mcu
   import reg_pkg::*;
   import fifo_pkg::*;
 #(
-    parameter COREV_PULP = 0,
-    parameter FPU = 0,
-    parameter ZFINX = 0,
     parameter EXT_XBAR_NMASTER = 0,
-    parameter X_EXT = 0,  // eXtension interface in cv32e40x
     parameter AO_SPC_NUM = 0,
     parameter EXT_HARTS = 0,
     //do not touch these parameters
@@ -117,7 +113,6 @@ ${pad.core_v_mini_mcu_interface}
   localparam JTAG_IDCODE = 32'h10001c05;
   localparam NRHARTS = EXT_HARTS + 1; //external harts + single hart core-v-mini-mcu
   localparam BOOT_ADDR = core_v_mini_mcu_pkg::BOOTROM_START_ADDRESS;
-  localparam NUM_MHPMCOUNTERS = 1;
 
   // Log top level parameter values
 `ifndef SYNTHESIS
@@ -147,6 +142,9 @@ ${pad.core_v_mini_mcu_interface}
   // ram signals
   obi_req_t [core_v_mini_mcu_pkg::NUM_BANKS-1:0] ram_slave_req;
   obi_resp_t [core_v_mini_mcu_pkg::NUM_BANKS-1:0] ram_slave_resp;
+
+  // w25q128jw controller signals
+  logic w25q128jw_controller_intr;
 
   // debug signals
   obi_req_t debug_slave_req;
@@ -279,12 +277,7 @@ ${pad.core_v_mini_mcu_interface}
 
   cpu_subsystem #(
       .BOOT_ADDR(BOOT_ADDR),
-      .COREV_PULP(COREV_PULP),
-      .FPU(FPU),
-      .ZFINX(ZFINX),
-      .NUM_MHPMCOUNTERS(NUM_MHPMCOUNTERS),
-      .DM_HALTADDRESS(DM_HALTADDRESS),
-      .X_EXT(X_EXT)
+      .DM_HALTADDRESS(DM_HALTADDRESS)
   ) cpu_subsystem_i (
       // Clock and Reset
       .clk_i,
@@ -405,6 +398,7 @@ ${pad.core_v_mini_mcu_interface}
       .exit_value_o,
       .spimemio_req_i(flash_mem_slave_req),
       .spimemio_resp_o(flash_mem_slave_resp),
+      .w25q128jw_controller_intr_o(w25q128jw_controller_intr),
       .spi_flash_sck_o,
       .spi_flash_sck_en_o(spi_flash_sck_oe_o),
       .spi_flash_csb_o({spi_flash_cs_1_o,spi_flash_cs_0_o}),
@@ -465,6 +459,7 @@ ${pad.core_v_mini_mcu_interface}
       .intr_vector_ext_i,
       .irq_plic_o(irq_external),
       .msip_o(irq_software),
+      .w25q128jw_controller_intr_i(w25q128jw_controller_intr),
       .cio_gpio_i(gpio_in),
       .cio_gpio_o(gpio_out),
       .cio_gpio_en_o(gpio_oe),

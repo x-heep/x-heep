@@ -24,6 +24,8 @@ module dma_read_unit
     input logic dma_done_override_i,
 
     input logic wait_for_rx_i,
+    input logic enable_wait_for_rx_i,
+    input logic [7:0] slot_wait_counter_i,
 
     input logic read_buffer_full_i,
     input logic read_buffer_alm_full_i,
@@ -47,6 +49,8 @@ module dma_read_unit
   /* Parameter definition */
 
   import dma_reg_pkg::*;
+  import dma_pkg::*;
+
   `include "dma_conf.svh"
   localparam int unsigned LastFifoUsage = RVALID_FIFO_DEPTH - 1;
   localparam int unsigned AddrFifoDepth = (RVALID_FIFO_DEPTH > 1) ? $clog2(RVALID_FIFO_DEPTH) : 1;
@@ -58,13 +62,6 @@ module dma_read_unit
   /* Registers */
   dma_reg2hw_t reg2hw;
 
-  typedef enum logic [1:0] {
-    DMA_DATA_TYPE_WORD,
-    DMA_DATA_TYPE_HALF_WORD,
-    DMA_DATA_TYPE_BYTE,
-    DMA_DATA_TYPE_BYTE_
-  } dma_data_type_t;
-
   enum logic {
     DMA_READ_UNIT_IDLE,
     DMA_READ_UNIT_ON
@@ -73,6 +70,7 @@ module dma_read_unit
 
   logic dma_start;
   logic dma_done_override;
+  logic dma_read_done;
 
   logic data_in_gnt;
   logic data_in_rvalid;
@@ -102,7 +100,7 @@ module dma_read_unit
   logic [31:0] data_in_addr;
   logic [31:0] data_in_rdata;
 
-  logic data_req_cond;
+  logic data_req_cond, data_req_cond_preobi;
 
   logic [1:0] read_data_offset;
   logic [AddrFifoDepth-1:0] read_data_offset_usage;
@@ -115,8 +113,15 @@ module dma_read_unit
   /* FIFO signals */
   logic [31:0] read_buffer_input;
 
-  dma_data_type_t src_data_type;
+  dma_pkg::dma_data_type_t src_data_type;
+
   logic sign_ext;
+
+  dma_pkg::dma_obi_state_type_t obi_data_req_q, obi_data_req_d;
+
+  dma_pkg::dma_wait_for_state_type_t wait_for_rx_state_q, wait_for_rx_state_d;
+
+  logic [7:0] slot_wait_counter_d, slot_wait_counter_q;
 
   /*_________________________________________________________________________________________________________________________________ */
 
@@ -133,7 +138,13 @@ module dma_read_unit
     if (~rst_ni) begin
       dma_src_cnt_d1 <= '0;
       dma_src_cnt_d2 <= '0;
+      obi_data_req_q <= OBI_DATA_REQ;
+      wait_for_rx_state_q <= WAIT_FOR_OUTSTANDING_IDLE;
+      slot_wait_counter_q <= '0;
     end else begin
+      obi_data_req_q <= obi_data_req_d;
+      wait_for_rx_state_q <= wait_for_rx_state_d;
+      slot_wait_counter_q <= slot_wait_counter_d;
       if (dma_start == 1'b1) begin
         dma_src_cnt_d1 <= {1'h0, reg2hw.size_d1.q};
         dma_src_cnt_d2 <= {1'h0, reg2hw.size_d2.q};
@@ -225,6 +236,9 @@ module dma_read_unit
     dma_read_unit_n_state = dma_read_unit_state;
 
     buffer_flush = 1'b0;
+    /* This signal is used to avoid an extra read request after the end of the transfer,
+       i.e. the very cycle in which the cnt(s) reach 0 the req must be 0 */
+    dma_read_done = 1'b0;
 
     unique case (dma_read_unit_state)
 
@@ -243,11 +257,13 @@ module dma_read_unit
             // 1D DMA case
             if (|dma_src_cnt_d1 == 1'b0) begin
               dma_read_unit_n_state = DMA_READ_UNIT_IDLE;
+              dma_read_done = 1'b1;
             end
           end else if (dma_conf_2d == 1'b1) begin
             // 2D DMA case: exit only if both 1d and 2d counters are at 0
             if (dma_src_cnt_d1 == {1'h0, reg2hw.size_d1.q} && |dma_src_cnt_d2 == 1'b0) begin
               dma_read_unit_n_state = DMA_READ_UNIT_IDLE;
+              dma_read_done = 1'b1;
             end
           end
         end else begin
@@ -334,15 +350,71 @@ module dma_read_unit
   generate
     if (RVALID_FIFO_DEPTH != 1) begin : gen_rvalid_fifo
       assign read_data_offset_alm_full = (read_data_offset_usage == LastFifoUsage[AddrFifoDepth-1:0]);
-      assign data_req_cond = (buffer_full == 1'b0 && buffer_alm_full == 1'b0 && 
+      assign data_req_cond_preobi = (dma_read_done == 1'b0 && buffer_full == 1'b0 && buffer_alm_full == 1'b0 && 
                           read_data_offset_full == 1'b0 && read_data_offset_alm_full == 1'b0 &&
                           wait_for_rx == 1'b0);
     end else begin : gen_no_rvalid_fifo
       assign read_data_offset_alm_full = 1'b0;
-      assign data_req_cond = (buffer_full == 1'b0 && buffer_alm_full == 1'b0 && 
+      assign data_req_cond_preobi = (dma_read_done == 1'b0 && buffer_full == 1'b0 && buffer_alm_full == 1'b0 && 
                           wait_for_rx == 1'b0);
     end
   endgenerate
+
+  always_comb begin
+    data_req_cond  = data_req_cond_preobi;
+    obi_data_req_d = obi_data_req_q;
+    unique case (obi_data_req_q)
+
+      OBI_DATA_REQ: begin
+        if (data_in_req && !data_in_gnt) obi_data_req_d = OBI_WAIT_GNT;
+      end
+
+      OBI_WAIT_GNT: begin
+        data_req_cond  = 1'b1;
+        obi_data_req_d = data_in_gnt ? OBI_DATA_REQ : OBI_WAIT_GNT;
+      end
+    endcase
+  end
+
+  always_comb begin
+    wait_for_rx_state_d = wait_for_rx_state_q;
+    wait_for_rx = wait_for_rx_i;
+    slot_wait_counter_d = slot_wait_counter_q;
+
+    unique case (wait_for_rx_state_q)
+
+      WAIT_FOR_OUTSTANDING_IDLE: begin
+        if (enable_wait_for_rx_i) begin
+          wait_for_rx_state_d = (data_in_req && data_in_gnt) ? WAIT_FOR_OUTSTANDING_WAIT : WAIT_FOR_OUTSTANDING_IDLE;
+          slot_wait_counter_d = slot_wait_counter_i;
+        end
+      end
+
+      WAIT_FOR_OUTSTANDING_WAIT: begin
+        wait_for_rx = 1'b1;
+        if (data_in_rvalid) begin
+          if (slot_wait_counter_q == '0) begin
+            wait_for_rx_state_d = WAIT_FOR_OUTSTANDING_IDLE;
+          end else begin
+            wait_for_rx_state_d = WAIT_FOR_OUTSTANDING_COUNTER;
+          end
+        end
+      end
+
+      WAIT_FOR_OUTSTANDING_COUNTER: begin
+        wait_for_rx = 1'b1;
+        if (slot_wait_counter_q == '0) begin
+          wait_for_rx_state_d = WAIT_FOR_OUTSTANDING_IDLE;
+        end else begin
+          wait_for_rx_state_d = WAIT_FOR_OUTSTANDING_COUNTER;
+          slot_wait_counter_d = slot_wait_counter_q - 1;
+        end
+      end
+
+      default: ;
+
+    endcase
+  end
 
   /* Renaming */
   assign reg2hw = reg2hw_i;
@@ -359,7 +431,6 @@ module dma_read_unit
   assign data_in_req_o = data_in_req;
   assign data_in_we_o = data_in_we;
   assign general_buffer_flush_o = buffer_flush;
-  assign wait_for_rx = wait_for_rx_i;
   assign data_in_rvalid = data_in_rvalid_i;
   assign data_in_rdata = data_in_rdata_i;
   assign read_buffer_input_o = read_buffer_input;

@@ -36,6 +36,7 @@ extern "C" {
 #include "string.h"
 
 #include "w25q128jw.h"
+#include "w25q128jw_sector_size.h"
 
 /* To manage addresses. */
 #include "mmio.h"
@@ -218,7 +219,7 @@ spi_host_t* __attribute__((section(".xheep_init_data_crt0"))) spi; //this variab
  * of the vector, is not possible to allocate it dinamically as it would cause a stack
  * or heap overflow.
 */
-uint8_t sector_data[FLASH_SECTOR_SIZE];
+uint8_t w25q128jw_sector_data[FLASH_SECTOR_SIZE];
 
 
 /****************************************************************************/
@@ -451,7 +452,7 @@ w25q_error_codes_t w25q128jw_erase_and_write_standard(uint32_t addr, void* data,
         uint32_t sector_start_addr = current_addr & 0xfffff000;
 
         // Read the full sector and save it into RAM
-        status = w25q128jw_read_standard(sector_start_addr, sector_data, FLASH_SECTOR_SIZE);
+        status = w25q128jw_read_standard(sector_start_addr, w25q128jw_sector_data, FLASH_SECTOR_SIZE);
         if (status != FLASH_OK) return FLASH_ERROR;
 
         // Erase the sector (no need to do so in simulation)
@@ -463,10 +464,10 @@ w25q_error_codes_t w25q128jw_erase_and_write_standard(uint32_t addr, void* data,
         uint32_t write_length = MIN(FLASH_SECTOR_SIZE - (current_addr - sector_start_addr), remaining_length);
 
         // Modify the data in RAM to include the new data
-        memcpy(&sector_data[current_addr - sector_start_addr], current_data, write_length);
+        memcpy(&w25q128jw_sector_data[current_addr - sector_start_addr], current_data, write_length);
 
         // Write the modified data back to the flash
-        status = w25q128jw_write_standard(sector_start_addr, sector_data, FLASH_SECTOR_SIZE);
+        status = w25q128jw_write_standard(sector_start_addr, w25q128jw_sector_data, FLASH_SECTOR_SIZE);
         if (status != FLASH_OK) return FLASH_ERROR;
 
         // Update the remaining length, address and data pointer
@@ -522,6 +523,8 @@ w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32
     };
     // Size is in data units (words in this case)
     trans.size_d1_du = length>>2;
+
+    asm volatile("davide3: add x0, x0, %0\n\t" : : "r"(length>>2));
 
     // Validate, load and launch DMA transaction
 
@@ -682,7 +685,7 @@ w25q_error_codes_t w25q128jw_erase_and_write_standard_dma(uint32_t addr, void* d
         uint32_t sector_start_addr = current_addr & 0xfffff000;
 
         // Read the full sector and save it into RAM
-        status = w25q128jw_read_standard_dma(sector_start_addr, sector_data, FLASH_SECTOR_SIZE, 0, 0);
+        status = w25q128jw_read_standard_dma(sector_start_addr, w25q128jw_sector_data, FLASH_SECTOR_SIZE, 0, 0);
         if (status != FLASH_OK) return FLASH_ERROR;
 
         // Erase the sector (no need to do so in simulation)
@@ -694,10 +697,10 @@ w25q_error_codes_t w25q128jw_erase_and_write_standard_dma(uint32_t addr, void* d
         uint32_t write_length = MIN(FLASH_SECTOR_SIZE - (current_addr - sector_start_addr), remaining_length);
 
         // Modify the data in RAM to include the new data
-        memcpy(&sector_data[current_addr - sector_start_addr], current_data, write_length);
+        memcpy(&w25q128jw_sector_data[current_addr - sector_start_addr], current_data, write_length);
 
         // Write the modified data back to the flash
-        status = w25q128jw_write_standard_dma(sector_start_addr, sector_data, FLASH_SECTOR_SIZE);
+        status = w25q128jw_write_standard_dma(sector_start_addr, w25q128jw_sector_data, FLASH_SECTOR_SIZE);
         if (status != FLASH_OK) return FLASH_ERROR;
 
         // Update the remaining length, address and data pointer
@@ -891,7 +894,7 @@ w25q_error_codes_t w25q128jw_erase_and_write_quad(uint32_t addr, void *data, uin
         uint32_t sector_start_addr = current_addr & 0xfffff000;
 
         // Read the full sector and save it into RAM
-        status = w25q128jw_read_quad(sector_start_addr, sector_data, FLASH_SECTOR_SIZE);
+        status = w25q128jw_read_quad(sector_start_addr, w25q128jw_sector_data, FLASH_SECTOR_SIZE);
         if (status != FLASH_OK) return FLASH_ERROR;
 
         // Erase the sector (no need to do so in simulation)
@@ -903,10 +906,10 @@ w25q_error_codes_t w25q128jw_erase_and_write_quad(uint32_t addr, void *data, uin
         uint32_t write_length = MIN(FLASH_SECTOR_SIZE - (current_addr - sector_start_addr), remaining_length);
 
         // Modify the data in RAM to include the new data
-        memcpy(&sector_data[current_addr - sector_start_addr], current_data, write_length);
+        memcpy(&w25q128jw_sector_data[current_addr - sector_start_addr], current_data, write_length);
 
         // Write the modified data back to the flash
-        status = w25q128jw_write_quad(sector_start_addr, sector_data, FLASH_SECTOR_SIZE);
+        status = w25q128jw_write_quad(sector_start_addr, w25q128jw_sector_data, FLASH_SECTOR_SIZE);
         if (status != FLASH_OK) return FLASH_ERROR;
 
         // Update the remaining length, address and data pointer
@@ -1184,7 +1187,7 @@ w25q_error_codes_t w25q128jw_erase_and_write_quad_dma(uint32_t addr, void *data,
         uint32_t sector_start_addr = current_addr & 0xfffff000;
 
         // Read the full sector and save it into RAM
-        status = w25q128jw_read_quad_dma(sector_start_addr, sector_data, FLASH_SECTOR_SIZE);
+        status = w25q128jw_read_quad_dma(sector_start_addr, w25q128jw_sector_data, FLASH_SECTOR_SIZE);
         if (status != FLASH_OK) return FLASH_ERROR;
 
         // Erase the sector (no need to do so in simulation)
@@ -1196,10 +1199,10 @@ w25q_error_codes_t w25q128jw_erase_and_write_quad_dma(uint32_t addr, void *data,
         uint32_t write_length = MIN(FLASH_SECTOR_SIZE - (current_addr - sector_start_addr), remaining_length);
 
         // Modify the data in RAM to include the new data
-        memcpy(&sector_data[current_addr - sector_start_addr], current_data, write_length);
+        memcpy(&w25q128jw_sector_data[current_addr - sector_start_addr], current_data, write_length);
 
         // Write the modified data back to the flash
-        status = w25q128jw_write_quad_dma(sector_start_addr, sector_data, FLASH_SECTOR_SIZE);
+        status = w25q128jw_write_quad_dma(sector_start_addr, w25q128jw_sector_data, FLASH_SECTOR_SIZE);
         if (status != FLASH_OK) return FLASH_ERROR;
 
         // Update the remaining length, address and data pointer
@@ -1539,7 +1542,7 @@ w25q_error_codes_t erase_and_write(uint32_t addr, uint8_t *data, uint32_t length
         uint32_t sector_start_addr = current_addr & 0xfffff000;
 
         // Read the full sector and save it into RAM
-        status = w25q128jw_read(sector_start_addr, sector_data, FLASH_SECTOR_SIZE);
+        status = w25q128jw_read(sector_start_addr, w25q128jw_sector_data, FLASH_SECTOR_SIZE);
         if (status != FLASH_OK) return FLASH_ERROR;
 
         // Erase the sector (no need to do so in simulation)
@@ -1551,10 +1554,10 @@ w25q_error_codes_t erase_and_write(uint32_t addr, uint8_t *data, uint32_t length
         uint32_t write_length = MIN(FLASH_SECTOR_SIZE - (current_addr - sector_start_addr), remaining_length);
 
         // Modify the data in RAM to include the new data
-        memcpy(&sector_data[current_addr - sector_start_addr], current_data, write_length);
+        memcpy(&w25q128jw_sector_data[current_addr - sector_start_addr], current_data, write_length);
 
         // Write the modified data back to the flash (without erasing this time)
-        status = w25q128jw_write(sector_start_addr, sector_data, FLASH_SECTOR_SIZE, 0);
+        status = w25q128jw_write(sector_start_addr, w25q128jw_sector_data, FLASH_SECTOR_SIZE, 0);
         if (status != FLASH_OK) return FLASH_ERROR;
 
         // Update the remaining length, address and data pointer

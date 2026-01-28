@@ -9,11 +9,11 @@ For this purpose we support the [CV-X-IF](https://docs.openhwgroup.org/projects/
 In addition, the X-HEEP testbench has been extended with a DMA, dummy peripherals (including the flash), and two CV-X-IF compatible coprocessor: one implementing the RV32F RISC-V extension and one implementing custom matrix extensions.
 This has been done to help us maintaining and verifying the extension interface.
 
-If you want to try the FPU-like coprocessor with a CV-X-IF compatible CPU as the cv32e40px, you can do it in the base X-HEEP as follows:
+If you want to try the FPU-like coprocessor with a CV-X-IF compatible CPU as the cv32e40px, you can do it in the base X-HEEP by first [configuring the CPU](../Configuration/CPUConfiguration.md) with the `cv_x_if` parameter using mcu-gen, and then:
 
 ```
-make mcu-gen CPU=cv32e40px
-make verilator-build FUSESOC_PARAM="--X_EXT=1"
+make mcu-gen ...
+make verilator-build
 make app PROJECT=example_matfadd ARCH=rv32imfc
 make verilator-run
 ```
@@ -23,11 +23,11 @@ The program should terminate with value 0.
 Also, you can try the FPU-like coprocessor with a CV-X-IF extended cve2 using the Zfinx extensions (i.e. the Floating-Point register-file is actually the same as the General-Purpose register-file).
 The reason why you cannot use the RVF without ZFinx is that the cv32e20 core X-IF does not support memory X-operations.
 
-First, you need the OpenHW Group CORE-V Compiler, then:
+First, you need the OpenHW Group CORE-V Compiler, then [configure the CPU](../Configuration/CPUConfiguration.md) with the `cv_x_if` parameter using mcu-gen, and then:
 
 ```
-make mcu-gen
-make verilator-build FUSESOC_PARAM="--X_EXT=1 --ZFINX=1"
+make mcu-gen ...
+make verilator-build FUSESOC_PARAM="--FPU_SS_ZFINX=1"
 make app PROJECT=example_matfadd COMPILER_PREFIX=riscv32-corev- ARCH=rv32imc_zicsr_zifencei_zfinx
 make verilator-run
 ```
@@ -45,7 +45,6 @@ First, install the compiler as written [here](https://github.com/esl-epfl/xheep_
         }
         data_interleaved: {
             auto_section: auto
-            // the name is used by example_matadd_interleaved as .xheep_data_interleaved
             type: interleaved
             num: 4
             size: 16
@@ -57,7 +56,6 @@ First, install the compiler as written [here](https://github.com/esl-epfl/xheep_
         {
             name: code
             start: 0
-            #minimum size for freeRTOS and clang
             size: 0x00000F800
         }
         {
@@ -65,12 +63,19 @@ First, install the compiler as written [here](https://github.com/esl-epfl/xheep_
             start: 0x00000F800
         }
     ]
+
+    cpu_features: {
+        cv_x_if: true
+    }
+
+    ...
+
 ```
 
 
 ```
 make mcu-gen (make sure you pass the configuration file set above)
-make verilator-build FUSESOC_PARAM="--X_EXT=1 --QUADRILATERO=1"
+make verilator-build FUSESOC_PARAM="--QUADRILATERO=1"
 make app PROJECT=example_matmul_quadrilatero ARCH=rv32imc_zicsr_xtheadmatrix0p1 COMPILER_FLAGS=-menable-experimental-extensions COMPILER=clang CLANG_LINKER_USE_LD=1
 make verilator-run
 ```

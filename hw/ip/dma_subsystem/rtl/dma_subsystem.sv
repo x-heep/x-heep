@@ -11,6 +11,7 @@
 
 module dma_subsystem
   import fifo_pkg::*;
+  import dma_reg_pkg::*;
 #(
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic,
@@ -44,9 +45,12 @@ module dma_subsystem
     input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_stop_i,
     input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_done_i,
 
+    input dma_reg_pkg::dma_hw2reg_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] external_hw2reg_i,
+
     output dma_done_intr_o,
     output dma_window_intr_o,
 
+    output logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_ready_o,
     output logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_done_o
 );
 
@@ -114,11 +118,14 @@ module dma_subsystem
           .hw_fifo_req_o (hw_fifo_req_o[i]),
           .hw_fifo_resp_i(hw_fifo_resp_i[i]),
 
+          .external_hw2reg_i(external_hw2reg_i[i]),
+
           .trigger_slot_i({
             ext_trigger_slot_i[2*i+1], ext_trigger_slot_i[2*i], global_trigger_slot_i
           }),
           .dma_done_intr_o(dma_trans_done[i]),
           .dma_window_intr_o(dma_window_done[i]),
+          .dma_ready_o(dma_ready_o[i]),
           .dma_done_o(dma_done_o[i])
       );
     end

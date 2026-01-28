@@ -83,7 +83,7 @@ class PadRing:
         pads_sublist = [ pad for pad in pads_sublist if not isinstance(pad, Corner)]
 
         if len(pads_sublist) == 0:
-            print(f"⚠️  No pads found for side {side.value}. Will skip spacing by pitch.")
+            print(f"⚠️  No pads found for {side.value} side. Will skip spacing by pitch.")
             return
 
         if any(p.side_index == None for p in pads_sublist):

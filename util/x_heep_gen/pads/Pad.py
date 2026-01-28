@@ -94,3 +94,6 @@ class Physical(Pad):
         self.sv_pad_cell_name = "u_pad_cell_supply/pad_supply_i"
         for key, value in attributes.items():
             setattr(self, key, value)
+
+class Corner(Physical):
+    pass        

@@ -6,27 +6,28 @@ from .Pin import *
 
 class Pad:
 
-    pins:                           list        = [Pin]
-    name:                           str         = ""
-    iocell:                         Cell        = None 
-    bondpad:                        Cell        = None
-    type:                           PinType     = None
-    global_index:                   int         = None
-    side:                           Side        = None
-    side_index:                     float       = None 
-    space:                          float       = None
-    orientation:                    Orientation = None
-    iocell_center_to_ring_edge:     float       = None
-    bondpad_center_to_ring_edge:    float       = None
-    user_domain:                    str         = ""
-   
+    pins: list = [Pin]
+    name: str = ""
+    iocell: Cell = None
+    bondpad: Cell = None
+    type: PinType = None
+    global_index: int = None
+    side: Side = None
+    side_index: float = None
+    space: float = None
+    orientation: Orientation = None
+    iocell_center_to_ring_edge: float = None
+    bondpad_center_to_ring_edge: float = None
+    user_domain: str = ""
+
     def __init__(self, global_index, pins=[], attributes={}):
-        self.global_index   = global_index
-        self.pins           = pins
-        for key, value in attributes.items(): setattr(self, key, value)
+        self.global_index = global_index
+        self.pins = pins
+        for key, value in attributes.items():
+            setattr(self, key, value)
 
     def build(self, default_pin=None):
-        '''
+        """
         # If any pad has no pins assigned, then it will be tied to a default pin. 
         # This is done just for the sake of going on with the process, but is a major
         # issue that needs to be resolved, thus is printed out in red. 
@@ -37,21 +38,25 @@ class Pad:
                                  You can add an attribute to one of your pins \{'default':True\} to make assign to this the unassigned pads.")
             self.pins.append(default_pin)
             print(f"\033[31m Floating pad:\033[0m {self.global_index}, assigining to {default_pin.name}")
-        '''
+        """
         if self.pins != []:
-            # The pins assigned to this pad are sorted by priority. 
+            # The pins assigned to this pad are sorted by priority.
             # Priority is an optional attribute and the highest priority will be used as main pin
             # (will be placed first on the list)
-            self.pins = sorted( self.pins,
-                                    key=lambda pin: (pin.priority or -self.pins.index(pin)),
-                                    reverse=True )
+            self.pins = sorted(
+                self.pins,
+                key=lambda pin: (pin.priority or -self.pins.index(pin)),
+                reverse=True,
+            )
 
             # Make the pad inherit the properties and attributes of its main pain (the one with the highest priority)
             self.inherit_attributes()
             # Decide the type of the pad based on the type of its pins
             self.decide_type()
 
-        print(f"{self.global_index}: {[a.name for a in self.pins]} | {self.type} = {self.iocell.name}")
+        print(
+            f"{self.global_index}: {[a.name for a in self.pins]} | {self.type} = {self.iocell.name}"
+        )
 
     def inherit_attributes(self):
         for key, value in vars(self.pins[0]).items():
@@ -64,32 +69,28 @@ class Pad:
         else:
             self.type = PinType.DIGITAL_INOUT
         if isinstance(self.pins[0], PinDigital):
-            self.sv_pad_cell_name   =f"u_pad_cell_{self.type.value}/pad_{self.type.value}_i"
+            self.sv_pad_cell_name = (
+                f"u_pad_cell_{self.type.value}/pad_{self.type.value}_i"
+            )
 
-        '''
+        """
         self.__class__ = type(self.pins[0])
         ToDo_padspy FIXME
         if len(self.pins) > 1:
             self.__class__ = MultiplexedPad
         else:
             self.__class__ = type(self.pins[0])
-        '''
-
-
-
-
+        """
 
 
 class Physical(Pad):
     def __init__(self, name, iocell, bondpad, attributes={}):
-        self.global_index       = 0
-        self.name               = name
-        self.iocell             = iocell
-        self.bondpad            = bondpad
-        self.pins               = []
-        self.type               = PinType.PHYSICAL
-        self.sv_pad_cell_name   = "u_pad_cell_supply/pad_supply_i"
-        for key, value in attributes.items(): setattr(self, key, value)
-
-
-
+        self.global_index = 0
+        self.name = name
+        self.iocell = iocell
+        self.bondpad = bondpad
+        self.pins = []
+        self.type = PinType.PHYSICAL
+        self.sv_pad_cell_name = "u_pad_cell_supply/pad_supply_i"
+        for key, value in attributes.items():
+            setattr(self, key, value)

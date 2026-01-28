@@ -537,6 +537,7 @@ def load_cfg_file(f: PurePath) -> XHeep:
     else:
         raise RuntimeError(f"unsupported file extension {f.suffix}")
 
+
 def load_pad_cfg(f: PurePath):
     """
     Load pad configuration from HJSON or Python file and build PadRing.

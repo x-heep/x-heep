@@ -4,9 +4,9 @@ from dataclasses import dataclass, field
 from collections import Counter
 
 
-
 class ValidationError(ValueError):
     """Exception raised when pad configuration validation fails."""
+
     pass
 
 
@@ -20,13 +20,9 @@ class PadType(Enum):
     SUPPLY = "supply"
 
 
-
-
 class PadActive(Enum):
     HIGH = "high"
     LOW = "low"
-
-
 
 
 @dataclass(frozen=False)
@@ -120,33 +116,41 @@ class MultiplexedPad(PadDef):
     alts: Optional[List[Tuple[str, PadDef]]] = None  # List of (alt_name, alt_type)
 
 
-
 ##############################################
 # Default PAD and BONDPAD and PHYSICALS' layouts
-
-
 
 
 ##############################################
 # PIN CLASSES
 
+
 class Physical(Pin):
-    def __init__(self, name, layout, side, orient, layout_index, offset=None, space=None, bp_space=None ):
-        self.name               = name
-        self.layout             = layout
-        self.mapping            = side
-        self.orient             = orient
-        self.layout_index       = layout_index
-        self.global_index       = 0
-        self.alts               = []
-        self.type               = PadType.SUPPLY
-        self.driven_manually    = True
-        self.offset             = offset
-        self.space              = space
-        self.bp_space           = bp_space
-        self.pad_cell           = "u_pad_cell_supply/pad_supply_i"
+    def __init__(
+        self,
+        name,
+        layout,
+        side,
+        orient,
+        layout_index,
+        offset=None,
+        space=None,
+        bp_space=None,
+    ):
+        self.name = name
+        self.layout = layout
+        self.mapping = side
+        self.orient = orient
+        self.layout_index = layout_index
+        self.global_index = 0
+        self.alts = []
+        self.type = PadType.SUPPLY
+        self.driven_manually = True
+        self.offset = offset
+        self.space = space
+        self.bp_space = bp_space
+        self.pad_cell = "u_pad_cell_supply/pad_supply_i"
+
 
 ##############################################
 # GENERATE A LIST OF ALL POSSIBLE PADS
 # These do not include physical blocks yet
-

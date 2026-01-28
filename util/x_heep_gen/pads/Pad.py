@@ -3,6 +3,7 @@ from .Pin import Pin, PinType
 from .Floorplan import Side, Orientation
 from .Pin import *
 
+import copy
 
 class Pad:
 
@@ -15,6 +16,8 @@ class Pad:
     side: Side = None
     side_index: float = None
     space: float = None
+    offset: float = 0
+    bp_space: float = 0
     orientation: Orientation = None
     iocell_center_to_ring_edge: float = None
     bondpad_center_to_ring_edge: float = None
@@ -81,6 +84,9 @@ class Pad:
         else:
             self.__class__ = type(self.pins[0])
         """
+        
+    def copy(self):
+        return copy.deepcopy(self)
 
 
 class Physical(Pad):

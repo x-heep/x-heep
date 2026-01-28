@@ -10,6 +10,8 @@ class PadRing:
     Top-level container for the pad ring.
     """
 
+    cornerclass = Corner
+
     def __init__(
         self,
         floorplan_dimensions: FloorplanDimensions,
@@ -39,7 +41,7 @@ class PadRing:
             for x in pin_mapping_side:
 
                 if isinstance(x, Pad):
-                    pad = x
+                    pad = x.copy()
                     if pad.global_index is None:
                         pad.global_index = global_index
                         global_index += 1

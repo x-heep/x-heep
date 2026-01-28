@@ -12,41 +12,62 @@ class PadRing:
     def __init__(
         self,
         floorplan_dimensions: FloorplanDimensions,
-        pad_list: list[Pad],
-        pin_list: list[Pin],
+        mapping: dict,
+        pin_list: list,
     ):
         """
         Constructor for PadRing.
 
         :param floorplan_dimensions: Floorplan dimensions of the pad ring.
-        :param pad_list: A list containing all pads that will conform the padring.
+        :param mapping: A dicitonary containing each Side, and in each one of them, a list of a combination of List[Pin] and Pad.
         :param pin_list: A list of all pins which can be (but not necessarily are) connected to a Pad. The unconnected pads can be treated as bypass.
         """
         self.floorplan_dimensions = floorplan_dimensions
-        self.pad_list = pad_list
         self.pin_list = pin_list
         self.default_pin   = next((pin for pin in pin_list if hasattr(pin, "default")), None)
-        self.build()
+        self.build(mapping, pin_list)
 
-    def build(self):
-        # The pad list will have one more item, then we will remove item 0.
-        # This is simply because the standard is to number pads from 1 through N
-        for global_index in range(1,len(self.pad_list)):
-            self.pad_list[global_index] = Pad( global_index )
 
-        # ToDo_padspy: here consider the possibility of pads already having pins assinged, and instrad pins not having their list of pads
+    def build(self, mapping, pin_list):
+        self.pad_list = []
+        self.side_indexes = {Side.LEFT:0, Side.BOTTOM:0, Side.RIGHT:0, Side.TOP:0 }
+        global_index = 1
+        for side in Side: 
+            pin_mapping_side = mapping[side]
+            for x in pin_mapping_side:
 
-        # Assign pins to pads
-        for pin in self.pin_list:
-            if pin.pads != []:   [self.pad_list[padIdx].pins.append(pin) for padIdx in pin.pads]
-            else:                 print(f"\033[33m Unconnected pin:\033[0m {pin.name}")
+                if isinstance(x,Pad):
+                    pad = x
+                    if pad.global_index is None: 
+                        pad.global_index = global_index
+                        global_index += 1
+                elif isinstance(x, list) and all( isinstance(p, Pin) for p in x ):
+                    pad = Pad(global_index = global_index, pins=x)
+                    global_index += 1
+                else:
+                    raise ValueError("Elements in mapping must be either list[Pin] or Pad")
                 
+                self.assign_pad_to_side(pad, side)
+                self.pad_list.append( pad )
+
         # Build the pad list now that they have their assigned pins
-        for pad in self.pad_list[1:]: pad.build(default_pin=self.default_pin)
+        for pad in self.pad_list: pad.build(default_pin=self.default_pin)
         # In case of duplicate pad names (because the same pin is assigned to several pads)
         # rename them by adding an index
         self.rename_duplicate_pads()
 
+        '''
+        ToDo_padspy: Check unconnected pins! and pads (which have both iocell and bondapd)
+        '''
+
+
+    def assign_pad_to_side(self, pad, side ):
+        pad.side = side
+        if pad.side_index is None:
+            pad.side_index  = self.side_indexes[side]
+            self.side_indexes[side] += 1
+        if pad.orientation is None:
+            pad.orientation = SIDE_DEFAULT_ROTATION[side] 
 
     def space_side_by_pitch( self, side, space_from_corner_cell, pitch ):
 
@@ -120,7 +141,7 @@ class PadRing:
             bond_pad_center                 = pad_cell_center + margin_diff
             pad.bondpad_center_to_ring_edge = bond_pad_center
 
-            if pad.layout.bond_pad.name is not None:
+            if pad.bondpad.name is not None:
                 distance                = bond_pad_center - pads_sublist[last_bp].bondpad_center_to_ring_edge
                 space                   = distance \
                                             - pads_sublist[last_bp].bondpad.dimension.width/2 \
@@ -149,70 +170,73 @@ class PadRing:
                 pad.name = f"{original_name}_{seen_track[original_name]}"
 
 
-def assign_to_side( pads_sublist, side ):
-    # Layout indexes are counted clockwise (opposite to the convention)
-    for idx, pad in enumerate(pads_sublist):
-        pad.side        = side
-        pad.side_index  = idx
-        pad.orientation = SIDE_DEFAULT_ROTATION[side]
+
+
+    def print_pad_frame(self):
+        print("\n")
+
+        '''
+        ToDo_padspy: Do not print corners as if they were pads as well!
+        '''
+
+        # Separate pads by their side
+        top     = sorted([p for p in self.pad_list if p.side == Side.TOP],       key=lambda x: x.side_index, reverse=True)
+        bottom  = sorted([p for p in self.pad_list if p.side == Side.BOTTOM],    key=lambda x: x.side_index, reverse=False)
+        left    = sorted([p for p in self.pad_list if p.side == Side.LEFT],      key=lambda x: x.side_index, reverse=False)
+        right   = sorted([p for p in self.pad_list if p.side == Side.RIGHT],     key=lambda x: x.side_index, reverse=True)
+
+        # Determine dimensions
+        height = max(len(left), len(right))
+
+        # Helper to format the global_index into [XXX]
+        def fmt(pad):
+            return f"[{pad.global_index:3}]" if pad else "     "
+
+        # 1. Print Top Row
+        top_row = "      " + "".join(fmt(p) for p in top)
+        print(top_row)
+
+        # 2. Print Middle Rows (Left and Right sides)
+        for i in range(height):
+            l_pad = left[i] if i < len(left) else None
+            r_pad = right[i] if i < len(right) else None
+
+            # Calculate spacing between left and right pads
+            # Spacing depends on how many pads are on the top/bottom
+            middle_gap = "     " * len(top)
+            print(f"{fmt(l_pad)}{middle_gap}{fmt(r_pad)}")
+
+        # 3. Print Bottom Row
+        bottom_row = "      " + "".join(fmt(p) for p in bottom)
+        print(bottom_row)
+        print("\n")
+
+
+    def print_pad_table(self):
+        print("\n")
+        rows = {}
+        for pad in self.pad_list:
+            idx = pad.side_index
+            if idx not in rows:
+                rows[idx] = {Side.LEFT: '', Side.BOTTOM: '', Side.RIGHT: '', Side.TOP: ''}
+
+            # Join all pin names for this specific pad into a string
+            pin_names = f"({pad.global_index}) "+", ".join([pin.name for pin in pad.pins]) if pad.pins else f"({pad.global_index}) "+ pad.name
+            rows[idx][pad.side] = pin_names
+
+        # Print Header
+        header = f"{'Idx':<4} | {Side.LEFT.value:<40} | {Side.BOTTOM.value:<40} | {Side.RIGHT.value:<40} | {Side.TOP.value:<40}"
+        print(header)
+        print("-" * len(header))
+
+        # Print Rows sorted by side_index
+        for idx in sorted(rows.keys()):
+            r = rows[idx]
+            print(f"{idx:<4} | {r[Side.LEFT]:<40} | {r[Side.BOTTOM]:<40} | {r[Side.RIGHT]:<40} | {r[Side.TOP]:<40}")
+        print("\n")
+
+
             
 
 
-
-def print_pad_frame(pads):
-    print("\n")
-    # Separate pads by their mapping
-    top     = sorted([p for p in pads if p.mapping == Side.TOP],       key=lambda x: x.layout_index, reverse=True)
-    bottom  = sorted([p for p in pads if p.mapping == Side.BOTTOM],    key=lambda x: x.layout_index, reverse=False)
-    left    = sorted([p for p in pads if p.mapping == Side.LEFT],      key=lambda x: x.layout_index, reverse=False)
-    right   = sorted([p for p in pads if p.mapping == Side.RIGHT],     key=lambda x: x.layout_index, reverse=True)
-
-    # Determine dimensions
-    height = max(len(left), len(right))
-
-    # Helper to format the global_index into [XXX]
-    def fmt(pad):
-        return f"[{pad.global_index:3}]" if pad else "     "
-
-    # 1. Print Top Row
-    top_row = "      " + "".join(fmt(p) for p in top)
-    print(top_row)
-
-    # 2. Print Middle Rows (Left and Right sides)
-    for i in range(height):
-        l_pad = left[i] if i < len(left) else None
-        r_pad = right[i] if i < len(right) else None
-
-        # Calculate spacing between left and right pads
-        # Spacing depends on how many pads are on the top/bottom
-        middle_gap = "     " * len(top)
-        print(f"{fmt(l_pad)}{middle_gap}{fmt(r_pad)}")
-
-    # 3. Print Bottom Row
-    bottom_row = "      " + "".join(fmt(p) for p in bottom)
-    print(bottom_row)
-    print("\n")
-
-
-def print_pad_table(pads):
-    print("\n")
-    rows = {}
-    for pad in pads:
-        idx = pad.layout_index
-        if idx not in rows:
-            rows[idx] = {Side.LEFT: '', Side.BOTTOM: '', Side.RIGHT: '', Side.TOP: ''}
-
-        # Join all pin names for this specific pad into a string
-        pin_names = f"({pad.global_index}) "+", ".join([pin[0] for pin in pad.alts]) if pad.alts else f"({pad.global_index}) "+ pad.name
-        rows[idx][pad.mapping] = pin_names
-
-    # Print Header
-    header = f"{'Idx':<4} | {Side.LEFT.value:<40} | {Side.BOTTOM.value:<40} | {Side.RIGHT.value:<40} | {Side.TOP.value:<40}"
-    print(header)
-    print("-" * len(header))
-
-    # Print Rows sorted by layout_index
-    for idx in sorted(rows.keys()):
-        r = rows[idx]
-        print(f"{idx:<4} | {r[Side.LEFT]:<40} | {r[Side.BOTTOM]:<40} | {r[Side.RIGHT]:<40} | {r[Side.TOP]:<40}")
-    print("\n")
+   

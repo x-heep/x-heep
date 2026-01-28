@@ -37,16 +37,16 @@ class FloorplanDimensions:
                     f"{name} must be a list of four float values: [left, bottom, right, top]."
                 )
 
-            for value in margin:
-                if value < 0:
+            for m in margin.values():
+                if m < 0:
                     raise ValueError(f"All values in {name} must be non-negative.")
 
 
 class Side(Enum):
-    TOP     = "top"
-    RIGHT   = "right"
-    BOTTOM  = "bottom"
     LEFT    = "left"
+    BOTTOM  = "bottom"
+    RIGHT   = "right"
+    TOP     = "top"
 
 
 class Orientation(Enum):

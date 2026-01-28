@@ -1,4 +1,5 @@
 from .Pad import Pad
+from .Pad import Corner
 from .Pin import Pin
 from .Floorplan import FloorplanDimensions, Side, Orientation, SIDE_DEFAULT_ROTATION
 from collections import Counter
@@ -74,11 +75,22 @@ class PadRing:
 
     def space_side_by_pitch(self, side, space_from_corner_cell, pitch):
 
-        # Take only the pads from the selected side
+        # Take only the pads from the selected side, and sorted by their side index
         pads_sublist = [pad for pad in self.pad_list if pad.side == side]
+        pads_sublist.sort(key=lambda x: x.side_index)
+
+        # Remove corners, as they are managed separately
+        pads_sublist = [ pad for pad in pads_sublist if not isinstance(pad, Corner)]
+
+        if len(pads_sublist) == 0:
+            print(f"⚠️  No pads found for side {side.value}. Will skip spacing by pitch.")
+            return
 
         if any(p.side_index == None for p in pads_sublist):
             raise ValueError("All pads must have a side_index assigned")
+
+        # ToDo_padspy: remove this constraint. The problem is that to compute the offset of the first bondpad, 
+        # if the cell has no bondpad, the offset should be computed for the second pad, which is a pain to leave tidy.
 
         if pads_sublist[0].bondpad == None:
             raise ValueError(
@@ -87,10 +99,8 @@ class PadRing:
             )
 
         # Get the distances to the margins
-        side_iocell_margin = self.floorplan_dimensions.iocell_margin[side]
+        side_iocell_margin  = self.floorplan_dimensions.iocell_margin[side]
         side_bondpad_margin = self.floorplan_dimensions.bondpad_margin[side]
-
-        pads_sublist.sort(key=lambda x: x.side_index)
 
         # The first pad needs to be spaced a special distance from the corner cell.
         # Custom spacing to this cell can be given by changing this value
@@ -165,7 +175,7 @@ class PadRing:
             bond_pad_center = pad_cell_center + margin_diff
             pad.bondpad_center_to_ring_edge = bond_pad_center
 
-            if pad.bondpad.name is not None:
+            if pad.bondpad is not None:
                 distance = (
                     bond_pad_center - pads_sublist[last_bp].bondpad_center_to_ring_edge
                 )

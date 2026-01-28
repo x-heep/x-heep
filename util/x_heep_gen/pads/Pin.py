@@ -24,13 +24,10 @@ class Pin:
     def __init__(
         self,
         name,
-        priority    = 1,
         attributes  ={},
     ):
         self.name       = name
-        self.priority   = priority
-        for key, value in attributes.items():
-            setattr(self, key, value)
+        self.attributes = attributes
 
 
 class PinDigital(Pin):

@@ -24,10 +24,11 @@ class Pin:
     def __init__(
         self,
         name,
-        attributes={},
+        priority    = 1,
+        attributes  ={},
     ):
-        self.name = name
-        self.priority = 0
+        self.name       = name
+        self.priority   = priority
         for key, value in attributes.items():
             setattr(self, key, value)
 

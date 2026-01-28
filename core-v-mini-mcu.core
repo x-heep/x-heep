@@ -431,7 +431,7 @@ targets:
           - '--x-initial unique'
           - '--exe tb_top.cpp'
           - '-CFLAGS "-Wall -fpermissive"'
-          - '-LDFLAGS "-lutil -lelf"'
+          - '-LDFLAGS "-pthread -lutil -lelf"'
           - "-Wall"
 
   sim_sc:

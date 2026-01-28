@@ -25,8 +25,18 @@ module core_v_mini_mcu
 
     input logic rst_ni,
 
-% for pad in xheep.get_padring().pad_list:
-${pad.core_v_mini_mcu_interface}
+% for pin in xheep.get_padring().pin_list:
+  % if pin.module == "core_v_mini_mcu":
+    % if pin.type in [PinType.DIGITAL_INPUT, PinType.DIGITAL_INOUT]:
+      input logic ${pin.rtl_name()}_i,
+    % endif
+    % if pin.type in [PinType.DIGITAL_OUTPUT, PinType.DIGITAL_INOUT]:
+      output logic ${pin.rtl_name()}_o,
+    % endif
+    % if pin.type in [PinType.DIGITAL_INOUT]:
+      output logic ${pin.rtl_name()}_oe_o,
+    % endif
+  % endif
 % endfor
 
     // IDs

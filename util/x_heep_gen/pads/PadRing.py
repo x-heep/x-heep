@@ -17,6 +17,7 @@ class PadRing:
         floorplan_dimensions: FloorplanDimensions,
         mapping: dict,
         pin_list: list,
+        attributes: dict,
     ):
         """
         Constructor for PadRing.
@@ -30,6 +31,7 @@ class PadRing:
         self.default_pin = next(
             (pin for pin in pin_list if hasattr(pin, "default")), None
         )
+        self.attributes = attributes
         self.build(mapping, pin_list)
 
     def build(self, mapping, pin_list):

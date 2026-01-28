@@ -29,13 +29,13 @@ class Pin:
         self.name = name
         self.priority = 0
         self.attributes = attributes
-    
+
     def rtl_name(self):
         """
         Returns the RTL name of the pin, which, for example, may have a suffix if the attributes
         specify that it is active low.
         """
-    
+
         if self.attributes.get("active") == False:
             return f"{self.name}_n"
         return self.name

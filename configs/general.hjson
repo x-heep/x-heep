@@ -66,7 +66,6 @@
             offset:  0x00029000
             length:  0x00007000
             is_included: "no"
-            path:    "./hw/ip/w25q128jw_controller/data/w25q128jw_controller.hjson"
         }
         dma: {
             offset:  0x00030000

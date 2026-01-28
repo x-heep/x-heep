@@ -111,7 +111,7 @@ def config() -> PadRing:
         Input   ( "uart_rx" ),
     ]
 
-    for i in range(32): digital_pins.append( Inout (f"gpio_{i}", priority=0 ) )
+    for i in range(32): digital_pins.append( Inout (f"gpio_{i}", attributes={"priority" : 0} ) )
 
     analog_pins = []
     supply_pins = []

@@ -45,7 +45,7 @@ class Pad:
             # (will be placed first on the list)
             self.pins = sorted(
                 self.pins,
-                key=lambda pin: (pin.priority or -self.pins.index(pin)),
+                key=lambda pin: (pin.attributes.get("priority") or -self.pins.index(pin)),
                 reverse=True,
             )
 
@@ -92,8 +92,7 @@ class Physical(Pad):
         self.pins = []
         self.type = PinType.PHYSICAL
         self.sv_pad_cell_name = "u_pad_cell_supply/pad_supply_i"
-        for key, value in attributes.items():
-            setattr(self, key, value)
+        self.attributes = attributes
 
 class Corner(Physical):
     pass        

@@ -7,10 +7,62 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 0.39.8 - 2025-06-24
+### Added
+- Add a non-synthesizable IP to delay each channel of an AXI bus individually. #380
+- Add granular version of the `burst_splitter`, originally developed for AXI-Realm. #377
+- Add linting pass to CI elaborating with Verilator. #378
+
+### Fixed
+- `axi_burst_splitter`: Fix address alignment issues. #375
+- `axi_lite_to_apb`: Various fixes. #375
+- `axi_to_mem`: Fix edge cases. #376
+-  Various lint fixes. #374
+`
+### Changed
+- `axi_sim_mem`: Propagate user field on B and R channels. #373
+- Switched to VSIM version 2025.1 in CI. #378
+
+
+## 0.39.7 - 2025-05-20
+### Added
+- Add `axi_burst_unwrap`. #326
+
+### Fixed
+- Modify `axi_dw_upsizer` to avoid unnecessarily wide indices into r_data. #362
+- [test] Remove begin/end from constructors to fix morty ci err
+- `axi_lite_lfsr`: Add missing signal declaration. (#363)
+- `axi_to_mem_interleaved`: Fix busy signal.
+- `axi_dw_downsizer`: Fix unnecessarily wide indices for verilator compatibility. #366
+
+### Changed
+- Add random user signal generation for llc-partition test. #315
+- Update `common_verification` from `v0.2.4` to `v0.2.5`.
+- Add selective channel bypassing to `axi_cut`.
+
+## 0.39.6 - 2024-12-04
+### Added
+- Support connectivity in `axi_intercon_gen`. #351
+- Add `iomsb` function to avoid underflow in array lengths to `axi_pkg`. #355
+
+### Fixed
+- Make the case statements in `axi_dw_upsizer` unique. Add default cases to prevent simulator warnings. #348
+- Fix write channel assertions in `axi_rw_split`. #357
+- Tie unused `demux` port in pass-through termination in `axi_isolate`. #359
+
+### Changed
+- Improve VCS and Verilator support treewide. #358
+- Update `common_verification` to `v0.2.4` to include Verilator fixes.
+
+## 0.39.5 - 2024-10-24
+
 ### Fixed
 - Disabled the interface variant of `axi_xbar_unmuxed` for VCS, as VCS does not support multi-dimensional arrays of interfaces yet.
 
-## 0.39.4 - 2024-07-25
+### Changed
+- `axi_id_serialize`: Revert #342 to fix boot problems of CVA6 in Cheshire.
+
+## 0.39.4 - 2024-07-25 (Yanked 2024-10-23)
 ### Added
 - `axi_sim_mem`: Increase number of request ports, add multiport interface variant.
 - `axi_bus_compare`: Optionally consider AXI `size` field to only compare used data.

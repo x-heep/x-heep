@@ -116,8 +116,10 @@ module axi_sim_mem #(
 
   monitor_t [NumPorts-1:0] mon_w, mon_r;
   logic [7:0]     mem[addr_t];
-  axi_pkg::resp_t rerr[addr_t] = '{default: axi_pkg::RESP_OKAY};
-  axi_pkg::resp_t werr[addr_t] = '{default: axi_pkg::RESP_OKAY};
+  axi_pkg::resp_t rerr[addr_t] = '{default: 2'b0}; // default: 'axi_pkg::RESP_OKAY'
+  axi_pkg::resp_t werr[addr_t] = '{default: 2'b0}; // default: 'axi_pkg::RESP_OKAY'
+  // - Verilator cannot determine the type of 'axi_pkg::RESP_OKAY' in this context.
+  //   The 'axi_pkg::RESP_OKAY' is expanded to 0 for Verilator compatibility.
 
   // error happened in write burst
   axi_pkg::resp_t [NumPorts-1:0] error_happened = axi_pkg::RESP_OKAY;
@@ -183,6 +185,7 @@ module axi_sim_mem #(
                 assert (axi_req_i[i].w.last) else $error("Expected last beat of W burst!");
                 b_beat.id = aw_queue[0].id;
                 b_beat.resp = error_happened[i];
+                b_beat.user = aw_queue[0].user;
                 b_queue.push_back(b_beat);
                 w_cnt = 0;
                 mon_w[i].last = 1'b1;
@@ -236,6 +239,7 @@ module axi_sim_mem #(
             r_beat.data = 'x;
             r_beat.id = ar_queue[0].id;
             r_beat.resp = axi_pkg::RESP_OKAY;
+            r_beat.user = ar_queue[0].user;
             for (shortint unsigned
                 i_byte = axi_pkg::beat_lower_byte(ar_queue[0].addr, size, len, burst, StrbWidth, r_cnt);
                 i_byte <= axi_pkg::beat_upper_byte(ar_queue[0].addr, size, len, burst, StrbWidth, r_cnt);

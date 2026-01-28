@@ -17,7 +17,7 @@ filesets:
     - esl_epfl:ip:cv32e40px
     - pulp-platform.org:ip:gpio
     - pulp-platform.org::common_cells
-    - pulp-platform.org::axi:0.39.4
+    - pulp-platform.org::axi:0.39.8
     - pulp-platform.org::cluster_interconnect
     - pulp-platform.org::riscv_dbg
     - pulp-platform.org::register_interface

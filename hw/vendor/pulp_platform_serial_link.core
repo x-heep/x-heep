@@ -12,7 +12,7 @@ filesets:
 
   rtl:
     depend:
-    - pulp-platform.org::axi:0.39.4
+    - pulp-platform.org::axi:0.39.8
     - pulp-platform.org::common_cells
     - pulp-platform.org::register_interface
     - pulp-platform.org::per2axi

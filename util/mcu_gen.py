@@ -97,6 +97,7 @@ def generate_xheep(args):
     pad_ring = x_heep_gen.load_config.load_pad_cfg(pathlib.PurePath(str(args.pads_cfg)))
     if pad_ring is None:
         exit(f"Error loading pads configuration file: {args.pads_cfg}")
+    xheep.set_padring(pad_ring)
 
     if args.external_domains != None and args.external_domains != "":
         external_domains = int(args.external_domains)
@@ -155,8 +156,7 @@ def generate_xheep(args):
     # Here the xheep system is built,
     # The missing gaps are filled, like the missing end address of the data section.
     xheep.build()
-    pad_ring = PadRing(pad_cfg)
-    xheep.set_padring(pad_ring)
+    
     if not xheep.validate():
         raise RuntimeError("There are errors when configuring X-HEEP")
 

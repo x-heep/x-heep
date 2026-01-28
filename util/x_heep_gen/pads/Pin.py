@@ -86,29 +86,29 @@ class PinSupply(Pin):
 
 class DVdd(PinSupply):
     def __init__(self, name, attributes={}):
-        self.bondpad = bondpad_d
-        self.iocell = iocell_dVdd
+        self.bondpad = Cell.bondpad_d
+        self.iocell = Cell.iocell_dVdd
         super().__init__(name, attributes)
 
 
 class DVddIO(PinSupply):
     def __init__(self, name, attributes={}):
-        self.bondpad = bondpad_d
-        self.iocell = iocell_ioVdd
+        self.bondpad = Cell.bondpad_d
+        self.iocell = Cell.iocell_ioVdd
         super().__init__(name, attributes)
 
 
 class DVddPOC(PinSupply):
     def __init__(self, name, attributes={}):
-        self.bondpad = bondpad_d
-        self.iocell = iocell_ioPoc
+        self.bondpad = Cell.bondpad_d
+        self.iocell = Cell.iocell_ioPoc
         super().__init__(name, attributes)
 
 
 class DVss(PinSupply):
     def __init__(self, name, attributes={}):
-        self.bondpad = bondpad_d
-        self.iocell = iocell_dVss
+        self.bondpad = Cell.bondpad_d
+        self.iocell = Cell.iocell_dVss
         super().__init__(name, attributes)
 
 
@@ -123,23 +123,23 @@ class PinAnalog(Pin):
 
 class AVdd(PinAnalog):
     def __init__(self, name, attributes={}):
-        self.bondpad = bondpad_a
-        self.iocell = iocell_aVdd
-        self.sv_pad_cell_name = "u_sv_pad_cell_name_analog_vdd"
+        self.bondpad = Cell.bondpad_a
+        self.iocell = Cell.iocell_aVdd
+        self.sv_pad_cell_name = "u_pad_cell_analog_vdd"
         super().__init__(name, attributes)
 
 
 class AVss(PinAnalog):
     def __init__(self, name, attributes={}):
-        self.bondpad = bondpad_a
-        self.iocell = iocell_aVss
+        self.bondpad = Cell.bondpad_a
+        self.iocell = Cell.iocell_aVss
         self.sv_pad_cell_name = "u_pad_cell_analog_vss"
         super().__init__(name, attributes)
 
 
 class Asignal(PinAnalog):
     def __init__(self, name, attributes={}):
-        self.bondpad = bondpad_a
-        self.iocell = iocell_a
+        self.bondpad = Cell.bondpad_a
+        self.iocell = Cell.iocell_a
         self.sv_pad_cell_name = f"u_pad_cell_analog"
         super().__init__(name, attributes)

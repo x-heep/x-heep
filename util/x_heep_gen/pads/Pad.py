@@ -74,4 +74,19 @@ class Pad:
 
 
 
+class Physical(Pad):
+    def __init__(self, name, iocell, bondpad, side, orientation, side_index, offset=None, space=None, bp_space=None ):
+        self.global_index       = 0
+        self.name               = name
+        self.iocell             = iocell
+        self.bondpad            = bondpad
+        self.side               = side
+        self.orientation        = orientation
+        self.side_index         = side_index
+        self.pins               = []
+        self.type               = PinType.PHYSICAL
+        self.offset             = offset
+        self.space              = space
+        self.sv_pad_cell_name   = "u_pad_cell_supply/pad_supply_i"
+
 

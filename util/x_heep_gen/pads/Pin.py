@@ -7,6 +7,7 @@ class PinType(Enum):
     DIGITAL_INOUT   = "inout"
     DIGITAL_SUPPLY  = "supply"
     ANALOG          = "supply"
+    PHYSICAL        = "supply"
 
 # ToDo_padspy: select better names for this enum
 

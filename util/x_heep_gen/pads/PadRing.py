@@ -34,6 +34,8 @@ class PadRing:
         for global_index in range(1,len(self.pad_list)):
             self.pad_list[global_index] = Pad( global_index )
 
+        # ToDo_padspy: here consider the possibility of pads already having pins assinged, and instrad pins not having their list of pads
+
         # Assign pins to pads
         for pin in self.pin_list:
             if pin.pads != []:   [self.pad_list[padIdx].pins.append(pin) for padIdx in pin.pads]

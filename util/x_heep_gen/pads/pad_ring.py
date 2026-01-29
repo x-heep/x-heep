@@ -38,9 +38,9 @@ class PadRing:
             (pin for pin in pin_list if hasattr(pin, "default")), None
         )
         self.attributes = attributes
-        self.build(mapping, pin_list)
+        self.build(mapping)
 
-    def build(self, mapping, pin_list):
+    def build(self, mapping):
         self.pad_list = []
         self.side_indexes = {Side.LEFT: 0, Side.BOTTOM: 0, Side.RIGHT: 0, Side.TOP: 0}
         global_index = 1
@@ -74,6 +74,17 @@ class PadRing:
         """
         ToDo_padspy: Check unconnected pins! and pads (which have both iocell and bondapd)
         """
+
+    def pins_with_pads(self):
+        """
+        Returns the list of pins that are connected to pads in the pad ring.
+        """
+        connected_pins = []
+        for pad in self.pad_list:
+            for pin in pad.pins:
+                if pin not in connected_pins:
+                    connected_pins.append(pin)
+        return connected_pins
 
     def assign_pad_to_side(self, pad, side):
         pad.side = side

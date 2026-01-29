@@ -99,7 +99,8 @@ MCU_GEN_TEMPLATES = \
 	scripts/pnr/core-v-mini-mcu.dc.upf.tpl \
 	util/profile/run_profile.sh.tpl \
 	tb/testharness.sv.tpl \
-	tb/testharness_pkg.sv.tpl
+	tb/testharness_pkg.sv.tpl \
+	hw/fpga/xilinx_core_v_mini_mcu_wrapper.sv.tpl
 
 # Compiler options are 'gcc' (default) and 'clang'
 COMPILER 		?= gcc

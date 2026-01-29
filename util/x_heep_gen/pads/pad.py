@@ -55,7 +55,7 @@ class Pad:
                 reverse=True,
             )
 
-            # Make the pad inherit the properties and attributes of its main pain (the one with the highest priority)
+            # Make the pad inherit the properties and attributes of its main pin (the one with the highest priority)
             self.inherit_attributes()
             # Decide the type of the pad based on the type of its pins
             self.decide_type()

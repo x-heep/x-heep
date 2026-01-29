@@ -99,6 +99,9 @@ module serial_link_xheep_wrapper
       .mst_resp_i(axi_in_rsp_o)
   );
 
+// Slave interface for the Serial Link
+// Data is saved in the fifo of parametrizable depth
+// The new transactions can be accepted only when fifo is empty
   fifo_serial_link_wrapper #(
       .axi_req_t (axi_req_t),
       .axi_rsp_t (axi_resp_t),

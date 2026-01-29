@@ -12,7 +12,6 @@ class Pad:
     name: str = ""
     iocell: Cell = None
     bondpad: Cell = None
-    type: PinType = None
     global_index: int = None
     side: Side = None
     side_index: float = None
@@ -57,8 +56,6 @@ class Pad:
 
             # Make the pad inherit the properties and attributes of its main pin (the one with the highest priority)
             self.inherit_attributes()
-            # Decide the type of the pad based on the type of its pins
-            self.decide_type()
 
         print(
             f"{self.global_index}: {[a.name for a in self.pins]} | {self.type} = {self.iocell.name}"
@@ -69,7 +66,6 @@ class Pad:
             setattr(self, key, value)
 
     def decide_type(self):
-        # ToDo_padspy: fix this
         if self.pins and all(p.type == self.pins[0].type for p in self.pins):
             self.type = self.pins[0].type
         else:

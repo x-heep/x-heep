@@ -1,9 +1,10 @@
-from .Cell import Cell
-from .Pin import Pin, PinType
-from .Floorplan import Side, Orientation
-from .Pin import *
+from .cell import Cell
+from .pin import Pin, PinType
+from .floorplan import Side, Orientation
+from .pin import *
 
 import copy
+
 
 class Pad:
 
@@ -48,7 +49,9 @@ class Pad:
             # (will be placed first on the list)
             self.pins = sorted(
                 self.pins,
-                key=lambda pin: (pin.attributes.get("priority") or -self.pins.index(pin)),
+                key=lambda pin: (
+                    pin.attributes.get("priority") or -self.pins.index(pin)
+                ),
                 reverse=True,
             )
 
@@ -84,7 +87,7 @@ class Pad:
         else:
             self.__class__ = type(self.pins[0])
         """
-        
+
     def copy(self):
         return copy.deepcopy(self)
 
@@ -100,5 +103,6 @@ class Physical(Pad):
         self.sv_pad_cell_name = "u_pad_cell_supply/pad_supply_i"
         self.attributes = attributes
 
+
 class Corner(Physical):
-    pass        
+    pass

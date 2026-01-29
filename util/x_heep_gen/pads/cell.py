@@ -1,4 +1,4 @@
-from .Dimension import Dimension
+from .dimension import Dimension
 
 
 class Cell:

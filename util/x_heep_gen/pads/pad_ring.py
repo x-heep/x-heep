@@ -1,7 +1,7 @@
-from .Pad import Pad
-from .Pad import Corner
-from .Pin import Pin
-from .Floorplan import FloorplanDimensions, Side, Orientation, SIDE_DEFAULT_ROTATION
+from .pad import Pad
+from .pad import Corner
+from .pin import Pin
+from .floorplan import FloorplanDimensions, Side, Orientation, SIDE_DEFAULT_ROTATION
 from collections import Counter
 
 
@@ -23,8 +23,14 @@ class PadRing:
         Constructor for PadRing.
 
         :param floorplan_dimensions: Floorplan dimensions of the pad ring.
-        :param mapping: A dicitonary containing each Side, and in each one of them, a list of a combination of List[Pin] and Pad.
-        :param pin_list: A list of all pins which can be (but not necessarily are) connected to a Pad. The unconnected pads can be treated as bypass.
+        :param mapping: A dicitonary containing each Side, and in each one of them, a list of a
+            combination of List[Pin] and Pad.
+        :param pin_list: A list of all pins which can be (but not necessarily are) connected to a
+            Pad. The unconnected pads can be treated as bypass.
+        :param attributes: User-defined dictionary of attributes of the pad ring. For example,
+            depending on the technology used, some pads cells require additional I/Os other than the
+            basic input and output ports. This can be defined in a "bits" field with value "7:0" of
+            the attributes dictionary.
         """
         self.floorplan_dimensions = floorplan_dimensions
         self.pin_list = pin_list
@@ -84,16 +90,18 @@ class PadRing:
         pads_sublist.sort(key=lambda x: x.side_index)
 
         # Remove corners, as they are managed separately
-        pads_sublist = [ pad for pad in pads_sublist if not isinstance(pad, Corner)]
+        pads_sublist = [pad for pad in pads_sublist if not isinstance(pad, Corner)]
 
         if len(pads_sublist) == 0:
-            print(f"⚠️  No pads found for {side.value} side. Will skip spacing by pitch.")
+            print(
+                f"⚠️  No pads found for {side.value} side. Will skip spacing by pitch."
+            )
             return
 
         if any(p.side_index == None for p in pads_sublist):
             raise ValueError("All pads must have a side_index assigned")
 
-        # ToDo_padspy: remove this constraint. The problem is that to compute the offset of the first bondpad, 
+        # ToDo_padspy: remove this constraint. The problem is that to compute the offset of the first bondpad,
         # if the cell has no bondpad, the offset should be computed for the second pad, which is a pain to leave tidy.
 
         if pads_sublist[0].bondpad == None:
@@ -103,7 +111,7 @@ class PadRing:
             )
 
         # Get the distances to the margins
-        side_iocell_margin  = self.floorplan_dimensions.iocell_margin[side]
+        side_iocell_margin = self.floorplan_dimensions.iocell_margin[side]
         side_bondpad_margin = self.floorplan_dimensions.bondpad_margin[side]
 
         # The first pad needs to be spaced a special distance from the corner cell.

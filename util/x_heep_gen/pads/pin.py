@@ -1,4 +1,4 @@
-from .Cell import *
+from .cell import *
 from enum import Enum
 
 
@@ -24,7 +24,7 @@ class Pin:
     def __init__(
         self,
         name,
-        attributes  ={},
+        attributes={},
     ):
         self.name = name
         self.attributes = attributes

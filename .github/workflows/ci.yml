@@ -164,4 +164,5 @@ jobs:
             util/waiver-gen.py
             util/c_gen.py
             test/test_x_heep_gen
+            configs
           version: "~= 24.8.0"

@@ -43,13 +43,6 @@ class Pin:
 
 class PinDigital(Pin):
     def __init__(self, name, attributes={}):
-        super().__init__(name, attributes)
-        self.properties = {}
-        self.sv_pad_cell_name = f"u_pad_cell_{self.type.value}/pad_{self.type.value}_i"
-
-
-class PinDigital(Pin):
-    def __init__(self, name, attributes={}):
         self.name = name
         self.iocell = Cell.iocell_d
         self.bondpad = Cell.bondpad_d

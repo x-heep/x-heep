@@ -1,4 +1,4 @@
-from .Dimension import Dimension
+from .dimension import Dimension
 from enum import Enum
 
 

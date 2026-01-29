@@ -6,6 +6,7 @@ import os
 import sys
 from jsonref import JsonRef
 
+
 from .cpu.cpu import CPU
 from .cpu.cv32e20 import cv32e20
 from .cpu.cv32e40p import cv32e40p
@@ -29,8 +30,6 @@ from .peripherals.base_peripherals import (
     Pad_control,
     GPIO_ao,
 )
-
-
 from .peripherals.user_peripherals import (
     RV_plic,
     SPI_host,
@@ -42,6 +41,9 @@ from .peripherals.user_peripherals import (
     I2S,
     UART,
 )
+from .pads.pad_ring import PadRing
+from .pads.floorplan import FloorplanDimensions
+from .pads.dimension import Dimension
 
 
 def to_int(input) -> Union[int, None]:
@@ -574,13 +576,7 @@ def load_pad_cfg(f: PurePath):
                 srcfull = file.read()
                 pad_cfg = hjson.loads(srcfull, use_decimal=True)
                 pad_cfg = JsonRef.replace_refs(pad_cfg)
-                pad_group = PadGroup.build_pad_group(pad_cfg, "x_heep_top")
-
-                if pad_group is None:
-                    raise ValueError(
-                        "PadGroup could not be created from configuration."
-                    )
-                pad_ring = PadRing(pad_group)
+                pad_ring = load_pad_cfg_hjson(pad_cfg)
                 if pad_ring is None:
                     raise ValueError("PadRing could not be created from configuration.")
                 return pad_ring
@@ -597,3 +593,20 @@ def load_pad_cfg(f: PurePath):
 
     else:
         raise RuntimeError(f"unsupported file extension {f.suffix}")
+
+
+def load_pad_cfg_hjson(pad_cfg: hjson.OrderedDict) -> PadRing:
+    """
+    Load pad configuration from HJSON dictionary and build PadRing.
+
+    :param hjson.OrderedDict pad_cfg: HJSON dictionary with pad configuration
+    :return: Built PadRing object ready for template generation
+    :raises TypeError: If pad_cfg is not an hjson.OrderedDict
+    """
+    if not isinstance(pad_cfg, hjson.OrderedDict):
+        raise TypeError("pad_cfg should be of type hjson.OrderedDict")
+
+    pad_ring = PadRing(
+        FloorplanDimensions(Dimension(0, 0), {}, {}, {}), {}, [], {}
+    )  # ToDo_padspy: Implement this properly
+    return pad_ring

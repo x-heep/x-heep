@@ -17,7 +17,6 @@ from jsonref import JsonRef
 from mako.template import Template
 import x_heep_gen.load_config
 from x_heep_gen.load_config import load_peripherals_config
-from x_heep_gen.pads.PadRing import PadRing
 from x_heep_gen.xheep import BusType
 from x_heep_gen.cpu.cpu import CPU
 import os
@@ -156,7 +155,7 @@ def generate_xheep(args):
     # Here the xheep system is built,
     # The missing gaps are filled, like the missing end address of the data section.
     xheep.build()
-    
+
     if not xheep.validate():
         raise RuntimeError("There are errors when configuring X-HEEP")
 

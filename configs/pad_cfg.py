@@ -1,12 +1,14 @@
 from x_heep_gen.pads.pad_ring import PadRing
 from x_heep_gen.pads.floorplan import Side
 from x_heep_gen.pads.pin import Pin, Input, Output, Inout
-''' OPTIONAL - for cheeps
+
+""" OPTIONAL - for cheeps
 from x_heep_gen.pads.floorplan import FloorplanDimensions
 from x_heep_gen.pads.cell import Cell
 from x_heep_gen.pads.dimension import Dimension
 from x_heep_gen.pads.pad import Physical, Corner
-'''
+"""
+
 
 def config() -> PadRing:
     """
@@ -14,7 +16,7 @@ def config() -> PadRing:
     This is the Python class-based equivalent of configs/pad_cfg.hjson.
     """
 
-    ''' OPTIONAL - for cheeps
+    """ OPTIONAL - for cheeps
 
     # Define the floorplan dimensions
 
@@ -71,7 +73,7 @@ def config() -> PadRing:
     Cell.aCorner = Cell(width=60, height=80, name="CA")
     Cell.dCorner = Cell(width=60, height=80, name="CD")
 
-    '''
+    """
 
     ##############################################
     # DEFINE ALL THE AVAILABLE PINS
@@ -93,16 +95,13 @@ def config() -> PadRing:
         Input("execute_from_flash"),
         Output("exit_valid"),
         Output("exit_value", attributes={"module": "x_heep_system"}),
-
         Input("jtag_tck"),
         Input("jtag_tms"),
         Input("jtag_trst", attributes={"active": "low"}),
         Input("jtag_tdi"),
         Output("jtag_tdo"),
-
         Input("uart_rx"),
         Output("uart_tx"),
-        
         Inout("spi_flash_sck"),
         Inout("spi_flash_cs_0"),
         Inout("spi_flash_cs_1"),
@@ -110,7 +109,6 @@ def config() -> PadRing:
         Inout("spi_flash_sd_1"),
         Inout("spi_flash_sd_2"),
         Inout("spi_flash_sd_3"),
-
         Inout("spi_sck"),
         Inout("spi_cs_0"),
         Inout("spi_cs_1"),
@@ -118,7 +116,6 @@ def config() -> PadRing:
         Inout("spi_sd_1"),
         Inout("spi_sd_2"),
         Inout("spi_sd_3"),
-    
         Inout("spi2_cs_0"),
         Inout("spi2_cs_1"),
         Inout("spi2_sck"),
@@ -126,25 +123,22 @@ def config() -> PadRing:
         Inout("spi2_sd_1"),
         Inout("spi2_sd_2"),
         Inout("spi2_sd_3"),
-
         Input("spi_slave_sck"),
         Input("spi_slave_cs"),
         Inout("spi_slave_miso"),
         Input("spi_slave_mosi"),
-
         Inout("pdm2pcm_pdm"),
         Inout("pdm2pcm_clk"),
-
         Inout("i2s_sck"),
         Inout("i2s_ws"),
         Inout("i2s_sd"),
-        
         Inout("i2c_scl"),
         Inout("i2c_sda"),
     ]
 
     # Add all gpios at once, because we are lazy :P
-    for i in range(32): digital_pins.append(Inout(f"gpio_{i}", attributes={"priority": 0}))
+    for i in range(32):
+        digital_pins.append(Inout(f"gpio_{i}", attributes={"priority": 0}))
 
     analog_pins = []
     supply_pins = []
@@ -152,17 +146,17 @@ def config() -> PadRing:
     ##############################################
     # GENERATE A PIN DICT WITH ALL THESE PINS
     # Feel free to generate this dictionary directly, no need to go through the list before,
-    # we did it like this just for our convenience. 
+    # we did it like this just for our convenience.
     # pin_dict = {
     #   "clk" : Input("clk"),
-    #   . . . 
+    #   . . .
     #  }
 
     pin_dict = {}
     for ps in [digital_pins, analog_pins, supply_pins]:
         pin_dict.update({pin.name: pin for pin in ps})
 
-    ''' OPTIONAL - for cheeps
+    """ OPTIONAL - for cheeps
     # CREATE PHYSICAL CELLS (which do not have pins assigned)
 
     prcuta = Physical(
@@ -184,21 +178,20 @@ def config() -> PadRing:
         iocell=Cell.aCorner,
         bondpad=None,
     )
-    ''' 
-    
+    """
+
     ##############################################
     # MAP PINS TO PADS
     # And assign them sides.
     # If you don't care about sides (i.e. just want to simulate)
-    # Just assign them all to the same side. 
+    # Just assign them all to the same side.
 
     mapping = {
         Side.LEFT: [
-            ''' OPTIONAL - for cheeps
-            # You should add one of these at the start of each side. 
-            # Make it an analog corner if needed. 
-            dcorner,
-            '''
+            # OPTIONAL - for cheeps
+            # You should add one of these at the start of each side.
+            # Make it an analog corner if needed.
+            # dcorner,
             ["clk"],
             ["rst"],
             ["boot_select"],
@@ -291,7 +284,7 @@ def config() -> PadRing:
     padring.print_pad_frame()
     padring.print_pad_table()
 
-    ''' OPTIONAL - for cheeps 
+    """ OPTIONAL - for cheeps 
     # Arbitrarily assign a fixed position to some pad
     padring.pad_list[31].iocell_center_to_ring_edge = 586
 
@@ -300,6 +293,6 @@ def config() -> PadRing:
         padring.space_side_by_pitch(
             side, SPACE_FROM_CORNER_CELL, PITCH_BETWEEN_IO_DEFAULT
         )
-    '''
+    """
 
     return padring

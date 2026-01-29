@@ -12,9 +12,9 @@
 %>
 
 module pad_ring (
-% for pin in xheep.get_padring().pin_list:
-  inout wire ${pin.rtl_name()}_io,
-    % if pin.type in [PinType.DIGITAL_INPUT, PinType.DIGITAL_INOUT]:
+% for pin in xheep.get_padring().pins_with_pads():
+    inout wire ${pin.rtl_name()}_io,
+    % if isinstance(pin, (Input, Inout)):
         output logic ${pin.rtl_name()}_o,
     % endif
     % if pin.type in [PinType.DIGITAL_OUTPUT, PinType.DIGITAL_INOUT]:
@@ -51,30 +51,32 @@ pad_cell_input #(
 % endfor
 
 % for pad in xheep.get_padring().pad_list:
-    % if pin.type == PinType.DIGITAL_INPUT:
+    % if pad.type == PinType.DIGITAL_INPUT:
         pad_cell_input #(
-            .PADATTR(${num_attribute_bits})${mapping}
-            
-        ) ${pin.cell_name} (
+            .PADATTR(${num_attribute_bits})
+            % if pad.side != None:
+                , .SIDE(core_v_mini_mcu_pkg::${pad.side})
+            % endif
+        ) ${pad.cell_name} (
             .pad_in_i(1'b0),
             .pad_oe_i(1'b0),
-            .pad_out_o(${pin.rtl_name()}_o),
-            .pad_io(${pin.rtl_name()}_io),
-            % if pin.has_attribute:
+            .pad_out_o(${pad.rtl_name()}_o),
+            .pad_io(${pad.rtl_name()}_io),
+            % if pad.has_attribute:
             .pad_attributes_i(
                 pad_attributes_i[
-                    core_v_mini_mcu_pkg::${pin.localparam}
+                    core_v_mini_mcu_pkg::${pad.localparam}
                 ]
             )
             % else:
             .pad_attributes_i('0)
             % endif
         );
-    % elif pin.type == PinType.DIGITAL_OUTPUT:
+    % elif pad.type == PinType.DIGITAL_OUTPUT:
 
-    % elif pin.type == PinType.DIGITAL_INOUT:
+    % elif pad.type == PinType.DIGITAL_INOUT:
 
-    % endif
+    % endif  # ToDo_padspy: implement other pad types
 % endfor
 
 % for external_pad in xheep.get_padring().external_pad_list:

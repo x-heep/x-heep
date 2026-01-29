@@ -15,7 +15,6 @@ filesets:
     - pulp-platform.org::axi:0.39.8
     - pulp-platform.org::common_cells
     - pulp-platform.org::register_interface
-    - pulp-platform.org::per2axi
     - pulp-platform.org::axi_slice   
     files:
     - pulp_platform_serial_link/src/serial_link_pkg.sv

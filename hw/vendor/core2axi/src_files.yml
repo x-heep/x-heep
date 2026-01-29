@@ -1,4 +1,0 @@
-core2axi:
-  files: [
-    rtl/core2axi.sv,
-  ]

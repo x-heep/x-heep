@@ -1,7 +1,0 @@
-per2axi:
-  files: [
-    src/per2axi_busy_unit.sv,
-    src/per2axi_req_channel.sv,
-    src/per2axi_res_channel.sv,
-    src/per2axi.sv,
-  ]

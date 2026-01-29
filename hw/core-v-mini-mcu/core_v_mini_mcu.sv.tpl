@@ -101,7 +101,7 @@ ${pad.core_v_mini_mcu_interface}
     output logic [EXT_DOMAINS_RND-1:0] external_subsystem_clkgate_en_no,
 
     output logic [31:0] exit_value_o,
-     % if user_peripheral_domain.contains_peripheral('serial_link'):
+    % if user_peripheral_domain.contains_peripheral('serial_link'):
     //Serial Link
     input  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0]    ddr_rcv_clk_i,  
     output logic [serial_link_single_channel_reg_pkg::NumChannels-1:0]    ddr_rcv_clk_o,
@@ -514,10 +514,12 @@ ${pad.core_v_mini_mcu_interface}
       .i2s_sd_oe_o(i2s_sd_oe_o),
       .i2s_sd_i(i2s_sd_i),
       .i2s_rx_valid_o(i2s_rx_valid),
+      % if user_peripheral_domain.contains_peripheral('serial_link'):
       .ddr_rcv_clk_i,  
       .ddr_rcv_clk_o,
       .ddr_i,
       .ddr_o,
+      %endif
       .uart_rx_i,
       .uart_tx_o
   );

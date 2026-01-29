@@ -2,6 +2,7 @@ from .cell import *
 from enum import Enum
 
 
+# ToDo_padspy: select better names for this enum
 class PinType(Enum):
     DIGITAL_INPUT = "input"
     DIGITAL_OUTPUT = "output"
@@ -11,12 +12,8 @@ class PinType(Enum):
     PHYSICAL = "supply"
 
 
-# ToDo_padspy: select better names for this enum
-
-DEFAULT_MODULE = "core_v_mini_mcu"
-
-
 class Pin:
+    DEFAULT_MODULE = "core_v_mini_mcu"
 
     user_domain = ""
     module = ""
@@ -24,10 +21,11 @@ class Pin:
     def __init__(
         self,
         name,
+        module=None,
         attributes={},
     ):
         self.name = name
-        self.priority = 0
+        self.module = module if module is not None else Pin.DEFAULT_MODULE
         self.attributes = attributes
 
     def rtl_name(self):
@@ -46,7 +44,7 @@ class PinDigital(Pin):
         self.name = name
         self.iocell = iocell_d
         self.bondpad = bondpad_d
-        self.sv_pad_cell_name = f"u_pad_cell_{self.type.value}/pad_{self.type.value}_i"
+        self.sv_pad_cell_name = f"pad_cell_{self.type.value}/pad_{self.type.value}_i"
         super().__init__(name, attributes)
 
 
@@ -74,7 +72,7 @@ class PinSupply(Pin):
         self.properties = {}
         self.type = PinType.DIGITAL_SUPPLY
         if not hasattr(self, "sv_pad_cell_name"):
-            self.sv_pad_cell_name = "u_pad_cell_supply/pad_supply_i"
+            self.sv_pad_cell_name = "pad_cell_supply/pad_supply_i"
         super().__init__(name, attributes)
 
 
@@ -119,7 +117,7 @@ class AVdd(PinAnalog):
     def __init__(self, name, attributes={}):
         self.bondpad = bondpad_a
         self.iocell = iocell_aVdd
-        self.sv_pad_cell_name = "u_pad_cell_analog_vdd"
+        self.sv_pad_cell_name = "pad_cell_analog_vdd"
         super().__init__(name, attributes)
 
 
@@ -127,7 +125,7 @@ class AVss(PinAnalog):
     def __init__(self, name, attributes={}):
         self.bondpad = bondpad_a
         self.iocell = iocell_aVss
-        self.sv_pad_cell_name = "u_pad_cell_analog_vss"
+        self.sv_pad_cell_name = "pad_cell_analog_vss"
         super().__init__(name, attributes)
 
 
@@ -135,5 +133,5 @@ class Asignal(PinAnalog):
     def __init__(self, name, attributes={}):
         self.bondpad = bondpad_a
         self.iocell = iocell_a
-        self.sv_pad_cell_name = f"u_pad_cell_analog"
+        self.sv_pad_cell_name = f"pad_cell_analog"
         super().__init__(name, attributes)

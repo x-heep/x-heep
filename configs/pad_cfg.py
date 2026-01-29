@@ -90,11 +90,11 @@ def config() -> PadRing:
 
     digital_pins = [
         Input("clk"),
-        Input("rst", attributes={"module": "x_heep_system", "active": "low"}),
+        Input("rst", module="x_heep_system", attributes={"active": "low"}),
         Input("boot_select"),
         Input("execute_from_flash"),
         Output("exit_valid"),
-        Output("exit_value", attributes={"module": "x_heep_system"}),
+        Output("exit_value", module="x_heep_system"),
         Input("jtag_tck"),
         Input("jtag_tms"),
         Input("jtag_trst", attributes={"active": "low"}),

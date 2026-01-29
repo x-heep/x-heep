@@ -2,6 +2,14 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
+<%!
+    from x_heep_gen.pads.pin import Input, Output, Inout
+%>
+
+<%
+    attribute_bits = xheep.get_padring().attributes.get("bits")
+%>
+
 module x_heep_system
   import obi_pkg::*;
   import reg_pkg::*;
@@ -81,19 +89,25 @@ module x_heep_system
     // External SPC interface
     output logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_done_o,
 
-% for pad in xheep.get_padring().total_pad_list:
-${pad.x_heep_system_interface}
-% endfor
+    % for pin in xheep.get_padring().get_connected_main_pins():
+      % if isinstance(pin, Input):
+          inout wire ${pin.rtl_name()}_i{"" if loop.last else ","}
+      % endif
+      % if isinstance(pin, Output):
+          inout wire ${pin.rtl_name()}_o{"" if loop.last else ","}
+      % endif
+      % if isinstance(pin, Inout):
+          inout wire ${pin.rtl_name()}_io{"" if loop.last else ","}
+      % endif
+    % endfor
 );
 
   import core_v_mini_mcu_pkg::*;
-
 
   localparam EXT_HARTS = 0;
 
   //do not touch these parameter
   localparam EXT_HARTS_RND = EXT_HARTS == 0 ? 1 : EXT_HARTS;
-
 
   logic [EXT_HARTS_RND-1:0] ext_debug_req;
   logic ext_cpu_subsystem_rst_n;
@@ -102,30 +116,47 @@ ${pad.x_heep_system_interface}
   // PAD controller
   reg_req_t pad_req;
   reg_rsp_t pad_resp;
-% if xheep.get_padring().pads_attributes != None:
-  logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][${xheep.get_padring().pads_attributes['bits']}] pad_attributes;
-% endif
- % if xheep.get_padring().total_pad_muxed > 0:
-  logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][${xheep.get_padring().max_total_pad_mux_bitlengh-1}:0] pad_muxes;
-% endif
+
+  % if attribute_bits != None:
+    logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][${attribute_bits}] pad_attributes;
+  % endif
+  % if xheep.get_padring().num_muxed_pads() > 0:
+    logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][${xheep.get_padring().get_muxed_pad_select_width()-1}:0] pad_muxes;
+  % endif
 
   logic rst_ngen;
 
-  //input, output pins from core_v_mini_mcu
-% for pad in xheep.get_padring().total_pad_list:
-${pad.internal_signals}
-% endfor
+  // core_v_mini_mcu input/output pins
+  % for pad in xheep.get_padring().pad_list:
+    % for pin in pad.pins:
+      logic ${pin.rtl_name()}_in_x, ${pin.rtl_name()}_out_x, ${pin.rtl_name()}_oe_x;
+    % endfor
+    % if len(pad.pins) > 1:
+      logic ${pad.pins[0].rtl_name()}_in_x_muxed, ${pad.pins[0].rtl_name()}_out_x_muxed, ${pad.pins[0].rtl_name()}_oe_x_muxed;
+    % endif
+  % endfor
 
   core_v_mini_mcu #(
     .EXT_XBAR_NMASTER(EXT_XBAR_NMASTER),
     .AO_SPC_NUM(AO_SPC_NUM),
     .EXT_HARTS(EXT_HARTS)
   ) core_v_mini_mcu_i (
-
     .rst_ni(rst_ngen),
-% for pad in xheep.get_padring().pad_list:
-${pad.core_v_mini_mcu_bonding}
-% endfor
+
+    // MCU pads
+    % for pin in xheep.get_padring().get_connected_pins():
+      % if pin.module == "core_v_mini_mcu":
+        % if isinstance(pin, (Input, Inout)):
+          .${pin.rtl_name()}_i(${pin.rtl_name()}_in_x),
+        % endif
+        % if isinstance(pin, (Output, Inout)):
+          .${pin.rtl_name()}_o(${pin.rtl_name()}_out_x),
+        % endif
+        % if isinstance(pin, Inout):
+          .${pin.rtl_name()}_oe_o(${pin.rtl_name()}_oe_x),
+        % endif
+      % endif
+    % endfor
 
     .hart_id_i,
     .xheep_instance_id_i,

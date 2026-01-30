@@ -40,30 +40,30 @@ class Pin:
 
 
 class PinDigital(Pin):
-    def __init__(self, name, attributes={}):
+    def __init__(self, name, module=None, attributes={}):
         self.name = name
         self.iocell = iocell_d
         self.bondpad = bondpad_d
         self.sv_pad_cell_name = f"pad_cell_{self.type.value}/pad_{self.type.value}_i"
-        super().__init__(name, attributes)
+        super().__init__(name, module, attributes)
 
 
 class Input(PinDigital):
-    def __init__(self, name, attributes={}):
+    def __init__(self, name, module=None, attributes={}):
         self.type = PinType.DIGITAL_INPUT
-        super().__init__(name, attributes)
+        super().__init__(name, module, attributes)
 
 
 class Output(PinDigital):
-    def __init__(self, name, attributes={}):
+    def __init__(self, name, module=None, attributes={}):
         self.type = PinType.DIGITAL_OUTPUT
-        super().__init__(name, attributes)
+        super().__init__(name, module, attributes)
 
 
 class Inout(PinDigital):
-    def __init__(self, name, attributes={}):
+    def __init__(self, name, module=None, attributes={}):
         self.type = PinType.DIGITAL_INOUT
-        super().__init__(name, attributes)
+        super().__init__(name, module, attributes)
 
 
 class PinSupply(Pin):
@@ -105,12 +105,12 @@ class DVss(PinSupply):
 
 
 class PinAnalog(Pin):
-    def __init__(self, name, attributes={}):
+    def __init__(self, name, module=None, attributes={}):
         self.name = name
         self.properties = {}
         self.type = PinType.ANALOG
         self.driven_manually = True
-        super().__init__(name, attributes)
+        super().__init__(name, module, attributes)
 
 
 class AVdd(PinAnalog):
@@ -130,8 +130,8 @@ class AVss(PinAnalog):
 
 
 class Asignal(PinAnalog):
-    def __init__(self, name, attributes={}):
+    def __init__(self, name, module=None, attributes={}):
         self.bondpad = bondpad_a
         self.iocell = iocell_a
         self.sv_pad_cell_name = f"pad_cell_analog"
-        super().__init__(name, attributes)
+        super().__init__(name, module, attributes)

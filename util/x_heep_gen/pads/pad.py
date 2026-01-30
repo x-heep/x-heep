@@ -60,6 +60,12 @@ class Pad:
         print(
             f"{self.global_index}: {[a.name for a in self.pins]} | {self.type} = {self.iocell.name}"
         )
+    
+    def is_muxed(self):
+        """
+        Returns True if the pad is multiplexed (i.e., has more than one pin assigned).
+        """
+        return len(self.pins) > 1
 
     def inherit_attributes(self):
         for key, value in vars(self.pins[0]).items():

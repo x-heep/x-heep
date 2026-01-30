@@ -2,6 +2,10 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
+<%!
+    from x_heep_gen.pads.pin import Input, Output, Inout
+%>
+
 <%
   dma = xheep.get_base_peripheral_domain().get_dma()
   memory_ss = xheep.memory_ss()
@@ -27,13 +31,13 @@ module core_v_mini_mcu
 
 % for pin in xheep.get_padring().pin_list:
   % if pin.module == "core_v_mini_mcu":
-    % if pin.type in [PinType.DIGITAL_INPUT, PinType.DIGITAL_INOUT]:
+    % if isinstance(pin, (Input, Inout)):
       input logic ${pin.rtl_name()}_i,
     % endif
-    % if pin.type in [PinType.DIGITAL_OUTPUT, PinType.DIGITAL_INOUT]:
+    % if isinstance(pin, (Output, Inout)):
       output logic ${pin.rtl_name()}_o,
     % endif
-    % if pin.type in [PinType.DIGITAL_INOUT]:
+    % if isinstance(pin, Inout):
       output logic ${pin.rtl_name()}_oe_o,
     % endif
   % endif

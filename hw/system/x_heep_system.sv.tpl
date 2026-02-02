@@ -8,6 +8,7 @@
 
 <%
     attribute_bits = xheep.get_padring().attributes.get("bits")
+    any_muxed_pads = xheep.get_padring().num_muxed_pads() > 0
 %>
 
 module x_heep_system
@@ -91,13 +92,13 @@ module x_heep_system
 
     % for pin in xheep.get_padring().get_connected_main_pins():
       % if isinstance(pin, Input):
-          inout wire ${pin.rtl_name()}_i{"" if loop.last else ","}
+          inout wire ${pin.rtl_name()}i{"" if loop.last else ","}
       % endif
       % if isinstance(pin, Output):
-          inout wire ${pin.rtl_name()}_o{"" if loop.last else ","}
+          inout wire ${pin.rtl_name()}o{"" if loop.last else ","}
       % endif
       % if isinstance(pin, Inout):
-          inout wire ${pin.rtl_name()}_io{"" if loop.last else ","}
+          inout wire ${pin.rtl_name()}io{"" if loop.last else ","}
       % endif
     % endfor
 );
@@ -120,7 +121,7 @@ module x_heep_system
   % if attribute_bits != None:
     logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][${attribute_bits}] pad_attributes;
   % endif
-  % if xheep.get_padring().num_muxed_pads() > 0:
+  % if any_muxed_pads:
     logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][${xheep.get_padring().get_muxed_pad_select_width()-1}:0] pad_muxes;
   % endif
 
@@ -129,10 +130,10 @@ module x_heep_system
   // core_v_mini_mcu input/output pins
   % for pad in xheep.get_padring().pad_list:
     % for pin in pad.pins:
-      logic ${pin.rtl_name()}_in_x, ${pin.rtl_name()}_out_x, ${pin.rtl_name()}_oe_x;
+      logic ${pin.rtl_name()}in_x, ${pin.rtl_name()}out_x, ${pin.rtl_name()}oe_x;
     % endfor
     % if len(pad.pins) > 1:
-      logic ${pad.pins[0].rtl_name()}_in_x_muxed, ${pad.pins[0].rtl_name()}_out_x_muxed, ${pad.pins[0].rtl_name()}_oe_x_muxed;
+      logic ${pad.pins[0].rtl_name()}in_x_muxed, ${pad.pins[0].rtl_name()}out_x_muxed, ${pad.pins[0].rtl_name()}oe_x_muxed;
     % endif
   % endfor
 
@@ -147,13 +148,13 @@ module x_heep_system
     % for pin in xheep.get_padring().get_connected_pins():
       % if pin.module == "core_v_mini_mcu":
         % if isinstance(pin, (Input, Inout)):
-          .${pin.rtl_name()}_i(${pin.rtl_name()}_in_x),
+          .${pin.rtl_name()}i(${pin.rtl_name()}in_x),
         % endif
         % if isinstance(pin, (Output, Inout)):
-          .${pin.rtl_name()}_o(${pin.rtl_name()}_out_x),
+          .${pin.rtl_name()}o(${pin.rtl_name()}out_x),
         % endif
         % if isinstance(pin, Inout):
-          .${pin.rtl_name()}_oe_o(${pin.rtl_name()}_oe_x),
+          .${pin.rtl_name()}oe_o(${pin.rtl_name()}oe_x),
         % endif
       % endif
     % endfor
@@ -216,18 +217,18 @@ module x_heep_system
       <% pin = pad.pins[0] %>
       <% muxed_string = "_muxed" if pad.is_muxed() else "" %>
       % if isinstance(pin, Input):
-        .${pin.rtl_name()}_io(${pin.rtl_name()}_i),
-        .${pin.rtl_name()}_o(${pin.rtl_name()}_in_x${muxed_string}),
+        .${pin.rtl_name()}io(${pin.rtl_name()}i),
+        .${pin.rtl_name()}o(${pin.rtl_name()}in_x${muxed_string}),
       % endif
       % if isinstance(pin, Output):
-        .${pin.rtl_name()}_io(${pin.rtl_name()}_o),
-        .${pin.rtl_name()}_i(${pin.rtl_name()}_out_x${muxed_string}),
+        .${pin.rtl_name()}io(${pin.rtl_name()}o),
+        .${pin.rtl_name()}i(${pin.rtl_name()}out_x${muxed_string}),
       % endif
       % if isinstance(pin, Inout):
-        .${pin.rtl_name()}_io(${pin.rtl_name()}_io),
-        .${pin.rtl_name()}_o(${pin.rtl_name()}_in_x${muxed_string}),
-        .${pin.rtl_name()}_i(${pin.rtl_name()}_out_x${muxed_string}),
-        .${pin.rtl_name()}_oe_i(${pin.rtl_name()}_oe_x${muxed_string}),
+        .${pin.rtl_name()}io(${pin.rtl_name()}io),
+        .${pin.rtl_name()}o(${pin.rtl_name()}in_x${muxed_string}),
+        .${pin.rtl_name()}i(${pin.rtl_name()}out_x${muxed_string}),
+        .${pin.rtl_name()}oe_i(${pin.rtl_name()}oe_x${muxed_string}),
       % endif
     % endfor
     % if attribute_bits != None:
@@ -239,11 +240,11 @@ module x_heep_system
 
 % for pin in xheep.get_padring().pin_list:
   % if isinstance(pin, Input):
-    assign ${pin.rtl_name()}_out_x = 1'b0;
-    assign ${pin.rtl_name()}_oe_x = 1'b0;
+    assign ${pin.rtl_name()}out_x = 1'b0;
+    assign ${pin.rtl_name()}oe_x = 1'b0;
   % endif
   % if isinstance(pin, Output):
-    assign ${pin.rtl_name()}_oe_x = 1'b1;
+    assign ${pin.rtl_name()}oe_x = 1'b1;
   % endif
 % endfor
 
@@ -251,22 +252,22 @@ module x_heep_system
   always_comb
   begin
     % for pin in pad.pins:
-      ${pin.rtl_name()}_in_x = 1'b0;
+      ${pin.rtl_name()}in_x = 1'b0;
     % endfor
     unique case(pad_muxes[core_v_mini_mcu_pkg::PAD_${pad.name.upper()}])
       % for idx, pin in enumerate(pad.pins):
         ${idx}: begin
           <% pinidx_name = pin.rtl_name() %>
-          ${pinidx_name}_out_x_muxed = ${pinidx_name}_out_x;
-          ${pinidx_name}_oe_x_muxed  = ${pinidx_name}_oe_x;
-          ${pinidx_name}_in_x        = ${pinidx_name}_in_x_muxed;
+          ${pinidx_name}out_x_muxed = ${pinidx_name}out_x;
+          ${pinidx_name}oe_x_muxed  = ${pinidx_name}oe_x;
+          ${pinidx_name}in_x        = ${pinidx_name}in_x_muxed;
         end
       % endfor
       default: begin
         <% pin0_name = pad.pins[0].rtl_name() %>
-        ${pin0_name}_out_x_muxed = ${pin0_name}_out_x;
-        ${pin0_name}_oe_x_muxed  = ${pin0_name}_oe_x;
-        ${pin0_name}_in_x        = ${pin0_name}_in_x_muxed;
+        ${pin0_name}out_x_muxed = ${pin0_name}out_x;
+        ${pin0_name}oe_x_muxed  = ${pin0_name}oe_x;
+        ${pin0_name}in_x        = ${pin0_name}in_x_muxed;
       end
     endcase
   end
@@ -280,11 +281,11 @@ module x_heep_system
       .clk_i(clk_in_x),
       .rst_ni(rst_ngen),
       .reg_req_i(pad_req),
-      .reg_rsp_o(pad_resp)${"," if xheep.get_padring().num_muxed_pads() > 0 or attribute_bits != None else ""}
+      .reg_rsp_o(pad_resp)${"," if any_muxed_pads or attribute_bits != None else ""}
       % if attribute_bits != None:
-            .pad_attributes_o(pad_attributes)${"," if xheep.get_padring().num_muxed_pads() > 0 else ""}
+            .pad_attributes_o(pad_attributes)${"," if any_muxed_pads else ""}
       % endif
-      % if xheep.get_padring().num_muxed_pads() > 0:
+      % if any_muxed_pads:
             .pad_muxes_o(pad_muxes)
       % endif
   );

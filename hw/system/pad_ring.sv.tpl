@@ -17,15 +17,15 @@
 
 module pad_ring (
     % for pin in xheep.get_padring().get_connected_main_pins():
-        inout wire ${pin.rtl_name()}_io,
+        inout wire ${pin.rtl_name()}io,
         % if isinstance(pin, (Input, Inout)):
-            output logic ${pin.rtl_name()}_o,
+            output logic ${pin.rtl_name()}o,
         % endif
         % if isinstance(pin, (Output, Inout)):
-            input logic ${pin.rtl_name()}_i,
+            input logic ${pin.rtl_name()}i,
         % endif
         % if isinstance(pin, Inout):
-            input logic ${pin.rtl_name()}_oe_i,
+            input logic ${pin.rtl_name()}oe_i,
         % endif
     % endfor
 
@@ -61,7 +61,7 @@ module pad_ring (
             % if pad.side != None:
                 , .SIDE(core_v_mini_mcu_pkg::${pad.side})
             % endif
-## // ToDo_padspy: should this be pad_${pad.rtl_name()}_i like in pins?
+## // ToDo_padspy: should this be pad_${pad.rtl_name()}i like in pins?
         ) pad_${pad.name}_i (
             .pad_in_i(1'b0),
             .pad_oe_i(1'b0),
@@ -79,7 +79,7 @@ module pad_ring (
             % if pad.side != None:
                 , .SIDE(core_v_mini_mcu_pkg::${pad.side})
             % endif
-## // ToDo_padspy: should this be pad_${pad.rtl_name()}_i like in pins?
+## // ToDo_padspy: should this be pad_${pad.rtl_name()}i like in pins?
         ) pad_${pad.name}_i (
             .pad_in_i(${pad.name}_i),
             .pad_oe_i(1'b1),
@@ -97,7 +97,7 @@ module pad_ring (
             % if pad.side != None:
                 , .SIDE(core_v_mini_mcu_pkg::${pad.side})
             % endif
-## // ToDo_padspy: should this be pad_${pad.rtl_name()}_i like in pins?
+## // ToDo_padspy: should this be pad_${pad.rtl_name()}i like in pins?
         ) pad_${pad.name}_i (
             .pad_in_i(${pad.name}_i),
             .pad_oe_i(${pad.name}_oe_i),

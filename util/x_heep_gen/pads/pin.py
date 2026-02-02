@@ -30,13 +30,13 @@ class Pin:
 
     def rtl_name(self):
         """
-        Returns the RTL name of the pin, which, for example, may have a suffix if the attributes
-        specify that it is active low.
+        Returns the RTL name of the pin including an underscore '_' as suffix. If the pin is active
+        low, the suffix will be '_n' instead.
         """
 
-        if self.attributes.get("active") == False:
+        if self.attributes.get("active") == "low":
             return f"{self.name}_n"
-        return self.name
+        return f"{self.name}_"
 
 
 class PinDigital(Pin):

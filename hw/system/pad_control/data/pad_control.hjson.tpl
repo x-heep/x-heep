@@ -9,36 +9,36 @@
   regwidth: "32",
   registers: [
 
-% for pad in xheep.get_padring().pad_muxed_list:
+% for pad in xheep.get_padring().pad_list:
+  % if len(pad.pins) > 1:
     { name:     "PAD_MUX_${pad.name.upper()}",
       desc:     "Used to mux pad ${pad.name.upper()}",
       resval:   "0x0"
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "${(len(pad.pad_mux_list)-1).bit_length()-1}:0", name: "PAD_MUX_${pad.name.upper()}", desc: "Pad Mux ${pad.name.upper()} Reg" }
+        { bits: "${(len(pad.pins)-1).bit_length()-1}:0", name: "PAD_MUX_${pad.name.upper()}", desc: "Pad Mux ${pad.name.upper()} Reg" }
       ]
     }
-
+  % endif
 % endfor
 
-% if xheep.get_padring().pads_attributes != None:
-% for pad in xheep.get_padring().total_pad_list:
-% if pad.pad_type == 'input' or pad.pad_type == 'output' or pad.pad_type == 'inout':
-% if pad.constant_attribute == False:
+% if "bits" in xheep.get_padring().attributes:
+  % for pad in xheep.get_padring().pad_list:
+    % if pad.pins and is_instance(pad.pins[0], PinDigital):
+      % if "constant_attribute" not in pad.attributes:
     { name:     "PAD_ATTRIBUTE_${pad.name.upper()}",
       desc:     "${pad.name} Attributes (Pull Up En, Pull Down En, etc. It is technology specific.",
-      resval:   "${xheep.get_padring().pads_attributes['resval']}"
+      resval:   "${pad.attributes["constant_attribute"]}"
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
         { bits: "${xheep.get_padring().pads_attributes['bits']}", name: "PAD_ATTRIBUTE_${pad.name.upper()}", desc: "Pad Attribute ${pad.name.upper()} Reg" }
       ]
     }
+      % endif
+    % endif
+  % endfor
 % endif
-% endif
-% endfor
-% endif
-
    ]
 }

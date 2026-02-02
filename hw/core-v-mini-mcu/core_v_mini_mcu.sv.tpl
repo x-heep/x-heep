@@ -32,13 +32,13 @@ module core_v_mini_mcu
 % for pin in xheep.get_padring().pin_list:
   % if pin.module == "core_v_mini_mcu":
     % if isinstance(pin, (Input, Inout)):
-      input logic ${pin.rtl_name()}_i,
+      input logic ${pin.rtl_name()}i,
     % endif
     % if isinstance(pin, (Output, Inout)):
-      output logic ${pin.rtl_name()}_o,
+      output logic ${pin.rtl_name()}o,
     % endif
     % if isinstance(pin, Inout):
-      output logic ${pin.rtl_name()}_oe_o,
+      output logic ${pin.rtl_name()}oe_o,
     % endif
   % endif
 % endfor

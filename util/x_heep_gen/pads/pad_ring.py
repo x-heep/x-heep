@@ -97,7 +97,7 @@ class PadRing:
             if pad.pins and pad.pins[0] not in connected_pins:
                 connected_pins.append(pad.pins[0])
         return connected_pins
-    
+
     def num_muxed_pads(self):
         """
         Returns the number of pads that are multiplexed (i.e., connected to more than one pin).
@@ -107,7 +107,7 @@ class PadRing:
             if len(pad.pins) > 1:
                 count += 1
         return count
-    
+
     def get_muxed_pad_select_width(self):
         """
         Return the number of bits needed to select between pins in multiplexed pads.
@@ -115,8 +115,9 @@ class PadRing:
         pad_muxed_list = [pad for pad in self.pad_list if len(pad.pins) > 1]
         if not pad_muxed_list:
             return 0
-        return max((len(muxed_pad.pins) - 1).bit_length() for muxed_pad in pad_muxed_list)
-
+        return max(
+            (len(muxed_pad.pins) - 1).bit_length() for muxed_pad in pad_muxed_list
+        )
 
     def assign_pad_to_side(self, pad, side):
         pad.side = side

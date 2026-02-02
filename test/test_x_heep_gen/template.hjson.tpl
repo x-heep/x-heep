@@ -97,11 +97,11 @@
 
     // Pad Configuration
     pad_config: {
-        total_pads: ${len(xheep.get_padring().total_pad_list)}
-        total_muxed_pads: ${xheep.get_padring().total_pad_muxed}
-        max_mux_bits: ${xheep.get_padring().max_total_pad_mux_bitlengh}
-        % if pads_attributes:
-        attributes: ${pads_attributes}
+        total_pads: ${len(xheep.get_padring().pad_list)}
+        total_muxed_pads: ${xheep.get_padring().num_muxed_pads()}
+        max_mux_bits: ${xheep.get_padring().get_muxed_pad_select_width()}
+        % if "bits" in xheep.get_padring().attributes:
+        attributes: ${xheep.get_padring().attributes.get("bits")}
         % endif
     }
 }

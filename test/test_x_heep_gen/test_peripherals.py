@@ -11,7 +11,7 @@ import hjson
 
 
 x_heep_cfg = "configs/general.hjson"
-pads_cfg = "configs/pad_cfg.hjson"
+pads_cfg = "configs/pad_cfg.py"
 config_directory = "test/test_x_heep_gen/configs/"
 existing_extensions = [".hjson", ".py"]
 output_directory = "test/test_x_heep_gen/outputs"

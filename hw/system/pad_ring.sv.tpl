@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
 <%!
-    from x_heep_gen.pads.pin import Input, Output, Inout
+    from x_heep_gen.pads.pin import Input, Output, Inout, PinDigital, PinAnalog, PinSupply, Asignal
 %>
 
 <%
@@ -13,11 +13,14 @@
                 if attribute_bits != None
                 else 0
             )
+    analog_signal_pads = [ pad for pad in xheep.get_padring().pad_list if any(isinstance(pin, Asignal) for pin in pad.pins) ] 
 %>
 
 module pad_ring (
     % for pin in xheep.get_padring().get_connected_main_pins():
-        inout wire ${pin.rtl_name()}io,
+        % if isinstance(pin, PinDigital): 
+            inout wire ${pin.rtl_name()}io,
+        % endif
         % if isinstance(pin, (Input, Inout)):
             output logic ${pin.rtl_name()}o,
         % endif
@@ -28,6 +31,15 @@ module pad_ring (
             input logic ${pin.rtl_name()}oe_i,
         % endif
     % endfor
+    % if len(analog_signal_pads) > 0:
+        `ifdef SYNTHESIS
+        % for pin in xheep.get_padring().get_connected_main_pins():
+            % if isinstance(pin, PinAnalog):
+                (* dont_touch = "true" *) inout wire ${pin.name.lower()}_io,
+            % endif
+        % endfor
+        `endif
+    %endif
 
     % if attribute_bits != None:
         input logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][${attribute_bits}] pad_attributes_i
@@ -40,76 +52,53 @@ module pad_ring (
 
 % for pad in xheep.get_padring().pad_list:
     <%
-        # Check all pins in the pad
+        # Check all pins in the pad 
         has_input_pin = any(isinstance(pin, Input) for pin in pad.pins)
         has_output_pin = any(isinstance(pin, Output) for pin in pad.pins)
         has_inout_pin = any(isinstance(pin, Inout) for pin in pad.pins)
-        
-        # Determine pad type
+
+        # Default pad attributes to be added in the pad instance
+        pad_in_i = pad.name + "_i"
+        pad_oe_i = pad.name + "_oe"
+        pad_out_o = pad.name + "_o"
+        pad_io = pad.name + "_io"
+        pad_attributes_i = f"pad_attributes_i[core_v_mini_mcu_pkg::PAD_{pad.name.upper()}]" if attribute_bits != None else "\'0"
+
+        # Determine pad type and assign specific attributes
         if has_inout_pin or (has_input_pin and has_output_pin):
             pad_type = 'inout'
         elif has_input_pin:
             pad_type = 'input'
+            pad_in_i = "1\'b0"
+            pad_oe_i = "1\'b0"
         elif has_output_pin:
             pad_type = 'output'
+            pad_oe_i = "1\'b1"
+            pad_out_o = ""
         else:
-            pad_type = None
+            continue
     %>
-    % if pad_type == 'input':
-        pad_cell_input #(
+      pad_cell_${pad_type} #(
             .PADATTR(${num_attribute_bits})
             % if pad.side != None:
                 , .SIDE(core_v_mini_mcu_pkg::${pad.side})
             % endif
-## // ToDo_padspy: should this be pad_${pad.rtl_name()}i like in pins?
         ) pad_${pad.name}_i (
-            .pad_in_i(1'b0),
-            .pad_oe_i(1'b0),
-            .pad_out_o(${pad.name}_o),
-            .pad_io(${pad.name}_io),
-            % if attribute_bits != None:
-                .pad_attributes_i(pad_attributes_i[core_v_mini_mcu_pkg::PAD_${pad.name.upper()}])
-            % else:
-                .pad_attributes_i('0)
-            % endif
-        );
-    % elif pad_type == 'output':
-        pad_cell_output #(
-            .PADATTR(${num_attribute_bits})
-            % if pad.side != None:
-                , .SIDE(core_v_mini_mcu_pkg::${pad.side})
-            % endif
-## // ToDo_padspy: should this be pad_${pad.rtl_name()}i like in pins?
-        ) pad_${pad.name}_i (
-            .pad_in_i(${pad.name}_i),
-            .pad_oe_i(1'b1),
-            .pad_out_o(),
-            .pad_io(${pad.name}_io),
-            % if attribute_bits != None:
-                .pad_attributes_i(pad_attributes_i[core_v_mini_mcu_pkg::PAD_${pad.name.upper()}])
-            % else:
-                .pad_attributes_i('0)
-            % endif
-        );
-    % elif pad_type == 'inout':
-        pad_cell_inout #(
-            .PADATTR(${num_attribute_bits})
-            % if pad.side != None:
-                , .SIDE(core_v_mini_mcu_pkg::${pad.side})
-            % endif
-## // ToDo_padspy: should this be pad_${pad.rtl_name()}i like in pins?
-        ) pad_${pad.name}_i (
-            .pad_in_i(${pad.name}_i),
-            .pad_oe_i(${pad.name}_oe_i),
-            .pad_out_o(${pad.name}_o),
-            .pad_io(${pad.name}_io),
-            % if attribute_bits != None:
-                .pad_attributes_i(pad_attributes_i[core_v_mini_mcu_pkg::PAD_${pad.name.upper()}])
-            % else:
-                .pad_attributes_i('0)
-            % endif
-        );
-    % endif
+            .pad_in_i(${pad_in_i}),
+            .pad_oe_i(${pad_oe_i}),
+            .pad_out_o(${pad_out_o}),
+            .pad_io(${pad_io}),
+            .pad_attributes(${pad_attributes_i})
+        );   
 % endfor
 
-endmodule  // pad_ring
+% if len(analog_signal_pads) > 0:
+    `ifdef SYNTHESIS
+        // ANALOG PADS
+        % for pad in analog_signal_pads:
+            ${pad.iocell.rtl_wrapper} pad_${pad.name}( .io(${pad.name.lower()}_io));
+        % endfor
+    `endif
+% endif
+
+endmodule //pad_ring

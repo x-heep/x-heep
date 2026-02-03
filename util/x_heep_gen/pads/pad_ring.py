@@ -43,7 +43,7 @@ class PadRing:
     def build(self, mapping):
         self.pad_list = []
         self.side_indexes = {Side.LEFT: 0, Side.BOTTOM: 0, Side.RIGHT: 0, Side.TOP: 0}
-        global_index = 1
+        global_index = 0
         for side in Side:
             if side not in mapping:
                 continue

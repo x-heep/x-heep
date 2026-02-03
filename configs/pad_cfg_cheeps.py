@@ -183,7 +183,7 @@ def config() -> PadRing:
     ##############################################
     # MAP PINS TO PADS
     # And assign them sides.
-    # If you don't care about sides (i.e. just want to simulate)
+    # If you don't care about sides (i.e. just want to simulate and/or FPGA)
     # Just assign them all to the same side.
 
     mapping = {

@@ -45,9 +45,10 @@ class PadRing:
         self.side_indexes = {Side.LEFT: 0, Side.BOTTOM: 0, Side.RIGHT: 0, Side.TOP: 0}
         global_index = 1
         for side in Side:
+            if side not in mapping:
+                continue
             pin_mapping_side = mapping[side]
             for x in pin_mapping_side:
-
                 if isinstance(x, Pad):
                     pad = x.copy()
                     if pad.global_index is None:
@@ -74,6 +75,33 @@ class PadRing:
         """
         ToDo_padspy: Check unconnected pins! and pads (which have both iocell and bondapd)
         """
+
+    def assign_pad_to_side(self, pad, side):
+        pad.side = side
+        if pad.side_index is None:
+            pad.side_index = self.side_indexes[side]
+            self.side_indexes[side] += 1
+        if pad.orientation is None:
+            pad.orientation = SIDE_DEFAULT_ROTATION[side]
+
+    def rename_duplicate_pads(self):
+        # Pass 1: Handle missing names immediately
+        for pad in self.pad_list:
+            if not hasattr(pad, "name") or pad.name is None:
+                pad.name = f"NC_{getattr(pad, 'global_index', 'unknown')}"
+
+        # Pass 2: Count frequencies of the now-populated names
+        counts = Counter(pad.name for pad in self.pad_list)
+
+        # Pass 3: Apply indexing only to duplicates
+        seen_track = {}
+        for pad in self.pad_list:
+            original_name = pad.name
+            if counts[original_name] > 1:
+                # Increment tracking for this specific name
+                seen_track[original_name] = seen_track.get(original_name, 0) + 1
+                # Apply the _x suffix
+                pad.name = f"{original_name}_{seen_track[original_name]}"
 
     def get_connected_pins(self):
         """
@@ -118,14 +146,6 @@ class PadRing:
         return max(
             (len(muxed_pad.pins) - 1).bit_length() for muxed_pad in pad_muxed_list
         )
-
-    def assign_pad_to_side(self, pad, side):
-        pad.side = side
-        if pad.side_index is None:
-            pad.side_index = self.side_indexes[side]
-            self.side_indexes[side] += 1
-        if pad.orientation is None:
-            pad.orientation = SIDE_DEFAULT_ROTATION[side]
 
     def space_side_by_pitch(self, side, space_from_corner_cell, pitch):
 
@@ -242,25 +262,6 @@ class PadRing:
                 )
                 pad.bp_space = space
                 last_bp = i + 1
-
-    def rename_duplicate_pads(self):
-        # Pass 1: Handle missing names immediately
-        for pad in self.pad_list:
-            if not hasattr(pad, "name") or pad.name is None:
-                pad.name = f"NC_{getattr(pad, 'global_index', 'unknown')}"
-
-        # Pass 2: Count frequencies of the now-populated names
-        counts = Counter(pad.name for pad in self.pad_list)
-
-        # Pass 3: Apply indexing only to duplicates
-        seen_track = {}
-        for pad in self.pad_list:
-            original_name = pad.name
-            if counts[original_name] > 1:
-                # Increment tracking for this specific name
-                seen_track[original_name] = seen_track.get(original_name, 0) + 1
-                # Apply the _x suffix
-                pad.name = f"{original_name}_{seen_track[original_name]}"
 
     def print_pad_frame(self):
         print("\n")

@@ -17,7 +17,7 @@
 %>
 
 module pad_ring (
-    % for pin in xheep.get_padring().get_connected_main_pins():
+    % for pin in xheep.get_padring().get_connected_main_pins(): # ToDo_padspy: This doesn't take into account if there is a mix of Input and Inout in the same pad
         % if isinstance(pin, PinDigital): 
             inout wire ${pin.rtl_name()}io,
         % endif
@@ -79,9 +79,9 @@ module pad_ring (
             continue
     %>
       pad_cell_${pad_type} #(
-            .PADATTR(${num_attribute_bits})
+            .PADATTR(${num_attribute_bits})${"," if pad.side != None else ""}
             % if pad.side != None:
-                , .SIDE(core_v_mini_mcu_pkg::${pad.side})
+                .SIDE(core_v_mini_mcu_pkg::${pad.side})
             % endif
         ) pad_${pad.name}_i (
             .pad_in_i(${pad_in_i}),

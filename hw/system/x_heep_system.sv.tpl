@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
 <%!
-    from x_heep_gen.pads.pin import Input, Output, Inout
+    from x_heep_gen.pads.pin import Input, Output, Inout, PinDigital
 %>
 
 <%
@@ -92,13 +92,13 @@ module x_heep_system
 
     % for pin in xheep.get_padring().get_connected_main_pins():
       % if isinstance(pin, Input):
-          inout wire ${pin.rtl_name()}i{"" if loop.last else ","}
+          inout wire ${pin.rtl_name()}i${"" if loop.last else ","}
       % endif
       % if isinstance(pin, Output):
-          inout wire ${pin.rtl_name()}o{"" if loop.last else ","}
+          inout wire ${pin.rtl_name()}o${"" if loop.last else ","}
       % endif
       % if isinstance(pin, Inout):
-          inout wire ${pin.rtl_name()}io{"" if loop.last else ","}
+          inout wire ${pin.rtl_name()}io${"" if loop.last else ","}
       % endif
     % endfor
 );
@@ -130,11 +130,13 @@ module x_heep_system
   // core_v_mini_mcu input/output pins
   % for pad in xheep.get_padring().pad_list:
     % for pin in pad.pins:
-      logic ${pin.rtl_name()}in_x, ${pin.rtl_name()}out_x, ${pin.rtl_name()}oe_x;
+      % if isinstance(pin, PinDigital):
+        logic ${pin.rtl_name()}in_x, ${pin.rtl_name()}out_x, ${pin.rtl_name()}oe_x;
+      % endif
     % endfor
-    % if len(pad.pins) > 1:
-      logic ${pad.pins[0].rtl_name()}in_x_muxed, ${pad.pins[0].rtl_name()}out_x_muxed, ${pad.pins[0].rtl_name()}oe_x_muxed;
-    % endif
+      % if len(pad.pins) > 1 and any( isinstance(pin, PinDigital) for pin in pad.pins ):
+        logic ${pad.pins[0].rtl_name()}in_x_muxed, ${pad.pins[0].rtl_name()}out_x_muxed, ${pad.pins[0].rtl_name()}oe_x_muxed;
+      % endif
   % endfor
 
   core_v_mini_mcu #(

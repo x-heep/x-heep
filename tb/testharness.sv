@@ -7,10 +7,7 @@ import UPF::*;
 `endif
 
 
-<<<<<<< HEAD
-=======
 
->>>>>>> upstream/main
 module testharness #(
     parameter bit FPU_SS_ZFINX                = 1,
     parameter bit QUADRILATERO                = 0,
@@ -155,13 +152,13 @@ module testharness #(
   reg_req_t periph_slave_req;
   reg_rsp_t periph_slave_rsp;
 
-  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_i_xheep;
-  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_o_xheep;
-  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0] clk_sl_int2ext;
-  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0] clk_sl_ext2int;
-
   fifo_req_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_req;
   fifo_resp_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_resp;
+
+  //logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_i_xheep;
+  //logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_o_xheep;
+  //logic [serial_link_single_channel_reg_pkg::NumChannels-1:0] clk_sl_int2ext;
+  //logic [serial_link_single_channel_reg_pkg::NumChannels-1:0] clk_sl_ext2int;
 
   reg_pkg::reg_req_t [testharness_pkg::EXT_NPERIPHERALS-1:0] ext_periph_slv_req;
   reg_pkg::reg_rsp_t [testharness_pkg::EXT_NPERIPHERALS-1:0] ext_periph_slv_rsp;
@@ -403,7 +400,7 @@ module testharness #(
   end
 
   uartdpi #(
-      .BAUD(CLK_FREQUENCY * 1000 / 20),
+      .BAUD(CLK_FREQUENCY * 1000 / 20),  // close to maximum baud rate (/16)
       .FREQ(CLK_FREQUENCY * 1000),  //Hz
       .NAME("uart0")
   ) i_uart0 (
@@ -731,9 +728,6 @@ module testharness #(
         assign ext_master_req[testharness_pkg::EXT_MASTER7_IDX] = '0;
 
       end
-
-
-
 
 
     end else begin : gen_DONT_USE_EXTERNAL_DEVICE_EXAMPLE

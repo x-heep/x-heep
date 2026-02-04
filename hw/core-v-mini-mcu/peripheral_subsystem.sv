@@ -514,9 +514,5 @@ module peripheral_subsystem
 
 
 
-<<<<<<< HEAD
 
-
-=======
->>>>>>> upstream/main
 endmodule : peripheral_subsystem

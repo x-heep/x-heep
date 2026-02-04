@@ -81,14 +81,14 @@ module pad_ring (
       pad_cell_${pad_type} #(
             .PADATTR(${num_attribute_bits})${"," if pad.side != None else ""}
             % if pad.side != None:
-                .SIDE(core_v_mini_mcu_pkg::${pad.side})
+                .SIDE(core_v_mini_mcu_pkg::${pad.side.value.upper()})
             % endif
         ) pad_${pad.name}_i (
             .pad_in_i(${pad_in_i}),
             .pad_oe_i(${pad_oe_i}),
             .pad_out_o(${pad_out_o}),
             .pad_io(${pad_io}),
-            .pad_attributes(${pad_attributes_i})
+            .pad_attributes_i(${pad_attributes_i})
         );   
 % endfor
 

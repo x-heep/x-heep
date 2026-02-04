@@ -90,17 +90,25 @@ module x_heep_system
     // External SPC interface
     output logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_done_o,
 
-    % for pin in xheep.get_padring().get_connected_main_pins():
-      % if isinstance(pin, Input):
-          inout wire ${pin.rtl_name()}i${"" if loop.last else ","}
-      % endif
-      % if isinstance(pin, Output):
-          inout wire ${pin.rtl_name()}o${"" if loop.last else ","}
-      % endif
-      % if isinstance(pin, Inout):
-          inout wire ${pin.rtl_name()}io${"" if loop.last else ","}
-      % endif
+    % for pad in xheep.get_padring().pad_list:
+<%
+has_input_pin = any(isinstance(pin, Input) for pin in pad.pins)
+has_output_pin = any(isinstance(pin, Output) for pin in pad.pins)
+has_inout_pin = any(isinstance(pin, Inout) for pin in pad.pins)
+
+if not (has_input_pin or has_output_pin or has_inout_pin): continue
+pin0_name = pad.pins[0].rtl_name()
+muxed_string = "_muxed" if pad.is_muxed() else ""
+%>\
+    % if has_inout_pin or (has_input_pin and has_output_pin):
+    inout wire ${pin0_name}io${"" if loop.last else ","}
+    % elif has_input_pin:
+    inout wire ${pin0_name}i${"" if loop.last else ","}
+    % elif has_output_pin:
+    inout wire ${pin0_name}o${"" if loop.last else ","}
+    % endif
     % endfor
+
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -131,13 +139,14 @@ module x_heep_system
   % for pad in xheep.get_padring().pad_list:
     % for pin in pad.pins:
       % if isinstance(pin, PinDigital):
-        logic ${pin.rtl_name()}in_x, ${pin.rtl_name()}out_x, ${pin.rtl_name()}oe_x;
+  logic ${pin.rtl_name()}in_x, ${pin.rtl_name()}out_x, ${pin.rtl_name()}oe_x;
       % endif
     % endfor
       % if len(pad.pins) > 1 and any( isinstance(pin, PinDigital) for pin in pad.pins ):
-        logic ${pad.pins[0].rtl_name()}in_x_muxed, ${pad.pins[0].rtl_name()}out_x_muxed, ${pad.pins[0].rtl_name()}oe_x_muxed;
-      % endif
+  logic ${pad.pins[0].rtl_name()}in_x_muxed, ${pad.pins[0].rtl_name()}out_x_muxed, ${pad.pins[0].rtl_name()}oe_x_muxed;
+      %endif
   % endfor
+
 
   core_v_mini_mcu #(
     .EXT_XBAR_NMASTER(EXT_XBAR_NMASTER),
@@ -215,24 +224,39 @@ module x_heep_system
   );
 
   pad_ring pad_ring_i (
-    % for pad in [pad for pad in xheep.get_padring().pad_list if pad.pins]:
-      <% pin = pad.pins[0] %>
-      <% muxed_string = "_muxed" if pad.is_muxed() else "" %>
-      % if isinstance(pin, Input):
-        .${pin.rtl_name()}io(${pin.rtl_name()}i),
-        .${pin.rtl_name()}o(${pin.rtl_name()}in_x${muxed_string}),
-      % endif
-      % if isinstance(pin, Output):
-        .${pin.rtl_name()}io(${pin.rtl_name()}o),
-        .${pin.rtl_name()}i(${pin.rtl_name()}out_x${muxed_string}),
-      % endif
-      % if isinstance(pin, Inout):
-        .${pin.rtl_name()}io(${pin.rtl_name()}io),
-        .${pin.rtl_name()}o(${pin.rtl_name()}in_x${muxed_string}),
-        .${pin.rtl_name()}i(${pin.rtl_name()}out_x${muxed_string}),
-        .${pin.rtl_name()}oe_i(${pin.rtl_name()}oe_x${muxed_string}),
+    % for pad in xheep.get_padring().pad_list:
+<%
+has_input_pin = any(isinstance(pin, Input) for pin in pad.pins)
+has_output_pin = any(isinstance(pin, Output) for pin in pad.pins)
+has_inout_pin = any(isinstance(pin, Inout) for pin in pad.pins)
+
+if not (has_input_pin or has_output_pin or has_inout_pin): continue
+pin0_name = pad.pins[0].rtl_name()
+muxed_string = "_muxed" if pad.is_muxed() else ""
+%>\
+      % if has_inout_pin or (has_input_pin and has_output_pin):
+    .${pin0_name}i(${pin0_name}out_x${muxed_string}),
+    .${pin0_name}oe_i(${pin0_name}oe_x${muxed_string}),
+    .${pin0_name}o(${pin0_name}in_x${muxed_string}),
+    .${pin0_name}io(${pin0_name}io),
+      % elif has_input_pin:
+    .${pin0_name}o(${pin0_name}in_x${muxed_string}),
+    .${pin0_name}io(${pin0_name}i),
+      % elif has_output_pin:
+    .${pin0_name}i(${pin0_name}out_x${muxed_string}),
+    .${pin0_name}io(${pin0_name}o${muxed_string}),
       % endif
     % endfor
+
+    % if len(analog_signal_pads)>0:
+        
+        `ifdef SYNTHESIS
+        % for pad in analog_signal_pads:
+     .${pad.name.lower()}_io,
+        % endfor
+        `endif
+    %endif
+
     % if attribute_bits != None:
         .pad_attributes_i(pad_attributes)
     % else:
@@ -250,7 +274,9 @@ module x_heep_system
   % endif
 % endfor
 
-% for pad in [pad for pad in xheep.get_padring().pad_list if pad.is_muxed()]:
+// PAD MULTIPLEXERS
+% for pad in [pad for pad in xheep.get_padring().pad_list if pad.is_muxed() and any(isinstance(pin, PinDigital) for pin in pad.pins)]:
+<% pin0_name = pad.pins[0].rtl_name() %>\
   always_comb
   begin
     % for pin in pad.pins:
@@ -260,13 +286,12 @@ module x_heep_system
       % for idx, pin in enumerate(pad.pins):
         ${idx}: begin
           <% pinidx_name = pin.rtl_name() %>
-          ${pinidx_name}out_x_muxed = ${pinidx_name}out_x;
-          ${pinidx_name}oe_x_muxed  = ${pinidx_name}oe_x;
-          ${pinidx_name}in_x        = ${pinidx_name}in_x_muxed;
+          ${pin0_name}out_x_muxed = ${pinidx_name}out_x;
+          ${pin0_name}oe_x_muxed  = ${pinidx_name}oe_x;
+          ${pinidx_name}in_x        = ${pin0_name}in_x_muxed;
         end
       % endfor
       default: begin
-        <% pin0_name = pad.pins[0].rtl_name() %>
         ${pin0_name}out_x_muxed = ${pin0_name}out_x;
         ${pin0_name}oe_x_muxed  = ${pin0_name}oe_x;
         ${pin0_name}in_x        = ${pin0_name}in_x_muxed;
@@ -281,14 +306,14 @@ module x_heep_system
       .NUM_PAD  (core_v_mini_mcu_pkg::NUM_PAD)
   ) pad_control_i (
       .clk_i(clk_in_x),
-      .rst_ni(rst_ngen),
+      .rst_ni(rst_nin_sync),
       .reg_req_i(pad_req),
-      .reg_rsp_o(pad_resp)${"," if any_muxed_pads or attribute_bits != None else ""}
+      .reg_rsp_o(pad_rsp)${"," if any_muxed_pads or attribute_bits != None else ""}
       % if attribute_bits != None:
-            .pad_attributes_o(pad_attributes)${"," if any_muxed_pads else ""}
+      .pad_attributes_o(pad_attributes)${"," if any_muxed_pads else ""}
       % endif
       % if any_muxed_pads:
-            .pad_muxes_o(pad_muxes)
+      .pad_muxes_o(pad_muxes)
       % endif
   );
 

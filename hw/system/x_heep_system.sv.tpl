@@ -153,19 +153,26 @@ muxed_string = "_muxed" if pad.is_muxed() else ""
     .AO_SPC_NUM(AO_SPC_NUM),
     .EXT_HARTS(EXT_HARTS)
   ) core_v_mini_mcu_i (
+<%
+# INCLUDE HERE PINS THAT YU WILL RE-DEFINE ON THIS TOP LEVEL
+# For example, you will have a block manipulating the reset (like here)
+# So you still want the core-v-mini-mcu to take a reset, but not to connect it automatically
+# from the pads, so you need to declare it manually
+exclude_pins_from_corev = ["rst"]
+%>
     .rst_ni(rst_ngen),
 
     // MCU pads
     % for pin in xheep.get_padring().get_connected_pins():
-      % if pin.module == "core_v_mini_mcu":
+      % if pin.module == "core_v_mini_mcu" and pin.name not in exclude_pins_from_corev:
         % if isinstance(pin, (Input, Inout)):
-          .${pin.rtl_name()}i(${pin.rtl_name()}in_x),
+    .${pin.rtl_name()}i(${pin.rtl_name()}in_x),
         % endif
         % if isinstance(pin, (Output, Inout)):
-          .${pin.rtl_name()}o(${pin.rtl_name()}out_x),
+    .${pin.rtl_name()}o(${pin.rtl_name()}out_x),
         % endif
         % if isinstance(pin, Inout):
-          .${pin.rtl_name()}oe_o(${pin.rtl_name()}oe_x),
+    .${pin.rtl_name()}oe_o(${pin.rtl_name()}oe_x),
         % endif
       % endif
     % endfor
@@ -309,9 +316,9 @@ muxed_string = "_muxed" if pad.is_muxed() else ""
       .NUM_PAD  (core_v_mini_mcu_pkg::NUM_PAD)
   ) pad_control_i (
       .clk_i(clk_in_x),
-      .rst_ni(rst_nin_sync),
+      .rst_ni(rst_ngen),
       .reg_req_i(pad_req),
-      .reg_rsp_o(pad_rsp)${"," if any_muxed_pads or attribute_bits != None else ""}
+      .reg_rsp_o(pad_resp)${"," if any_muxed_pads or attribute_bits != None else ""}
       % if attribute_bits != None:
       .pad_attributes_o(pad_attributes)${"," if any_muxed_pads else ""}
       % endif

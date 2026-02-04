@@ -73,11 +73,6 @@ module xilinx_core_v_mini_mcu_wrapper
     inout logic i2c_scl_io,
     inout logic i2c_sda_io,
 
-    //Serial Link
-    input logic [serial_link_single_channel_reg_pkg::NumChannels-1:0] ddr_rcv_clk_i,
-    output logic [serial_link_single_channel_reg_pkg::NumChannels-1:0] ddr_rcv_clk_o,
-    input  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_i,
-    output logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_o,
 
     inout logic pdm2pcm_clk_io,
     inout logic pdm2pcm_pdm_io,
@@ -161,11 +156,6 @@ module xilinx_core_v_mini_mcu_wrapper
       .FPU(FPU),
       .ZFINX(ZFINX)
   ) x_heep_system_i (
-      //Serial Link
-      .ddr_rcv_clk_i,
-      .ddr_rcv_clk_o,
-      .ddr_i,
-      .ddr_o,
       .hart_id_i('0),
       .xheep_instance_id_i('0),
       .intr_vector_ext_i('0),

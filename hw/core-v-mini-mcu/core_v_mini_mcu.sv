@@ -436,6 +436,7 @@ module core_v_mini_mcu
   // SPI
   logic spi_flash_intr, spi_intr, spi_rx_valid, spi_tx_ready;
 
+  /* verilator lint_off UNDRIVEN */
   // GPIO
   logic [31:8] gpio_in;
   logic [31:8] gpio_out;
@@ -446,6 +447,7 @@ module core_v_mini_mcu
   logic [7:0] gpio_ao_out;
   logic [7:0] gpio_ao_oe;
   logic [7:0] gpio_ao_intr;
+  /* verilator lint_on UNDRIVEN */
 
   // I2s
   logic i2s_rx_valid;

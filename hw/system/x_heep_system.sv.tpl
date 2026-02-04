@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
 <%!
-    from x_heep_gen.pads.pin import Input, Output, Inout, PinDigital
+    from x_heep_gen.pads.pin import Input, Output, Inout, PinDigital, PinAnalog, Asignal
 %>
 
 <%
@@ -223,6 +223,9 @@ muxed_string = "_muxed" if pad.is_muxed() else ""
     .dma_done_o
   );
 
+<%
+analog_signal_pads = [ pad for pad in xheep.get_padring().pad_list if any(isinstance(pin, Asignal) for pin in pad.pins) ] 
+%>
   pad_ring pad_ring_i (
     % for pad in xheep.get_padring().pad_list:
 <%

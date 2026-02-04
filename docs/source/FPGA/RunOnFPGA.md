@@ -130,3 +130,7 @@ make vivado-fpga FPGA_BOARD=pynq-z2 FUSESOC_PARAM="--COREV_PULP=1 --FPU=1"
 | RAM              | 16              | 11.4            |
 | DSP              | 9               | 4.1             |
 
+```{note}
+The `FUSESOC_PARAM="--COREV_PULP=1 --FPU=1"` is an old way to enable the CV32E40P CPU with FPU and PULP extensions.
+Now you can check the [CPU Configuration docs](../Configuration/CPUConfiguration.md) to see how to enable those features using the `make mcu-gen` command.
+```

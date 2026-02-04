@@ -7,12 +7,13 @@ import UPF::*;
 `endif
 
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> upstream/main
 module testharness #(
-    parameter bit COREV_PULP                  = 0,
-    parameter bit FPU                         = 0,
-    parameter bit ZFINX                       = 1,
+    parameter bit FPU_SS_ZFINX                = 1,
     parameter bit QUADRILATERO                = 0,
-    parameter bit X_EXT                       = 0,         // eXtension interface in cv32e40x
     parameter bit JTAG_DPI                    = 0,
     parameter bit USE_EXTERNAL_DEVICE_EXAMPLE = 1,
     parameter     CLK_FREQUENCY               = 'd100_000  //KHz
@@ -210,11 +211,8 @@ module testharness #(
 
   //log parameters
   initial begin
-    $display("%t: the parameter COREV_PULP is %x", $time, COREV_PULP);
-    $display("%t: the parameter FPU is %x", $time, FPU);
-    $display("%t: the parameter ZFINX is %x", $time, ZFINX);
+    $display("%t: the parameter FPU_SS_ZFINX is %x", $time, FPU_SS_ZFINX);
     $display("%t: the parameter QUADRILATERO is %x", $time, QUADRILATERO);
-    $display("%t: the parameter X_EXT is %x", $time, X_EXT);
     $display("%t: the parameter JTAG_DPI is %x", $time, JTAG_DPI);
     $display("%t: the parameter EXT_DOMAINS is %x", $time, core_v_mini_mcu_pkg::EXTERNAL_DOMAINS);
     $display("%t: the parameter USE_EXTERNAL_DEVICE_EXAMPLE is %x", $time,
@@ -247,10 +245,6 @@ module testharness #(
 
   // X-HEEP system instance
   x_heep_system #(
-      .COREV_PULP(COREV_PULP),
-      .FPU(FPU),
-      .ZFINX(ZFINX),
-      .X_EXT(X_EXT),
       .EXT_XBAR_NMASTER(HEEP_EXT_XBAR_NMASTER),
       .AO_SPC_NUM(AO_SPC_NUM)
   ) x_heep_system_i (
@@ -539,12 +533,14 @@ module testharness #(
           .dma_write_req_o(ext_master_req[testharness_pkg::EXT_MASTER1_IDX]),
           .dma_write_resp_i(ext_master_resp[testharness_pkg::EXT_MASTER1_IDX]),
           .hw_fifo_req_o(),
+          .external_hw2reg_i('0),
           .hw_fifo_resp_i(),
           .dma_addr_req_o(),
           .dma_addr_resp_i('0),
           .trigger_slot_i('0),
           .dma_done_intr_o(memcopy_intr),
           .dma_window_intr_o(),
+          .dma_ready_o(),
           .dma_done_o()
       );
 
@@ -681,9 +677,9 @@ module testharness #(
           .io3(spi_flash_sd_io[3])
       );
 
-      if ((core_v_mini_mcu_pkg::CpuType == cv32e40x || core_v_mini_mcu_pkg::CpuType == cv32e40px || (ZFINX && core_v_mini_mcu_pkg::CpuType == cv32e20)) && X_EXT != 0 && (QUADRILATERO == 0)) begin: gen_fpu_ss_wrapper
+      if ((core_v_mini_mcu_pkg::CpuType == cv32e40x || core_v_mini_mcu_pkg::CpuType == cv32e40px || (FPU_SS_ZFINX && core_v_mini_mcu_pkg::CpuType == cv32e20)) && 0 && (QUADRILATERO == 0)) begin: gen_fpu_ss_wrapper
         fpu_ss_wrapper #(
-            .PULP_ZFINX(ZFINX),
+            .PULP_ZFINX(FPU_SS_ZFINX),
             .INPUT_BUFFER_DEPTH(1),
             .OUT_OF_ORDER(0),
             .FORWARDING(1),
@@ -703,7 +699,7 @@ module testharness #(
             .xif_result_if(ext_if)
         );
       end
-      if ((core_v_mini_mcu_pkg::CpuType == cv32e40x || core_v_mini_mcu_pkg::CpuType == cv32e40px || core_v_mini_mcu_pkg::CpuType == cv32e20) && X_EXT != 0 && (QUADRILATERO != 0)) begin: gen_quadrilatero_wrapper
+      if ((core_v_mini_mcu_pkg::CpuType == cv32e40x || core_v_mini_mcu_pkg::CpuType == cv32e40px || core_v_mini_mcu_pkg::CpuType == cv32e20) && 0 && (QUADRILATERO != 0)) begin: gen_quadrilatero_wrapper
         quadrilatero_wrapper #(
             .MATRIX_FPU(0)
         ) quadrilatero_wrapper_i (

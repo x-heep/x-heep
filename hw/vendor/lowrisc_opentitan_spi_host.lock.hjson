@@ -8,8 +8,7 @@
 {
   upstream:
   {
-    url: https://github.com/lowRISC/opentitan.git
-    rev: 611d56f934a36991b1a61b46690243373e6806fe
-    only_subdir: hw/ip/spi_host
+    url: https://github.com/x-heep/xheep_opentitan_spi_host.git
+    rev: 91acf0f3bf8d035a991360328b666081f4405780
   }
 }

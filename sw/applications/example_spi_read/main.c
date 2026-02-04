@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "x-heep.h"
 #include "w25q128jw.h"
@@ -214,11 +215,11 @@ uint32_t test_read(uint32_t *test_buffer, uint32_t len) {
     uint32_t *test_buffer_flash = test_buffer;
 
     // Read from flash memory at the same address
-    w25q_error_codes_t status = w25q128jw_read_standard(test_buffer_flash, flash_data, len);
+    w25q_error_codes_t status = w25q128jw_read_standard((uint32_t)test_buffer_flash, flash_data, len);
     if (status != FLASH_OK) exit(EXIT_FAILURE);
 
     // Check if what we read is correct (i.e. flash_data == test_buffer)
-    uint32_t res =  check_result(test_buffer, len);
+    uint32_t res =  check_result((uint8_t *)test_buffer, len);
 
     // Reset the flash data buffer
     memset(flash_data, 0, len * sizeof(uint8_t));
@@ -231,13 +232,13 @@ uint32_t test_read_flash_only(uint32_t *test_buffer, uint32_t len) {
     uint32_t *test_buffer_flash = heep_get_flash_address_offset(test_buffer);
 
     // Read from flash memory at the same address
-    w25q_error_codes_t status = w25q128jw_read_standard(test_buffer_flash, flash_data, len);
+    w25q_error_codes_t status = w25q128jw_read_standard((uint32_t)test_buffer_flash, flash_data, len);
     if (status != FLASH_OK) exit(EXIT_FAILURE);
 
     PRINTF("Checking Results \n");
 
     // Check if what we read is correct (i.e. flash_data == test_buffer)
-    uint32_t res =  check_result(flash_only_buffer_golden_value, len);
+    uint32_t res =  check_result((uint8_t *)flash_only_buffer_golden_value, len);
 
     // Reset the flash data buffer
     memset(flash_data, 0, len * sizeof(uint8_t));
@@ -250,11 +251,11 @@ uint32_t test_read_dma(uint32_t *test_buffer, uint32_t len) {
     uint32_t *test_buffer_flash = test_buffer;
 
     // Read from flash memory at the same address
-    w25q_error_codes_t status = w25q128jw_read_standard_dma(test_buffer_flash, flash_data, len, 0, 0);
+    w25q_error_codes_t status = w25q128jw_read_standard_dma((uint32_t)test_buffer_flash, flash_data, len, 0, 0);
     if (status != FLASH_OK) exit(EXIT_FAILURE);
 
     // Check if what we read is correct (i.e. flash_data == test_buffer)
-    uint32_t res = check_result(test_buffer, len);
+    uint32_t res = check_result((uint8_t *)test_buffer, len);
 
     // Reset the flash data buffer
     memset(flash_data, 0, len * sizeof(uint8_t));
@@ -267,11 +268,11 @@ uint32_t test_read_quad(uint32_t *test_buffer, uint32_t len) {
     uint32_t *test_buffer_flash = test_buffer;
 
     // Read from flash memory at the same address
-    w25q_error_codes_t status = w25q128jw_read_quad(test_buffer_flash, flash_data, len);
+    w25q_error_codes_t status = w25q128jw_read_quad((uint32_t)test_buffer_flash, flash_data, len);
     if (status != FLASH_OK) exit(EXIT_FAILURE);
 
     // Check if what we read is correct (i.e. flash_data == test_buffer)
-    uint32_t res = check_result(test_buffer, len);
+    uint32_t res = check_result((uint8_t *)test_buffer, len);
 
     // Reset the flash data buffer
     memset(flash_data, 0, len * sizeof(uint8_t));
@@ -284,11 +285,11 @@ uint32_t test_read_quad_dma(uint32_t *test_buffer, uint32_t len) {
     uint32_t *test_buffer_flash = test_buffer;
 
     // Read from flash memory at the same address
-    w25q_error_codes_t status = w25q128jw_read_quad_dma(test_buffer_flash, flash_data, len);
+    w25q_error_codes_t status = w25q128jw_read_quad_dma((uint32_t)test_buffer_flash, flash_data, len);
     if (status != FLASH_OK) exit(EXIT_FAILURE);
 
     // Check if what we read is correct (i.e. flash_data == test_buffer)
-    uint32_t res = check_result(test_buffer, len);
+    uint32_t res = check_result((uint8_t *)test_buffer, len);
 
     // Reset the flash data buffer
     memset(flash_data, 0, len * sizeof(uint8_t));

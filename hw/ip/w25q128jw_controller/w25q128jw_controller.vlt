@@ -1,0 +1,17 @@
+// Copyright 2022 EPFL
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+`verilator_config
+
+lint_off -rule UNUSED -file "*/w25q128jw_controller.sv" -match "Bits of signal are not used: 'dma_done_i'[3:1]"
+lint_off -rule UNUSED -file "*/w25q128jw_controller.sv" -match "Bits of signal are not used: 'dma_ready_i'[3:1]"
+lint_off -rule PINMISSING -file "*/tb/testharness.sv" -match "Cell has missing pin: 'w25q128jw_controller_done_o'"
+lint_off -rule PINMISSING -file "*/x_heep_system.sv" -match "Cell has missing pin: 'w25q128jw_controller_done_o'"
+lint_off -rule UNDRIVEN -file "*/w25q128jw_controller.sv" -match "Bits of signal are not driven: 'hw2*"
+lint_off -rule UNUSED   -file "*/w25q128jw_controller.sv" -match "Signal is not used: 'reg2hw'"
+lint_off -rule UNUSED -file "*/w25q128jw_controller.sv" -match "Bits of signal are not used: 'reg2hw'*"
+lint_off -rule UNUSED -file "*/w25q128jw_controller.sv" -match "Bits of signal are not used: 'dma_size'[31:16]*"
+lint_off -rule DECLFILENAME -file "*/w25q128jw_controller_reg_top.sv"
+lint_off -rule WIDTH -file "*/w25q128jw_controller_reg_top.sv" -match "Operator ASSIGNW expects *"
+lint_off -rule UNUSED -file "*/w25q128jw_controller.sv" -match "Bits of signal are not used: 'external_spi_host_hw2reg_status_i*"

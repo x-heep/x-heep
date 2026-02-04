@@ -52,6 +52,9 @@ hw/ip/dma/data/dma_conf.svh
 hw/ip/dma/rtl/dma_reg_pkg.sv
 hw/ip/dma/rtl/dma_reg_top.sv
 
+hw/ip/boot_rom/boot_rom.sv
+hw/ip/boot_rom/boot_rom.dump
+
 hw/fpga/sram_wrapper.sv
 hw/fpga/scripts/generate_sram.tcl
 

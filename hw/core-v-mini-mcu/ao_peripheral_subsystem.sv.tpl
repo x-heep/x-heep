@@ -54,6 +54,9 @@ module ao_peripheral_subsystem
 
     output logic spi_flash_intr_event_o,
 
+    // flash controller interrupt
+    output logic w25q128jw_controller_intr_o,
+
     // POWER MANAGER
     input logic [31:0] intr_i,
     input logic [NEXT_INT_RND-1:0] intr_vector_ext_i,
@@ -157,6 +160,8 @@ module ao_peripheral_subsystem
   obi_pkg::obi_resp_t slave_fifoout_resp;
   reg_req_t perconv2regdemux_req;
   reg_rsp_t regdemux2perconv_resp;
+  dma_reg_pkg::dma_hw2reg_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] external_dma_hw2reg;
+  logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_ready;
 
   /*_________________________________________________________________________________________________________________________________ */
 
@@ -184,6 +189,9 @@ module ao_peripheral_subsystem
     for (genvar i = 0; i < core_v_mini_mcu_pkg::DMA_CH_NUM; i++) begin : dma_trigger_slots_gen
       assign dma_ext_trigger_slots[2*i]   = ext_dma_slot_tx_i[i];
       assign dma_ext_trigger_slots[2*i+1] = ext_dma_slot_rx_i[i];
+      if (i > 0) begin : external_dma_hw2reg_gen
+        assign external_dma_hw2reg[i] = '0;  //TODO: make it programmable
+      end
     end
   endgenerate
 
@@ -333,6 +341,17 @@ module ao_peripheral_subsystem
       .yo_reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::SPI_MEMIO_IDX]),
       .ot_reg_req_i(ao_peripheral_slv_req[core_v_mini_mcu_pkg::SPI_FLASH_IDX]),
       .ot_reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::SPI_FLASH_IDX]),
+% if base_peripheral_domain.contains_peripheral('w25q128jw_controller'):
+      .flash_ctr_reg_req_i(ao_peripheral_slv_req[core_v_mini_mcu_pkg::W25Q128JW_CONTROLLER_IDX]),
+      .flash_ctr_reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::W25Q128JW_CONTROLLER_IDX]),
+% else:
+      .flash_ctr_reg_req_i('0),
+      .flash_ctr_reg_rsp_o(),
+% endif
+      .external_dma_hw2reg_o(external_dma_hw2reg[0]),
+      .w25q128jw_controller_intr_o,
+      .dma_ready_i(dma_ready),
+      .dma_done_i(dma_done_o),
       .spi_flash_sck_o,
       .spi_flash_sck_en_o,
       .spi_flash_csb_o,
@@ -356,6 +375,8 @@ module ao_peripheral_subsystem
   assign spi_flash_intr_event_o = '0;
   assign spi_flash_rx_valid     = '0;
   assign spi_flash_tx_ready     = '0;
+  assign w25q128jw_controller_intr_o = '0;
+  assign external_dma_hw2reg[0] = '0;
 % endif
 
   /* Power manager */
@@ -430,12 +451,14 @@ module ao_peripheral_subsystem
       .dma_addr_resp_i,
       .hw_fifo_req_o,
       .hw_fifo_resp_i,
+      .external_hw2reg_i(external_dma_hw2reg),
       .global_trigger_slot_i(dma_global_trigger_slots),
       .ext_trigger_slot_i(dma_ext_trigger_slots),
       .ext_dma_stop_i(ext_dma_stop_i),
       .hw_fifo_done_i,
       .dma_done_intr_o(dma_done_intr_o),
       .dma_window_intr_o(dma_window_intr_o),
+      .dma_ready_o(dma_ready),
       .dma_done_o(dma_done_o)
   );
 

@@ -134,10 +134,6 @@ To add this new top-level module to the simulation/synthesis flow you can extend
         file_type: user
 
     parameters:
-    COREV_PULP:
-        datatype: int
-        paramtype: vlogparam
-        default: 0
     JTAG_DPI:
         datatype: int
         paramtype: vlogparam
@@ -183,7 +179,6 @@ To add this new top-level module to the simulation/synthesis flow you can extend
             - tool_modelsim? (pre_build_remote_bitbang)
             - tool_modelsim? (pre_patch_modelsim_Makefile) # this is required by Questa 2020 on
         parameters:
-        - COREV_PULP
         - JTAG_DPI
         tools:
         modelsim:

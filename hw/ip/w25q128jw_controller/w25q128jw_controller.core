@@ -1,0 +1,26 @@
+CAPI=2:
+
+name: "x-heep:ip:w25q128jw_controller"
+description: "digital level crossing block"
+
+# Copyright 2024 EPFL
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+
+filesets:
+  files_rtl:
+    depend:
+      - x-heep::packages
+      - lowrisc:ip:spi_host:1.0
+      - x-heep:ip:dma
+    files:
+    - rtl/w25q128jw_controller_reg_pkg.sv
+    - rtl/w25q128jw_controller_reg_top.sv
+    - rtl/w25q128jw_controller.sv
+    file_type: systemVerilogSource
+
+targets:
+  default:
+    filesets:
+    - files_rtl

@@ -7,9 +7,14 @@
 
   upstream: {
     url: "https://github.com/pulp-platform/common_cells.git",
-    rev: "9afda9abb565971649c2aa0985639c096f351171",
+    rev: "v1.38.0",
   },
 
   patch_dir: "patches/pulp_platform_common_cells",
 
+  exclude_from_upstream: [
+      "test",
+      "ci",
+      "formal",
+    ]
 }

@@ -54,10 +54,16 @@
         spi_flash: {
             offset:  0x00020000
             length:  0x00008000
+            is_included: "yes"
         }
         spi_memio: {
             offset:  0x00028000
-            length:  0x00008000
+            length:  0x00000008
+        }
+        w25q128jw_controller: {
+            offset:  0x00029000
+            length:  0x00007000
+            is_included: "yes"
         }
         dma: {
             offset:  0x00030000

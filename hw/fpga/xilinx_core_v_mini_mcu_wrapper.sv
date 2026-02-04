@@ -6,10 +6,6 @@ module xilinx_core_v_mini_mcu_wrapper
   import obi_pkg::*;
   import reg_pkg::*;
 #(
-    parameter COREV_PULP           = 0,
-    parameter FPU                  = 0,
-    parameter ZFINX                = 0,
-    parameter X_EXT                = 0,  // eXtension interface in cv32e40x
     parameter CLK_LED_COUNT_LENGTH = 27
 ) (
 
@@ -146,12 +142,7 @@ module xilinx_core_v_mini_mcu_wrapper
   );
 `endif
 
-  x_heep_system #(
-      .X_EXT(X_EXT),
-      .COREV_PULP(COREV_PULP),
-      .FPU(FPU),
-      .ZFINX(ZFINX)
-  ) x_heep_system_i (
+  x_heep_system x_heep_system_i (
       .hart_id_i('0),
       .xheep_instance_id_i('0),
       .intr_vector_ext_i('0),

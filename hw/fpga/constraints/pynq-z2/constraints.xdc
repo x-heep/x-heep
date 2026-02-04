@@ -8,12 +8,13 @@ set_false_path -from x_heep_system_i/rstgen_i/i_rstgen_bypass/synch_regs_q_reg[3
 
 ### Serial Link Constraints for 4:1 configuration 
 # Derived clock period and phase settings
-set T_CLK 66.667              ;# Period of clk_gen in ns.
-set FWD_CLK_DIV 8             ;# Divider for forward clock
+set T_CLK 66.667              ;# Period of clk_gen in ns. Derived from the FPGA clock from the xilinx xheep wrapper
+set FWD_CLK_DIV 8             ;# Divider for forward clock. Comes from serial_link_pkg.sv  TODO:: move this constant to the ...minimal_pkg.sv
 set T_FWD_CLK [expr $T_CLK * $FWD_CLK_DIV] ;# Forward clock period
 
+# these constraints are taken from https://github.com/pulp-platform/serial_link/blob/main/doc/constraints.md
 # Rising edge is at 270 degree, falling edge at 450 (resp. 90) degrees
-#set ddr_edge_list [list [expr $FWD_CLK_DIV / 4 * 3] [expr $FWD_CLK_DIV / 4 * 5]]
+# set ddr_edge_list [list [expr $FWD_CLK_DIV / 4 * 3] [expr $FWD_CLK_DIV / 4 * 5]]
 set ddr_edge_list [list [expr $T_FWD_CLK / 4 * 3] [expr $T_FWD_CLK / 4 * 5]]
 create_clock -name vir_clk_ddr_in -period $T_FWD_CLK
 create_clock -name clk_ddr_in -period $T_FWD_CLK -waveform $ddr_edge_list [get_ports ddr_rcv_clk_i]

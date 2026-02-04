@@ -139,11 +139,62 @@ module spi_subsystem
   );
 
 
-  assign w25q128jw_controller_intr_o = '0;
-  assign flash_ctr_reg_rsp_o = '0;
-  assign external_dma_hw2reg_o = '0;
-  logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_ready_unused = dma_ready_i;
-  spi_host_reg_pkg::spi_host_hw2reg_status_reg_t external_spi_host_hw2reg_status_unused = external_spi_host_hw2reg_status;
+
+  // Master ports to the SPI HOST from Flash Controller
+  reg_req_t spi_host_reg_req;
+  reg_rsp_t spi_host_reg_rsp;
+  reg_req_t spi_host_reg_req_mux;
+  reg_rsp_t spi_host_reg_rsp_mux;
+  reg_req_t [1:0] spi_host_reg_packet_req;
+  reg_rsp_t [1:0] spi_host_reg_packet_rsp;
+
+  assign spi_host_reg_packet_req[0] = ot_reg_req_i;
+  assign spi_host_reg_packet_req[1] = spi_host_reg_req;
+  assign ot_reg_rsp_o               = spi_host_reg_packet_rsp[0];
+  assign spi_host_reg_rsp           = spi_host_reg_packet_rsp[1];
+
+  reg_mux #(
+      .NoPorts(2),
+      .req_t  (reg_pkg::reg_req_t),
+      .rsp_t  (reg_pkg::reg_rsp_t),
+      .AW     (32),
+      .DW     (32)
+  ) reg_mux_i (
+      .clk_i,
+      .rst_ni,
+      .in_req_i (spi_host_reg_packet_req),
+      .in_rsp_o (spi_host_reg_packet_rsp),
+      .out_req_o(spi_host_reg_req_mux),
+      .out_rsp_i(spi_host_reg_rsp_mux)
+  );
+
+  w25q128jw_controller #(
+      .reg_req_t(reg_pkg::reg_req_t),
+      .reg_rsp_t(reg_pkg::reg_rsp_t)
+  ) w25q128jw_controller_i (
+      .clk_i,
+      .rst_ni,
+
+      // Register interface
+      .reg_req_i(flash_ctr_reg_req_i),
+      .reg_rsp_o(flash_ctr_reg_rsp_o),
+
+      // Interrupt signal
+      .w25q128jw_controller_intr_o,
+
+      //dma hw controller
+      .external_dma_hw2reg_o,
+      //spi status if
+      .external_spi_host_hw2reg_status_i(external_spi_host_hw2reg_status),
+
+      // Master ports on the system bus
+      .spi_host_reg_req_o(spi_host_reg_req),
+      .spi_host_reg_rsp_i(spi_host_reg_rsp),
+
+      .dma_ready_i,
+      .dma_done_i
+  );
+
 
 
 
@@ -154,8 +205,8 @@ module spi_subsystem
   ) ot_spi_i (
       .clk_i,
       .rst_ni,
-      .reg_req_i(ot_reg_req_i),
-      .reg_rsp_o(ot_reg_rsp_o),
+      .reg_req_i(spi_host_reg_req_mux),
+      .reg_rsp_o(spi_host_reg_rsp_mux),
       .alert_rx_i(),
       .alert_tx_o(),
       .passthrough_i(spi_device_pkg::PASSTHROUGH_REQ_DEFAULT),

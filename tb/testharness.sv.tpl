@@ -158,11 +158,12 @@ module testharness #(
   fifo_req_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_req;
   fifo_resp_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_resp;
 
-  //logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_i_xheep; 
-  //logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_o_xheep;
-  //logic [serial_link_single_channel_reg_pkg::NumChannels-1:0] clk_sl_int2ext;
-  //logic [serial_link_single_channel_reg_pkg::NumChannels-1:0] clk_sl_ext2int;
-
+  % if user_peripheral_domain.contains_peripheral('serial_link'):
+  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_i_xheep; 
+  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_o_xheep;
+  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0] clk_sl_int2ext;
+  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0] clk_sl_ext2int;
+  %endif
   reg_pkg::reg_req_t [testharness_pkg::EXT_NPERIPHERALS-1:0] ext_periph_slv_req;
   reg_pkg::reg_rsp_t [testharness_pkg::EXT_NPERIPHERALS-1:0] ext_periph_slv_rsp;
 

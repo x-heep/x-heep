@@ -14,6 +14,7 @@
 #define DMA_DATA_LARGE 8 
 #define TEST_DATA_LARGE 16
 
+// TODO: test on 8 and 16bits and unaligned addresses
 static uint32_t to_be_sent_4B[TEST_DATA_LARGE] __attribute__((aligned(4))) = {0};
 static uint32_t copied_data_4B[TEST_DATA_LARGE] __attribute__((aligned(4))) = {0};
 

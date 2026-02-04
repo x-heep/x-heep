@@ -1,4 +1,6 @@
-module xheep_boot_controller_dma32 (
+module xheep_boot_controller_dma32  
+  import obi_pkg::*;
+    (
     input  logic        clk,
     input  logic        rst_n,
 

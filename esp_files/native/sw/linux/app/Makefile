@@ -1,6 +1,22 @@
 # Copyright (c) 2011-2024 Columbia University, System Level Design Group
 # SPDX-License-Identifier: Apache-2.0
+ACCEL_NAME ?= xheep
+
+# Try to import the top-level X-HEEP Makefile to reuse XHEEP_APPS list if available
+XHEEP_RTL_ROOT := $(abspath $(CURDIR)/../..)
+ifneq ("$(wildcard $(XHEEP_RTL_ROOT)/Makefile)","")
+include $(XHEEP_RTL_ROOT)/Makefile
+endif
+
+XHEEP_APPS ?= $(XHEEP_APP)
+
+# Add include paths for all accelerators in accelerators/rtl/
+RTL_ACCEL_DIR := $(abspath $(ESP_TOP)/accelerators/rtl)
+ACCEL_INCLUDE_DIRS := $(wildcard $(RTL_ACCEL_DIR)/*/sw/linux/include)
+
 EXTRA_CFLAGS ?= -I$(DRIVERS)/../common/apps/baremetal/xheep -I.
+EXTRA_CFLAGS += $(foreach app,$(XHEEP_APPS),-DXHEEP_FIRMWARE_HEADER_$(app)=\\\"$(ACCEL_NAME)_fw_$(app).h\\\")
+EXTRA_CFLAGS += $(foreach dir,$(ACCEL_INCLUDE_DIRS),-I$(dir))
 
 BUILD_DRIVERS ?= $(BUILD_PATH)/../../..
 

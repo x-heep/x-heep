@@ -1,4 +1,6 @@
-module xheep_boot_controller_dma64 (
+module xheep_boot_controller_dma64  
+  import obi_pkg::*;
+    (
     input  logic        clk,
     input  logic        rst_n,
 
@@ -38,58 +40,56 @@ module xheep_boot_controller_dma64 (
     localparam logic [2:0]  DMA_SIZE_WORD = 3'b011; // 64-bit
 
     // State Machine
-    typedef enum logic [2:0] {
+    typedef enum logic [1:0] {
         IDLE,
-        DMA_REQ,        // Issue Read Command to ESP
-        DMA_WAIT_DATA,  // Receive Data from ESP and push to OBI
-        EXIT_WRITE      // Write to SOC_CTRL to release CPU
+        DMA_REQ,
+        DMA_WAIT_DATA,
+        EXIT_WRITE
     } state_t;
 
     state_t state_d, state_q;
 
-    // Registers
-    logic [31:0] current_ram_addr_d, current_ram_addr_q;
-    logic [31:0] beat_cnt_d, beat_cnt_q;
+    // Registers for Boot process
+    logic [31:0] boot_ram_addr_d, boot_ram_addr_q;
+    logic [31:0] boot_word_cnt_d, boot_word_cnt_q;
+    logic [63:0] boot_buffered_data_d,  boot_buffered_data_q;
+    logic        boot_buffered_valid_d, boot_buffered_valid_q;
+    logic        boot_buffered_use_upper_d, boot_buffered_use_upper_q;
+    logic        boot_buffered_upper_pending_d, boot_buffered_upper_pending_q;
 
     // Edge Detection
     logic rise_fetch;
     logic rise_exit;
-
-    // one beat buffer for incoming DMA data (64-bit -> two 32-bit words)
-    logic [63:0] buffered_data_d,  buffered_data_q;
-    logic        buffered_valid_d, buffered_valid_q;
-    logic        buffered_use_upper_d, buffered_use_upper_q;
-    logic        buffered_upper_pending_d, buffered_upper_pending_q;
+    logic trigger_boot_exit_q;
+    logic pending_exit;
 
     assign rise_fetch = conf_done && trigger_fetch;
-    assign rise_exit  = conf_done && trigger_boot_exit;
-
+    assign rise_exit  = conf_done && pending_exit;
+    
     // Output logic
     always_comb begin
         // Defaults
         state_d = state_q;
-        current_ram_addr_d = current_ram_addr_q;
-        beat_cnt_d = beat_cnt_q;
-        
+        boot_ram_addr_d = boot_ram_addr_q;
+        boot_word_cnt_d = boot_word_cnt_q;
+
         busy = 1'b0;
         fetch_done_o = 1'b0;
 
-        // DMA Control Defaults
+        // Boot DMA Read Control Defaults
         dma_read_ctrl_valid = 1'b0;
-        // Index 0 means start of the buffer allocated by driver
         dma_read_ctrl_data_index = 32'd0; 
-        // Length in 64-bit beats (ceil of 32-bit words)
         dma_read_ctrl_data_length = (fetch_size_words >> 1) + fetch_size_words[0];
         dma_read_ctrl_data_size = DMA_SIZE_WORD;
 
-        // Buffer defaults
-        buffered_data_d          = buffered_data_q;
-        buffered_valid_d         = buffered_valid_q;
-        buffered_use_upper_d     = buffered_use_upper_q;
-        buffered_upper_pending_d = buffered_upper_pending_q;
+        // Boot Buffer defaults
+        boot_buffered_data_d          = boot_buffered_data_q;
+        boot_buffered_valid_d         = boot_buffered_valid_q;
+        boot_buffered_use_upper_d     = boot_buffered_use_upper_q;
+        boot_buffered_upper_pending_d = boot_buffered_upper_pending_q;
 
-        // DMA Channel Default
-        dma_read_chnl_ready = !buffered_valid_q;
+        // DMA Read Channel (for Boot) Default
+        dma_read_chnl_ready = !boot_buffered_valid_q;
 
         // OBI Defaults
         obi_req_o.req   = 1'b0;
@@ -102,73 +102,62 @@ module xheep_boot_controller_dma64 (
             IDLE: begin
                 if (rise_fetch) begin 
                     state_d = DMA_REQ;
-                    current_ram_addr_d = XHEEP_RAM_START_ADDR;
-                    beat_cnt_d = 0;
+                    boot_ram_addr_d = XHEEP_RAM_START_ADDR;
+                    boot_word_cnt_d = 0;
                     busy = 1'b1;
-                    // reset buffer when starting a new fetch
-                    buffered_valid_d         = 1'b0;
-                    buffered_use_upper_d     = 1'b0;
-                    buffered_upper_pending_d = 1'b0;
+                    boot_buffered_valid_d         = 1'b0;
+                    boot_buffered_use_upper_d     = 1'b0;
+                    boot_buffered_upper_pending_d = 1'b0;
                 end else if (rise_exit) begin
                     state_d = EXIT_WRITE;
                     busy = 1'b1;
                 end
             end
 
-            // ---------------------------------------------------------
-            // PHASE 1: Send Request to ESP DMA (control channel)
-            // ---------------------------------------------------------
+            // =========================================================
+            // BOOT SEQUENCE
+            // =========================================================
             DMA_REQ: begin
                 busy = 1'b1;
                 dma_read_ctrl_valid = 1'b1;
-
-                // tell DMA channel we are ready to accept data
-                dma_read_chnl_ready = !buffered_valid_q;
+                dma_read_chnl_ready = !boot_buffered_valid_q;
 
                 if (dma_read_ctrl_ready) begin
                     state_d = DMA_WAIT_DATA;
                 end
             end
 
-            // ---------------------------------------------------------
-            // PHASE 2: Stream Data (ESP -> Boot Ctrl -> OBI -> RAM)
-            // ---------------------------------------------------------
             DMA_WAIT_DATA: begin
                 busy = 1'b1;
-
-                // tell DMA channel we are ready to accept data when buffer is free
-                dma_read_chnl_ready = !buffered_valid_q;
+                dma_read_chnl_ready = !boot_buffered_valid_q;
 
                 if (dma_read_chnl_valid && dma_read_chnl_ready) begin
-                    buffered_data_d      = dma_read_chnl_data;
-                    buffered_valid_d     = 1'b1;
-                    buffered_use_upper_d = 1'b0;
-                    buffered_upper_pending_d = ((fetch_size_words - beat_cnt_q) > 1);
+                    boot_buffered_data_d      = dma_read_chnl_data;
+                    boot_buffered_valid_d     = 1'b1;
+                    boot_buffered_use_upper_d = 1'b0;
+                    boot_buffered_upper_pending_d = ((fetch_size_words - boot_word_cnt_q) > 1);
                 end
 
-                // If we have buffered data, push it out on OBI
-                if (buffered_valid_q) begin
+                if (boot_buffered_valid_q) begin
                     obi_req_o.req   = 1'b1;
                     obi_req_o.we    = 1'b1;
-                    obi_req_o.addr  = current_ram_addr_q;
-                    obi_req_o.wdata = buffered_use_upper_q ? buffered_data_q[63:32] : buffered_data_q[31:0];
-                    obi_req_o.be    = 4'b1111;
+                    obi_req_o.addr  = boot_ram_addr_q;
+                    obi_req_o.wdata = boot_buffered_use_upper_q ? boot_buffered_data_q[63:32] : boot_buffered_data_q[31:0];
 
                     if (obi_resp_i.gnt) begin
-                        current_ram_addr_d = current_ram_addr_q + 4;
-                        beat_cnt_d         = beat_cnt_q + 1;
+                        boot_ram_addr_d = boot_ram_addr_q + 4;
+                        boot_word_cnt_d = boot_word_cnt_q + 1;
 
-                        if (!buffered_use_upper_q && buffered_upper_pending_q) begin
-                            // still need to send upper 32 bits from this beat
-                            buffered_use_upper_d     = 1'b1;
-                            buffered_upper_pending_d = 1'b0;
+                        if (!boot_buffered_use_upper_q && boot_buffered_upper_pending_q) begin
+                            boot_buffered_use_upper_d     = 1'b1;
+                            boot_buffered_upper_pending_d = 1'b0;
                         end else begin
-                            buffered_valid_d         = 1'b0; // beat consumed
-                            buffered_use_upper_d     = 1'b0;
-                            buffered_upper_pending_d = 1'b0;
+                            boot_buffered_valid_d         = 1'b0;
+                            boot_buffered_use_upper_d     = 1'b0;
+                            boot_buffered_upper_pending_d = 1'b0;
                         end
 
-                        if (beat_cnt_d == fetch_size_words) begin
+                        if (boot_word_cnt_d == fetch_size_words) begin
                             state_d      = IDLE;
                             fetch_done_o = 1'b1;
                         end
@@ -176,18 +165,12 @@ module xheep_boot_controller_dma64 (
                 end
             end
 
-            // ---------------------------------------------------------
-            // PHASE 3: Boot Exit (Write to CSR)
-            // ---------------------------------------------------------
             EXIT_WRITE: begin
                 busy = 1'b1;
-
-                // Write to SOC_CTRL to start X-Heep execution
                 obi_req_o.req   = 1'b1;
                 obi_req_o.we    = 1'b1;
                 obi_req_o.addr  = XHEEP_SOC_CTRL_ADDR;
                 obi_req_o.wdata = 32'd1; 
-                obi_req_o.be    = 4'b1111;
 
                 if (obi_resp_i.gnt) begin
                     state_d = IDLE;
@@ -198,23 +181,29 @@ module xheep_boot_controller_dma64 (
 
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            state_q              <= IDLE;
-            current_ram_addr_q   <= '0;
-            beat_cnt_q           <= '0;
-
-            buffered_data_q          <= '0;
-            buffered_valid_q         <= 1'b0;
-            buffered_use_upper_q     <= 1'b0;
-            buffered_upper_pending_q <= 1'b0;
+            state_q <= IDLE;
+            boot_ram_addr_q   <= '0;
+            boot_word_cnt_q   <= '0;
+            boot_buffered_data_q  <= '0;
+            boot_buffered_valid_q <= 1'b0;
+            boot_buffered_use_upper_q <= 1'b0;
+            boot_buffered_upper_pending_q <= 1'b0;
+            trigger_boot_exit_q <= 1'b0;
+            pending_exit <= 1'b0;
         end else begin
-            state_q              <= state_d;
-            current_ram_addr_q   <= current_ram_addr_d;
-            beat_cnt_q           <= beat_cnt_d;
-
-            buffered_data_q          <= buffered_data_d;
-            buffered_valid_q         <= buffered_valid_d;
-            buffered_use_upper_q     <= buffered_use_upper_d;
-            buffered_upper_pending_q <= buffered_upper_pending_d;
+            state_q <= state_d;
+            boot_ram_addr_q   <= boot_ram_addr_d;
+            boot_word_cnt_q   <= boot_word_cnt_d;
+            boot_buffered_data_q  <= boot_buffered_data_d;
+            boot_buffered_valid_q <= boot_buffered_valid_d;
+            boot_buffered_use_upper_q <= boot_buffered_use_upper_d;
+            boot_buffered_upper_pending_q <= boot_buffered_upper_pending_d;
+            trigger_boot_exit_q <= trigger_boot_exit;
+            if (trigger_boot_exit && !trigger_boot_exit_q) begin
+                pending_exit <= 1'b1;
+            end else if (rise_exit) begin
+                pending_exit <= 1'b0;
+            end
         end
     end
 

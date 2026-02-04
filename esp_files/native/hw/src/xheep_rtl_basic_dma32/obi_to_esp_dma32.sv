@@ -1,4 +1,6 @@
-module obi_to_esp_dma32 #(
+module obi_to_esp_dma32  
+  import obi_pkg::*;
+    #(
     parameter int unsigned DATA_WIDTH = 32
 )(
     input logic clk,
@@ -19,6 +21,7 @@ module obi_to_esp_dma32 #(
     output logic [31:0] dma_read_ctrl_data_index,
     output logic [31:0] dma_read_ctrl_data_length,
     output logic [2:0]  dma_read_ctrl_data_size,
+    output logic [5:0]  dma_read_ctrl_data_user,
 
     // Read Data Channel
     input  logic dma_read_chnl_valid,
@@ -31,11 +34,28 @@ module obi_to_esp_dma32 #(
     output logic [31:0] dma_write_ctrl_data_index,
     output logic [31:0] dma_write_ctrl_data_length,
     output logic [2:0]  dma_write_ctrl_data_size,
+    output logic [5:0]  dma_write_ctrl_data_user,
 
     // Write Data Channel
     output logic dma_write_chnl_valid,
     input  logic dma_write_chnl_ready,
-    output logic [DATA_WIDTH-1:0] dma_write_chnl_data
+    output logic [DATA_WIDTH-1:0] dma_write_chnl_data,
+
+    // ----------------------
+    // Burst DMA CSR Interface
+    // ----------------------
+    output logic        burst_start_pulse,
+    output logic        burst_dir,
+    output logic [5:0]  burst_read_user_field,
+    output logic [5:0]  burst_write_user_field,
+    output logic [31:0] burst_addr_byte,
+    output logic [31:0] burst_len_bytes,
+    output logic [31:0] burst_xheep_addr,
+    output logic        burst_status_clear_done,
+    output logic        burst_status_clear_err,
+    input  logic        burst_status_busy,
+    input  logic        burst_status_done,
+    input  logic        burst_status_err
 );
 
     // FSM States
@@ -79,9 +99,48 @@ module obi_to_esp_dma32 #(
     // -------------------------------------------------------------------------
     // Must match EXT_SLAVE_START_ADDRESS in X-HEEP core_v_mini_mcu.h
     localparam logic [31:0] EXT_SLAVE_BASE = 32'hF000_0000;
+    localparam logic [31:0] CTRL_BASE      = 32'hF0FF_F000;
+    localparam logic [31:0] CTRL_MASK      = 32'hFFFF_F000;
 
     logic [31:0] relative_addr;
+    logic [31:0] dma_index_addr;
+    logic [5:0]  dma_user_field;
+    logic        is_ctrl;
+    logic [31:0] csr_rdata;
+
+    // CSR Registers
+    logic [13:0] dma_ctrl_q;
+    logic [31:0] dma_addr_q;
+    logic [31:0] dma_len_q;
+    logic [31:0] xheep_addr_q;
+
     assign relative_addr = addr_q - EXT_SLAVE_BASE;
+    assign dma_index_addr = {10'b0, relative_addr[21:0]};
+    assign dma_user_field = addr_q[27:22];
+    assign is_ctrl = (obi_req_i.addr & CTRL_MASK) == CTRL_BASE;
+
+    assign burst_dir              = dma_ctrl_q[1];
+    assign burst_read_user_field  = dma_ctrl_q[7:2];
+    assign burst_write_user_field = dma_ctrl_q[13:8];
+    assign burst_addr_byte        = dma_addr_q;
+    assign burst_len_bytes        = dma_len_q;
+    assign burst_xheep_addr       = xheep_addr_q;
+
+    always_comb begin
+        csr_rdata = 32'b0;
+        case (obi_req_i.addr[5:2])
+            4'h0: csr_rdata[13:0] = dma_ctrl_q;
+            4'h1: begin
+                csr_rdata[0] = burst_status_busy;
+                csr_rdata[1] = burst_status_done;
+                csr_rdata[2] = burst_status_err;
+            end
+            4'h2: csr_rdata = dma_addr_q;
+            4'h3: csr_rdata = dma_len_q;
+            4'h4: csr_rdata = xheep_addr_q;
+            default: csr_rdata = 32'b0;
+        endcase
+    end
 
     // -------------------------------------------------------------------------
     // Next State & Output Logic
@@ -99,12 +158,24 @@ module obi_to_esp_dma32 #(
         dma_wr_ctrl_vld = 1'b0;
         dma_wr_chnl_vld = 1'b0;
         dma_wr_data_out = '0;
+        burst_start_pulse       = 1'b0;
+        burst_status_clear_done = 1'b0;
+        burst_status_clear_err  = 1'b0;
 
         case (state_q)
             IDLE: begin
                 // Wait for OBI Request
                 if (obi_req_i.req) begin
-                    if (obi_req_i.we) begin
+                    if (is_ctrl) begin
+                        obi_gnt    = 1'b1;
+                        obi_rvalid = 1'b1;
+                        obi_rdata  = csr_rdata;
+                        if (obi_req_i.we) begin
+                            burst_start_pulse       = obi_req_i.wdata[0] && (obi_req_i.addr[5:2] == 4'h0);
+                            burst_status_clear_done = obi_req_i.wdata[1] && (obi_req_i.addr[5:2] == 4'h1);
+                            burst_status_clear_err  = obi_req_i.wdata[2] && (obi_req_i.addr[5:2] == 4'h1);
+                        end
+                    end else if (obi_req_i.we) begin
                         // Check for Partial Write (Byte Enable != 1111)
                         if (obi_req_i.be != 4'b1111) begin
                             state_d = RMW_READ_CMD; // Must read first
@@ -203,6 +274,10 @@ module obi_to_esp_dma32 #(
             rmw_data_q  <= '0;
             addr_lsb_q  <= 1'b0;
             is_write_q  <= 1'b0;
+            dma_ctrl_q  <= '0;
+            dma_addr_q  <= '0;
+            dma_len_q   <= '0;
+            xheep_addr_q <= '0;
         end else begin
             state_q <= state_d;
 
@@ -216,6 +291,16 @@ module obi_to_esp_dma32 #(
                 
                 // Pre-load rmw_data_q with 0 so full writes work cleanly if logic defaults to it
                 rmw_data_q  <= '0; 
+            end
+
+            if (state_q == IDLE && obi_req_i.req && is_ctrl && obi_req_i.we) begin
+                case (obi_req_i.addr[5:2])
+                    4'h0: dma_ctrl_q <= obi_req_i.wdata[13:0];
+                    4'h2: dma_addr_q <= obi_req_i.wdata;
+                    4'h3: dma_len_q  <= obi_req_i.wdata;
+                    4'h4: xheep_addr_q <= obi_req_i.wdata;
+                    default: begin end
+                endcase
             end
 
             // Latch RMW Data
@@ -236,16 +321,18 @@ module obi_to_esp_dma32 #(
 
     // DMA Control Assignments
     assign dma_read_ctrl_valid       = dma_rd_ctrl_vld;
-    assign dma_read_ctrl_data_index  = relative_addr[31:2]; 
+    assign dma_read_ctrl_data_index  = dma_index_addr[31:2]; 
     assign dma_read_ctrl_data_length = 32'd1;        
     assign dma_read_ctrl_data_size   = 3'b010;       
+    assign dma_read_ctrl_data_user   = dma_user_field;
 
     assign dma_read_chnl_ready       = dma_rd_chnl_rdy;
 
     assign dma_write_ctrl_valid       = dma_wr_ctrl_vld;
-    assign dma_write_ctrl_data_index  = relative_addr[31:2];
+    assign dma_write_ctrl_data_index  = dma_index_addr[31:2];
     assign dma_write_ctrl_data_length = 32'd1;
     assign dma_write_ctrl_data_size   = 3'b010;
+    assign dma_write_ctrl_data_user   = dma_user_field;
 
     assign dma_write_chnl_valid       = dma_wr_chnl_vld;
     assign dma_write_chnl_data        = dma_wr_data_out;

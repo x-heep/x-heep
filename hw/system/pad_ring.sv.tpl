@@ -17,26 +17,33 @@
 %>
 
 module pad_ring (
-    % for pin in xheep.get_padring().get_connected_main_pins(): # ToDo_padspy: This doesn't take into account if there is a mix of Input and Inout in the same pad
-        % if isinstance(pin, PinDigital): 
-            inout wire ${pin.rtl_name()}io,
-        % endif
-        % if isinstance(pin, (Input, Inout)):
-            output logic ${pin.rtl_name()}o,
-        % endif
-        % if isinstance(pin, (Output, Inout)):
-            input logic ${pin.rtl_name()}i,
-        % endif
-        % if isinstance(pin, Inout):
-            input logic ${pin.rtl_name()}oe_i,
+    % for pad in xheep.get_padring().pad_list:
+<%
+has_input_pin = any(isinstance(pin, Input) for pin in pad.pins)
+has_output_pin = any(isinstance(pin, Output) for pin in pad.pins)
+has_inout_pin = any(isinstance(pin, Inout) for pin in pad.pins)
+
+if not (has_input_pin or has_output_pin or has_inout_pin): continue
+pin0_name = pad.pins[0].rtl_name()
+%>
+        % if has_inout_pin or (has_input_pin and has_output_pin):
+        input logic ${pin0_name}i,
+        input logic ${pin0_name}oe_i,
+        output logic ${pin0_name}o,
+        inout wire ${pin0_name}io,
+        % elif has_input_pin:
+        output logic ${pin0_name}o,
+        inout wire ${pin0_name}io,
+        % elif has_output_pin:
+        input logic ${pin0_name}i,
+        inout wire ${pin0_name}io,
         % endif
     % endfor
-    % if len(analog_signal_pads) > 0:
+    % if len(analog_signal_pads)>0:
+        
         `ifdef SYNTHESIS
-        % for pin in xheep.get_padring().get_connected_main_pins():
-            % if isinstance(pin, PinAnalog):
-                (* dont_touch = "true" *) inout wire ${pin.name.lower()}_io,
-            % endif
+        % for pad in analog_signal_pads:
+        (* dont_touch = "true" *) inout wire ${pad.name.lower()}_io,
         % endfor
         `endif
     %endif
@@ -51,39 +58,43 @@ module pad_ring (
 );
 
 % for pad in xheep.get_padring().pad_list:
-    <%
-        # Check all pins in the pad 
-        has_input_pin = any(isinstance(pin, Input) for pin in pad.pins)
-        has_output_pin = any(isinstance(pin, Output) for pin in pad.pins)
-        has_inout_pin = any(isinstance(pin, Inout) for pin in pad.pins)
+<%
+# Check all pins in the pad 
+has_input_pin = any(isinstance(pin, Input) for pin in pad.pins)
+has_output_pin = any(isinstance(pin, Output) for pin in pad.pins)
+has_inout_pin = any(isinstance(pin, Inout) for pin in pad.pins)
 
-        # Default pad attributes to be added in the pad instance
-        pad_in_i = pad.name + "_i"
-        pad_oe_i = pad.name + "_oe"
-        pad_out_o = pad.name + "_o"
-        pad_io = pad.name + "_io"
-        pad_attributes_i = f"pad_attributes_i[core_v_mini_mcu_pkg::PAD_{pad.name.upper()}]" if attribute_bits != None else "\'0"
+if not (has_input_pin or has_output_pin or has_inout_pin): continue
 
-        # Determine pad type and assign specific attributes
-        if has_inout_pin or (has_input_pin and has_output_pin):
-            pad_type = 'inout'
-        elif has_input_pin:
-            pad_type = 'input'
-            pad_in_i = "1\'b0"
-            pad_oe_i = "1\'b0"
-        elif has_output_pin:
-            pad_type = 'output'
-            pad_oe_i = "1\'b1"
-            pad_out_o = ""
-        else:
-            continue
-    %>
+pin0_name = pad.pins[0].rtl_name()
+
+# Default pad attributes to be added in the pad instance
+pad_in_i = pin0_name + "i"
+pad_oe_i = pin0_name + "oe_i"
+pad_out_o = pin0_name + "o"
+pad_io = pin0_name + "io"
+pad_attributes_i = f"pad_attributes_i[core_v_mini_mcu_pkg::PAD_{pad.name.upper()}]" if attribute_bits != None else "\'0"
+
+# Determine pad type and assign specific attributes
+if has_inout_pin or (has_input_pin and has_output_pin):
+    pad_type = 'inout'
+elif has_input_pin:
+    pad_type = 'input'
+    pad_in_i = "1\'b0"
+    pad_oe_i = "1\'b0"
+elif has_output_pin:
+    pad_type = 'output'
+    pad_oe_i = "1\'b1"
+    pad_out_o = ""
+else:
+    continue
+%>
       pad_cell_${pad_type} #(
-            .PADATTR(${num_attribute_bits})${"," if pad.side != None else ""}
+            .PADATTR(${num_attribute_bits})
             % if pad.side != None:
-                .SIDE(core_v_mini_mcu_pkg::${pad.side.value.upper()})
+                , .SIDE(core_v_mini_mcu_pkg::${pad.side.value.upper()})
             % endif
-        ) pad_${pad.name}_i (
+        ) u_pad_${pad.name} (
             .pad_in_i(${pad_in_i}),
             .pad_oe_i(${pad_oe_i}),
             .pad_out_o(${pad_out_o}),
@@ -93,12 +104,12 @@ module pad_ring (
 % endfor
 
 % if len(analog_signal_pads) > 0:
-    `ifdef SYNTHESIS
-        // ANALOG PADS
-        % for pad in analog_signal_pads:
-            ${pad.iocell.rtl_wrapper} pad_${pad.name}( .io(${pad.name.lower()}_io));
-        % endfor
-    `endif
-% endif
+`ifdef SYNTHESIS
+    // ANALOG PADS
+% for pad in analog_signal_pads:
+      ${pad.iocell.rtl_wrapper} pad_${pad.name}( .io(${pad.name.lower()}_io));
+% endfor
+`endif
+% endif #len(analog_signal_pads) > 0:
 
 endmodule //pad_ring

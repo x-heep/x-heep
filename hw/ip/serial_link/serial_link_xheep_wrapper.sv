@@ -3,8 +3,12 @@
  * Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
  * SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
  *  
- * Info: SL wrapper to transmit the data through DDR D2D interconnection. 
- *       Data is saved in the memory mapped fifo at the receiveing end. 
+ * Info: XHEEP wrapper for pulp-platform/serial_link.
+  On the sending side, it translates OBI transactions to AXI requests. 
+  On the receiving side, write requests are not propagated as 
+  AXI master operations but stored in a memory-mapped FIFO, 
+  which can be accessed via DMA in tests. 
+  Master functionality on the receiving side is not implemented.
  */
 
 module serial_link_xheep_wrapper

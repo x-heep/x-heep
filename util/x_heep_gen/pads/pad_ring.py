@@ -34,9 +34,6 @@ class PadRing:
         """
         self.floorplan_dimensions = floorplan_dimensions
         self.pin_list = pin_list
-        self.default_pin = next(
-            (pin for pin in pin_list if hasattr(pin, "default")), None
-        )
         self.attributes = attributes
         self.build(mapping)
 
@@ -67,7 +64,7 @@ class PadRing:
 
         # Build the pad list now that they have their assigned pins
         for pad in self.pad_list:
-            pad.build(default_pin=self.default_pin)
+            pad.build()
         # In case of duplicate pad names (because the same pin is assigned to several pads)
         # rename them by adding an index
         self.rename_duplicate_pads()

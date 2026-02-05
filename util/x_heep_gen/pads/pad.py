@@ -29,19 +29,7 @@ class Pad:
         for key, value in attributes.items():
             setattr(self, key, value)
 
-    def build(self, default_pin=None):
-        """
-        # If any pad has no pins assigned, then it will be tied to a default pin. 
-        # This is done just for the sake of going on with the process, but is a major
-        # issue that needs to be resolved, thus is printed out in red. 
-        # If there is no default pin set, then raise an error
-        if len(self.pins) == 0:
-            if default_pin is None:
-                raise ValueError("Failed to assing default pin to floating pad: No pin was defined as 'default'.\n\
-                                 You can add an attribute to one of your pins \{'default':True\} to make assign to this the unassigned pads.")
-            self.pins.append(default_pin)
-            print(f"\033[31m Floating pad:\033[0m {self.global_index}, assigining to {default_pin.name}")
-        """
+    def build(self):
         if self.pins != []:
             # The pins assigned to this pad are sorted by priority.
             # Priority is an optional attribute and the highest priority will be used as main pin

@@ -2,16 +2,6 @@ from .cell import *
 from enum import Enum
 
 
-# ToDo_padspy: select better names for this enum
-class PinType(Enum):
-    DIGITAL_INPUT = "input"
-    DIGITAL_OUTPUT = "output"
-    DIGITAL_INOUT = "inout"
-    DIGITAL_SUPPLY = "supply"
-    ANALOG = "supply"
-    PHYSICAL = "supply"
-
-
 class Pin:
     DEFAULT_MODULE = "core_v_mini_mcu"
 

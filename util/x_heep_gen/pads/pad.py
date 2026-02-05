@@ -1,5 +1,5 @@
 from .cell import Cell
-from .pin import Pin, PinType
+from .pin import Pin
 from .floorplan import Side, Orientation
 from .pin import *
 

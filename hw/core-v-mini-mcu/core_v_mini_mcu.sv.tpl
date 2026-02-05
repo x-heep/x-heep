@@ -9,6 +9,7 @@
 <%
   dma = xheep.get_base_peripheral_domain().get_dma()
   memory_ss = xheep.memory_ss()
+  dma_obi_msb = dma.get_num_master_ports() - 1
 %>
 
 module core_v_mini_mcu
@@ -134,10 +135,6 @@ module core_v_mini_mcu
   end
 `endif
 
-<%
-  obi_msb = dma.get_num_master_ports() - 1
-%>
-
   // masters signals
   obi_req_t core_instr_req;
   obi_resp_t core_instr_resp;
@@ -145,12 +142,12 @@ module core_v_mini_mcu
   obi_resp_t core_data_resp;
   obi_req_t debug_master_req;
   obi_resp_t debug_master_resp;
-  obi_req_t [${obi_msb}:0]dma_read_req;
-  obi_resp_t [${obi_msb}:0]dma_read_resp;
-  obi_req_t [${obi_msb}:0]dma_write_req;
-  obi_resp_t [${obi_msb}:0]dma_write_resp;
-  obi_req_t [${obi_msb}:0]dma_addr_req;
-  obi_resp_t [${obi_msb}:0]dma_addr_resp;
+  obi_req_t [${dma_obi_msb}:0]dma_read_req;
+  obi_resp_t [${dma_obi_msb}:0]dma_read_resp;
+  obi_req_t [${dma_obi_msb}:0]dma_write_req;
+  obi_resp_t [${dma_obi_msb}:0]dma_write_resp;
+  obi_req_t [${dma_obi_msb}:0]dma_addr_req;
+  obi_resp_t [${dma_obi_msb}:0]dma_addr_resp;
 
   // ram signals
   obi_req_t [core_v_mini_mcu_pkg::NUM_BANKS-1:0] ram_slave_req;
@@ -230,14 +227,14 @@ module core_v_mini_mcu
   assign peripheral_subsystem_rst_n           = peripheral_subsystem_pwr_ctrl_out.rst_n;
   assign peripheral_subsystem_clkgate_en_n    = peripheral_subsystem_pwr_ctrl_out.clkgate_en_n;
 
-% for bank in memory_ss.iter_ram_banks():
-  assign memory_subsystem_banks_powergate_switch_n[${bank.name()}] = memory_subsystem_pwr_ctrl_out[${bank.name()}].pwrgate_en_n;
-  assign memory_subsystem_pwr_ctrl_in[${bank.name()}].pwrgate_ack_n = memory_subsystem_banks_powergate_switch_ack_n[${bank.name()}];
-  //isogate exposed outside for UPF sim flow and switch cells
-  assign memory_subsystem_banks_powergate_iso_n[${bank.name()}] = memory_subsystem_pwr_ctrl_out[${bank.name()}].isogate_en_n;
-  assign memory_subsystem_banks_set_retentive_n[${bank.name()}] = memory_subsystem_pwr_ctrl_out[${bank.name()}].retentive_en_n;
-  assign memory_subsystem_clkgate_en_n[${bank.name()}] = memory_subsystem_pwr_ctrl_out[${bank.name()}].clkgate_en_n;
-% endfor
+  % for bank in memory_ss.iter_ram_banks():
+    assign memory_subsystem_banks_powergate_switch_n[${bank.name()}] = memory_subsystem_pwr_ctrl_out[${bank.name()}].pwrgate_en_n;
+    assign memory_subsystem_pwr_ctrl_in[${bank.name()}].pwrgate_ack_n = memory_subsystem_banks_powergate_switch_ack_n[${bank.name()}];
+    //isogate exposed outside for UPF sim flow and switch cells
+    assign memory_subsystem_banks_powergate_iso_n[${bank.name()}] = memory_subsystem_pwr_ctrl_out[${bank.name()}].isogate_en_n;
+    assign memory_subsystem_banks_set_retentive_n[${bank.name()}] = memory_subsystem_pwr_ctrl_out[${bank.name()}].retentive_en_n;
+    assign memory_subsystem_clkgate_en_n[${bank.name()}] = memory_subsystem_pwr_ctrl_out[${bank.name()}].clkgate_en_n;
+  % endfor
 
   for (genvar i = 0; i < EXT_DOMAINS_RND; i = i + 1) begin : gen_external_subsystem_pwr_gating
     assign external_subsystem_powergate_switch_no[i]        = external_subsystem_pwr_ctrl_out[i].pwrgate_en_n;
@@ -534,20 +531,19 @@ module core_v_mini_mcu
   assign pdm2pcm_pdm_o = 0;
   assign pdm2pcm_pdm_oe_o = 0;
 
-% for pin in xheep.get_padring().get_connected_pins():
-  % if pin.module == "core_v_mini_mcu" and "gpio_" in pin.name:
-  <%gpio_number = int(pin.name.split('_')[-1])%>
-    % if gpio_number < 8: # THE NUMBER OF GPIOS ON THE ALWAYS ON PERIPHERAL DOMAIN GPIO
-  assign gpio_ao_in[${gpio_number}] = gpio_${gpio_number}_i;
-  assign gpio_${gpio_number}_o      = gpio_ao_out[${gpio_number}];
-  assign gpio_${gpio_number}_oe_o   = gpio_ao_oe[${gpio_number}];
-    % else:
-  assign gpio_in[${gpio_number}]  = gpio_${gpio_number}_i;
-  assign gpio_${gpio_number}_o    = gpio_out[${gpio_number}];
-  assign gpio_${gpio_number}_oe_o = gpio_oe[${gpio_number}];
-    %endif
-  % endif
-% endfor
-
+  % for pin in xheep.get_padring().get_connected_pins():
+    % if pin.module == "core_v_mini_mcu" and "gpio_" in pin.name:
+      <% gpio_number = int(pin.name.split('_')[-1]) %>
+      % if gpio_number < 8: # THE NUMBER OF GPIOS ON THE ALWAYS ON PERIPHERAL DOMAIN GPIO
+        assign gpio_ao_in[${gpio_number}] = gpio_${gpio_number}_i;
+        assign gpio_${gpio_number}_o      = gpio_ao_out[${gpio_number}];
+        assign gpio_${gpio_number}_oe_o   = gpio_ao_oe[${gpio_number}];
+      % else:
+        assign gpio_in[${gpio_number}]  = gpio_${gpio_number}_i;
+        assign gpio_${gpio_number}_o    = gpio_out[${gpio_number}];
+        assign gpio_${gpio_number}_oe_o = gpio_oe[${gpio_number}];
+      %endif
+    % endif
+  % endfor
 
 endmodule  // core_v_mini_mcu

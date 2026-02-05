@@ -22,8 +22,8 @@ module core_v_mini_mcu
     parameter EXT_HARTS_RND = EXT_HARTS == 0 ? 1 : EXT_HARTS
 ) (
 
-    input  logic clk_i,
     input  logic rst_ni,
+    input  logic clk_i,
     input  logic boot_select_i,
     input  logic execute_from_flash_i,
     input  logic jtag_tck_i,

@@ -153,18 +153,10 @@ module x_heep_system
     .AO_SPC_NUM(AO_SPC_NUM),
     .EXT_HARTS(EXT_HARTS)
   ) core_v_mini_mcu_i (
-    <%
-    # INCLUDE HERE PINS THAT YU WILL RE-DEFINE ON THIS TOP LEVEL
-    # For example, you will have a block manipulating the reset (like here)
-    # So you still want the core-v-mini-mcu to take a reset, but not to connect it automatically
-    # from the pads, so you need to declare it manually
-    exclude_pins_from_corev = ["rst"]
-    %>
-    .rst_ni(rst_ngen),
-
     // MCU pads
+    .rst_ni(rst_ngen),
     % for pin in xheep.get_padring().get_connected_pins():
-      % if pin.module == "core_v_mini_mcu" and pin.name not in exclude_pins_from_corev:
+      % if pin.module == "core_v_mini_mcu":
         % if isinstance(pin, (Input, Inout)):
           .${pin.rtl_name()}i(${pin.rtl_name()}in_x),
         % endif

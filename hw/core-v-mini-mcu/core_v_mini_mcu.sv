@@ -313,8 +313,6 @@ module core_v_mini_mcu
   end
 `endif
 
-
-
   // masters signals
   obi_req_t core_instr_req;
   obi_resp_t core_instr_resp;
@@ -843,6 +841,5 @@ module core_v_mini_mcu
   assign gpio_in[30]              = gpio_30_i;
   assign gpio_30_o                = gpio_out[30];
   assign gpio_30_oe_o             = gpio_oe[30];
-
 
 endmodule  // core_v_mini_mcu

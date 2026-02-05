@@ -101,7 +101,6 @@ def generate_floorplan_visuals(floorplan, padring, filename_base="floorplan"):
                 cell = getattr(pad, c_type, None)
                 tip_str = f"{get_cell_tree(pad)}\n{get_cell_tree(cell)}"
                 tip_str = tip_str.replace("'", "\\'").replace("\n", "\\n")
-                print(tip_str)
 
                 if not cell:
                     # Handle Physical pads that might not have cell objects

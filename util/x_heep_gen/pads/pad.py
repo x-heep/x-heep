@@ -21,7 +21,6 @@ class Pad:
     orientation: Orientation = None
     iocell_center_to_ring_edge: float = None
     bondpad_center_to_ring_edge: float = None
-    user_domain: str = ""
 
     def __init__(self, global_index, pins=[], attributes={}):
         self.global_index = global_index

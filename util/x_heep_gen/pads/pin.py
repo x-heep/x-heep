@@ -5,7 +5,6 @@ from enum import Enum
 class Pin:
     DEFAULT_MODULE = "core_v_mini_mcu"
 
-    user_domain = ""
     module = ""
 
     def __init__(

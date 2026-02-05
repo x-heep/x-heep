@@ -8,10 +8,10 @@ black==24.8.0
 deepdiff
 
 # Development version with OT-specific changes
-git+https://github.com/davideschiavone/fusesoc.git@ot#egg=fusesoc >= 1.11.0
+git+https://github.com/x-heep/fusesoc.git@ot#egg=fusesoc
 
-# Install edalize by hand as pip install git+https://github.com/davideschiavone/edalize.git
-git+https://github.com/davideschiavone/edalize.git
+# Install edalize by hand as pip install git+https://github.com/x-heep/edalize.git
+git+https://github.com/x-heep/edalize.git
 
 # RISC-V firmware profiler
 git+https://github.com/vlsi-lab/rv_profile.git

@@ -91,24 +91,24 @@ module x_heep_system
     output logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_done_o,
 
     % for pad in xheep.get_padring().pad_list:
-<%
-has_input_pin = any(isinstance(pin, Input) for pin in pad.pins)
-has_output_pin = any(isinstance(pin, Output) for pin in pad.pins)
-has_inout_pin = any(isinstance(pin, Inout) for pin in pad.pins)
+      <%
+      has_input_pin = any(isinstance(pin, Input) for pin in pad.pins)
+      has_output_pin = any(isinstance(pin, Output) for pin in pad.pins)
+      has_inout_pin = any(isinstance(pin, Inout) for pin in pad.pins)
 
-if not (has_input_pin or has_output_pin or has_inout_pin): continue
-pin0_name = pad.pins[0].rtl_name()
-muxed_string = "_muxed" if pad.is_muxed() else ""
-%>\
-    % if has_inout_pin or (has_input_pin and has_output_pin):
-    inout wire ${pin0_name}io${"" if loop.last else ","}
-    % elif has_input_pin:
-    inout wire ${pin0_name}i${"" if loop.last else ","}
-    % elif has_output_pin:
-    inout wire ${pin0_name}o${"" if loop.last else ","}
-    % endif
+      if not (has_input_pin or has_output_pin or has_inout_pin):
+        continue
+      pin0_name = pad.pins[0].rtl_name()
+      muxed_string = "_muxed" if pad.is_muxed() else ""
+      %>\
+      % if has_inout_pin or (has_input_pin and has_output_pin):
+        inout wire ${pin0_name}io${"" if loop.last else ","}
+      % elif has_input_pin:
+        inout wire ${pin0_name}i${"" if loop.last else ","}
+      % elif has_output_pin:
+        inout wire ${pin0_name}o${"" if loop.last else ","}
+      % endif
     % endfor
-
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -139,12 +139,12 @@ muxed_string = "_muxed" if pad.is_muxed() else ""
   % for pad in xheep.get_padring().pad_list:
     % for pin in pad.pins:
       % if isinstance(pin, PinDigital):
-  logic ${pin.rtl_name()}in_x, ${pin.rtl_name()}out_x, ${pin.rtl_name()}oe_x;
+        logic ${pin.rtl_name()}in_x, ${pin.rtl_name()}out_x, ${pin.rtl_name()}oe_x;
       % endif
     % endfor
-      % if len(pad.pins) > 1 and any( isinstance(pin, PinDigital) for pin in pad.pins ):
-  logic ${pad.pins[0].rtl_name()}in_x_muxed, ${pad.pins[0].rtl_name()}out_x_muxed, ${pad.pins[0].rtl_name()}oe_x_muxed;
-      %endif
+    % if len(pad.pins) > 1 and any( isinstance(pin, PinDigital) for pin in pad.pins ):
+      logic ${pad.pins[0].rtl_name()}in_x_muxed, ${pad.pins[0].rtl_name()}out_x_muxed, ${pad.pins[0].rtl_name()}oe_x_muxed;
+    % endif
   % endfor
 
 
@@ -153,26 +153,26 @@ muxed_string = "_muxed" if pad.is_muxed() else ""
     .AO_SPC_NUM(AO_SPC_NUM),
     .EXT_HARTS(EXT_HARTS)
   ) core_v_mini_mcu_i (
-<%
-# INCLUDE HERE PINS THAT YU WILL RE-DEFINE ON THIS TOP LEVEL
-# For example, you will have a block manipulating the reset (like here)
-# So you still want the core-v-mini-mcu to take a reset, but not to connect it automatically
-# from the pads, so you need to declare it manually
-exclude_pins_from_corev = ["rst"]
-%>
+    <%
+    # INCLUDE HERE PINS THAT YU WILL RE-DEFINE ON THIS TOP LEVEL
+    # For example, you will have a block manipulating the reset (like here)
+    # So you still want the core-v-mini-mcu to take a reset, but not to connect it automatically
+    # from the pads, so you need to declare it manually
+    exclude_pins_from_corev = ["rst"]
+    %>
     .rst_ni(rst_ngen),
 
     // MCU pads
     % for pin in xheep.get_padring().get_connected_pins():
       % if pin.module == "core_v_mini_mcu" and pin.name not in exclude_pins_from_corev:
         % if isinstance(pin, (Input, Inout)):
-    .${pin.rtl_name()}i(${pin.rtl_name()}in_x),
+          .${pin.rtl_name()}i(${pin.rtl_name()}in_x),
         % endif
         % if isinstance(pin, (Output, Inout)):
-    .${pin.rtl_name()}o(${pin.rtl_name()}out_x),
+          .${pin.rtl_name()}o(${pin.rtl_name()}out_x),
         % endif
         % if isinstance(pin, Inout):
-    .${pin.rtl_name()}oe_o(${pin.rtl_name()}oe_x),
+          .${pin.rtl_name()}oe_o(${pin.rtl_name()}oe_x),
         % endif
       % endif
     % endfor
@@ -235,42 +235,42 @@ analog_signal_pads = [ pad for pad in xheep.get_padring().pad_list if any(isinst
 %>
   pad_ring pad_ring_i (
     % for pad in xheep.get_padring().pad_list:
-<%
-has_input_pin = any(isinstance(pin, Input) for pin in pad.pins)
-has_output_pin = any(isinstance(pin, Output) for pin in pad.pins)
-has_inout_pin = any(isinstance(pin, Inout) for pin in pad.pins)
+      <%
+      has_input_pin = any(isinstance(pin, Input) for pin in pad.pins)
+      has_output_pin = any(isinstance(pin, Output) for pin in pad.pins)
+      has_inout_pin = any(isinstance(pin, Inout) for pin in pad.pins)
 
-if not (has_input_pin or has_output_pin or has_inout_pin): continue
-pin0_name = pad.pins[0].rtl_name()
-muxed_string = "_muxed" if pad.is_muxed() else ""
-%>\
+      if not (has_input_pin or has_output_pin or has_inout_pin):
+        continue
+      pin0_name = pad.pins[0].rtl_name()
+      muxed_string = "_muxed" if pad.is_muxed() else ""
+      %>\
       % if has_inout_pin or (has_input_pin and has_output_pin):
-    .${pin0_name}i(${pin0_name}out_x${muxed_string}),
-    .${pin0_name}oe_i(${pin0_name}oe_x${muxed_string}),
-    .${pin0_name}o(${pin0_name}in_x${muxed_string}),
-    .${pin0_name}io(${pin0_name}io),
+        .${pin0_name}i(${pin0_name}out_x${muxed_string}),
+        .${pin0_name}oe_i(${pin0_name}oe_x${muxed_string}),
+        .${pin0_name}o(${pin0_name}in_x${muxed_string}),
+        .${pin0_name}io(${pin0_name}io),
       % elif has_input_pin:
-    .${pin0_name}o(${pin0_name}in_x${muxed_string}),
-    .${pin0_name}io(${pin0_name}i),
+        .${pin0_name}o(${pin0_name}in_x${muxed_string}),
+        .${pin0_name}io(${pin0_name}i),
       % elif has_output_pin:
-    .${pin0_name}i(${pin0_name}out_x${muxed_string}),
-    .${pin0_name}io(${pin0_name}o${muxed_string}),
+        .${pin0_name}i(${pin0_name}out_x${muxed_string}),
+        .${pin0_name}io(${pin0_name}o${muxed_string}),
       % endif
     % endfor
 
-    % if len(analog_signal_pads)>0:
-        
-        `ifdef SYNTHESIS
+    % if len(analog_signal_pads) > 0:
+      `ifdef SYNTHESIS
         % for pad in analog_signal_pads:
-     .${pad.name.lower()}_io,
+          .${pad.name.lower()}_io,
         % endfor
-        `endif
+      `endif
     %endif
 
     % if attribute_bits != None:
-        .pad_attributes_i(pad_attributes)
+      .pad_attributes_i(pad_attributes)
     % else:
-        .pad_attributes_i('0)
+      .pad_attributes_i('0)
     % endif
   );
 
@@ -286,7 +286,7 @@ muxed_string = "_muxed" if pad.is_muxed() else ""
 
 // PAD MULTIPLEXERS
 % for pad in [pad for pad in xheep.get_padring().pad_list if pad.is_muxed() and any(isinstance(pin, PinDigital) for pin in pad.pins)]:
-<% pin0_name = pad.pins[0].rtl_name() %>\
+  <% pin0_name = pad.pins[0].rtl_name() %>\
   always_comb
   begin
     % for pin in pad.pins:
@@ -320,10 +320,10 @@ muxed_string = "_muxed" if pad.is_muxed() else ""
       .reg_req_i(pad_req),
       .reg_rsp_o(pad_resp)${"," if any_muxed_pads or attribute_bits != None else ""}
       % if attribute_bits != None:
-      .pad_attributes_o(pad_attributes)${"," if any_muxed_pads else ""}
+        .pad_attributes_o(pad_attributes)${"," if any_muxed_pads else ""}
       % endif
       % if any_muxed_pads:
-      .pad_muxes_o(pad_muxes)
+        .pad_muxes_o(pad_muxes)
       % endif
   );
 

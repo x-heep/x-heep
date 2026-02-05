@@ -310,171 +310,67 @@ module peripheral_subsystem
       .msip_o(msip_o)
   );
 
-  spi_host #(
-      .reg_req_t(reg_pkg::reg_req_t),
-      .reg_rsp_t(reg_pkg::reg_rsp_t)
-  ) spi_host_dma_i (
-      .clk_i(clk_cg),
-      .rst_ni,
-      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SPI_HOST_IDX]),
-      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SPI_HOST_IDX]),
-      .alert_rx_i(),
-      .alert_tx_o(),
-      .passthrough_i(spi_device_pkg::PASSTHROUGH_REQ_DEFAULT),
-      .passthrough_o(),
-      .cio_sck_o(spi_sck_o),
-      .cio_sck_en_o(spi_sck_en_o),
-      .cio_csb_o(spi_csb_o),
-      .cio_csb_en_o(spi_csb_en_o),
-      .cio_sd_o(spi_sd_o),
-      .cio_sd_en_o(spi_sd_en_o),
-      .cio_sd_i(spi_sd_i),
-      .rx_valid_o(spi_rx_valid_o),
-      .tx_ready_o(spi_tx_ready_o),
-      .hw2reg_status_o(),
-      .intr_error_o(),
-      .intr_spi_event_o(spi_intr_event_o)
-  );
+  assign spi_sck_o                 = '0;
+  assign spi_sck_en_o              = '0;
+  assign spi_csb_o                 = '0;
+  assign spi_csb_en_o              = '0;
+  assign spi_sd_o                  = '0;
+  assign spi_sd_en_o               = '0;
+  assign spi_intr_event_o          = '0;
+  assign spi_rx_valid_o            = '0;
+  assign spi_tx_ready_o            = '0;
 
-  gpio #(
-      .reg_req_t(reg_pkg::reg_req_t),
-      .reg_rsp_t(reg_pkg::reg_rsp_t)
-  ) gpio_i (
-      .clk_i(clk_cg),
-      .rst_ni,
-      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::GPIO_IDX]),
-      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::GPIO_IDX]),
-      .gpio_in({cio_gpio_i, 8'b0}),
-      .gpio_out({cio_gpio_o, cio_gpio_unused}),
-      .gpio_tx_en_o({cio_gpio_en_o, cio_gpio_en_unused}),
-      .gpio_in_sync_o(),
-      .pin_level_interrupts_o({gpio_intr, gpio_int_unused}),
-      .global_interrupt_o()
-  );
+  assign cio_gpio_o                = '0;
+  assign cio_gpio_en_o             = '0;
+  assign gpio_intr                 = '0;
 
-  reg_to_tlul #(
-      .req_t(reg_pkg::reg_req_t),
-      .rsp_t(reg_pkg::reg_rsp_t),
-      .tl_h2d_t(tlul_pkg::tl_h2d_t),
-      .tl_d2h_t(tlul_pkg::tl_d2h_t),
-      .tl_a_user_t(tlul_pkg::tl_a_user_t),
-      .tl_a_op_e(tlul_pkg::tl_a_op_e),
-      .TL_A_USER_DEFAULT(tlul_pkg::TL_A_USER_DEFAULT),
-      .PutFullData(tlul_pkg::PutFullData),
-      .Get(tlul_pkg::Get)
-  ) reg_to_tlul_i2c_i (
-      .tl_o(i2c_tl_h2d),
-      .tl_i(i2c_tl_d2h),
-      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::I2C_IDX]),
-      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::I2C_IDX])
-  );
+  assign i2c_tl_d2h                = '0;
+  assign cio_scl_o                 = '0;
+  assign cio_scl_en_o              = '0;
+  assign cio_sda_o                 = '0;
+  assign cio_sda_en_o              = '0;
+  assign i2c_intr_fmt_watermark    = '0;
+  assign i2c_intr_rx_watermark     = '0;
+  assign i2c_intr_fmt_overflow     = '0;
+  assign i2c_intr_rx_overflow      = '0;
+  assign i2c_intr_nak              = '0;
+  assign i2c_intr_scl_interference = '0;
+  assign i2c_intr_sda_interference = '0;
+  assign i2c_intr_stretch_timeout  = '0;
+  assign i2c_intr_sda_unstable     = '0;
+  assign i2c_intr_trans_complete   = '0;
+  assign i2c_intr_tx_empty         = '0;
+  assign i2c_intr_tx_nonempty      = '0;
+  assign i2c_intr_tx_overflow      = '0;
+  assign i2c_intr_acq_overflow     = '0;
+  assign i2c_intr_ack_stop         = '0;
+  assign i2c_intr_host_timeout     = '0;
 
-  i2c i2c_i (
-      .clk_i(clk_cg),
-      .rst_ni,
-      .tl_i(i2c_tl_h2d),
-      .tl_o(i2c_tl_d2h),
-      .cio_scl_i,
-      .cio_scl_o,
-      .cio_scl_en_o,
-      .cio_sda_i,
-      .cio_sda_o,
-      .cio_sda_en_o,
-      .intr_fmt_watermark_o(i2c_intr_fmt_watermark),
-      .intr_rx_watermark_o(i2c_intr_rx_watermark),
-      .intr_fmt_overflow_o(i2c_intr_fmt_overflow),
-      .intr_rx_overflow_o(i2c_intr_rx_overflow),
-      .intr_nak_o(i2c_intr_nak),
-      .intr_scl_interference_o(i2c_intr_scl_interference),
-      .intr_sda_interference_o(i2c_intr_sda_interference),
-      .intr_stretch_timeout_o(i2c_intr_stretch_timeout),
-      .intr_sda_unstable_o(i2c_intr_sda_unstable),
-      .intr_trans_complete_o(i2c_intr_trans_complete),
-      .intr_tx_empty_o(i2c_intr_tx_empty),
-      .intr_tx_nonempty_o(i2c_intr_tx_nonempty),
-      .intr_tx_overflow_o(i2c_intr_tx_overflow),
-      .intr_acq_overflow_o(i2c_intr_acq_overflow),
-      .intr_ack_stop_o(i2c_intr_ack_stop),
-      .intr_host_timeout_o(i2c_intr_host_timeout)
-  );
+  assign rv_timer_tl_d2h           = '0;
+  assign rv_timer_2_intr_o         = '0;
+  assign rv_timer_3_intr_o         = '0;
 
-  reg_to_tlul #(
-      .req_t(reg_pkg::reg_req_t),
-      .rsp_t(reg_pkg::reg_rsp_t),
-      .tl_h2d_t(tlul_pkg::tl_h2d_t),
-      .tl_d2h_t(tlul_pkg::tl_d2h_t),
-      .tl_a_user_t(tlul_pkg::tl_a_user_t),
-      .tl_a_op_e(tlul_pkg::tl_a_op_e),
-      .TL_A_USER_DEFAULT(tlul_pkg::TL_A_USER_DEFAULT),
-      .PutFullData(tlul_pkg::PutFullData),
-      .Get(tlul_pkg::Get)
-  ) rv_timer_reg_to_tlul_i (
-      .tl_o(rv_timer_tl_h2d),
-      .tl_i(rv_timer_tl_d2h),
-      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::RV_TIMER_IDX]),
-      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::RV_TIMER_IDX])
-  );
+  assign spi2_sck_o                = '0;
+  assign spi2_sck_en_o             = '0;
+  assign spi2_csb_o                = '0;
+  assign spi2_csb_en_o             = '0;
+  assign spi2_sd_o                 = '0;
+  assign spi2_sd_en_o              = '0;
+  assign spi2_intr_event           = '0;
 
-  rv_timer rv_timer_2_3_i (
-      .clk_i(clk_cg),
-      .rst_ni,
-      .tl_i(rv_timer_tl_h2d),
-      .tl_o(rv_timer_tl_d2h),
-      .intr_timer_expired_0_0_o(rv_timer_2_intr_o),
-      .intr_timer_expired_1_0_o(rv_timer_3_intr_o)
-  );
+  assign pdm2pcm_clk_o             = '0;
 
-  spi_host #(
-      .reg_req_t(reg_pkg::reg_req_t),
-      .reg_rsp_t(reg_pkg::reg_rsp_t)
-  ) spi2_host (
-      .clk_i(clk_cg),
-      .rst_ni,
-      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SPI2_IDX]),
-      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SPI2_IDX]),
-      .alert_rx_i(),
-      .alert_tx_o(),
-      .passthrough_i(spi_device_pkg::PASSTHROUGH_REQ_DEFAULT),
-      .passthrough_o(),
-      .cio_sck_o(spi2_sck_o),
-      .cio_sck_en_o(spi2_sck_en_o),
-      .cio_csb_o(spi2_csb_o),
-      .cio_csb_en_o(spi2_csb_en_o),
-      .cio_sd_o(spi2_sd_o),
-      .cio_sd_en_o(spi2_sd_en_o),
-      .cio_sd_i(spi2_sd_i),
-      .rx_valid_o(),
-      .tx_ready_o(),
-      .hw2reg_status_o(),
-      .intr_error_o(),
-      .intr_spi_event_o(spi2_intr_event)
-  );
+  assign pdm2pcm_clk_en_o          = 1;
 
-  assign pdm2pcm_clk_o = '0;
 
-  assign pdm2pcm_clk_en_o = 1;
-
-  i2s #(
-      .reg_req_t(reg_pkg::reg_req_t),
-      .reg_rsp_t(reg_pkg::reg_rsp_t)
-  ) i2s_i (
-      .clk_i(clk_cg),
-      .rst_ni,
-      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::I2S_IDX]),
-      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::I2S_IDX]),
-
-      .i2s_sck_o(i2s_sck_o),
-      .i2s_sck_oe_o(i2s_sck_oe_o),
-      .i2s_sck_i(i2s_sck_i),
-      .i2s_ws_o(i2s_ws_o),
-      .i2s_ws_oe_o(i2s_ws_oe_o),
-      .i2s_ws_i(i2s_ws_i),
-      .i2s_sd_o(i2s_sd_o),
-      .i2s_sd_oe_o(i2s_sd_oe_o),
-      .i2s_sd_i(i2s_sd_i),
-      .intr_i2s_event_o(i2s_intr_event),
-      .i2s_rx_valid_o(i2s_rx_valid_o)
-  );
+  assign i2s_sck_oe_o              = 1'b0;
+  assign i2s_sck_o                 = 1'b0;
+  assign i2s_ws_oe_o               = 1'b0;
+  assign i2s_ws_o                  = 1'b0;
+  assign i2s_sd_oe_o               = 1'b0;
+  assign i2s_sd_o                  = 1'b0;
+  assign i2s_intr_event            = 1'b0;
+  assign i2s_rx_valid_o            = 1'b0;
 
 
 

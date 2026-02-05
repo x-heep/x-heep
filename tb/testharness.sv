@@ -669,7 +669,7 @@ module testharness #(
           .io3(spi_flash_sd_io[3])
       );
 
-      if ((core_v_mini_mcu_pkg::CpuType == cv32e40x || core_v_mini_mcu_pkg::CpuType == cv32e40px || (FPU_SS_ZFINX && core_v_mini_mcu_pkg::CpuType == cv32e20)) && 0 && (QUADRILATERO == 0)) begin: gen_fpu_ss_wrapper
+      if ((core_v_mini_mcu_pkg::CpuType == cv32e40x || core_v_mini_mcu_pkg::CpuType == cv32e40px || (FPU_SS_ZFINX && core_v_mini_mcu_pkg::CpuType == cv32e20)) && 1 && (QUADRILATERO == 0)) begin: gen_fpu_ss_wrapper
         fpu_ss_wrapper #(
             .PULP_ZFINX(FPU_SS_ZFINX),
             .INPUT_BUFFER_DEPTH(1),
@@ -691,7 +691,7 @@ module testharness #(
             .xif_result_if(ext_if)
         );
       end
-      if ((core_v_mini_mcu_pkg::CpuType == cv32e40x || core_v_mini_mcu_pkg::CpuType == cv32e40px || core_v_mini_mcu_pkg::CpuType == cv32e20) && 0 && (QUADRILATERO != 0)) begin: gen_quadrilatero_wrapper
+      if ((core_v_mini_mcu_pkg::CpuType == cv32e40x || core_v_mini_mcu_pkg::CpuType == cv32e40px || core_v_mini_mcu_pkg::CpuType == cv32e20) && 1 && (QUADRILATERO != 0)) begin: gen_quadrilatero_wrapper
         quadrilatero_wrapper #(
             .MATRIX_FPU(0)
         ) quadrilatero_wrapper_i (

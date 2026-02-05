@@ -70,7 +70,7 @@ if cpu.is_defined("rv32m"):
     cv32e20_params.append(f".RV32M(cve2_pkg::{cpu.get_sv_str('rv32m')})")
 
 if cpu.is_defined("cv_x_if"):
-    cv32e20_params.append(f".X_INTERFACE({cpu.get_sv_str('cv_x_if')})")
+    cv32e20_params.append(f".XInterface({cpu.get_sv_str('cv_x_if')})")
 
 if cpu.is_defined("num_mhpmcounters"):
     cv32e20_params.append(f".MHPMCounterNum({cpu.get_sv_str('num_mhpmcounters')})")

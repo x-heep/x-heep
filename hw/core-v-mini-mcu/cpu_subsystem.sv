@@ -56,10 +56,89 @@ module cpu_subsystem
   assign core_instr_req_o.we    = '0;
   assign core_instr_req_o.be    = 4'b1111;
 
+  logic [16-1:0] scoreboard_d, scoreboard_q;
+  logic [4-1:0]  x_instr_id_d, x_instr_id_q;
+  logic [31:16]  int_tb;
+  logic [3:0] fake_cnt_q, fake_cnt_d;
+  logic debug_tb;
+  typedef enum logic [2:0] { TB_INT_ENABLE, TB_INT_NOT_ENABLE, TB_NEXT_INT, TB_HOLD, TB_FINISHED } id_fsm_e;
+  id_fsm_e id_fsm_q, id_fsm_d;
 
 
+    always_comb begin
+        scoreboard_d = scoreboard_q;
+        x_instr_id_d = x_instr_id_q;
+        if (xif_issue_if.issue_valid && xif_issue_if.issue_ready && xif_issue_if.issue_resp.accept) begin
+        scoreboard_d[x_instr_id_q] = 1'b1;
+        x_instr_id_d = x_instr_id_q + 1'b1;
+        end
+        if (xif_result_if.result_valid) begin
+        scoreboard_d[xif_result_if.result.id] = 1'b0;
+        end
+    end
+    always_ff @(posedge clk_i or negedge rst_ni) begin : x_scoreboard
+        if (!rst_ni) begin
+        scoreboard_q <= '0;
+        x_instr_id_q <= '0;
+        fake_cnt_q <='0;
+        id_fsm_q <= TB_INT_ENABLE;
+        end else begin
+        scoreboard_q <= scoreboard_d;
+        x_instr_id_q <= x_instr_id_d;
+        id_fsm_q <= id_fsm_d;
+        fake_cnt_q <= fake_cnt_d;
+        end
+    end
 
-  cve2_xif_wrapper #() cv32e20_i (
+    assign int_tb[30:16] = '0;
+    assign debug_tb = '0;
+
+ always_comb begin
+    id_fsm_d   = id_fsm_q;
+    int_tb[31] = x_instr_id_q >= 1;
+    fake_cnt_d = fake_cnt_q + 1;
+
+    unique case (id_fsm_q)
+        TB_INT_ENABLE: begin
+            if (core_instr_req_o.addr == 32'h07C && core_instr_req_o.req && core_instr_resp_i.gnt)
+                id_fsm_d = TB_INT_NOT_ENABLE;
+        end
+        TB_INT_NOT_ENABLE: begin
+            if(core_instr_req_o.addr == 32'h0300 && core_instr_req_o.req && core_instr_resp_i.gnt) begin
+                id_fsm_d  = TB_NEXT_INT;
+                fake_cnt_d = '0;
+            end
+            int_tb[31]    = 1'b0;
+        end
+
+        TB_NEXT_INT: begin
+            id_fsm_d      = fake_cnt_q > 3 ? TB_HOLD : TB_NEXT_INT;
+            int_tb[31]    = fake_cnt_q > 3;
+        end
+
+        TB_HOLD: begin
+            int_tb[31]    = 1'b1;
+            if (core_instr_req_o.addr == 32'h07C && core_instr_req_o.req && core_instr_resp_i.gnt)
+                id_fsm_d = TB_FINISHED;
+        end
+
+        TB_FINISHED: begin
+            int_tb[31]    = 1'b0;
+        end
+
+
+        default: begin
+            id_fsm_d      = TB_INT_ENABLE;
+        end
+    endcase
+ end
+    
+
+  cve2_xif_wrapper #(
+      .RV32E(1'b0),
+      .RV32M(cve2_pkg::RV32MFast),
+      .XInterface(1)
+  ) cv32e20_i (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
@@ -88,9 +167,9 @@ module cpu_subsystem
       .irq_software_i(irq_i[3]),
       .irq_timer_i   (irq_i[7]),
       .irq_external_i(irq_i[11]),
-      .irq_fast_i    (irq_i[31:16]),
+      .irq_fast_i    (irq_i[31:16] | int_tb),
 
-      .debug_req_i(debug_req_i),
+      .debug_req_i(debug_req_i  | debug_tb),
       .debug_halted_o(),
 
       // CORE-V-XIF

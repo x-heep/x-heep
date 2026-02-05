@@ -2,11 +2,10 @@
     bus_type: "onetoM"
     ram_banks: {
         code_and_data: {
-            num: 2
+            num: 6
             sizes: [32]
         }
     }
-
     linker_sections:
     [
         {

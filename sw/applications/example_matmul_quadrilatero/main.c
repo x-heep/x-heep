@@ -113,7 +113,9 @@ uint32_t check_results(int K, int N, int M);
 
 #define MACC(HEAD,__mat1__, __mat2__, __mat3__) HEAD "  m" #__mat1__", m"#__mat2__", m"#__mat3__
 // -------------------------------------------------------------------------------------------------------------------------------------
-
+void fic_irq_ext_peripheral(void) {
+    return;
+}
 
 int main()
 {
@@ -135,6 +137,9 @@ int main()
     //start mcycle csr
     CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
     CSR_WRITE(CSR_REG_MCYCLE, 0);
+
+    CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
+    CSR_SET_BITS(CSR_REG_MIE, 1<<31);
 
     //execute the kernel
     MATRIX_MUL(addrA,addrB,addrC,K_size,N_size,M_size,SIMD_SHIFT);
@@ -211,6 +216,7 @@ void  __attribute__ ((noinline))  matrixMul_4x4(DATA_IN_t* addrA,DATA_IN_t* addr
 
 
 // Output tile size: 8x8
+//TODO: set a timer
 void  __attribute__ ((noinline))  matrixMul_8x8(DATA_IN_t* addrA,DATA_IN_t* addrB,DATA_OUT_t* addrC, int K, int N, int M, int shift)
 {
 
@@ -253,6 +259,7 @@ void  __attribute__ ((noinline))  matrixMul_8x8(DATA_IN_t* addrA,DATA_IN_t* addr
     asm volatile("slli    t5,t1, 2              "                            );   // t5  = n0*4;
     asm volatile("mld.w   m0, (s1) , s3         "                            );   // m0  = A[s1] 
     asm volatile("mzero   m4                    "                            );   // m4  = 0;
+    asm volatile("divu    x0, x0, x1            "                            );   //divu
     asm volatile("mul     s9,s3,t1              "                            );   // s9  = K*4*n0;
     asm volatile("add     s9 ,%0,s9             " :: "r" (addrB)             );   // s9  = startAddrB0 = addrB + K*4*n0 
     asm volatile("mld.w   m1, (s9) , a6         "                            );   // m1  = B[s9]

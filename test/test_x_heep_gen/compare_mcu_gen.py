@@ -1,78 +1,88 @@
 import subprocess
 import pathlib
 import shutil
-import sys
 import tempfile
 from typing import List
 import filecmp
 
-REPO_ROOT = pathlib.Path(__file__).resolve().parent
-PYTHON = sys.executable
-MCU_GEN = ["util/mcu_gen.py"]
-
-PRUNE_DIRS = {"hw/vendor", "util", "test"}
+REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]
 
 
-def run(cmd: List[str], cwd=None, check=True):
+def run(cmd: List[str], cwd=None, check=True, env=None):
+    """
+    Run a command and print it to stdout.
+
+    :param cmd: Command to run as a list of strings.
+    :param cwd: Current working directory to run the command in.
+    :param check: Whether to raise an exception on non-zero exit code.
+    """
     print("+", " ".join(map(str, cmd)))
-    subprocess.run(cmd, cwd=cwd, check=check)
+    subprocess.run(cmd, cwd=cwd, check=check, env=env)
 
 
-def find_tpl_files(repo_root: pathlib.Path):
-    tpl_files = []
-    for path in repo_root.rglob("*.tpl"):
-        rel = path.relative_to(repo_root)
-        if any(str(rel).startswith(p) for p in PRUNE_DIRS):
-            continue
-        tpl_files.append(path)
-    return tpl_files
+def get_mcu_gen_templates(repo_root: pathlib.Path) -> List[pathlib.Path]:
+    """
+    Get mcu-gen templates via the Makefile's MCU_GEN_TEMPLATES definition.
+
+    :param repo_root: Root of the repository.
+    :return: List of pathlib.Path objects pointing to .tpl files.
+    """
+    output = subprocess.check_output(
+        [
+            "make",
+            "-s",
+            "--eval",
+            "print-mcu-gen-templates:;@echo $(MCU_GEN_TEMPLATES)",
+            "print-mcu-gen-templates",
+        ],
+        cwd=repo_root,
+        text=True,
+    ).strip()
+
+    if not output:
+        return []
+
+    return [repo_root / path for path in output.split()]
 
 
 def mcu_gen(repo_root: pathlib.Path, pads_cfg: pathlib.Path, outdir: pathlib.Path):
+    """
+    Run the mcu-gen process. Copies generated files to the specified output directory.
+
+    :param repo_root: Root of the repository.
+    :param pads_cfg: Path to the pads configuration file.
+    :param outdir: Output directory to copy generated files.
+    """
     build_dir = repo_root / "build"
     build_dir.mkdir(exist_ok=True)
 
-    xheep_cache = build_dir / "xheep_config_cache.pickle"
-    x_heep_cfg = repo_root / "configs/general.hjson"
-
-    tpl_files = find_tpl_files(repo_root)
-    tpl_list = " ".join(str(p) for p in tpl_files)
-
-    base_cmd = [
-        PYTHON,
-        "util/mcu_gen.py",
-        "--cached_path", str(xheep_cache),
-        "--config", str(x_heep_cfg),
-        "--pads_cfg", str(pads_cfg),
-    ]
-
-    run(base_cmd, cwd=repo_root)
+    tpl_files = get_mcu_gen_templates(repo_root)
 
     run(
         [
-            PYTHON,
-            "util/mcu_gen.py",
-            "--cached_path", str(xheep_cache),
-            "--cached",
-            "--outtpl", tpl_list,
+            "make",
+            "mcu-gen",
+            f"PADS_CFG={pads_cfg}",
         ],
-        cwd=repo_root,
-    )
-
-    run(
-        ["make", "verible"],
         cwd=repo_root,
     )
 
     for tpl in tpl_files:
         gen = tpl.with_suffix("")
-        if gen.exists():
+        if gen.is_file():
             target = outdir / gen.relative_to(repo_root)
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(gen, target)
 
 
 def list_diff_files(left: pathlib.Path, right: pathlib.Path) -> List[str]:
+    """
+    Recursively list files that differ between two directories.
+
+    :param left: First directory to compare.
+    :param right: Second directory to compare.
+    :return: List of relative file paths that differ between the two directories.
+    """
     def walk(cmp: filecmp.dircmp, rel: pathlib.Path) -> List[str]:
         diffs = []
         for name in cmp.diff_files + cmp.left_only + cmp.right_only:
@@ -85,11 +95,6 @@ def list_diff_files(left: pathlib.Path, right: pathlib.Path) -> List[str]:
 
 
 def main():
-    original_ref = subprocess.check_output(
-        ["git", "rev-parse", "--abbrev-ref", "HEAD"],
-        text=True,
-    ).strip()
-
     with tempfile.TemporaryDirectory(prefix="mcu-gen-main-") as tmp:
         tmp = pathlib.Path(tmp)
 

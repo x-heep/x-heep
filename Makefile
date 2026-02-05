@@ -174,7 +174,7 @@ app: clean-app
 	echo "\033[0;31mI would start by checking b) or c) if I were you!\033[0m"; \
 	exit 1; \
 	}
-	@python scripts/building/mem_usage.py
+	@$(PYTHON) scripts/building/mem_usage.py
 
 ## Just list the different application names available
 app-list:
@@ -314,11 +314,17 @@ gdb_connect:
 test:
 	$(MAKE) mcu-gen X_HEEP_CFG=configs/ci.hjson
 	$(RM) test/*.log
-	python3 test/test_apps/test_apps.py $(TEST_FLAGS) 2>&1 | tee test/test_apps/test_apps.log
+	$(PYTHON) test/test_apps/test_apps.py $(TEST_FLAGS) 2>&1 | tee test/test_apps/test_apps.log
 	@echo "You can also find the output in test/test_apps/test_apps.log"
-	python3 test/test_x_heep_gen/test_peripherals.py
+	$(PYTHON) test/test_x_heep_gen/test_peripherals.py
 	@echo "You can also find the peripheral test outputs in test/test_x_heep_gen/outputs"
 
+## Compares two mcu-gen runs and lists the differences in the generated files. 
+## It can be used to manually check if a change in the configuration or in the mcu-gen code has an
+## effect on the generated files.
+.PHONY: compare-mcu-gen
+compare-mcu-gen:
+	$(PYTHON) test/test_x_heep_gen/compare_mcu_gen.py
 
 ## Builds the specified app, loads it into the programmer's flash and then opens picocom to see the output
 ## @param PROJECT=<folder_name_of_the_project_to_be_built>

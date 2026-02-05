@@ -9,7 +9,13 @@
 <%
   dma = xheep.get_base_peripheral_domain().get_dma()
   memory_ss = xheep.memory_ss()
+  dma = xheep.get_base_peripheral_domain().get_dma()
+  memory_ss = xheep.memory_ss()
   dma_obi_msb = dma.get_num_master_ports() - 1
+
+  clk_module = next((p for p in xheep.get_padring().get_connected_pins() if p.name == "clk"), None).module
+  rst_module = next((p for p in xheep.get_padring().get_connected_pins() if p.name == "rst"), None).module
+
 %>
 
 module core_v_mini_mcu
@@ -28,7 +34,12 @@ module core_v_mini_mcu
     parameter EXT_HARTS_RND = EXT_HARTS == 0 ? 1 : EXT_HARTS
 ) (
 
-    input logic rst_ni,
+    % if clk_module != "core_v_mini_mcu":
+      input logic clk_i,
+    % endif
+    % if rst_module != "core_v_mini_mcu":
+      input logic rst_ni,
+    % endif
     % for pin in xheep.get_padring().get_connected_pins():
       % if pin.module == "core_v_mini_mcu":
         % if isinstance(pin, (Input, Inout)):
@@ -42,7 +53,7 @@ module core_v_mini_mcu
         % endif
       % endif
     % endfor
-
+    
     // IDs
     input logic [31:0] hart_id_i,
     input logic [31:0] xheep_instance_id_i,

@@ -58,6 +58,7 @@ class Output(PinDigital):
         super().__init__(name, module, attributes=attributes)
         self.iocell.update(rtl_wrapper="u_pad_cell_output")
 
+
 class Inout(PinDigital):
     def __init__(self, name, module=None, attributes={}):
         super().__init__(name, module, attributes=attributes)

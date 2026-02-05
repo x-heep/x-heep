@@ -28,6 +28,9 @@ class Pin:
         self.module = module if module is not None else Pin.DEFAULT_MODULE
         self.attributes = attributes
 
+    def __str__(self):
+        return self.name
+
     def rtl_name(self):
         """
         Returns the RTL name of the pin including an underscore '_' as suffix. If the pin is active
@@ -50,19 +53,18 @@ class PinDigital(Pin):
 class Input(PinDigital):
     def __init__(self, name, module=None, attributes={}):
         super().__init__(name, module, attributes=attributes)
-        self.iocell.update(rtl_wrapper="u_pad_cell_input")
+        self.iocell.update(rtl_wrapper="u_pad_cell_input", verbose=False)
 
 
 class Output(PinDigital):
     def __init__(self, name, module=None, attributes={}):
         super().__init__(name, module, attributes=attributes)
-        self.iocell.update(rtl_wrapper="u_pad_cell_output")
-
+        self.iocell.update(rtl_wrapper="u_pad_cell_output", verbose=False)
 
 class Inout(PinDigital):
     def __init__(self, name, module=None, attributes={}):
         super().__init__(name, module, attributes=attributes)
-        self.iocell.update(rtl_wrapper="u_pad_cell_inout")
+        self.iocell.update(rtl_wrapper="u_pad_cell_inout", verbose=False)
 
 
 class PinSupply(Pin):

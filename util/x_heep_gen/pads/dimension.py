@@ -9,3 +9,7 @@ class Dimension:
 
         self.width = width
         self.height = height
+
+
+    def __str__(self):
+        return f"{self.height}×{self.width}µm"

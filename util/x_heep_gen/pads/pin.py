@@ -70,7 +70,6 @@ class Inout(PinDigital):
 class PinSupply(Pin):
     def __init__(self, name, attributes={}):
         self.name = name
-        self.properties = {}
         super().__init__(name, attributes=attributes)
 
 
@@ -105,7 +104,6 @@ class DVss(PinSupply):
 class PinAnalog(Pin):
     def __init__(self, name, module=None, attributes={}):
         self.name = name
-        self.properties = {}
         super().__init__(name, module, attributes=attributes)
 
 

@@ -42,7 +42,7 @@ class Pad:
                 reverse=True,
             )
 
-            # Make the pad inherit the properties and attributes of its main pin (the one with the highest priority)
+            # Make the pad inherit the attributes of its main pin (the one with the highest priority)
             self.inherit_attributes()
 
         print(

@@ -83,6 +83,7 @@ def list_diff_files(left: pathlib.Path, right: pathlib.Path) -> List[str]:
     :param right: Second directory to compare.
     :return: List of relative file paths that differ between the two directories.
     """
+
     def walk(cmp: filecmp.dircmp, rel: pathlib.Path) -> List[str]:
         diffs = []
         for name in cmp.diff_files + cmp.left_only + cmp.right_only:

@@ -166,7 +166,7 @@ def config() -> PadRing:
     ##############################################
     # PRINT A NICE DIAGRAM TO CHECK EVERYTHING IS OK
 
-    padring.print_pad_frame()
-    padring.print_pad_table()
+    # padring.print_pad_frame()
+    # padring.print_pad_table()
 
     return padring

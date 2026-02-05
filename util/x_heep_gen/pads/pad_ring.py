@@ -1,8 +1,10 @@
 from .pad import Pad
 from .pad import Corner
 from .pin import Pin
-from .floorplan import FloorplanDimensions, Side, Orientation, SIDE_DEFAULT_ROTATION
+from .floorplan import FloorplanDimensions, Side, SIDE_DEFAULT_ROTATION
+
 from collections import Counter
+from typing import List
 
 
 class PadRing:
@@ -16,7 +18,7 @@ class PadRing:
         self,
         floorplan_dimensions: FloorplanDimensions,
         mapping: dict,
-        pin_list: list,
+        pin_list: List[Pin],
         attributes: dict,
     ):
         """
@@ -35,12 +37,13 @@ class PadRing:
         self.floorplan_dimensions = floorplan_dimensions
         self.pin_list = pin_list
         self.attributes = attributes
-        self.build(mapping)
 
-    def build(self, mapping):
+        # List[Pad] containing all pads in the pad ring
         self.pad_list = []
-        self.side_indexes = {Side.LEFT: 0, Side.BOTTOM: 0, Side.RIGHT: 0, Side.TOP: 0}
+
         global_index = 0
+        side_indexes = {Side.LEFT: 0, Side.BOTTOM: 0, Side.RIGHT: 0, Side.TOP: 0}
+
         for side in Side:
             if side not in mapping:
                 continue
@@ -59,7 +62,12 @@ class PadRing:
                         "Elements in mapping must be either list[Pin] or Pad"
                     )
 
-                self.assign_pad_to_side(pad, side)
+                pad.side = side
+                if pad.side_index is None:
+                    pad.side_index = side_indexes[side]
+                    side_indexes[side] += 1
+                if pad.orientation is None:
+                    pad.orientation = SIDE_DEFAULT_ROTATION[side]
                 self.pad_list.append(pad)
 
         # Build the pad list now that they have their assigned pins
@@ -73,15 +81,13 @@ class PadRing:
         ToDo_padspy: Check unconnected pins! and pads (which have both iocell and bondapd)
         """
 
-    def assign_pad_to_side(self, pad, side):
-        pad.side = side
-        if pad.side_index is None:
-            pad.side_index = self.side_indexes[side]
-            self.side_indexes[side] += 1
-        if pad.orientation is None:
-            pad.orientation = SIDE_DEFAULT_ROTATION[side]
-
     def rename_duplicate_pads(self):
+        """
+        Rename pads with duplicate names by adding an index suffix.
+        For example, if two pads are named "GPIO_0", they will be renamed to "GPIO_0_1" and
+        "GPIO_0_2".
+        Pads without a name will be assigned a default name "NC_<global_index>".
+        """
         # Pass 1: Handle missing names immediately
         for pad in self.pad_list:
             if not hasattr(pad, "name") or pad.name is None:
@@ -144,7 +150,16 @@ class PadRing:
             (len(muxed_pad.pins) - 1).bit_length() for muxed_pad in pad_muxed_list
         )
 
-    def space_side_by_pitch(self, side, space_from_corner_cell, pitch):
+    def space_side_by_pitch(
+        self, side: Side, space_from_corner_cell: float, pitch: float
+    ):
+        """
+        Space the pads on a given side by a given pitch.
+
+        :param side: The side to space the pads on.
+        :param space_from_corner_cell: The space from the corner cell to the first pad.
+        :param pitch: The pitch to space the pads by.
+        """
 
         # Take only the pads from the selected side, and sorted by their side index
         pads_sublist = [pad for pad in self.pad_list if pad.side == side]
@@ -261,11 +276,13 @@ class PadRing:
                 last_bp = i + 1
 
     def print_pad_frame(self):
-        print("\n")
+        """
+        Print a visual representation of the pad ring layout in the console.
+        """
+        # ToDo_padspy: Do not print corners as if they were pads as well!
+        # ToDo_padspy: Do we still need this? Move to graphic module?
 
-        """
-        ToDo_padspy: Do not print corners as if they were pads as well!
-        """
+        print("\n")
 
         # Separate pads by their side
         top = sorted(
@@ -316,6 +333,10 @@ class PadRing:
         print("\n")
 
     def print_pad_table(self):
+        """
+        Print a table representation of the pad ring layout in the console.
+        """
+        # ToDo_padspy: Do we still need this? Move to graphic module?
         print("\n")
         rows = {}
         for pad in self.pad_list:

@@ -18,9 +18,12 @@ class FloorplanDimensions:
         Constructor for FloorplanDimensions.
 
         :param die_dimensions:  Dimensions of the die.
-        :param bondpad_margin:  dict [Side] of margins (float) from the bondpad edge to the die edge.
-        :param iocell_margin:   dict [Side] of margins (float) from the iocell edge to the bondpad edge.
-        :param core_margin:     dict [Side] of margins (float) from the core edge to the iocell edge.
+        :param bondpad_margin:  dict {Side} of margins (float) from the bondpad edge to the die
+            edge. For example: {Side.LEFT: 10, Side.BOTTOM: 20, Side.RIGHT: 10, Side.TOP: 20}.
+        :param iocell_margin:   dict {Side} of margins (float) from the iocell edge to the bondpad
+            edge. For example: {Side.LEFT: 10, Side.BOTTOM: 20, Side.RIGHT: 10, Side.TOP: 20}.
+        :param core_margin:     dict {Side} of margins (float) from the core edge to the iocell
+            edge. For example: {Side.LEFT: 10, Side.BOTTOM: 20, Side.RIGHT: 10, Side.TOP: 20}.
         """
 
         self.die_dimensions = die_dimensions
@@ -35,7 +38,7 @@ class FloorplanDimensions:
         ):
             if len(margin) != 4:
                 raise ValueError(
-                    f"{name} must be a list of four float values: [left, bottom, right, top]."
+                    f"{name} must be a dict of four elements corresponding to the sides: {list(Side)}."
                 )
 
             for m in margin.values():
@@ -44,6 +47,10 @@ class FloorplanDimensions:
 
 
 class Side(Enum):
+    """
+    Physical sides of the pad ring.
+    """
+
     LEFT = "left"
     BOTTOM = "bottom"
     RIGHT = "right"
@@ -75,6 +82,7 @@ class Orientation(Enum):
     MY90 = "MY90"
 
 
+# Default cell orientation for each side of the pad ring
 SIDE_DEFAULT_ROTATION = {
     Side.TOP: Orientation.R0,
     Side.RIGHT: Orientation.R270,

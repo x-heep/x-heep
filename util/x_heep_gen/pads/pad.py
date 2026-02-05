@@ -4,11 +4,11 @@ from .floorplan import Side, Orientation
 from .pin import *
 
 import copy
+from typing import List
 
 
 class Pad:
 
-    pins: list = [Pin]
     name: str = ""
     iocell: Cell = None
     bondpad: Cell = None
@@ -22,11 +22,22 @@ class Pad:
     iocell_center_to_ring_edge: float = None
     bondpad_center_to_ring_edge: float = None
 
-    def __init__(self, global_index, pins=[], attributes={}):
+    def __init__(self, global_index: int, pins: List[Pin] = None, attributes=None):
+        """
+        Constructor for Pad.
+
+        :param global_index: Number locating the pads as they will be numbered on the chip. Only
+            applies to non-physical pads. Physical pads can have global index 0. For non-physical
+            pads, global_index goes from 1 to N.
+        :param pins: The list of pins assigned to this pad.
+        :param attributes: Additional attributes of the pad as key-value pairs.
+        """
+
         self.global_index = global_index
-        self.pins = pins
-        for key, value in attributes.items():
-            setattr(self, key, value)
+        self.pins = [] if pins is None else pins
+        if attributes is not None:
+            for key, value in attributes.items():
+                setattr(self, key, value)
 
     def build(self):
         if self.pins != []:
@@ -43,10 +54,6 @@ class Pad:
 
             # Make the pad inherit the attributes of its main pin (the one with the highest priority)
             self.inherit_attributes()
-
-        print(
-            f"{self.global_index}: {[a.name for a in self.pins]} = {self.iocell.name}"
-        )
 
     def is_muxed(self):
         """

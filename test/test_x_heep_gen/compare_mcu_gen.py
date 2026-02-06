@@ -1,3 +1,12 @@
+# Copyright 2026 EPFL
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Author(s): David Mallasen
+# Description: Utility to compare the outputs of mcu-gen between the current branch and main. This
+#   can be useful to manually check if changes in the configuration or in the MCU-Gen code have an
+#   effect on the generated files.
+
 import subprocess
 import pathlib
 import shutil

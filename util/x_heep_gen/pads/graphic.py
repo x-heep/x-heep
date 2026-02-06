@@ -1,3 +1,10 @@
+# Copyright 2026 EPFL
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Author(s): Juan Sapriza
+# Description: Graphical visualization utilities for X-HEEP padring generation. 
+
 from x_heep_gen.pads.pad_ring import *
 from x_heep_gen.pads.floorplan import *
 from x_heep_gen.pads.pad import *

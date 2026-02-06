@@ -1,3 +1,10 @@
+# Copyright 2026 EPFL
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Author(s): Juan Sapriza, David Mallasen
+# Description: Top-level container for the pad ring in the X-HEEP generation.
+
 from .pad import Pad
 from .pad import Corner
 from .pin import Pin

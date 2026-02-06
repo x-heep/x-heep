@@ -1,3 +1,10 @@
+# Copyright 2026 EPFL
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Author(s): Juan Sapriza, David Mallasen
+# Description: Pin definitions for X-HEEP padring generation.
+
 from .cell import *
 from enum import Enum
 

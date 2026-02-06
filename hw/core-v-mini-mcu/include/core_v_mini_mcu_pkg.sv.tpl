@@ -224,7 +224,9 @@ package core_v_mini_mcu_pkg;
   localparam NEXT_INT = PLIC_NINT - PLIC_USED_NINT;
 
 % for pad in xheep.get_padring().pad_list:
+  % if pad.global_index is not None:
   localparam PAD_${pad.name.upper()} = ${pad.global_index};
+  % endif
 % endfor
 
   localparam NUM_PAD = ${len(xheep.get_padring().pad_list)};

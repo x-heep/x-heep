@@ -105,7 +105,7 @@ class Pad:
 
 class Physical(Pad):
     def __init__(self, name, iocell, bondpad, attributes=None):
-        super().__init__(global_index=0)
+        super().__init__(global_index=None)
         self.name = name
         self.iocell = iocell
         self.bondpad = bondpad

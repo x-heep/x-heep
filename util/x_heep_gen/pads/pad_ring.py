@@ -125,7 +125,7 @@ class PadRing:
         )
         for pad in self.pad_list:
             print(
-                f"{pad.global_index:<3} |{pad.name:<30}| {pad.iocell.name if pad.iocell is not None else '':<20}| {pad.bondpad.name if pad.bondpad is not None else '':<20}| {len(pad.pins):<7}| {', '.join([pin.name for pin in pad.pins])}"
+                f"{pad.global_index if pad.global_index is not None else '':<3} |{pad.name:<30}| {pad.iocell.name if pad.iocell is not None else '':<20}| {pad.bondpad.name if pad.bondpad is not None else '':<20}| {len(pad.pins):<7}| {', '.join([pin.name for pin in pad.pins])}"
             )
 
         connected_pins = self.get_connected_pins()

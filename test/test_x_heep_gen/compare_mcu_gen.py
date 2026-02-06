@@ -15,6 +15,7 @@ from typing import List
 import filecmp
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]
+TEST_X_HEEP_GEN_DIR = pathlib.Path(__file__).resolve().parent
 
 
 def run(cmd: List[str], cwd=None, check=True, env=None):
@@ -104,15 +105,46 @@ def list_diff_files(left: pathlib.Path, right: pathlib.Path) -> List[str]:
     return walk(filecmp.dircmp(left, right), pathlib.Path("."))
 
 
+def get_main_worktree_path(repo_root: pathlib.Path):
+    """
+    Find the existing git worktree path for branch 'main'.
+    """
+    output = subprocess.check_output(
+        ["git", "worktree", "list", "--porcelain"],
+        cwd=repo_root,
+        text=True,
+    )
+    lines = output.splitlines()
+    current_path = None
+    for line in lines:
+        if line.startswith("worktree "):
+            current_path = pathlib.Path(line.split(" ", 1)[1])
+        elif line.startswith("branch refs/heads/main") and current_path:
+            return current_path
+    return None
+
+
 def main():
     with tempfile.TemporaryDirectory(prefix="mcu-gen-main-") as tmp:
         tmp = pathlib.Path(tmp)
 
         print("Creating worktree for main...")
-        run(["git", "worktree", "add", tmp, "main"])
+        try:
+            run(["git", "worktree", "add", tmp, "main"])
+        except subprocess.CalledProcessError:
+            main_wt = get_main_worktree_path(REPO_ROOT)
+            reply = input(f"Git worktree add failed. Delete existing git worktree main ({main_wt}) and continue? [y/N] ").strip().lower()
+            if reply not in {"y", "yes"}:
+                print("Aborting.")
+                return
+            if not main_wt:
+                print("Could not find existing main worktree. Aborting.")
+                return
+            run(["git", "worktree", "remove", "--force", main_wt], check=False)
+            run(["git", "worktree", "add", tmp, "main"])
 
-        out_main = REPO_ROOT / "_mcu_gen_main"
-        out_curr = REPO_ROOT / "_mcu_gen_current"
+        out_main = TEST_X_HEEP_GEN_DIR / "_mcu_gen_main"
+        out_curr = TEST_X_HEEP_GEN_DIR / "_mcu_gen_current"
 
         shutil.rmtree(out_main, ignore_errors=True)
         shutil.rmtree(out_curr, ignore_errors=True)
@@ -132,6 +164,7 @@ def main():
         )
 
         print("\n=== MCU-GEN DIFF ===")
+        print(f"Comparing {out_main} and {out_curr}...")
         diff_files = list_diff_files(out_main, out_curr)
         if not diff_files:
             print("No differences found.")

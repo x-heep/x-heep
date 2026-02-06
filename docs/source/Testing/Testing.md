@@ -181,4 +181,4 @@ You can run it with the following command:
 make compare-mcu-gen
 ```
 
-This will generate the mcu-gen outputs in the `_mcu_gen_current` and `_mcu_gen_main` directories, and then list the files that differ between them. You can check the differences to see if they are expected or if they indicate an unintended change in the generated files.
+This will generate the mcu-gen outputs in the `_mcu_gen_current` and `_mcu_gen_main` directories inside `test/test_x_heep_gen`, and then list the files that differ between them. You can check the differences to see if they are expected or if they indicate an unintended change in the generated files.

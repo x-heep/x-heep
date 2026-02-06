@@ -87,10 +87,6 @@ sw/device/lib/drivers/dma/dma_regs.md
 
 # Openroad
 flow/OpenROAD-flow-scripts
-#testing outputs for pads
-test/test_x_heep_gen/pads/output/kwargs_output.json
-_mcu_gen_current/
-_mcu_gen_main/
 
 # Automatically generated docs
 /docs/source/Configuration/x_heep_gen

@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
 module pad_cell_output #(
-    parameter PADATTR = 16,
+    parameter PADATTR = 16
 ) (
     input logic pad_in_i,
     input logic pad_oe_i,

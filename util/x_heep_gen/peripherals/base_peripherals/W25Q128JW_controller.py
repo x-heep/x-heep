@@ -1,7 +1,7 @@
 from ..abstractions import BasePeripheral
 
 
-class W25Q128JW_CONTROLLER(BasePeripheral):
+class W25Q128JW_Controller(BasePeripheral):
     """
     W25Q128JW_CONTROLLER.
 

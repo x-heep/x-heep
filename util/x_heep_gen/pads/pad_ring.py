@@ -112,19 +112,19 @@ class PadRing:
     def print_pin_summary(self):
         """
         Print a list of pads, which pins they have assigned, and a list of pins that are not
-        assigned to any pads. 
+        assigned to any pads.
         """
         RESET = "\033[0m"
         YELLOW = "\033[93m"
         BOLD = "\033[1m"
         print(f"{BOLD}Idx | Name{'':<25}| IO cell{'':<13}| Bondpad{'':<13}| # pins | Pins{RESET}")
         for pad in self.pad_list:
-            print(f"{pad.global_index:<3} |{pad.name:<30}| {pad.iocell.name:<20}| {pad.bondpad.name:<20}| {len(pad.pins):<7}| {', '.join([pin.name for pin in pad.pins])}")
+            print(f"{pad.global_index:<3} |{pad.name:<30}| {pad.iocell.name if pad.iocell is not None else '':<20}| {pad.bondpad.name if pad.bondpad is not None else '':<20}| {len(pad.pins):<7}| {', '.join([pin.name for pin in pad.pins])}")
 
         connected_pins = self.get_connected_pins()
-        if any( pin not in connected_pins for pin in self.pin_list ): print(f"⚠️{YELLOW}{BOLD}  UNCONNCETED PINS{RESET}")
+        if any( pin not in connected_pins for pin in self.pin_list ): print(f"\n⚠️{YELLOW}{BOLD}  UNCONNCETED PINS{RESET}")
         for pin in self.pin_list:
-            if pin not in connected_pins: 
+            if pin not in connected_pins:
                 print(f" - {pin.name}")
 
 

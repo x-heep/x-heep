@@ -12,6 +12,8 @@
 // Date: 5.11.2018
 // Description: 16-bit LFSR
 
+`include "common_cells/assertions.svh"
+
 // --------------
 // 16-bit LFSR
 // --------------
@@ -58,13 +60,9 @@ module lfsr_16bit #(
         end
     end
 
-  `ifndef VERILATOR
-    //pragma translate_off
-    initial begin
-        assert (WIDTH <= 16)
-            else $fatal(1, "WIDTH needs to be less than 16 because of the 16-bit LFSR");
-    end
-    //pragma translate_on
+  `ifndef COMMON_CELLS_ASSERTS_OFF
+    `ASSERT_INIT(width_gt_16, WIDTH <= 16,
+                 "WIDTH needs to be less than 16 because of the 16-bit LFSR")
   `endif
 
 endmodule

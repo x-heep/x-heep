@@ -106,8 +106,8 @@ module tb_top #(
         end
       end else begin
         $display(
-            "[TESTBENCH]: No SPI Option specified, using execute from flash (execute_from_flash=1)");
-        execute_from_flash = 1;
+            "[TESTBENCH]: No SPI Option specified, using load from flash (execute_from_flash=0)");
+        execute_from_flash = 0;
       end
     end
 

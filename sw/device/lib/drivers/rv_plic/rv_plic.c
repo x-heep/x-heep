@@ -52,6 +52,7 @@ extern "C" {
 #include "i2s.h"
 #include "dma.h"
 #include "spi_host.h"
+#include "w25q128jw_controller.h"
 
 /****************************************************************************/
 /**                                                                        **/
@@ -405,6 +406,10 @@ void plic_reset_handlers_list(void)
     else if ( i == I2S_ID)
     {
       handlers[i] = &handler_irq_i2s;
+    }
+    else if (i == W25Q128JW_CONTROLLER_ID)
+    {
+      handlers[i] = &handler_irq_w25q128jw_controller;
     }
     else
     {

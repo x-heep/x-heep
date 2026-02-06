@@ -43,6 +43,9 @@ module spi_host
   output logic             rx_valid_o,
   output logic             tx_ready_o,
 
+  // Flash Controller
+  output spi_host_reg_pkg::spi_host_hw2reg_status_reg_t hw2reg_status_o,
+
   output logic             intr_error_o,
   output logic             intr_spi_event_o
 );
@@ -72,6 +75,8 @@ module spi_host
     // SEC_CM: BUS.INTEGRITY
     .devmode_i  (1'b1)
   );
+
+  assign hw2reg_status_o = hw2reg.status;
 
   // Alerts
   assign alerts[0] = 1'b0;

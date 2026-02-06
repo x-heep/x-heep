@@ -164,6 +164,9 @@ module core_v_mini_mcu
   obi_req_t [core_v_mini_mcu_pkg::NUM_BANKS-1:0] ram_slave_req;
   obi_resp_t [core_v_mini_mcu_pkg::NUM_BANKS-1:0] ram_slave_resp;
 
+  // w25q128jw controller signals
+  logic w25q128jw_controller_intr;
+
   // debug signals
   obi_req_t debug_slave_req;
   obi_resp_t debug_slave_resp;
@@ -418,6 +421,7 @@ module core_v_mini_mcu
       .exit_value_o,
       .spimemio_req_i(flash_mem_slave_req),
       .spimemio_resp_o(flash_mem_slave_resp),
+      .w25q128jw_controller_intr_o(w25q128jw_controller_intr),
       .spi_flash_sck_o,
       .spi_flash_sck_en_o(spi_flash_sck_oe_o),
       .spi_flash_csb_o({spi_flash_cs_1_o,spi_flash_cs_0_o}),
@@ -478,6 +482,7 @@ module core_v_mini_mcu
       .intr_vector_ext_i,
       .irq_plic_o(irq_external),
       .msip_o(irq_software),
+      .w25q128jw_controller_intr_i(w25q128jw_controller_intr),
       .cio_gpio_i(gpio_in),
       .cio_gpio_o(gpio_out),
       .cio_gpio_en_o(gpio_oe),

@@ -16,6 +16,7 @@ filesets:
     - pulp_platform_register_interface/src/reg_demux.sv
     - pulp_platform_register_interface/src/reg_mux.sv
     - pulp_platform_register_interface/src/reg_to_tlul.sv
+    - pulp_platform_register_interface/src/reg_cdc.sv
     file_type: systemVerilogSource
 
 targets:

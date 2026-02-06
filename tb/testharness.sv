@@ -525,12 +525,14 @@ module testharness #(
           .dma_write_req_o(ext_master_req[testharness_pkg::EXT_MASTER1_IDX]),
           .dma_write_resp_i(ext_master_resp[testharness_pkg::EXT_MASTER1_IDX]),
           .hw_fifo_req_o(),
+          .external_hw2reg_i('0),
           .hw_fifo_resp_i(),
           .dma_addr_req_o(),
           .dma_addr_resp_i('0),
           .trigger_slot_i('0),
           .dma_done_intr_o(memcopy_intr),
           .dma_window_intr_o(),
+          .dma_ready_o(),
           .dma_done_o()
       );
 

@@ -17,3 +17,6 @@ lint_off -rule BLKLOOPINIT -file "*/src/rtl/tc_sram.sv" -match "Unsupported: Del
 lint_off -rule UNUSED -file "*/src/rtl/tc_clk.sv" -match "Parameter is not used: 'IS_FUNCTIONAL'*"
 lint_off -rule COMBDLY -file "*/src/rtl/tc_clk.sv" -match "Non-blocking assignment '<=' in combinational logic process"
 lint_off -rule NOLATCH -file "*/src/rtl/tc_clk.sv" -match "No latches detected in always_latch block"
+lint_off -rule UNUSED -file "*/src/rtl/tc_sram.sv" -match "Parameter is not used: 'ImplKey'*"
+lint_off -rule UNUSED -file "*/src/rtl/tc_sram.sv" -match "Parameter is not used: 'FPGAImplKey'*"
+lint_off -rule UNUSED -file "*/src/rtl/tc_sram.sv" -match "Signal is not used: 'init_val'*"

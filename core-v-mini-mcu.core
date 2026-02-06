@@ -37,6 +37,7 @@ filesets:
     - x-heep:ip:obi_fifo
     - x-heep:ip:pdm2pcm
     - esl_epfl:ip:obi_spi_slave
+    - x-heep:ip:w25q128jw_controller
     files:
     - hw/core-v-mini-mcu/core_v_mini_mcu.sv
     - hw/core-v-mini-mcu/cpu_subsystem.sv
@@ -86,6 +87,7 @@ filesets:
     - hw/ip/soc_ctrl/soc_ctrl.vlt
     - hw/ip/boot_rom/boot_rom.vlt
     - hw/ip/obi_spimemio/obi_spimemio.vlt
+    - hw/ip/w25q128jw_controller/w25q128jw_controller.vlt
     - hw/ip/dma/dma.vlt
     - hw/ip/dma_subsystem/dma_subsystem.vlt
     - hw/ip/pdm2pcm/pdm2pcm.vlt
@@ -263,6 +265,16 @@ parameters:
     paramtype: vlogdefine
     description: Primitives implementation to use, e.g. "prim_pkg::ImplGeneric".
     default: prim_pkg::ImplGeneri
+  COMMON_CELLS_ASSERTS_OFF:
+    datatype: bool
+    description: Turn off asserts for PULP common cells
+    paramtype: vlogdefine
+    default: false
+  ASSERTS_OFF:
+    datatype: bool
+    description: Turn off asserts for PULP common cells
+    paramtype: vlogdefine
+    default: false
 
 scripts:
   # Build utils
@@ -344,6 +356,8 @@ targets:
     - USE_EXTERNAL_DEVICE_EXAMPLE
     - USE_UPF
     - REMOVE_OBI_FIFO
+    - COMMON_CELLS_ASSERTS_OFF
+    - ASSERTS_OFF
     tools:
       modelsim:
         vlog_options:

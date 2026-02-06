@@ -98,9 +98,9 @@ module pulp_clock_delay(
   input  logic in_i,
   output logic out_o
 );
-
+  /* verilator lint_off ASSIGNDLY */
   assign #(300ps) out_o = in_i;
-
+  /* verilator lint_on ASSIGNDLY */
 endmodule
 `endif
 

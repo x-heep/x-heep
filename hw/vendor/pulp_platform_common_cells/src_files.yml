@@ -11,6 +11,7 @@ common_cells_all:
     - src/cc_onehot.sv
     - src/cf_math_pkg.sv
     - src/clk_int_div.sv
+    - src/credit_counter.sv
     - src/delta_counter.sv
     - src/ecc_pkg.sv
     - src/edge_propagator_tx.sv
@@ -22,9 +23,11 @@ common_cells_all:
     - src/lfsr.sv
     - src/lfsr_16bit.sv
     - src/lfsr_8bit.sv
+    - src/multiaddr_decode.sv
     - src/mv_filter.sv
     - src/onehot_to_bin.sv
     - src/plru_tree.sv
+    - src/passthrough_stream_fifo.sv
     - src/popcount.sv
     - src/rr_arb_tree.sv
     - src/rstgen_bypass.sv
@@ -37,6 +40,7 @@ common_cells_all:
     - src/stream_fork.sv
     - src/stream_intf.sv
     - src/stream_join.sv
+    - src/stream_join_dynamic.sv
     - src/stream_mux.sv
     - src/stream_throttle.sv
     - src/sub_per_hash.sv
@@ -46,10 +50,9 @@ common_cells_all:
     - src/read.sv
     - src/cdc_reset_ctrlr_pkg.sv
     # Level 1
+    - src/addr_decode_dync.sv
     - src/cdc_2phase.sv
     - src/cdc_4phase.sv
-    - src/addr_decode.sv
-    - src/addr_decode_napot.sv
     - src/cb_filter.sv
     - src/cdc_fifo_2phase.sv
     - src/counter.sv
@@ -65,6 +68,8 @@ common_cells_all:
     - src/stream_fork_dynamic.sv
     - src/clk_mux_glitch_free.sv
     # Level 2
+    - src/addr_decode.sv
+    - src/addr_decode_napot.sv
     - src/cdc_reset_ctrlr.sv
     - src/cdc_fifo_gray.sv
     - src/fall_through_register.sv
@@ -77,9 +82,11 @@ common_cells_all:
     # Level 3
     - src/cdc_fifo_gray_clearable.sv
     - src/cdc_2phase_clearable.sv
-    - src/mem_to_banks.sv
+    - src/mem_to_banks_detailed.sv
     - src/stream_arbiter.sv
     - src/stream_omega_net.sv
+    # Level 4
+    - src/mem_to_banks.sv
 
     # Deprecated modules
     # Level 0

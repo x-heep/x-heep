@@ -566,6 +566,21 @@ void dma_intr_handler_window_done(uint8_t channel);
  */
 uint8_t dma_window_ratio_warning_threshold(void);
 
+/**
+ * @brief This function sets the HW_CONFIG_MODE so that the DMA
+ * registers can be (or not) controlled by external HW controllers
+ * e.g. the Flash Controller. It returns the old value.
+ * It requires dma_init to be executed. It takes as input the
+ * HW_CONFIG_MODE new value and the DMA channel.
+*/
+uint32_t dma_set_hw_configuration_mode(uint32_t hw_config_mode, int dma_ch);
+
+/**
+ * @brief This function sets the SLOT_WAIT_COUNTER so that the DMA
+ * waits the given cycles before sending another request to its slot target.
+*/
+uint32_t dma_set_slot_wait_counter(uint32_t slot_wait_counter, int dma_ch);
+
 /****************************************************************************/
 /**                                                                        **/
 /**                          INLINE FUNCTIONS                              **/

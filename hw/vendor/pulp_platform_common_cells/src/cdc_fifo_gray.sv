@@ -96,6 +96,7 @@
 /// ```
 
 `include "common_cells/registers.svh"
+`include "common_cells/assertions.svh"
 
 (* no_ungroup *)
 (* no_boundary_optimization *)
@@ -157,12 +158,10 @@ module cdc_fifo_gray #(
   );
 
   // Check the invariants.
-  // pragma translate_off
-  `ifndef VERILATOR
-  initial assert(LOG_DEPTH > 0);
-  initial assert(SYNC_STAGES >= 2);
+  `ifndef COMMON_CELLS_ASSERTS_OFF
+  `ASSERT_INIT(log_depth_0, LOG_DEPTH > 0)
+  `ASSERT_INIT(sync_stages_gt_2, SYNC_STAGES >= 2)
   `endif
-  // pragma translate_on
 
 endmodule
 

@@ -22,6 +22,7 @@ from .peripherals.base_peripherals import (
     Bootrom,
     SPI_flash,
     SPI_memio,
+    W25Q128JW_CONTROLLER,
     DMA,
     Power_manager,
     RV_timer_ao,
@@ -281,6 +282,8 @@ def load_peripherals_config(system: XHeep, config_path: str):
                         peripheral = SPI_flash(offset, length)
                     elif peripheral_name == "spi_memio":
                         peripheral = SPI_memio(offset, length)
+                    elif peripheral_name == "w25q128jw_controller":
+                        peripheral = W25Q128JW_CONTROLLER(offset, length)
                     elif peripheral_name == "dma":
                         try:
                             if peripheral_config["is_included"] == "yes":

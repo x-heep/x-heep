@@ -139,4 +139,7 @@ to set the `boot_sel_i` input to `1` and `execute_from_flash=0` to set the
 make run PLUSARGS="c firmware=../../../sw/build/main.hex boot_sel=1 execute_from_flash=0"
 ```
 
-If you are using FPGAs or ASIC, make sure to program the FLASH first.
+If you are using FPGAs or ASIC, make sure to program the FLASH first (while in simulation, the FLASH model will load the binary by itself).
+
+Still as experimental and in draft mode, we also developed an HW peripheral that can be used to automatically control reading and writing operations from/to the FLASH, avoiding the execution of long software procedures.
+Such peripheral is called `w25q128jw_controller`. Once stable and tested further, this peripheral will replace the software functions as well as the `yosys` SPI module. In addition, the two booting modes that use the FLASH will be unified. Such peripheral has been only tested in simulation.

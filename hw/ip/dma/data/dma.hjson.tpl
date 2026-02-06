@@ -20,7 +20,7 @@
     { name:     "SRC_PTR"
       desc:     "Input data pointer (word aligned)"
       swaccess: "rw"
-      hwaccess: "hro"
+      hwaccess: "hrw"
       fields: [
         { bits: "31:0", name: "PTR_IN", desc: "Input data pointer (word aligned)" }
       ]
@@ -28,7 +28,7 @@
     { name:     "DST_PTR"
       desc:     "Output data pointer (word aligned)"
       swaccess: "rw"
-      hwaccess: "hro"
+      hwaccess: "hrw"
       fields: [
         { bits: "31:0", name: "PTR_OUT", desc: "Output data pointer (word aligned)" }
       ]
@@ -37,7 +37,7 @@
     { name:     "ADDR_PTR"
       desc:     "Addess data pointer (word aligned)"
       swaccess: "rw"
-      hwaccess: "hro"
+      hwaccess: "hrw"
       fields: [
         { bits: "31:0", name: "PTR_ADDR", desc: "Address data pointer (word aligned) - used only in Address mode" }
       ]
@@ -46,7 +46,7 @@
     { name:     "SIZE_D1"
       desc:     "Number of elements to copy from, defined with respect to the first dimension - Once a value is written, the copy starts"
       swaccess: "rw"
-      hwaccess: "hro"
+      hwaccess: "hrw"
       hwqe:     "true" // enable `qe` latched signal of software write pulse
       // Dimensioned to 16 bits to allow for 64kB transfers on 1D
       fields: [
@@ -56,7 +56,7 @@
     { name:     "SIZE_D2"
       desc:     "Number of elements to copy from, defined with respect to the second dimension"
       swaccess: "rw"
-      hwaccess: "hro"
+      hwaccess: "hrw"
       // Dimensioned to 16 bits to allow for 64kB transfers on 2D
       fields: [
         { bits: "15:0", name: "SIZE", desc: "DMA counter D2" }
@@ -77,7 +77,7 @@
     { name:     "SRC_PTR_INC_D1"
       desc:     "Increment the D1 source pointer every time a word is copied"
       swaccess: "rw"
-      hwaccess: "hro"
+      hwaccess: "hrw"
       // Dimensioned to allow a maximum of a 15 element stride for a data_type_word case
       fields: [
         { bits: "5:0"
@@ -90,7 +90,7 @@
     { name:     "SRC_PTR_INC_D2"
       desc:     "Increment the D2 source pointer every time a word is copied"
       swaccess: "rw"
-      hwaccess: "hro"
+      hwaccess: "hrw"
       // Dimensioned to allow a maximum of 15 element stride for a data_type_word
       fields: [
         { bits: "22:0"
@@ -103,7 +103,7 @@
     { name:     "DST_PTR_INC_D1"
       desc:     "Increment the D1 destination pointer every time a word is copied"
       swaccess: "rw"
-      hwaccess: "hro"
+      hwaccess: "hrw"
       fields: [
         { bits: "5:0"
           name: "INC"
@@ -115,7 +115,7 @@
     { name:     "DST_PTR_INC_D2"
       desc:     "Increment the D2 destination pointer every time a word is copied"
       swaccess: "rw"
-      hwaccess: "hro"
+      hwaccess: "hrw"
       fields: [
         { bits: "22:0"
           name: "INC"
@@ -129,7 +129,7 @@
                    connected to the selected trigger_slots to be high
                    on the read and write side respectively'''
       swaccess: "rw"
-      hwaccess: "hro"
+      hwaccess: "hrw"
       resval:   0
       fields: [
         { bits: "15:0", name: "RX_TRIGGER_SLOT"
@@ -143,7 +143,7 @@
     { name:     "SRC_DATA_TYPE"
       desc:     '''Width/type of the source data to transfer'''
       swaccess: "rw"
-      hwaccess: "hro"
+      hwaccess: "hrw"
       resval:   0
       fields: [
         { bits: "1:0", name: "DATA_TYPE"
@@ -160,7 +160,7 @@
     { name:     "DST_DATA_TYPE"
       desc:     '''Width/type of the destination data to transfer'''
       swaccess: "rw"
-      hwaccess: "hro"
+      hwaccess: "hrw"
       resval:   0
       fields: [
         { bits: "1:0", name: "DATA_TYPE"
@@ -178,7 +178,7 @@
       name:     "SIGN_EXT"
       desc:     '''Is the data to be sign extended? (Checked only if the dst data type is wider than the src data type)'''
       swaccess: "rw"
-      hwaccess: "hro"
+      hwaccess: "hrw"
       resval:   0
       fields: [
         { bits: "0", name: "SIGNED"
@@ -193,7 +193,7 @@
     { name:     "MODE"
       desc:     '''Set the operational mode of the DMA'''
       swaccess: "rw"
-      hwaccess: "hro"
+      hwaccess: "hrw"
       resval:   0
       fields: [
         { bits: "1:0", name: "MODE"
@@ -214,7 +214,7 @@
     % else:
       swaccess: "ro"
     % endif
-      hwaccess: "hro"
+      hwaccess: "hrw"
       resval:   0
       fields: [
         { bits: "0", name: "HW_FIFO_MODE", desc: "Mode for exploting external stream accelerators"}
@@ -223,7 +223,7 @@
     { name:     "DIM_CONFIG"
       desc:     '''Set the dimensionality of the DMA'''
       swaccess: "rw"
-      hwaccess: "hro"
+      hwaccess: "hrw"
       resval:   0
       fields: [
         { bits: "0", name: "DMA_DIM", desc: "DMA transfer dimensionality"}
@@ -232,7 +232,7 @@
     { name:     "DIM_INV"
       desc:     '''DMA dimensionality inversion selector'''
       swaccess: "rw"
-      hwaccess: "hro"
+      hwaccess: "hrw"
       resval:   0
       fields: [
         { bits: "0", name: "SEL", desc: "DMA dimensionality inversion, used to perform transposition"}
@@ -242,7 +242,7 @@
     { name:     "PAD_TOP"
       desc:     '''Set the top padding'''
       swaccess: "rw"
-      hwaccess: "hro"
+      hwaccess: "hrw"
       resval:   0
       fields: [
         { bits: "5:0", name: "PAD", desc: "Top margin padding (2D)"}
@@ -251,7 +251,7 @@
     { name:     "PAD_BOTTOM"
       desc:     '''Set the bottom padding'''
       swaccess: "rw"
-      hwaccess: "hro"
+      hwaccess: "hrw"
       resval:   0
       fields: [
         { bits: "5:0", name: "PAD", desc: "Bottom margin padding (2D)"}
@@ -260,7 +260,7 @@
     { name:     "PAD_RIGHT"
       desc:     '''Set the right padding'''
       swaccess: "rw"
-      hwaccess: "hro"
+      hwaccess: "hrw"
       resval:   0
       fields: [
         { bits: "5:0", name: "PAD", desc: "Right margin padding (1D/2D)"}
@@ -269,7 +269,7 @@
     { name:     "PAD_LEFT"
       desc:     '''Set the left padding'''
       swaccess: "rw"
-      hwaccess: "hro"
+      hwaccess: "hrw"
       resval:   0
       fields: [
         { bits: "5:0", name: "PAD", desc: "Left margin padding (1D/2D)"}
@@ -280,7 +280,7 @@
       desc:    '''Will trigger a every "WINDOW_SIZE" writes
                   Set to 0 to disable.'''
       swaccess: "rw"
-      hwaccess: "hro"
+      hwaccess: "hrw"
       hwqe:     "true" // enable `qe` latched signal of software write pulse
       resval:   0
       fields: [
@@ -301,7 +301,7 @@
       desc:    '''Interrupt Enable Register 
                   (Only the interrupt with the lowest id will be triggered)'''
       swaccess: "rw"
-      hwaccess: "hro"
+      hwaccess: "hrw"
       resval:   0
       fields: [
         { bits: "0", name: "TRANSACTION_DONE", desc: "Enables transaction done interrupt" }
@@ -328,6 +328,24 @@
       resval:        0
       fields: [
         { bits: "0", name: "FLAG", desc: "Set for window done interrupt" }
+      ]
+    }
+    { name:    "HW_CONFIG_MODE"
+      desc:    '''Hardware configuration mode'''
+      swaccess: "rw"
+      hwaccess: "hro"
+      resval:        0
+      fields: [
+        { bits: "0", name: "HW_CONFIG_MODE", desc: "Whether the registers are configured in HW (1) or SW (0, default)" }
+      ]
+    }
+    { name:    "SLOT_WAIT_COUNTER"
+      desc:    '''A counter to wait before submitting the next req when using slots'''
+      swaccess: "rw"
+      hwaccess: "hrw"
+      resval:        0
+      fields: [
+        { bits: "7:0", name: "SLOT_WAIT_COUNTER", desc: "A counter to wait before submitting the next req when using slots"}
       ]
     }
   ]

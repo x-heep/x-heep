@@ -163,8 +163,7 @@ def config() -> PadRing:
         attributes={},
     )
 
-    
-    # Check the pins attached to each pad so you can do a visual-sanity check 
+    # Check the pins attached to each pad so you can do a visual-sanity check
     padring.print_pin_summary()
-    
+
     return padring

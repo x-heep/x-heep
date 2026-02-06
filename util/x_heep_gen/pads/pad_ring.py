@@ -59,9 +59,9 @@ class PadRing:
                 if isinstance(x, Pad):
                     pad = x.copy()
                     if pad.global_index is None:
-                        if isinstance(x, Physical ): 
+                        if isinstance(x, Physical):
                             pad.global_index = None
-                        else: 
+                        else:
                             pad.global_index = global_index
                             global_index += 1
                 elif isinstance(x, list) and all(isinstance(p, Pin) for p in x):

@@ -133,7 +133,13 @@ def main():
             run(["git", "worktree", "add", tmp, "main"])
         except subprocess.CalledProcessError:
             main_wt = get_main_worktree_path(REPO_ROOT)
-            reply = input(f"Git worktree add failed. Delete existing git worktree main ({main_wt}) and continue? [y/N] ").strip().lower()
+            reply = (
+                input(
+                    f"Git worktree add failed. Delete existing git worktree main ({main_wt}) and continue? [y/N] "
+                )
+                .strip()
+                .lower()
+            )
             if reply not in {"y", "yes"}:
                 print("Aborting.")
                 return

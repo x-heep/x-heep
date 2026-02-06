@@ -1,14 +1,13 @@
 # Pad Configuration
 
-The pads of the design can be configured using a Python configuration file, which is then read by `mcu-gen` and template files to generate the pad ring RTL and back-end pad IO of the design.
+The pads of the design are configured using a Python configuration file, which is then read by `mcu-gen` and template files to generate the pad ring RTL and back-end pad IO of the design (not included on on this repo).
 
 ## Overview
 
 The pad configuration system allows you to define:
-- Pins (Signals): The logical signals in your design (e.g., `clk`, `gpio_0`, `uart_tx`)
-- Pin-to-Pad Mapping: How pins are assigned to physical pads on each side of the chip, including multiplexing
-- Pad Multiplexing: Multiple pins sharing the same physical pad
-- Floorplan Dimensions: Physical layout of the die and margins (optional, mainly for ASIC)
+- Pins (Signals): The logical signals in your design (e.g., `clk`, `gpio_0`, `uart_tx`). Optionally, also analog and supply signals.
+- Pin-to-Pad Mapping: How pins are assigned to physical pads on each side of the chip, including multiplexing (assign multiple pins to the same pad, or a single pin to multiple pads).
+- (Optional) Floorplan: Physical layout of the die and location of the pads.
 
 The configuration is done through a Python `config()` function that returns a `PadRing` object. This approach provides flexibility and programmatic generation of pad configurations. The default pad configuration file can be found in `configs/pad_cfg.py`.
 
@@ -20,7 +19,7 @@ make mcu-gen PADS_CFG=configs/my_pad_cfg.py
 
 ## Pin Types
 
-Pins represent the logical signals in your design. Different pin types are available depending on the signal direction and characteristics. The digital pin types include:
+Pins represent the signals in your design. Different pin types are available depending on the signal direction and characteristics. The digital pin types include:
 
 ```python
 from x_heep_gen.pads.pin import Input, Output, Inout
@@ -35,14 +34,16 @@ tx_pin = Output("uart_tx")
 gpio_pin = Inout("gpio_0")
 ```
 
+Other pin types have been defined, including for analog signals and power supply.
+
 ## Pin Attributes
 
 Pins can have additional attributes that modify their behavior:
 
-- The `module` attribute is an optional string that specifies which module in the design the pin is connected to. Does it belong to an external peripheral? Does it stay in the top-level module? You can define your own names. By default, it is `"core_v_mini_mcu"`.
+- The `module` attribute is an optional string that specifies which module in the design the pin is connected to. Does it belong to an external peripheral? Does it stay in the top-level module? You can define your own names. By default, it is `"core_v_mini_mcu"`. If a signal is to be connected on the `x_heep_system.sv` module, just update it to `module='x_heep_system'`
 - The `attributes` dictionary can include custom key-value pairs. Predefined attributes include:
   - `active`: If set to `"low"`, the pin is active low and will have an `_n` suffix in the generated RTL.
-  - `priority`: A numeric value that defines the priority of the pin when multiple pins are multiplexed on the same pad. Higher values indicate higher priority (i.e. the pin with the highest priority will be the default one).
+  - `priority`: A numeric value that defines the priority of the pin when multiple pins are multiplexed on the same pad. Higher values indicate higher priority (i.e. the pin with the highest priority will be the default one and the pad will adopt its name).
 
 ```python
 # Active-low signal
@@ -50,7 +51,7 @@ rst = Input("rst", attributes={"active": "low"})
 
 # Priority for multiplexed pads
 gpio = Inout("gpio_0", attributes={"priority": 1})
-spi = Inout("spi_mosi", attributes={"priority": 1.5})  # This will be the default
+spi = Inout("spi_mosi", attributes={"priority": 2})  # This will be the default
 
 # Custom module assignment
 ext_signal = Input("ext_clk", module="external_peripheral")
@@ -80,7 +81,7 @@ for pin in digital_pins:
 
 ## Pin-to-Pad Mapping
 
-The mapping defines which pins (selected by their names) are assigned to pads on each side of the chip:
+The mapping defines which pins are assigned to pads on each side of the chip (selected by their names, that's why you created a dictionary in the previous step 😉):
 
 ```python
 from x_heep_gen.pads.floorplan import Side
@@ -111,8 +112,6 @@ If you are simulating or targeting an FPGA, you can simply assign all pins to on
 ## Floorplan Dimensions (Optional)
 
 For ASIC implementations, you can specify physical dimensions:
-
-![Pad Dimensions](../images/pad_dimensions.png)
 
 ```python
 floorplan = FloorplanDimensions(
@@ -145,17 +144,17 @@ Once pins and mapping are defined, create the PadRing:
 ```python
 def config() -> PadRing:
     # ... define pins and mapping ...
-    
+
     padring = PadRing(
         floorplan_dimensions=None,  # or FloorplanDimensions object for ASIC
         pin_list=list(pin_dict.values()),
         mapping=mapping,
         attributes={},  # Optional custom attributes
     )
-    
+
     # Print summary for verification
     padring.print_pin_summary()
-    
+
     return padring
 ```
 
@@ -173,6 +172,11 @@ generate_floorplan_visuals(floorplan, padring, filename_base="my_floorplan")
 This generates:
 - `my_floorplan.svg` - Static floorplan image
 - `my_floorplan.html` - Interactive floorplan with hover tooltips
+
+---
+
+![Pad Dimensions](../images/padring_definitions.png)
+_The base of the image above is an example of the diagram generated. References to the dimensions were added on top._
 
 ## Advanced Usage
 

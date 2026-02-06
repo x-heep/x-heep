@@ -73,23 +73,18 @@ module peripheral_subsystem
     //I2s
     output logic i2s_sck_o,
     output logic i2s_sck_oe_o,
-    input logic i2s_sck_i,
+    input  logic i2s_sck_i,
     output logic i2s_ws_o,
     output logic i2s_ws_oe_o,
-    input logic i2s_ws_i,
+    input  logic i2s_ws_i,
     output logic i2s_sd_o,
     output logic i2s_sd_oe_o,
-    input logic i2s_sd_i,
+    input  logic i2s_sd_i,
     output logic i2s_rx_valid_o,
-    //Serial Link
-    input logic [serial_link_single_channel_reg_pkg::NumChannels-1:0] ddr_rcv_clk_i,
-    output logic [serial_link_single_channel_reg_pkg::NumChannels-1:0] ddr_rcv_clk_o,
-    input  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_i,
-    output logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_o,
     // PDM2PCM Interface
     output logic pdm2pcm_clk_o,
     output logic pdm2pcm_clk_en_o,
-    input logic pdm2pcm_pdm_i
+    input  logic pdm2pcm_pdm_i
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -518,27 +513,6 @@ module peripheral_subsystem
   );
 
 
-  serial_link_xheep_wrapper #(
-      .MaxClkDiv(32),
-      .AddrWidth(32),
-      .DataWidth(32)
-  ) serial_link_xheep_wrapper_i (
-      .clk_i(clk_i),
-      .rst_ni(rst_ni),
-      .clk_reg_i(clk_i),
-      .rst_reg_ni(rst_ni),
-      .testmode_i('0),
-      .writer_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SERIAL_LINK_IDX]),
-      .writer_rsp_i(peripheral_slv_rsp[core_v_mini_mcu_pkg::SERIAL_LINK_IDX]),
-      .reader_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SERIAL_LINK_RECEIVER_FIFO_IDX]),
-      .reader_resp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SERIAL_LINK_RECEIVER_FIFO_IDX]),
-      .cfg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SERIAL_LINK_REG_IDX]),
-      .cfg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SERIAL_LINK_REG_IDX]),
-      .ddr_rcv_clk_i,
-      .ddr_i,
-      .ddr_rcv_clk_o,
-      .ddr_o
-  );
 
 
 endmodule : peripheral_subsystem

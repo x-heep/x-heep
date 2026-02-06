@@ -5,6 +5,7 @@
 # Author(s): Juan Sapriza, David Mallasen
 # Description: Dimension definitions for X-HEEP padring generation.
 
+
 class Dimension:
     """
     Represents the dimensions of, for example, a pad or cell.

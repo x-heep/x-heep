@@ -50,6 +50,11 @@ class Pad:
         # automatically during the build process in the pad ring, unless hardcoded in advance.
         self.space: float = None
 
+        # The offset in um from the start of the ring in which the bondpad is located. Is is used
+        # to skip the corner iocell, which does not have a bondpad.
+        # Only used during floorplanning.
+        self.offset: float = None
+        
         # The space in um from the edge of the ring that this pad belongs to, to the center of this
         # pad. This is computed automatically during the build process in the pad ring, but can be
         # hardcoded in advance in case you want a pad in a specific location in the padring. In the

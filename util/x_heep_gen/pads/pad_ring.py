@@ -84,10 +84,6 @@ class PadRing:
         # rename them by adding an index
         self.rename_duplicate_pads()
 
-        """
-        ToDo_padspy: Check unconnected pins! and pads (which have both iocell and bondapd)
-        """
-
     def rename_duplicate_pads(self):
         """
         Rename pads with duplicate names by adding an index suffix.

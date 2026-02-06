@@ -36,8 +36,8 @@ class Pin:
         self.attributes = {} if attributes is None else attributes
 
         # IO cell and bondpad assigned to this pin
-        self.iocell = None
-        self.bondpad = None
+        self.iocell: Cell = None
+        self.bondpad: Cell = None
 
     def __str__(self):
         return self.name

@@ -8,21 +8,12 @@ from typing import List
 
 
 class Pad:
+    """
+    Represents an element that goes into the padring. Can be a pad, but can also be a PRCUT or a
+    CORNER cell, or anything.
+    """
 
-    name: str = ""
-    iocell: Cell = None
-    bondpad: Cell = None
-    global_index: int = None
-    side: Side = None
-    side_index: float = None
-    space: float = None
-    offset: float = 0
-    bp_space: float = 0
-    orientation: Orientation = None
-    iocell_center_to_ring_edge: float = None
-    bondpad_center_to_ring_edge: float = None
-
-    def __init__(self, global_index: int, pins: List[Pin] = None, attributes=None):
+    def __init__(self, global_index: int, pins: List[Pin] = None):
         """
         Constructor for Pad.
 
@@ -30,18 +21,49 @@ class Pad:
             applies to non-physical pads. Physical pads can have global index 0. For non-physical
             pads, global_index goes from 1 to N.
         :param pins: The list of pins assigned to this pad.
-        :param attributes: Additional attributes of the pad as key-value pairs.
         """
 
         self.global_index = global_index
         self.pins = [] if pins is None else pins
-        if attributes is not None:
-            for key, value in attributes.items():
-                setattr(self, key, value)
+
+        # Side of the chip that the pad was assigned to. Set by the user in the mapping
+        # configuration. Assigned first in the pad ring when creating the pads.
+        self.side: Side = None
+
+        # Number locating the pad on its assigned side. This INCLUDES physical pads. Starts from 0.
+        # Can be non-integer (e.g. a PRCUT can have side_index 7.5 to indicate that it is squished
+        # between pad 7 and 8). Assigned first in the pad ring when creating the pads.
+        self.side_index: float = None
+
+        # Orientation of the pad on the physical layout. Assigned automatically in the pad ring when
+        # creating the pads depending on the side.
+        self.orientation: Orientation = None
+
+        # The space in um from the edge of the previous pad in this ring. This is computed
+        # automatically during the build process in the pad ring, unless hardcoded in advance.
+        self.space: float = None
+
+        # The space in um from the edge of the ring that this pad belongs to, to the center of this
+        # pad. This is computed automatically during the build process in the pad ring, but can be
+        # hardcoded in advance in case you want a pad in a specific location in the padring. In the
+        # case of the bondpads, they will use the iocell's center_to_ring_edge to align themselves
+        # and compute their spacing
+        self.iocell_center_to_ring_edge: float = None
+        self.bondpad_center_to_ring_edge: float = None
+
+        # Inherited from the main pin during build()
+        self.name: str = ""
+        self.attributes: dict = {}
+        self.iocell: Cell = None
+        self.bondpad: Cell = None
 
     def build(self):
-        if self.pins != []:
-            # The pins assigned to this pad are sorted by priority.
+        """
+        Finalizes the pad by sorting its pins by priority and inheriting attributes from the main
+        pin.
+        """
+        if self.pins:
+            # The pins assigned a pad are sorted by priority.
             # Priority is an optional attribute and the highest priority will be used as main pin
             # (will be placed first on the list)
             self.pins = sorted(
@@ -52,8 +74,12 @@ class Pad:
                 reverse=True,
             )
 
-            # Make the pad inherit the attributes of its main pin (the one with the highest priority)
-            self.inherit_attributes()
+            # Make the pad inherit some attributes of its main pin (the one with the highest priority)
+            main_pin = self.pins[0]
+            self.name = main_pin.name
+            self.attributes = main_pin.attributes.copy()
+            self.iocell = main_pin.iocell.copy()
+            self.bondpad = main_pin.bondpad.copy()
 
     def is_muxed(self):
         """
@@ -61,22 +87,18 @@ class Pad:
         """
         return len(self.pins) > 1
 
-    def inherit_attributes(self):
-        for key, value in vars(self.pins[0]).items():
-            setattr(self, key, value)
-
     def copy(self):
         return copy.deepcopy(self)
 
 
 class Physical(Pad):
-    def __init__(self, name, iocell, bondpad, attributes={}):
+    def __init__(self, name, iocell, bondpad, attributes=None):
         self.global_index = 0
         self.name = name
         self.iocell = iocell
         self.bondpad = bondpad
         self.pins = []
-        self.attributes = attributes
+        self.attributes = {} if attributes is None else attributes
 
 
 class Corner(Physical):

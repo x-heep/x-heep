@@ -5,7 +5,7 @@
 # Author(s): Juan Sapriza, David Mallasen
 # Description: Top-level container for the pad ring in the X-HEEP generation.
 
-from .pad import Pad
+from .pad import Pad, Physical
 from .pad import Corner
 from .pin import Pin
 from .floorplan import FloorplanDimensions, Side, SIDE_DEFAULT_ROTATION
@@ -59,8 +59,11 @@ class PadRing:
                 if isinstance(x, Pad):
                     pad = x.copy()
                     if pad.global_index is None:
-                        pad.global_index = global_index
-                        global_index += 1
+                        if isinstance(x, Physical ): 
+                            pad.global_index = None
+                        else: 
+                            pad.global_index = global_index
+                            global_index += 1
                 elif isinstance(x, list) and all(isinstance(p, Pin) for p in x):
                     pad = Pad(global_index=global_index, pins=x)
                     global_index += 1

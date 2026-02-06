@@ -163,10 +163,8 @@ def config() -> PadRing:
         attributes={},
     )
 
-    ##############################################
-    # PRINT A NICE DIAGRAM TO CHECK EVERYTHING IS OK
-
-    # padring.print_pad_frame()
-    # padring.print_pad_table()
-
+    
+    # Check the pins attached to each pad so you can do a visual-sanity check 
+    padring.print_pin_summary()
+    
     return padring

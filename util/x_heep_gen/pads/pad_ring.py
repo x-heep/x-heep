@@ -113,6 +113,25 @@ class PadRing:
                 # Apply the _x suffix
                 pad.name = f"{original_name}_{seen_track[original_name]}"
 
+    def print_pin_summary(self):
+        """
+        Print a list of pads, which pins they have assigned, and a list of pins that are not
+        assigned to any pads. 
+        """
+        RESET = "\033[0m"
+        YELLOW = "\033[93m"
+        BOLD = "\033[1m"
+        print(f"{BOLD}Idx | Name{'':<25}| IO cell{'':<13}| Bondpad{'':<13}| # pins | Pins{RESET}")
+        for pad in self.pad_list:
+            print(f"{pad.global_index:<3} |{pad.name:<30}| {pad.iocell.name:<20}| {pad.bondpad.name:<20}| {len(pad.pins):<7}| {', '.join([pin.name for pin in pad.pins])}")
+
+        connected_pins = self.get_connected_pins()
+        if any( pin not in connected_pins for pin in self.pin_list ): print(f"⚠️{YELLOW}{BOLD}  UNCONNCETED PINS{RESET}")
+        for pin in self.pin_list:
+            if pin not in connected_pins: 
+                print(f" - {pin.name}")
+
+
     def get_connected_pins(self):
         """
         Returns the list of pins that are connected to pads in the pad ring. In the case of
@@ -282,97 +301,3 @@ class PadRing:
                 pad.bp_space = space
                 last_bp = i + 1
 
-    def print_pad_frame(self):
-        """
-        Print a visual representation of the pad ring layout in the console.
-        """
-        # ToDo_padspy: Do not print corners as if they were pads as well!
-        # ToDo_padspy: Do we still need this? Move to graphic module?
-
-        print("\n")
-
-        # Separate pads by their side
-        top = sorted(
-            [p for p in self.pad_list if p.side == Side.TOP],
-            key=lambda x: x.side_index,
-            reverse=True,
-        )
-        bottom = sorted(
-            [p for p in self.pad_list if p.side == Side.BOTTOM],
-            key=lambda x: x.side_index,
-            reverse=False,
-        )
-        left = sorted(
-            [p for p in self.pad_list if p.side == Side.LEFT],
-            key=lambda x: x.side_index,
-            reverse=False,
-        )
-        right = sorted(
-            [p for p in self.pad_list if p.side == Side.RIGHT],
-            key=lambda x: x.side_index,
-            reverse=True,
-        )
-
-        # Determine dimensions
-        height = max(len(left), len(right))
-
-        # Helper to format the global_index into [XXX]
-        def fmt(pad):
-            return f"[{pad.global_index:3}]" if pad else "     "
-
-        # 1. Print Top Row
-        top_row = "      " + "".join(fmt(p) for p in top)
-        print(top_row)
-
-        # 2. Print Middle Rows (Left and Right sides)
-        for i in range(height):
-            l_pad = left[i] if i < len(left) else None
-            r_pad = right[i] if i < len(right) else None
-
-            # Calculate spacing between left and right pads
-            # Spacing depends on how many pads are on the top/bottom
-            middle_gap = "     " * len(top)
-            print(f"{fmt(l_pad)}{middle_gap}{fmt(r_pad)}")
-
-        # 3. Print Bottom Row
-        bottom_row = "      " + "".join(fmt(p) for p in bottom)
-        print(bottom_row)
-        print("\n")
-
-    def print_pad_table(self):
-        """
-        Print a table representation of the pad ring layout in the console.
-        """
-        # ToDo_padspy: Do we still need this? Move to graphic module?
-        print("\n")
-        rows = {}
-        for pad in self.pad_list:
-            idx = pad.side_index
-            if idx not in rows:
-                rows[idx] = {
-                    Side.LEFT: "",
-                    Side.BOTTOM: "",
-                    Side.RIGHT: "",
-                    Side.TOP: "",
-                }
-
-            # Join all pin names for this specific pad into a string
-            pin_names = (
-                f"({pad.global_index}) " + ", ".join([pin.name for pin in pad.pins])
-                if pad.pins
-                else f"({pad.global_index}) " + pad.name
-            )
-            rows[idx][pad.side] = pin_names
-
-        # Print Header
-        header = f"{'Idx':<4} | {Side.LEFT.value:<40} | {Side.BOTTOM.value:<40} | {Side.RIGHT.value:<40} | {Side.TOP.value:<40}"
-        print(header)
-        print("-" * len(header))
-
-        # Print Rows sorted by side_index
-        for idx in sorted(rows.keys()):
-            r = rows[idx]
-            print(
-                f"{idx:<4} | {r[Side.LEFT]:<40} | {r[Side.BOTTOM]:<40} | {r[Side.RIGHT]:<40} | {r[Side.TOP]:<40}"
-            )
-        print("\n")

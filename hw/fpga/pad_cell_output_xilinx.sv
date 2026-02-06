@@ -4,7 +4,6 @@
 
 module pad_cell_output #(
     parameter PADATTR = 16,
-    parameter core_v_mini_mcu_pkg::pad_side_e SIDE = core_v_mini_mcu_pkg::TOP
 ) (
     input logic pad_in_i,
     input logic pad_oe_i,

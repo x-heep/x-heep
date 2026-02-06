@@ -5,7 +5,6 @@
 /* verilator lint_off UNUSED */
 module pad_cell_output #(
     parameter PADATTR = 16,
-    parameter core_v_mini_mcu_pkg::pad_side_e SIDE = core_v_mini_mcu_pkg::TOP,
     //do not touch these parameters
     parameter PADATTR_RND = PADATTR == 0 ? 1 : PADATTR
 ) (

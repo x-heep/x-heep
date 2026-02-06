@@ -91,10 +91,7 @@ module pad_ring (
         continue
     %>
     pad_cell_${pad_type} #(
-        .PADATTR(${num_attribute_bits})${"," if pad.side != None else ""}
-        % if pad.side != None:
-            .SIDE(core_v_mini_mcu_pkg::${pad.side.value.upper()})
-        % endif
+        .PADATTR(${num_attribute_bits})
     ) u_pad_${pad.name} (
         .pad_in_i(${pad_in_i}),
         .pad_oe_i(${pad_oe_i}),

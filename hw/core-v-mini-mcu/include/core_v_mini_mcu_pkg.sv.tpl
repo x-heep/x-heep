@@ -231,11 +231,4 @@ package core_v_mini_mcu_pkg;
 
   localparam int unsigned NUM_PAD_PORT_SEL_WIDTH = NUM_PAD > 1 ? $clog2(NUM_PAD) : 32'd1;
 
-  typedef enum logic [1:0] {
-    TOP,
-    RIGHT,
-    BOTTOM,
-    LEFT
-  } pad_side_e;
-
 endpackage

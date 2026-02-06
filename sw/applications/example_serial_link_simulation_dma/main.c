@@ -22,9 +22,15 @@ static uint32_t copied_data_4B[TEST_DATA_LARGE] __attribute__((aligned(4))) = {0
 #define PRINTF_IN_FPGA  1
 #define PRINTF_IN_SIM   0
 
+// simulation only -> Testharness last slave address on the external bus (size of the Slow memory in testharness pkg))
+#if TARGET_SIM 
+    #define EXT_SLAVE_LENGTH 0x400
+    #define SL_EXTERNAL_WRITE  (int32_t *)(EXT_SLAVE_START_ADDRESS + EXT_SLAVE_LENGTH)
+    #define SL_EXTERNAL_CTRL_REG_ADDR  (int32_t *)(EXT_PERIPHERAL_START_ADDRESS + 0x06000 + SERIAL_LINK_SINGLE_CHANNEL_CTRL_REG_OFFSET)
+#endif
 
 #if TARGET_SIM && PRINTF_IN_SIM
-        #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+    #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
 #elif PRINTF_IN_FPGA && !TARGET_SIM
     #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
 #else
@@ -35,7 +41,8 @@ static uint32_t copied_data_4B[TEST_DATA_LARGE] __attribute__((aligned(4))) = {0
 
 int main(int argc, char *argv[]){
     
-    sl_sim_init();
+    sl_init((volatile uint32_t *)CTRL_REG_ADDR, (int32_t *)CTRL_REG_ADDR);
+    sl_init((volatile uint32_t *)SL_EXTERNAL_CTRL_REG_ADDR, (int32_t *)SL_EXTERNAL_CTRL_REG_ADDR);
     
     for (int i = 0; i < TEST_DATA_LARGE; i++) {
         to_be_sent_4B[i] = i+525;
@@ -49,34 +56,47 @@ int main(int argc, char *argv[]){
 
     // DMA
     for (uint32_t i = 0; i < chunks; i++) {
-        sl_dma_trans(
-        to_be_sent_4B  + i * DMA_DATA_LARGE,   // src_d
-        copied_data_4B + i * DMA_DATA_LARGE,   // dst_d
-        SL_EXTERNAL_WRITE,                     // src (FIFO addr)
-        SL_INTERNAL_READ,                      // dst (FIFO addr)
-        DMA_DATA_LARGE);
+        sl_dma_send(
+                        to_be_sent_4B  + i * DMA_DATA_LARGE,   
+                        SL_EXTERNAL_WRITE,                     
+                        DMA_DATA_LARGE);
+        sl_dma_read( 
+                        copied_data_4B + i * DMA_DATA_LARGE,                       
+                        SL_READ,                      
+                        DMA_DATA_LARGE);
     }
     if (remainder > 0) {
-        sl_dma_trans(to_be_sent_4B + chunks * DMA_DATA_LARGE, copied_data_4B + chunks * DMA_DATA_LARGE,SL_EXTERNAL_WRITE,SL_INTERNAL_READ,remainder);
+        sl_dma_send(
+                        to_be_sent_4B + chunks * DMA_DATA_LARGE, 
+                        SL_EXTERNAL_WRITE,
+                        remainder);
+        sl_dma_read(
+                        copied_data_4B + chunks * DMA_DATA_LARGE,
+                        SL_READ,
+                        remainder);
     }
     PRINTF("DMA DONE\n"); 
 
     // CPU
     for (uint32_t i = 0; i < chunks; i++) {
-        sl_cpu_trans(
-        to_be_sent_4B  + i * DMA_DATA_LARGE,
-        copied_data_4B + i * DMA_DATA_LARGE,
-        SL_EXTERNAL_WRITE,
-        SL_INTERNAL_READ,
-        DMA_DATA_LARGE);
+        sl_cpu_send(
+                        to_be_sent_4B  + i * DMA_DATA_LARGE,   
+                        SL_EXTERNAL_WRITE,                     
+                        DMA_DATA_LARGE);
+        sl_cpu_read( 
+                        copied_data_4B + i * DMA_DATA_LARGE,                       
+                        SL_READ,                      
+                        DMA_DATA_LARGE);
     }
     if (remainder > 0) {        
-        sl_cpu_trans(
-        to_be_sent_4B  + chunks * DMA_DATA_LARGE,
-        copied_data_4B + chunks * DMA_DATA_LARGE,
-        SL_EXTERNAL_WRITE,
-        SL_INTERNAL_READ,
-        remainder);
+        sl_cpu_send(
+                        to_be_sent_4B + chunks * DMA_DATA_LARGE, 
+                        SL_EXTERNAL_WRITE,
+                        remainder);
+        sl_cpu_read(
+                        copied_data_4B + chunks * DMA_DATA_LARGE,
+                        SL_READ,
+                        remainder);
     }
 
     PRINTF("CPU DONE\n"); 

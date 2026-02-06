@@ -1,5 +1,3 @@
-
-
 #include <stdio.h>
 #include <stdint.h>
 #include "serial_link.h"
@@ -45,19 +43,14 @@
  * SIM_INIT must NOT be used on real hardware or FPGA, as it accesses
  * testharness-only address space.
  */
-void __attribute__ ((optimize("00"))) sl_sim_init(void){
-    reg_config();
-    axi_isolate();
-    external_bus_sl_config();
+
+void __attribute__ ((optimize("00"))) sl_init(volatile uint32_t * addr_reg, int32_t * addr_isolate){
+    reg_config(addr_reg);
+    axi_isolate(addr_isolate);
 }
 
-void __attribute__ ((optimize("00"))) sl_init(void){
-    reg_config();
-    axi_isolate();
-}
-
-void __attribute__ ((optimize("00"))) reg_config(void){
-    volatile uint32_t * const ctrl = (volatile uint32_t *)CTRL_REG_ADDR;
+void __attribute__ ((optimize("00"))) reg_config(volatile uint32_t * addr){
+    volatile uint32_t * const ctrl = (volatile uint32_t *)addr; // for single channel addr = CTRL_REG_ADDR
     // Step 1: clock enabled, reset asserted (RESET_N = 0)
     *ctrl = CTRL_CLK_EN_MASK;
     // Step 2: clock enabled, reset de-asserted (RESET_N = 1)
@@ -95,41 +88,28 @@ void __attribute__ ((optimize("00"))) raw_mode_enable(void){
     *addr_p_RAW_MODE_IN_DATA_REG = (*addr_p_RAW_MODE_IN_DATA_REG)| 0x00000001; 
 }
 
-void __attribute__ ((optimize("00"))) axi_isolate(void){
-    int32_t *addr_p_reg_ISOLATE_IN =(int32_t *)(SERIAL_LINK_REG_START_ADDRESS + SERIAL_LINK_SINGLE_CHANNEL_CTRL_REG_OFFSET); 
+void __attribute__ ((optimize("00"))) axi_isolate(int32_t * addr){
+    int32_t *addr_p_reg_ISOLATE_IN = (int32_t *) (addr); // for SL addr = CTRL_REG_ADDR
     *addr_p_reg_ISOLATE_IN &= ~(1<<8);
-    int32_t *addr_p_reg_ISOLATE_OUT =(int32_t *)(SERIAL_LINK_REG_START_ADDRESS + SERIAL_LINK_SINGLE_CHANNEL_CTRL_REG_OFFSET);
+    int32_t *addr_p_reg_ISOLATE_OUT =(int32_t *)(addr);
     *addr_p_reg_ISOLATE_OUT &= ~(1<<9); // axi_out_isolate
-    }
-
-void __attribute__ ((optimize("00"))) external_bus_sl_config(void){
-
-    volatile int32_t *addr_p_reg_ext =(int32_t *)(EXT_PERIPHERAL_START_ADDRESS + 0x06000 + SERIAL_LINK_SINGLE_CHANNEL_CTRL_REG_OFFSET); //0x06000000 
-    *addr_p_reg_ext = (*addr_p_reg_ext)| 0x00000001; // ctrl clock enable external
-    *addr_p_reg_ext = (*addr_p_reg_ext)& 0x11111101; // rst on
-    *addr_p_reg_ext = (*addr_p_reg_ext)| 0x00000002; // rst oFF
-
-    int32_t *addr_p_reg_ISOLATE_IN_ext =(int32_t *)(EXT_PERIPHERAL_START_ADDRESS + 0x06000 + SERIAL_LINK_SINGLE_CHANNEL_CTRL_REG_OFFSET); 
-    *addr_p_reg_ISOLATE_IN_ext &= ~(1<<8);
-    int32_t *addr_p_reg_ISOLATE_OUT_ext =(int32_t *)(EXT_PERIPHERAL_START_ADDRESS + 0x06000 + SERIAL_LINK_SINGLE_CHANNEL_CTRL_REG_OFFSET);
-    *addr_p_reg_ISOLATE_OUT_ext &= ~(1<<9);
-    }
-
+}
     
-    void __attribute__ ((optimize("00"))) sl_cpu_trans(uint32_t *src_d, uint32_t *dst_d,uint32_t *src, uint32_t *dst,  uint32_t large ){
+void __attribute__ ((optimize("00"))) sl_cpu_send(uint32_t *src_d,uint32_t *src,  uint32_t large ){
 
     for (int i = 0; i < large; i++) {
         *src = *(src_d + i);
     }
+}
+
+void __attribute__ ((optimize("00"))) sl_cpu_read(uint32_t *dst_d, uint32_t *dst,  uint32_t large ){
     
     for (int i = 0; i < large; i++) {
         *(dst_d + i) = *dst;
     }
-
 }
 
-
-void __attribute__ ((optimize("00"))) sl_dma_trans(uint32_t *src_d, uint32_t *dst_d, uint32_t *src, uint32_t *dst,uint32_t large){
+void __attribute__ ((optimize("00"))) sl_dma_send(uint32_t *src_d, uint32_t *src,uint32_t large){
     volatile static dma_config_flags_t res;
     volatile static dma_target_t tgt_src_d;
     volatile static dma_target_t tgt_dst_d;
@@ -166,8 +146,13 @@ void __attribute__ ((optimize("00"))) sl_dma_trans(uint32_t *src_d, uint32_t *ds
                     }
             CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
         }
+}
 
-
+void __attribute__ ((optimize("00"))) sl_dma_read( uint32_t *dst_d, uint32_t *dst,uint32_t large){
+    volatile static dma_config_flags_t res;
+    volatile static dma_target_t tgt_src_d;
+    volatile static dma_target_t tgt_dst_d;
+    volatile static dma_trans_t trans;
         dma_init(NULL);
         tgt_src_d.ptr = (uint8_t *)dst;
         tgt_src_d.inc_d1_du = 0;

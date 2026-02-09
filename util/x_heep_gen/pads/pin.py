@@ -102,6 +102,7 @@ class Inout(PinDigital):
         super().__init__(name, module, attributes)
         self.iocell.rtl_wrapper = "u_pad_cell_inout"
 
+
 class Asignal(Pin):
     """
     Represents a generic analog signal pin.

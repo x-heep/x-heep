@@ -55,11 +55,11 @@ TARGET ?= sim
 X_HEEP_CFG  ?= configs/general.hjson
 PADS_CFG ?= configs/pad_cfg.py
 PYTHON_X_HEEP_CFG ?=
-# Cached mcu-gen xheep configuration
-XHEEP_CONFIG_CACHE ?= $(BUILD_DIR)/xheep_config_cache.pickle
 
 # MCU-Gen template files to generate
 MCU_GEN_TEMPLATES = $(shell find . \( -path './hw/vendor' -o -path './util' -o -path './test' \) -prune -o -name '*.tpl' -print)
+# Optionally, additional external template files can be provided to mcu-gen
+EXTERNAL_MCU_GEN_TEMPLATES ?= 
 
 # Compiler options are 'gcc' (default) and 'clang'
 COMPILER 		?= gcc
@@ -126,8 +126,7 @@ conda:
 ## @param X_HEEP_CFG=[configs/general.hjson(default),<path-to-config-file>]
 ## @param PYTHON_X_HEEP_CFG=[configs/general.py(default),<path-to-config-file>]
 mcu-gen:
-	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CONFIG_CACHE) --config $(X_HEEP_CFG) --python_config $(PYTHON_X_HEEP_CFG) --pads_cfg $(PADS_CFG) --cpu $(CPU) --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --external_domains $(EXTERNAL_DOMAINS)
-	$(PYTHON) util/mcu_gen.py --cached_path $(XHEEP_CONFIG_CACHE) --cached --outtpl "$(MCU_GEN_TEMPLATES)"
+	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --python_config $(PYTHON_X_HEEP_CFG) --pads_cfg $(PADS_CFG) --outtpl "$(MCU_GEN_TEMPLATES) $(EXTERNAL_MCU_GEN_TEMPLATES)" --cpu $(CPU) --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --external_domains $(EXTERNAL_DOMAINS)
 	bash -c "cd hw/ip/soc_ctrl; source soc_ctrl_gen.sh; cd ../../../"
 	bash -c "cd hw/ip/power_manager; source power_manager_gen.sh; cd ../../../"
 	bash -c "cd hw/ip/pdm2pcm; source pdm2pcm_gen.sh; cd ../../../"

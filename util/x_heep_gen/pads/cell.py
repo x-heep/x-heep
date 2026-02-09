@@ -88,42 +88,6 @@ bondpad_d = Cell(name="BONDPAD_DIGITAL", width=20, height=30)
 iocell_d = Cell(
     name="IOCELL_DIGITAL", width=25, height=32
 )  # No need to declare connections, they are handled manually in the padring template
-iocell_clk = Cell(name="IOCELL_CLOCK", width=25, height=32)
-iocell_dVdd = Cell(
-    name="IOCELL_DVDD",
-    width=25,
-    height=32,
-    rtl_wrapper="u_pad_cell_digital_core_vdd",
-    connections=["vdd"],
-)
-iocell_ioVdd = Cell(
-    name="IOCELL_IOVDD",
-    width=25,
-    height=32,
-    rtl_wrapper="u_pad_cell_digital_io_vdd",
-    connections=["vdd"],
-)
-iocell_ioPoc = Cell(
-    name="IOCELL_IOPOC",
-    width=25,
-    height=32,
-    rtl_wrapper="u_pad_cell_digital_poc_vdd",
-    connections=["vdd"],
-)
-iocell_dVss = Cell(
-    name="IOCELL_DVSS",
-    width=25,
-    height=32,
-    rtl_wrapper="u_pad_cell_digital_core_vss",
-    connections=["vss"],
-)
-iocell_ioVss = Cell(
-    name="IOCELL_IOVSS",
-    width=25,
-    height=32,
-    rtl_wrapper="u_pad_cell_digital_io_vdd",
-    connections=["vss"],
-)
 
 iocell_a = Cell(
     name="IOCELL_ANALOG",
@@ -132,26 +96,3 @@ iocell_a = Cell(
     rtl_wrapper="u_pad_cell_analog",
     connections=["io"],
 )
-iocell_aVdd = Cell(
-    name="IOCELL_AVDD",
-    width=20,
-    height=32,
-    rtl_wrapper="u_pad_cell_analog_vdd",
-    connections=["vdd"],
-)
-iocell_aVss = Cell(
-    name="IOCELL_AVSS",
-    width=20,
-    height=32,
-    rtl_wrapper="u_pad_cell_analog_vss",
-    connections=["vss"],
-)
-
-aPrcut = Cell(name="APRCUT", width=25, height=32, rtl_wrapper="u_pad_cell_analog_vss")
-dPrcut = Cell(name="DPRCUT", width=25, height=32, rtl_wrapper="u_pad_cell_analog_vss")
-
-aCorner = Cell(name="ACORNER", width=32, height=32)
-dCorner = Cell(name="DCORNER", width=32, height=32)
-
-bondpad_skip = Cell(name="", width=0, height=0)
-pad_skip = Cell(name="", width=0, height=0)

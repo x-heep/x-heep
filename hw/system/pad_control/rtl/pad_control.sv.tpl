@@ -2,6 +2,9 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
+<%!
+    from x_heep_gen.pads.pin import PinDigital
+%>
 <%
     attribute_bits = xheep.get_padring().attributes.get("bits")
     any_muxed_pads = xheep.get_padring().num_muxed_pads() > 0

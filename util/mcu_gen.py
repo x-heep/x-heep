@@ -295,7 +295,7 @@ def main():
     externaltpl_list = [t for t in re.split(r"[,\s]+", args.externaltpl or "") if t]
 
     if len(outtpl_list) == 1:  # Single template case
-        if args.externaltpl is not None:
+        if externaltpl_list:
             parser.error("Cannot specify --externaltpl when using a single template.")
         print(
             f"{Colors.BLUE}[MCU-GEN]{Colors.RESET} Processing template: {Colors.BOLD}{outtpl_list[0]}{Colors.RESET}"

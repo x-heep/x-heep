@@ -178,7 +178,7 @@ This generates:
 ![Pad Dimensions](../images/padring_definitions.png)
 _The base of the image above is an example of the diagram generated. References to the dimensions were added on top._
 
-## Advanced Usage
+## 😎 X-pert Zone (mostly for ASIC implementation)
 
 ### Custom Pad Attributes
 
@@ -210,3 +210,38 @@ padring.space_side_by_pitch(
     pitch=50.0,  # µm between pads
 )
 ```
+
+You can optionally space any pad from the edge by forcing the `iocell_center_to_ring_edge` attribute.
+```python
+padring.pad_list[31].iocell_center_to_ring_edge = 1000
+```
+
+### Custom pads cells
+
+You can add customs cells that you need on your cheep according to the properties on the PDK.
+
+```python
+# Update a cell defined in pin.py
+cell.iocell_a.update( dimension=Dimension(width=60, height=65), name="PADIOA" )
+# Create custom cells as defined by the PDK
+iocell_dVdd = Cell( width=65, height=65, name="PADVDDIO",   rtl_wrapper="u_pad_cell_digital_core_vdd",  connections=["vdd"] )
+```
+
+For new cells, remember to also create an RTL wrapper and name them consistently (check those in [here](../../../hw/simulation)). 
+
+### Custom Pin types
+
+Once you have custom pad cells, you can assign them to your custom Pin types:
+```python
+class DVdd(PinSupply):
+    """
+    Represents a digital Vdd supply pin.
+    """
+
+    def __init__(self, name, attributes=None):
+        super().__init__(name, attributes)
+        self.iocell = iocell_dVdd.copy()
+        self.bondpad = bondpad_d.copy()
+```
+
+Then you can add pins to your pad ring using these custom Pin types as you would with the standard ones from X-HEEP. 

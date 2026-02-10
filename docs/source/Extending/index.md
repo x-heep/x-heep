@@ -37,7 +37,7 @@ If you want to try [Quadrilatero](https://github.com/pulp-platform/quadrilatero)
 First, install the compiler as written [here](https://github.com/esl-epfl/xheep_matrix_spec/blob/main/BUILDING.md), then, configure X-HEEP with the `QUADRILATERO` extension parameter, similarly to what is done in [this example](https://github.com/x-heep/x-heep/blob/main/configs/cv32e20_xif_quadrilatero.py). Then, compile the simulation model and run the example application with:
 
 ```bash
-make mcu-gen YTHON_X_HEEP_CFG=configs/my-config.py X_HEEP_CFG=configs/python_unsupported.hjson
+make mcu-gen PYTHON_X_HEEP_CFG=configs/my-config.py X_HEEP_CFG=configs/python_unsupported.hjson
 make verilator-build
 make app PROJECT=example_matmul_quadrilatero ARCH=rv32imc_zicsr_xtheadmatrix0p1 COMPILER_FLAGS=-menable-experimental-extensions COMPILER=clang CLANG_LINKER_USE_LD=1
 make verilator-run

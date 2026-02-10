@@ -81,6 +81,7 @@ module peripheral_subsystem
     output logic i2s_sd_oe_o,
     input  logic i2s_sd_i,
     output logic i2s_rx_valid_o,
+
     // PDM2PCM Interface
     output logic pdm2pcm_clk_o,
     output logic pdm2pcm_clk_en_o,
@@ -511,7 +512,6 @@ module peripheral_subsystem
       .intr_rx_timeout_o(uart_intr_rx_timeout),
       .intr_rx_parity_err_o(uart_intr_rx_parity_err)
   );
-
 
 
 

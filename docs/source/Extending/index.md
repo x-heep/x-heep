@@ -24,7 +24,7 @@ If you want to try the FPU-like coprocessor with a CV-X-IF compatible CPU as the
 
 Then, generate the RTL with MCU-GEN, compile the simulation model, and run the example application with:
 
-```
+```bash
 make mcu-gen PYTHON_X_HEEP_CFG=configs/my-config.py X_HEEP_CFG=configs/python_unsupported.hjson
 make verilator-build
 make app PROJECT=example_matfadd ARCH=rv32imfc

@@ -170,3 +170,15 @@ This workflow finalizes the release process. It is triggered automatically after
     *   After the release is published, this job pulls the newly released Docker image from GHCR.
     *   It then re-tags this image with the `latest` tag and pushes it.
     *   This ensures that the main `ci.yml` workflow will use the most up-to-date toolchain for future runs on the `main` branch.
+
+## Compare mcu-gen runs
+
+The `test/test_x_heep_gen/compare_mcu_gen.py` script is a utility to compare the outputs of mcu-gen between the current branch and main. This can be useful to manually check if changes in the configuration or in the MCU-Gen code have an effect on the generated files.
+
+You can run it with the following command:
+
+```bash
+make compare-mcu-gen
+```
+
+This will generate the mcu-gen outputs in the `_mcu_gen_current` and `_mcu_gen_main` directories inside `test/test_x_heep_gen`, and then list the files that differ between them. You can check the differences to see if they are expected or if they indicate an unintended change in the generated files.

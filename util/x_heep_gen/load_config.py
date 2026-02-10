@@ -6,6 +6,7 @@ import os
 import sys
 from jsonref import JsonRef
 
+
 from .cpu.cpu import CPU
 from .cpu.cv32e20 import cv32e20
 from .cpu.cv32e40p import cv32e40p
@@ -21,7 +22,7 @@ from .peripherals.base_peripherals import (
     Bootrom,
     SPI_flash,
     SPI_memio,
-    W25Q128JW_CONTROLLER,
+    W25Q128JW_Controller,
     DMA,
     Power_manager,
     RV_timer_ao,
@@ -30,8 +31,6 @@ from .peripherals.base_peripherals import (
     Pad_control,
     GPIO_ao,
 )
-
-
 from .peripherals.user_peripherals import (
     RV_plic,
     SPI_host,
@@ -287,7 +286,7 @@ def load_peripherals_config(system: XHeep, config_path: str):
                     elif peripheral_name == "spi_memio":
                         peripheral = SPI_memio(offset, length)
                     elif peripheral_name == "w25q128jw_controller":
-                        peripheral = W25Q128JW_CONTROLLER(offset, length)
+                        peripheral = W25Q128JW_Controller(offset, length)
                     elif peripheral_name == "dma":
                         try:
                             if peripheral_config["is_included"] == "yes":
@@ -548,3 +547,25 @@ def load_cfg_file(f: PurePath) -> XHeep:
 
     else:
         raise RuntimeError(f"unsupported file extension {f.suffix}")
+
+
+def load_pad_cfg(pad_cfg_path: PurePath):
+    """
+    Load pad configuration a Python file and build the PadRing.
+
+    Imports the Python module and calls the config() function which must
+    not take any parameters and return a PadRing instance.
+
+    :param PurePath pad_cfg_path: Path to .py configuration file
+    :return: Built PadRing object ready for template generation
+    """
+    if not isinstance(pad_cfg_path, PurePath):
+        raise TypeError("parameter should be of type PurePath")
+
+    if pad_cfg_path.suffix != ".py":
+        raise RuntimeError(f"unsupported file extension {pad_cfg_path.suffix}")
+
+    spec = importlib.util.spec_from_file_location("configs._config", pad_cfg_path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod.config()

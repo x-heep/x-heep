@@ -1,5 +1,7 @@
 # Tests output files
 outputs/*
+_mcu_gen_main/
+_mcu_gen_current/
 
 # Python cache
 configs/__pycache__/*

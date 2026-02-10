@@ -7,7 +7,7 @@
 
   upstream: {
     url: "https://github.com/pulp-platform/tech_cells_generic.git",
-    rev: "e6226a6f374eb88fed84d4989bb3f066cb470f33",
+    rev: "fca524a1174f6363ba0e778f37b9f398257d4b8f",
   },
 
   patch_dir: "patches/pulp_platform_tech_cells_generic",

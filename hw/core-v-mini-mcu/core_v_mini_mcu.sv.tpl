@@ -2,10 +2,21 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
+<%!
+    from x_heep_gen.pads.pin import Input, Output, Inout
+%>
+
 <%
   dma = xheep.get_base_peripheral_domain().get_dma()
   memory_ss = xheep.memory_ss()
   user_peripheral_domain = xheep.get_user_peripheral_domain()
+  dma = xheep.get_base_peripheral_domain().get_dma()
+  memory_ss = xheep.memory_ss()
+  dma_obi_msb = dma.get_num_master_ports() - 1
+
+  clk_module = next((p for p in xheep.get_padring().get_connected_pins() if p.name == "clk"), None).module
+  rst_module = next((p for p in xheep.get_padring().get_connected_pins() if p.name == "rst"), None).module
+
 %>
 
 module core_v_mini_mcu
@@ -24,12 +35,26 @@ module core_v_mini_mcu
     parameter EXT_HARTS_RND = EXT_HARTS == 0 ? 1 : EXT_HARTS
 ) (
 
-    input logic rst_ni,
-
-% for pad in xheep.get_padring().pad_list:
-${pad.core_v_mini_mcu_interface}
-% endfor
-
+    % if clk_module != "core_v_mini_mcu":
+      input logic clk_i,
+    % endif
+    % if rst_module != "core_v_mini_mcu":
+      input logic rst_ni,
+    % endif
+    % for pin in xheep.get_padring().get_connected_pins():
+      % if pin.module == "core_v_mini_mcu":
+        % if isinstance(pin, (Input, Inout)):
+          input logic ${pin.rtl_name()}i,
+        % endif
+        % if isinstance(pin, (Output, Inout)):
+          output logic ${pin.rtl_name()}o,
+        % endif
+        % if isinstance(pin, Inout):
+          output logic ${pin.rtl_name()}oe_o,
+        % endif
+      % endif
+    % endfor
+    
     // IDs
     input logic [31:0] hart_id_i,
     input logic [31:0] xheep_instance_id_i,
@@ -129,10 +154,6 @@ ${pad.core_v_mini_mcu_interface}
   end
 `endif
 
-<%
-  obi_msb = dma.get_num_master_ports() - 1
-%>
-
   // masters signals
   obi_req_t core_instr_req;
   obi_resp_t core_instr_resp;
@@ -140,12 +161,12 @@ ${pad.core_v_mini_mcu_interface}
   obi_resp_t core_data_resp;
   obi_req_t debug_master_req;
   obi_resp_t debug_master_resp;
-  obi_req_t [${obi_msb}:0]dma_read_req;
-  obi_resp_t [${obi_msb}:0]dma_read_resp;
-  obi_req_t [${obi_msb}:0]dma_write_req;
-  obi_resp_t [${obi_msb}:0]dma_write_resp;
-  obi_req_t [${obi_msb}:0]dma_addr_req;
-  obi_resp_t [${obi_msb}:0]dma_addr_resp;
+  obi_req_t [${dma_obi_msb}:0]dma_read_req;
+  obi_resp_t [${dma_obi_msb}:0]dma_read_resp;
+  obi_req_t [${dma_obi_msb}:0]dma_write_req;
+  obi_resp_t [${dma_obi_msb}:0]dma_write_resp;
+  obi_req_t [${dma_obi_msb}:0]dma_addr_req;
+  obi_resp_t [${dma_obi_msb}:0]dma_addr_resp;
 
   // ram signals
   obi_req_t [core_v_mini_mcu_pkg::NUM_BANKS-1:0] ram_slave_req;
@@ -228,14 +249,14 @@ ${pad.core_v_mini_mcu_interface}
   assign peripheral_subsystem_rst_n           = peripheral_subsystem_pwr_ctrl_out.rst_n;
   assign peripheral_subsystem_clkgate_en_n    = peripheral_subsystem_pwr_ctrl_out.clkgate_en_n;
 
-% for bank in memory_ss.iter_ram_banks():
-  assign memory_subsystem_banks_powergate_switch_n[${bank.name()}] = memory_subsystem_pwr_ctrl_out[${bank.name()}].pwrgate_en_n;
-  assign memory_subsystem_pwr_ctrl_in[${bank.name()}].pwrgate_ack_n = memory_subsystem_banks_powergate_switch_ack_n[${bank.name()}];
-  //isogate exposed outside for UPF sim flow and switch cells
-  assign memory_subsystem_banks_powergate_iso_n[${bank.name()}] = memory_subsystem_pwr_ctrl_out[${bank.name()}].isogate_en_n;
-  assign memory_subsystem_banks_set_retentive_n[${bank.name()}] = memory_subsystem_pwr_ctrl_out[${bank.name()}].retentive_en_n;
-  assign memory_subsystem_clkgate_en_n[${bank.name()}] = memory_subsystem_pwr_ctrl_out[${bank.name()}].clkgate_en_n;
-% endfor
+  % for bank in memory_ss.iter_ram_banks():
+    assign memory_subsystem_banks_powergate_switch_n[${bank.name()}] = memory_subsystem_pwr_ctrl_out[${bank.name()}].pwrgate_en_n;
+    assign memory_subsystem_pwr_ctrl_in[${bank.name()}].pwrgate_ack_n = memory_subsystem_banks_powergate_switch_ack_n[${bank.name()}];
+    //isogate exposed outside for UPF sim flow and switch cells
+    assign memory_subsystem_banks_powergate_iso_n[${bank.name()}] = memory_subsystem_pwr_ctrl_out[${bank.name()}].isogate_en_n;
+    assign memory_subsystem_banks_set_retentive_n[${bank.name()}] = memory_subsystem_pwr_ctrl_out[${bank.name()}].retentive_en_n;
+    assign memory_subsystem_clkgate_en_n[${bank.name()}] = memory_subsystem_pwr_ctrl_out[${bank.name()}].clkgate_en_n;
+  % endfor
 
   for (genvar i = 0; i < EXT_DOMAINS_RND; i = i + 1) begin : gen_external_subsystem_pwr_gating
     assign external_subsystem_powergate_switch_no[i]        = external_subsystem_pwr_ctrl_out[i].pwrgate_en_n;
@@ -253,6 +274,7 @@ ${pad.core_v_mini_mcu_interface}
   // SPI
   logic spi_flash_intr, spi_intr, spi_rx_valid, spi_tx_ready;
 
+/* verilator lint_off UNDRIVEN */
   // GPIO
   logic [31:8] gpio_in;
   logic [31:8] gpio_out;
@@ -263,6 +285,7 @@ ${pad.core_v_mini_mcu_interface}
   logic [7:0] gpio_ao_out;
   logic [7:0] gpio_ao_oe;
   logic [7:0] gpio_ao_intr;
+/* verilator lint_on UNDRIVEN */
 
   // I2s
   logic i2s_rx_valid;
@@ -538,101 +561,19 @@ ${pad.core_v_mini_mcu_interface}
   assign pdm2pcm_pdm_o = 0;
   assign pdm2pcm_pdm_oe_o = 0;
 
-  assign gpio_ao_in[0] = gpio_0_i;
-  assign gpio_0_o      = gpio_ao_out[0];
-  assign gpio_0_oe_o   = gpio_ao_oe[0];
-  assign gpio_ao_in[1] = gpio_1_i;
-  assign gpio_1_o      = gpio_ao_out[1];
-  assign gpio_1_oe_o   = gpio_ao_oe[1];
-  assign gpio_ao_in[2] = gpio_2_i;
-  assign gpio_2_o      = gpio_ao_out[2];
-  assign gpio_2_oe_o   = gpio_ao_oe[2];
-  assign gpio_ao_in[3] = gpio_3_i;
-  assign gpio_3_o      = gpio_ao_out[3];
-  assign gpio_3_oe_o   = gpio_ao_oe[3];
-  assign gpio_ao_in[4] = gpio_4_i;
-  assign gpio_4_o      = gpio_ao_out[4];
-  assign gpio_4_oe_o   = gpio_ao_oe[4];
-  assign gpio_ao_in[5] = gpio_5_i;
-  assign gpio_5_o      = gpio_ao_out[5];
-  assign gpio_5_oe_o   = gpio_ao_oe[5];
-  assign gpio_ao_in[6] = gpio_6_i;
-  assign gpio_6_o      = gpio_ao_out[6];
-  assign gpio_6_oe_o   = gpio_ao_oe[6];
-  assign gpio_ao_in[7] = gpio_7_i;
-  assign gpio_7_o      = gpio_ao_out[7];
-  assign gpio_7_oe_o   = gpio_ao_oe[7];
-  assign gpio_in[8]    = gpio_8_i;
-  assign gpio_8_o      = gpio_out[8];
-  assign gpio_8_oe_o   = gpio_oe[8];
-  assign gpio_in[9]    = gpio_9_i;
-  assign gpio_9_o      = gpio_out[9];
-  assign gpio_9_oe_o   = gpio_oe[9];
-  assign gpio_in[10]   = gpio_10_i;
-  assign gpio_10_o     = gpio_out[10];
-  assign gpio_10_oe_o  = gpio_oe[10];
-  assign gpio_in[11]   = gpio_11_i;
-  assign gpio_11_o     = gpio_out[11];
-  assign gpio_11_oe_o  = gpio_oe[11];
-  assign gpio_in[12]   = gpio_12_i;
-  assign gpio_12_o     = gpio_out[12];
-  assign gpio_12_oe_o  = gpio_oe[12];
-  assign gpio_in[13]   = gpio_13_i;
-  assign gpio_13_o     = gpio_out[13];
-  assign gpio_13_oe_o  = gpio_oe[13];
-  assign gpio_in[14]   = gpio_14_i;
-  assign gpio_14_o     = gpio_out[14];
-  assign gpio_14_oe_o  = gpio_oe[14];
-  assign gpio_in[15]   = gpio_15_i;
-  assign gpio_15_o     = gpio_out[15];
-  assign gpio_15_oe_o  = gpio_oe[15];
-  assign gpio_in[16]   = gpio_16_i;
-  assign gpio_16_o     = gpio_out[16];
-  assign gpio_16_oe_o  = gpio_oe[16];
-  assign gpio_in[17]   = gpio_17_i;
-  assign gpio_17_o     = gpio_out[17];
-  assign gpio_17_oe_o  = gpio_oe[17];
-  assign gpio_in[18]   = gpio_18_i;
-  assign gpio_18_o     = gpio_out[18];
-  assign gpio_18_oe_o  = gpio_oe[18];
-  assign gpio_in[19]   = gpio_19_i;
-  assign gpio_19_o     = gpio_out[19];
-  assign gpio_19_oe_o  = gpio_oe[19];
-  assign gpio_in[20]   = gpio_20_i;
-  assign gpio_20_o     = gpio_out[20];
-  assign gpio_20_oe_o  = gpio_oe[20];
-  assign gpio_in[21]   = gpio_21_i;
-  assign gpio_21_o     = gpio_out[21];
-  assign gpio_21_oe_o  = gpio_oe[21];
-  assign gpio_in[22]   = gpio_22_i;
-  assign gpio_22_o     = gpio_out[22];
-  assign gpio_22_oe_o  = gpio_oe[22];
-  assign gpio_in[23]   = gpio_23_i;
-  assign gpio_23_o     = gpio_out[23];
-  assign gpio_23_oe_o  = gpio_oe[23];
-  assign gpio_in[24]   = gpio_24_i;
-  assign gpio_24_o     = gpio_out[24];
-  assign gpio_24_oe_o  = gpio_oe[24];
-  assign gpio_in[25]   = gpio_25_i;
-  assign gpio_25_o     = gpio_out[25];
-  assign gpio_25_oe_o  = gpio_oe[25];
-  assign gpio_in[26]   = gpio_26_i;
-  assign gpio_26_o     = gpio_out[26];
-  assign gpio_26_oe_o  = gpio_oe[26];
-  assign gpio_in[27]   = gpio_27_i;
-  assign gpio_27_o     = gpio_out[27];
-  assign gpio_27_oe_o  = gpio_oe[27];
-  assign gpio_in[28]   = gpio_28_i;
-  assign gpio_28_o     = gpio_out[28];
-  assign gpio_28_oe_o  = gpio_oe[28];
-  assign gpio_in[29]   = gpio_29_i;
-  assign gpio_29_o     = gpio_out[29];
-  assign gpio_29_oe_o  = gpio_oe[29];
-  assign gpio_in[30]   = gpio_30_i;
-  assign gpio_30_o     = gpio_out[30];
-  assign gpio_30_oe_o  = gpio_oe[30];
-  assign gpio_in[31]   = gpio_31_i;
-  assign gpio_31_o     = gpio_out[31];
-  assign gpio_31_oe_o  = gpio_oe[31];
+  % for pin in xheep.get_padring().get_connected_pins():
+    % if pin.module == "core_v_mini_mcu" and "gpio_" in pin.name:
+      <% gpio_number = int(pin.name.split('_')[-1]) %>
+      % if gpio_number < 8: # THE NUMBER OF GPIOS ON THE ALWAYS ON PERIPHERAL DOMAIN GPIO
+        assign gpio_ao_in[${gpio_number}] = gpio_${gpio_number}_i;
+        assign gpio_${gpio_number}_o      = gpio_ao_out[${gpio_number}];
+        assign gpio_${gpio_number}_oe_o   = gpio_ao_oe[${gpio_number}];
+      % else:
+        assign gpio_in[${gpio_number}]  = gpio_${gpio_number}_i;
+        assign gpio_${gpio_number}_o    = gpio_out[${gpio_number}];
+        assign gpio_${gpio_number}_oe_o = gpio_oe[${gpio_number}];
+      %endif
+    % endif
+  % endfor
 
 endmodule  // core_v_mini_mcu

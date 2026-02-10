@@ -222,20 +222,14 @@ package core_v_mini_mcu_pkg;
   localparam PLIC_USED_NINT = ${plic_used_n_interrupts};
   localparam NEXT_INT = PLIC_NINT - PLIC_USED_NINT;
 
-% for pad in xheep.get_padring().total_pad_list:
-  localparam ${pad.localparam} = ${pad.index};
+% for pad in xheep.get_padring().pad_list:
+  % if pad.global_index is not None:
+  localparam PAD_${pad.name.upper()} = ${pad.global_index};
+  % endif
 % endfor
 
-  localparam NUM_PAD = ${xheep.get_padring().total_pad};
-  localparam NUM_PAD_MUXED = ${xheep.get_padring().total_pad_muxed};
+  localparam NUM_PAD = ${len(xheep.get_padring().pad_list)};
 
   localparam int unsigned NUM_PAD_PORT_SEL_WIDTH = NUM_PAD > 1 ? $clog2(NUM_PAD) : 32'd1;
-
-  typedef enum logic [1:0] {
-    TOP,
-    RIGHT,
-    BOTTOM,
-    LEFT
-  } pad_side_e;
 
 endpackage

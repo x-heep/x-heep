@@ -11,7 +11,7 @@ import hjson
 
 
 x_heep_cfg = "configs/general.hjson"
-pads_cfg = "configs/pad_cfg.hjson"
+pads_cfg = "configs/pad_cfg.py"
 config_directory = "test/test_x_heep_gen/configs/"
 existing_extensions = [".hjson", ".py"]
 output_directory = "test/test_x_heep_gen/outputs"
@@ -208,6 +208,7 @@ def __generate_argv(
     config_dir: str,
     output_dir: str,
     extension: str,
+    template: str,
 ):
 
     python_config = (
@@ -216,28 +217,12 @@ def __generate_argv(
 
     return [
         "mcu_gen.py",
-        "--cached_path",
-        f"{output_dir}/example{example_number}-{extension}.pickle",
         "--config",
         f"{config_dir}/example{example_number}.hjson",
         "--python_config",
         python_config,
         "--pads_cfg",
         pads_cfg,
-    ]
-
-
-def __generate_cached_argv(
-    example_number: int,
-    output_dir: str,
-    template: str,
-    extension: str,
-):
-    return [
-        "mcu_gen.py",
-        "--cached_path",
-        f"{output_dir}/example{example_number}-{extension}.pickle",
-        "-ca",
         "--outfile",
         f"{output_dir}/example{example_number}-{extension}.hjson",
         "--outtpl",
@@ -279,12 +264,6 @@ def generate_examples(
                 example_number=i,
                 config_dir=config_dir,
                 output_dir=output_dir,
-                extension="py",
-            )
-            mcu_gen.main()
-            sys.argv = __generate_cached_argv(
-                example_number=i,
-                output_dir=output_dir,
                 template=template,
                 extension="py",
             )
@@ -295,12 +274,6 @@ def generate_examples(
             sys.argv = __generate_argv(
                 example_number=i,
                 config_dir=config_dir,
-                output_dir=output_dir,
-                extension="hjson",
-            )
-            mcu_gen.main()
-            sys.argv = __generate_cached_argv(
-                example_number=i,
                 output_dir=output_dir,
                 template=template,
                 extension="hjson",

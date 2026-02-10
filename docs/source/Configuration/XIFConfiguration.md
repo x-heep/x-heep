@@ -6,7 +6,7 @@ Most of the the cores available in X-HEEP support the CV-V-IF interface to offlo
 - CV32E40PX
 
 ```{warning}
-CV32E20 only supports offloading two source operands. If your coprocessor requries 3 input operands (e.g., if it uses R4-type instructions), _you should rely on the CV32E40* cores_. Support for 3 operands is going to be added in the near future. Note that, for testing purposes, `testharness.sv` allows CV32E20 as a valid choice when the FPU is enabled (together with the ZFINX RISC-V extension).
+CV32E20 only supports offloading two source operands. If your coprocessor requries 3 input operands (e.g., if it uses R4-type instructions), _you should rely on the CV32E40*X cores_. Support for 3 operands is going to be added in the near future. Note that, for testing purposes, `testharness.sv` allows CV32E20 as a valid choice when the FPU is enabled (together with the ZFINX RISC-V extension).
 ```
 
 ## Python configuration file
@@ -29,8 +29,8 @@ xheep.set_xif(CvXIf(
 
 The CPU parameters are updated automatically to reflect the requested XIF configuration. Of course, be sure to match the XIF parameters expected by your coprocessor.
 
-An example of a XIF-enable X-HEEP using the CV32E20 core is available in [configs/cve2xif.py](https://github.com/x-heep/x-heep/blob/main/configs/cve2xif.py) and can be built with:
+An example of a XIF-enable X-HEEP using the CV32E20 core is available in [configs/cv32e20_xif.py](https://github.com/x-heep/x-heep/blob/main/configs/cv32e20_xif.py) and can be built with:
 
 ```bash
-make mcu-gen PYTHON_X_HEEP_CFG=configs/cv32e20_xif.py
+make mcu-gen PYTHON_X_HEEP_CFG=configs/cv32e20_xif.py X_HEEP_CFG=configs/python_unsupported.hjson
 ```

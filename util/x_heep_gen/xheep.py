@@ -81,7 +81,7 @@ class XHeep:
         :raise TypeError: when xif is of incorrect type.
         """
         if not isinstance(xif, CvXIf):
-            raise TypeError(f"XHeep.xif should be of type CvXIf not {type(self._cpu)}")
+            raise TypeError(f"XHeep.xif should be of type CvXIf not {type(xif)}")
         self._xif = xif
 
     def xif(self) -> CvXIf:

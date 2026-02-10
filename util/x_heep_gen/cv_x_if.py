@@ -21,8 +21,6 @@ class CvXIf:
         self.x_misa = x_misa
         self.x_ecs_xs = x_ecs_xs
 
-        # hex(dma.get_num_master_ports())
-
         # Dictionary to hold optional parameter values
         self.params = {
             "x_num_rs": self.x_num_rs,

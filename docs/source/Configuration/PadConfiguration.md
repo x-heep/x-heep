@@ -1,6 +1,6 @@
 # Pad Configuration
 
-The pads of the design are configured using a Python configuration file, which is then read by `mcu-gen` and template files to generate the pad ring RTL and back-end pad IO of the design (not included on on this repo).
+The pads of the design are configured using a Python configuration file, which is then read by `mcu-gen` and template files to generate the pad ring RTL and back-end pad IO of the design (not included in this repo).
 
 ## Overview
 
@@ -16,6 +16,8 @@ The default call to `mcu-gen` uses the default pad configuration, but you can sp
 ```bash
 make mcu-gen PADS_CFG=configs/my_pad_cfg.py
 ```
+
+Please refer to the diagram in the [Visualization](#visualization-optional) section below for clarification.
 
 ## Pin Types
 
@@ -34,13 +36,14 @@ tx_pin = Output("uart_tx")
 gpio_pin = Inout("gpio_0")
 ```
 
-Other pin types have been defined, including for analog signals and power supply.
+Other pin types can be defined, including for analog signals and power supply. For this, see
+the [X-pert Zone](#x-pert-zone) section below.
 
 ## Pin Attributes
 
 Pins can have additional attributes that modify their behavior:
 
-- The `module` attribute is an optional string that specifies which module in the design the pin is connected to. Does it belong to an external peripheral? Does it stay in the top-level module? You can define your own names. By default, it is `"core_v_mini_mcu"`. If a signal is to be connected on the `x_heep_system.sv` module, just update it to `module='x_heep_system'`
+- The `module` attribute is an optional string that specifies which module in the design the pin is connected to. Does it belong to an external peripheral? Does it stay in the top-level module? You can define your own names. By default, it is `"core_v_mini_mcu"`. If a signal is to be connected on the `x_heep_system.sv` module, just update it to `module="x_heep_system"`
 - The `attributes` dictionary can include custom key-value pairs. Predefined attributes include:
   - `active`: If set to `"low"`, the pin is active low and will have an `_n` suffix in the generated RTL.
   - `priority`: A numeric value that defines the priority of the pin when multiple pins are multiplexed on the same pad. Higher values indicate higher priority (i.e. the pin with the highest priority will be the default one and the pad will adopt its name).
@@ -111,7 +114,7 @@ If you are simulating or targeting an FPGA, you can simply assign all pins to on
 
 ## Floorplan Dimensions (Optional)
 
-For ASIC implementations, you can specify physical dimensions:
+For ASIC implementations, you can specify physical dimensions. See the diagram in the [Visualization](#visualization-optional) section below for the meaning of these dimensions.
 
 ```python
 floorplan = FloorplanDimensions(
@@ -178,6 +181,7 @@ This generates:
 ![Pad Dimensions](../images/padring_definitions.png)
 _The base of the image above is an example of the diagram generated. References to the dimensions were added on top._
 
+<a id="x-pert-zone"></a>
 ## 😎 X-pert Zone (mostly for ASIC implementation)
 
 ### Custom Pad Attributes
@@ -227,7 +231,7 @@ cell.iocell_a.update( dimension=Dimension(width=60, height=65), name="PADIOA" )
 iocell_dVdd = Cell( width=65, height=65, name="PADVDDIO",   rtl_wrapper="u_pad_cell_digital_core_vdd",  connections=["vdd"] )
 ```
 
-For new cells, remember to also create an RTL wrapper and name them consistently (check those in [here](../../../hw/simulation)). 
+For new cells, remember to also create an RTL wrapper and name them consistently (check those in [hw/simulation](https://github.com/x-heep/x-heep/tree/main/hw/simulation)).
 
 ### Custom Pin types
 
@@ -244,4 +248,4 @@ class DVdd(PinSupply):
         self.bondpad = bondpad_d.copy()
 ```
 
-Then you can add pins to your pad ring using these custom Pin types as you would with the standard ones from X-HEEP. 
+Then you can add pins to your pad ring using these custom Pin types as you would with the standard ones from X-HEEP.

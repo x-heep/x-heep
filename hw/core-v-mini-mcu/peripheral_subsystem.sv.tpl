@@ -83,6 +83,7 @@ module peripheral_subsystem
     output logic i2s_sd_oe_o,
     input  logic i2s_sd_i,
     output logic i2s_rx_valid_o,
+
     % if user_peripheral_domain.contains_peripheral('serial_link'):
     //Serial Link
     input  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0]    ddr_rcv_clk_i,  
@@ -655,7 +656,6 @@ module peripheral_subsystem
     .ddr_o                   
   );
 %endif
-
 % if len(user_peripheral_domain.get_peripherals()) == 0:
   // If no peripherals are selected, tie off the slave response
   assign peripheral_slv_rsp = '0;

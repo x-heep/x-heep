@@ -11,9 +11,9 @@ filesets:
     files:
     - rtl/serial_link_single_channel_reg_pkg.sv
     - rtl/serial_link_single_channel_reg_top.sv
-    - serial_link_minimum_axi_pkg.sv
-    - serial_link_xheep_wrapper.sv
-    - fifo_serial_link_wrapper.sv
+    - rtl/serial_link_minimum_axi_pkg.sv
+    - rtl/serial_link_xheep_wrapper.sv
+    - rtl/fifo_serial_link_wrapper.sv
     file_type: systemVerilogSource
 
 targets:

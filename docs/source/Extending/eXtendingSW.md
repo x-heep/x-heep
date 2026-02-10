@@ -216,6 +216,44 @@ export HEEP_DIR = <path_to_x_heep_relative_to_this_directory>
 ```
 </details><br>
 
+## Extending the mcu-gen configuration
+
+In your own `Makefile`, you can also extend the `mcu-gen` target to generate a custom MCU configuration for your application, includiing any `.tpl` files you might want to add. To do so, you can add an `mcu-gen` target in your `Makefile` like the following:
+
+<details>
+    <summary>Example of Makefile extending mcu-gen</summary>
+
+```Makefile
+# Global configuration
+ROOT_DIR := $(realpath .)
+
+# X-HEEP configuration
+XHEEP_DIR        := $(ROOT_DIR)/hw/vendor/x-heep
+X_HEEP_CFG       := $(ROOT_DIR)/config/python_unsupported.hjson
+PYTHON_CHEEP_CFG := $(ROOT_DIR)/config/cheep_configs.py
+PAD_CFG          ?= $(ROOT_DIR)/config/cheep_pads.py
+
+# CHEEP templated files
+# Collects all .tpl files in the project excluding certain directories
+CHEEP_GEN_TPLS	:= $(shell find . \( -path './hw/vendor' -o -path './sw/vendor' -o -path './sw/linker' \) -prune -o -name '*.tpl' -print)
+# Prefix the paths of the .tpl files with the relative path to X-HEEP to make them accessible from the mcu-gen target in X-HEEP's Makefile
+# The HEEP_REL_PATH is defined in the `external.mk` makefile
+EXTERNAL_MCU_GEN_TEMPLATES = $(addprefix $(HEEP_REL_PATH)/,$(CHEEP_GEN_TPLS))
+
+## Generate X-HEEP MCU system files
+.PHONY: mcu-gen
+mcu-gen:
+	$(MAKE) -f $(XHEEP_MAKE) mcu-gen \
+		X_HEEP_CFG=$(X_HEEP_CFG) \
+		PYTHON_X_HEEP_CFG=$(PYTHON_CHEEP_CFG) \
+		PADS_CFG=$(PAD_CFG) \
+		EXTERNAL_DOMAINS=$(EXTERNAL_DOMAINS) \
+		EXTERNAL_MCU_GEN_TEMPLATES="$(EXTERNAL_MCU_GEN_TEMPLATES)"
+	@echo "✅ DONE! X-HEEP MCU and CHEEP generated successfully"
+```
+
+</details>
+
 ## Excluding files from compilation
 
 If you have files that need to be excluded from the GCC compilation flow, you can add them to a directory containing the keyword `exclude`, and/or rename the file to include the keyword `exclude`. 

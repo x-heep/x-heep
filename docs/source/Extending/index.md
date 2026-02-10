@@ -36,7 +36,7 @@ The program should terminate with value 0.
 Also, you can try the FPU-like coprocessor with a CV-X-IF extended `cv32e20` CPU using the Zfinx extensions (i.e. the Floating-Point register-file is actually the same as the General-Purpose register-file).
 The reason why you cannot use the RVF without ZFinx is that the cv32e20 core X-IF does not support memory X-operations.
 
-First, you need the OpenHW Group CORE-V Compiler, then configure the [CPU](../Configuration/CPUConfiguration.md), enable the [CV-X-IF](../Configuration/XIFConfiguration.md), and define the `FPU_SS_ZFINX` extension parameter (see [Extension Configuration](../Configuration/ExtensionConfiguration.md)) in your `my-config.py`, similar to what is done in [this example](https://github.com/x-heep/x-heep/blob/main/configs/cv32e20_xif.py). Then, generate the RTL with MCU-GEN, compile the simulation model, and run the example application with:
+First, you need the OpenHW Group CORE-V Compiler, then configure the [CPU](../Configuration/CPUConfiguration.md), enable the [CV-X-IF](../Configuration/XIFConfiguration.md), and define the `FPU_SS_ZFINX` extension parameter (see [Extension Configuration](../Configuration/ExtensionConfiguration.md)) in your `my-config.py`, similar to what is done in [this example](https://github.com/x-heep/x-heep/blob/main/configs/cv32e20_xif_fpu.py). Then, generate the RTL with MCU-GEN, compile the simulation model, and run the example application with:
 
 ```bash
 make mcu-gen PYTHON_X_HEEP_CFG=configs/my-config.py X_HEEP_CFG=configs/python_unsupported.hjson

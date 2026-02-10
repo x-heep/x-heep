@@ -151,6 +151,7 @@ format-python:
 	$(PYTHON) -m black util/mcu_gen.py
 	$(PYTHON) -m black util/waiver-gen.py
 	$(PYTHON) -m black util/c_gen.py
+	$(PYTHON) -m black configs
 	$(PYTHON) -m black test/test_x_heep_gen
 
 ## @section APP FW Build

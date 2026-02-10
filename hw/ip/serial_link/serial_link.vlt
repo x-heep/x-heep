@@ -8,4 +8,5 @@ lint_off -rule UNUSEDSIGNAL -file "*/serial_link_xheep_wrapper.sv"
 lint_off -rule UNUSEDSIGNAL -file "*/fifo_serial_link_wrapper.sv"
 lint_off -rule DECLFILENAME -file "*/serial_link_single_channel_reg_top.sv"
 lint_off -rule WIDTHTRUNC -file "*/serial_link_single_channel_reg_top.sv"
-
+lint_off -rule DECLFILENAME -file "*/serial_link_reg_top.sv"
+lint_off -rule WIDTHTRUNC -file "*/serial_link_reg_top.sv"

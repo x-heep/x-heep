@@ -69,9 +69,6 @@ module cve2_xif_wrapper
     input  logic fetch_enable_i,
     output logic core_sleep_o
 );
-  // Parameters
-  localparam bit Cve2XInterface = X_INTERFACE != '0;
-
   // CVE2 X-IF signals
   logic                    cve2_x_issue_valid;
   logic                    cve2_x_issue_ready;
@@ -146,11 +143,11 @@ module cve2_xif_wrapper
   // CV32E20 CORE
   // ------------
   cve2_top #(
-      .MHPMCounterNum,
-      .MHPMCounterWidth,
-      .RV32E,
-      .RV32M,
-      .XInterface(Cve2XInterface)
+      .MHPMCounterNum(MHPMCounterNum),
+      .MHPMCounterWidth(MHPMCounterWidth),
+      .RV32E(RV32E),
+      .RV32M(RV32M),
+      .XInterface(X_INTERFACE != '0)
   ) u_cve2_top (
       .clk_i,
       .rst_ni,

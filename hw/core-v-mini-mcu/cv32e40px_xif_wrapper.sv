@@ -173,13 +173,13 @@ module cv32e40px_xif_wrapper
 
   cv32e40px_top #(
       .COREV_X_IF(X_INTERFACE),
-      .COREV_PULP,
-      .COREV_CLUSTER,
-      .FPU,
-      .FPU_ADDMUL_LAT,
-      .FPU_OTHERS_LAT,
-      .ZFINX,
-      .NUM_MHPMCOUNTERS
+      .COREV_PULP(COREV_PULP),
+      .COREV_CLUSTER(COREV_CLUSTER),
+      .FPU(FPU),
+      .FPU_ADDMUL_LAT(FPU_ADDMUL_LAT),
+      .FPU_OTHERS_LAT(FPU_OTHERS_LAT),
+      .ZFINX(ZFINX),
+      .NUM_MHPMCOUNTERS(NUM_MHPMCOUNTERS)
   ) cv32e40px_top_i (
       .clk_i,
       .rst_ni,

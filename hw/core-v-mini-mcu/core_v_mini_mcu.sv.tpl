@@ -123,11 +123,11 @@ module core_v_mini_mcu
 
     output logic [31:0] exit_value_o,
     % if user_peripheral_domain.contains_peripheral('serial_link'):
-    //Serial Link
-    input  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0]    ddr_rcv_clk_i,  
-    output logic [serial_link_single_channel_reg_pkg::NumChannels-1:0]    ddr_rcv_clk_o,
-    input  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_i,
-    output logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_o,
+      //Serial Link
+      input  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0]    ddr_rcv_clk_i,  
+      output logic [serial_link_single_channel_reg_pkg::NumChannels-1:0]    ddr_rcv_clk_o,
+      input  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_i,
+      output logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_o,
     %endif
 
     // External SPC interface
@@ -533,10 +533,10 @@ module core_v_mini_mcu
       .i2s_sd_i(i2s_sd_i),
       .i2s_rx_valid_o(i2s_rx_valid),
       % if user_peripheral_domain.contains_peripheral('serial_link'):
-      .ddr_rcv_clk_i,  
-      .ddr_rcv_clk_o,
-      .ddr_i,
-      .ddr_o,
+        .ddr_rcv_clk_i,  
+        .ddr_rcv_clk_o,
+        .ddr_i,
+        .ddr_o,
       %endif
       .uart_rx_i,
       .uart_tx_o

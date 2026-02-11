@@ -77,11 +77,11 @@ module x_heep_system
     output logic [31:0] exit_value_o,
 
     % if user_peripheral_domain.contains_peripheral('serial_link'):
-    //Serial Link
-    input  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0]    ddr_rcv_clk_i,  
-    output logic [serial_link_single_channel_reg_pkg::NumChannels-1:0]    ddr_rcv_clk_o,
-    input  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_i,
-    output logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_o,
+      //Serial Link
+      input  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0]    ddr_rcv_clk_i,  
+      output logic [serial_link_single_channel_reg_pkg::NumChannels-1:0]    ddr_rcv_clk_o,
+      input  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_i,
+      output logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_o,
     %endif
 
     input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_tx_i,
@@ -163,13 +163,14 @@ module x_heep_system
     .AO_SPC_NUM(AO_SPC_NUM),
     .EXT_HARTS(EXT_HARTS)
   ) core_v_mini_mcu_i (
-  % if user_peripheral_domain.contains_peripheral('serial_link'):
-    //Serial Link
-    .ddr_rcv_clk_i,  
-    .ddr_rcv_clk_o,
-    .ddr_i,
-    .ddr_o,
-  %endif    // MCU pads
+    % if user_peripheral_domain.contains_peripheral('serial_link'):
+      //Serial Link
+      .ddr_rcv_clk_i,  
+      .ddr_rcv_clk_o,
+      .ddr_i,
+      .ddr_o,
+    %endif    
+    // MCU pads
     .rst_ni(rst_ngen),
     % for pin in xheep.get_padring().get_connected_pins():
       % if pin.module == "core_v_mini_mcu":

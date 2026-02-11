@@ -169,12 +169,12 @@
             is_included: "yes"
         }
         serial_link_reg: {
-            offset:  0x00100000
+            offset:  0x000A0000
             length:  0x00010000
             is_included: "yes"
         }
         serial_link_receiver_fifo: {
-            offset:  0x00110000
+            offset:  0x000B0000
             length:  0x00010000
             is_included: "yes"
         }

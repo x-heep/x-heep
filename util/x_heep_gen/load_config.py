@@ -14,7 +14,7 @@ from .cpu.cv32e40px import cv32e40px
 from .cpu.cv32e40x import cv32e40x
 from .memory_ss.memory_ss import MemorySS
 from .memory_ss.linker_section import LinkerSection
-from .xheep import BusType, XHeep
+from .xheep import BusType, XHeep, CvXIf
 from .peripherals.base_peripherals_domain import BasePeripheralDomain
 from .peripherals.user_peripherals_domain import UserPeripheralDomain
 from .peripherals.base_peripherals import (
@@ -445,7 +445,6 @@ def load_cpu_config(
         cpu = cv32e20(
             rv32e=cpu_features_config.get("cve2_rv32e", None),
             rv32m=cpu_features_config.get("cve2_rv32m", None),
-            cv_x_if=cpu_features_config.get("cv_x_if", None),
         )
     elif cpu_type_config == "cv32e40p":
         cpu = cv32e40p(
@@ -458,16 +457,19 @@ def load_cpu_config(
             fpu=cpu_features_config.get("fpu", None),
             zfinx=cpu_features_config.get("zfinx", None),
             corev_pulp=cpu_features_config.get("corev_pulp", None),
-            cv_x_if=cpu_features_config.get("cv_x_if", None),
         )
     elif cpu_type_config == "cv32e40x":
-        cpu = cv32e40x(
-            cv_x_if=cpu_features_config.get("cv_x_if", None),
-        )
+        cpu = cv32e40x()
     else:
         cpu = CPU(cpu_type_config)
 
     system.set_cpu(cpu)
+    if cpu_features_config.get("cv_x_if", None) is not None and cpu_type_config in [
+        "cv32e20",
+        "cv32e40px",
+        "cv32e40x",
+    ]:
+        system.set_xif(CvXIf())  # use default parameters
 
 
 def load_cfg_hjson(src: str) -> XHeep:

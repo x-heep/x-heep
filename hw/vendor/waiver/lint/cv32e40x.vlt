@@ -43,3 +43,4 @@ lint_off -rule WIDTH -file "*/rtl/cv32e40x_controller_fsm.sv" -match "Operator A
 lint_off -rule WIDTH -file "*/rtl/cv32e40x_id_stage.sv" -match "Operator ASSIGNW expects 4 bits on the Assign RHS, but Assign RHS's SEL generates 32 bits.*"
 lint_off -rule WIDTH -file "*/rtl/cv32e40x_load_store_unit.sv" -match "Operator ASSIGNW expects 6 bits on the Assign RHS, but Assign RHS's COND generates 11 bits.*"
 lint_off -rule WIDTH -file "*/rtl/cv32e40x_if_stage.sv" -match "Operator ASSIGNW expects 4 bits on the Assign RHS, but Assign RHS's COND generates 32 bits.*"
+lint_off -rule COMBDLY -file "*/openhwgroup_cv32e40x/bhv/cv32e40x_sim_clock_gate.sv" -match "Non-blocking assignment '<=' in combinational logic process"

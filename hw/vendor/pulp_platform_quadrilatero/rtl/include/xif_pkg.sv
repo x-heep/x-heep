@@ -9,7 +9,7 @@ package xif_pkg;
   // cv-x-if structs and parameters
   // ------------------------------
 
-  parameter int X_NUM_RS = 3;
+  parameter int X_NUM_RS = 2;
   parameter int X_ID_WIDTH = 4;
   parameter int X_MEM_WIDTH = 32;
   parameter int X_RFR_WIDTH = 32;

@@ -10,14 +10,14 @@
  * v0.2.0 specs: https://docs.openhwgroup.org/projects/openhw-group-core-v-xif/en/v0.2.0/intro.html
  */
 module cve2_xif_wrapper
-  import cv32e40px_core_v_xif_pkg::*;
   import cve2_pkg::*;
 #(
-    parameter int unsigned MHPMCounterNum   = 0,
-    parameter int unsigned MHPMCounterWidth = 40,
-    parameter bit          RV32E            = 1'b0,
-    parameter rv32m_e      RV32M            = RV32MFast,
-    parameter bit          XInterface       = 1'b0
+    parameter int unsigned MHPMCounterNum     = 0,
+    parameter int unsigned MHPMCounterWidth   = 40,
+    parameter bit          RV32E              = 1'b0,
+    parameter rv32m_e      RV32M              = RV32MFast,
+    parameter bit          X_INTERFACE        = 1'b0,
+    parameter int unsigned X_INTERFACE_NUM_RS = 2
 ) (
     // Clock and Reset
     input logic clk_i,
@@ -46,38 +46,12 @@ module cve2_xif_wrapper
     input  logic [31:0] data_rdata_i,
 
     // CORE-V-XIF
-    // Compressed interface
-    output logic x_compressed_valid_o,
-    input logic x_compressed_ready_i,
-    input cv32e40px_core_v_xif_pkg::x_compressed_resp_t x_compressed_resp_i,
-    output cv32e40px_core_v_xif_pkg::x_compressed_req_t x_compressed_req_o,
-
-    // Issue Interface
-    output logic x_issue_valid_o,
-    input logic x_issue_ready_i,
-    output cv32e40px_core_v_xif_pkg::x_issue_req_t x_issue_req_o,
-    input cv32e40px_core_v_xif_pkg::x_issue_resp_t x_issue_resp_i,
-
-    // Commit Interface
-    output logic x_commit_valid_o,
-    output cv32e40px_core_v_xif_pkg::x_commit_t x_commit_o,
-
-    // Memory request/response Interface
-    input logic x_mem_valid_i,
-    input cv32e40px_core_v_xif_pkg::x_mem_req_t x_mem_req_i,
-
-    output logic x_mem_ready_o,
-    output cv32e40px_core_v_xif_pkg::x_mem_resp_t x_mem_resp_o,
-
-    // Memory Result Interface
-    output logic x_mem_result_valid_o,
-    output cv32e40px_core_v_xif_pkg::x_mem_result_t x_mem_result_o,
-
-    // Result Interface
-    input logic x_result_valid_i,
-    input cv32e40px_core_v_xif_pkg::x_result_t x_result_i,
-
-    output logic x_result_ready_o,
+    if_xif.cpu_compressed xif_compressed_if,
+    if_xif.cpu_issue      xif_issue_if,
+    if_xif.cpu_commit     xif_commit_if,
+    if_xif.cpu_mem        xif_mem_if,
+    if_xif.cpu_mem_result xif_mem_result_if,
+    if_xif.cpu_result     xif_result_if,
 
     // Interrupt inputs
     input logic        irq_software_i,
@@ -95,7 +69,7 @@ module cve2_xif_wrapper
     input  logic fetch_enable_i,
     output logic core_sleep_o
 );
-
+  // CVE2 X-IF signals
   logic                    cve2_x_issue_valid;
   logic                    cve2_x_issue_ready;
   cve2_pkg::x_issue_req_t  cve2_x_issue_req;
@@ -109,64 +83,71 @@ module cve2_xif_wrapper
   logic                    cve2_x_result_ready;
   cve2_pkg::x_result_t     cve2_x_result;
 
-  // Issue Interface
-  assign x_issue_valid_o = cve2_x_issue_valid;
-  assign cve2_x_issue_ready = x_issue_ready_i;
+  // ------------------
+  // CORE-V X-IF BRIDGE
+  // ------------------
+  // CV32E20 implements a newer version of the interface compared to CV32E40X/CV32E40PX
 
-  assign x_issue_req_o.mode = '0;
-  assign x_issue_req_o.id = cve2_x_issue_req.id;
-  assign x_issue_req_o.instr = cve2_x_issue_req.instr;
-  assign x_issue_req_o.rs[0] = cve2_x_register.rs[0];
-  assign x_issue_req_o.rs[1] = cve2_x_register.rs[1];
-  assign x_issue_req_o.rs[2] = '0;
-  assign x_issue_req_o.rs_valid = {1'b0, cve2_x_register.rs_valid};
-  assign x_issue_req_o.ecs = '0;
-  assign x_issue_req_o.ecs_valid = '0;
+  // Compressed Interface (not implemented by CV32E20)
+  assign xif_compressed_if.compressed_valid = 1'b0;
+  assign xif_compressed_if.compressed_req   = '0;
 
-  assign cve2_x_issue_resp.accept = x_issue_resp_i.accept;
-  assign cve2_x_issue_resp.writeback = x_issue_resp_i.writeback;
-  assign cve2_x_issue_resp.register_read = {
-    2'b11
-  };  //this is suboptimal as forces cve2 to always read all registers - however, cve2 does not have instructions in-flight
+  // Issue Interface <--> Issue/Register Interface
+  assign xif_issue_if.issue_valid           = cve2_x_issue_valid;
+  assign cve2_x_issue_ready                 = xif_issue_if.issue_ready;
+  assign xif_issue_if.issue_req.instr       = cve2_x_issue_req.instr;
+  assign xif_issue_if.issue_req.mode        = '0;
+  assign xif_issue_if.issue_req.id          = cve2_x_issue_req.id;
+  assign xif_issue_if.issue_req.ecs         = '0;
+  assign xif_issue_if.issue_req.ecs_valid   = 1'b0;
+  assign cve2_x_issue_resp.accept           = xif_issue_if.issue_resp.accept;
+  assign cve2_x_issue_resp.writeback        = xif_issue_if.issue_resp.writeback;
+  generate
+    if (X_INTERFACE_NUM_RS == 3) begin : gen_xif_upsize_rs
+      // The third operand is tied to zero
+      assign xif_issue_if.issue_req.rs       = {{X_RFR_WIDTH{1'b0}}, cve2_x_register.rs};
+      assign xif_issue_if.issue_req.rs_valid = {1'b0, cve2_x_register.rs_valid};
+    end else begin : gen_xif_same_rs
+      assign xif_issue_if.issue_req.rs[1:0]       = cve2_x_register.rs;
+      assign xif_issue_if.issue_req.rs_valid[1:0] = cve2_x_register.rs_valid;
+    end
+  endgenerate
+  // NOTE: the following is suboptimal as it forces CVE2 to read all the registers,
+  //       regardless of the coprocessor actually using them. Since CVE2 does not
+  //       have other instructions in flight, there is no performance penalty.
+  assign cve2_x_issue_resp.register_read    = '1;
 
-  assign x_commit_valid_o = cve2_x_commit_valid;
-  assign x_commit_o.id = cve2_x_commit.id;
-  assign x_commit_o.commit_kill = cve2_x_commit.commit_kill;
+  // Commit Interface
+  assign xif_commit_if.commit_valid         = cve2_x_commit_valid;
+  assign xif_commit_if.commit.id            = cve2_x_commit.id;
+  assign xif_commit_if.commit.commit_kill   = cve2_x_commit.commit_kill;
 
-  assign cve2_x_result_valid = x_result_valid_i;
-  assign x_result_ready_o = cve2_x_result_ready;
+  // Memory Interface (not implemented by CV32E20)
+  assign xif_mem_if.mem_ready               = 1'b0;
+  assign xif_mem_if.mem_resp                = '0;
 
-  assign cve2_x_result.id = x_result_i.id;
-  assign cve2_x_result.data = x_result_i.data;
-  assign cve2_x_result.rd = x_result_i.rd;
-  assign cve2_x_result.we = x_result_i.we;
+  // Memory Result Interface (not implemented by CV32E20)
+  assign xif_mem_result_if.mem_result_valid = 1'b0;
+  assign xif_mem_result_if.mem_result       = '0;
 
-  //ununsed
-  assign x_compressed_valid_o = '0;
-  assign x_compressed_req_o = '0;
-  assign x_mem_ready_o = '0;
-  assign x_mem_resp_o = '0;
-  assign x_mem_result_valid_o = '0;
-  assign x_mem_result_o = '0;
-  assign cve2_x_result.hartid = '0;
+  // Result Interface
+  assign cve2_x_result_valid                = xif_result_if.result_valid;
+  assign xif_result_if.result_ready         = cve2_x_result_ready;
+  assign cve2_x_result.hartid               = '0;
+  assign cve2_x_result.id                   = xif_result_if.result.id;
+  assign cve2_x_result.data                 = xif_result_if.result.data;
+  assign cve2_x_result.rd                   = xif_result_if.result.rd;
+  assign cve2_x_result.we                   = xif_result_if.result.we;
 
-  logic x_issue_resp_dualwrite = x_issue_resp_i.dualwrite;
-  logic [2:0] x_issue_resp_dualread = x_issue_resp_i.dualread;
-  logic x_issue_resp_loadstore = x_issue_resp_i.loadstore;
-  logic x_issue_resp_ecswrite = x_issue_resp_i.ecswrite;
-  logic x_issue_resp_exc = x_issue_resp_i.exc;
-
-  logic [31:0] cve2_x_issue_req_hartid = cve2_x_issue_req.hartid;
-  logic [31:0] cve2_x_register_hartid = cve2_x_register.hartid;
-  logic [31:0] cve2_x_commit_hartid = cve2_x_commit.hartid;
-  logic [3:0] cve2_x_register_id = cve2_x_register.id;
-
+  // ------------
+  // CV32E20 CORE
+  // ------------
   cve2_top #(
-      .MHPMCounterNum(MHPMCounterNum),
-      .MHPMCounterWidth(MHPMCounterWidth),
-      .RV32E(RV32E),
-      .RV32M(RV32M),
-      .XInterface(XInterface != '0)
+      .MHPMCounterNum,
+      .MHPMCounterWidth,
+      .RV32E,
+      .RV32M,
+      .XInterface(X_INTERFACE != '0)
   ) u_cve2_top (
       .clk_i,
       .rst_ni,

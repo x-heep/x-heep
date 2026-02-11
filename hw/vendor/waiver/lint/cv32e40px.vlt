@@ -117,3 +117,4 @@ lint_off -rule LATCH -file "*/rtl/cv32e40px_id_stage.sv" -match "Latch inferred 
 lint_off -rule WIDTH -file "*/rtl/cv32e40px_register_file_ff.sv" -match "Logical operator COND expects 1 bit on the Conditional Test*"
 lint_off -rule WIDTH -file "*/rtl/cv32e40px_decoder.sv" -match "Logical operator LOGNOT expects 1 bit on the LHS*"
 lint_off -rule WIDTH -file "*/rtl/cv32e40px_ex_stage.sv" -match "Logical operator LOGNOT expects 1 bit on the LHS*"
+lint_off -rule COMBDLY -file "*/esl_epfl_cv32e40px/bhv/cv32e40px_sim_clock_gate.sv" -match "Non-blocking assignment '<=' in combinational logic process"

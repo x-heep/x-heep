@@ -45,6 +45,7 @@ filesets:
     - hw/core-v-mini-mcu/core_v_mini_mcu.sv
     - hw/core-v-mini-mcu/cpu_subsystem.sv
     - hw/core-v-mini-mcu/cve2_xif_wrapper.sv
+    - hw/core-v-mini-mcu/cv32e40px_xif_wrapper.sv
     - hw/core-v-mini-mcu/memory_subsystem.sv
     - hw/core-v-mini-mcu/xbar_varlat_one_to_n.sv
     - hw/core-v-mini-mcu/xbar_varlat_n_to_one.sv
@@ -192,18 +193,6 @@ filesets:
       - hw/asic/sky130/constraint.sdc : {file_type: SDC}
 
 parameters:
-  FPU_SS_ZFINX:
-    datatype: int
-    paramtype: vlogparam
-    description: |
-      Enables RV32Zfinx RISC-V extensions in the FPU_ss. Admitted values: 1|0.
-    default: 0
-  QUADRILATERO:
-    datatype: int
-    paramtype: vlogparam
-    description: |
-      Enables Matrix custom RISC-V extensions. Admitted values: 1|0.
-    default: 0
   JTAG_DPI:
     datatype: int
     paramtype: vlogparam
@@ -354,8 +343,6 @@ targets:
       post_run:
         - print_uart_log
     parameters:
-    - FPU_SS_ZFINX
-    - QUADRILATERO
     - JTAG_DPI
     - USE_EXTERNAL_DEVICE_EXAMPLE
     - USE_UPF
@@ -425,7 +412,6 @@ targets:
     toplevel:
     - tool_verilator? (testharness)
     parameters:
-    - FPU_SS_ZFINX
     - JTAG_DPI
     - USE_EXTERNAL_DEVICE_EXAMPLE
     - USE_UPF
@@ -461,7 +447,6 @@ targets:
     - x_heep_system
     - rtl-fpga
     parameters:
-    - FPU_SS_ZFINX
     - SYNTHESIS=true
     - REMOVE_OBI_FIFO
     - FPGA_SYNTHESIS=true
@@ -481,7 +466,6 @@ targets:
     - x_heep_system
     - rtl-fpga
     parameters:
-    - FPU_SS_ZFINX
     - SYNTHESIS=true
     - REMOVE_OBI_FIFO
     - FPGA_SYNTHESIS=true
@@ -500,7 +484,6 @@ targets:
     - x_heep_system
     - rtl-fpga
     parameters:
-    - FPU_SS_ZFINX
     - SYNTHESIS=true
     - REMOVE_OBI_FIFO
     - FPGA_SYNTHESIS=true
@@ -520,7 +503,6 @@ targets:
     - x_heep_system
     - rtl-fpga
     parameters:
-    - FPU_SS_ZFINX
     - SYNTHESIS=true
     - REMOVE_OBI_FIFO
     - FPGA_SYNTHESIS=true
@@ -540,7 +522,6 @@ targets:
     - x_heep_system
     - rtl-fpga
     parameters:
-    - FPU_SS_ZFINX
     - SYNTHESIS=true
     - REMOVE_OBI_FIFO
     - FPGA_SYNTHESIS=true
@@ -560,7 +541,6 @@ targets:
     - x_heep_system
     - rtl-fpga
     parameters:
-    - FPU_SS_ZFINX
     - SYNTHESIS=true
     - REMOVE_OBI_FIFO
     - FPGA_SYNTHESIS=true
@@ -578,7 +558,6 @@ targets:
     description: Design Compiler Script
     parameters:
     - PRIM_DEFAULT_IMPL=prim_pkg::your_target_technology
-    - FPU_SS_ZFINX
     - SYNTHESIS=true
     - REMOVE_OBI_FIFO
     filesets_append:
@@ -598,7 +577,6 @@ targets:
     default_tool: openroad
     description: yosys
     parameters:
-      - FPU_SS_ZFINX
       - SYNTHESIS=true
       - VERILATOR=true
       - REMOVE_OBI_FIFO

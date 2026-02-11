@@ -28,6 +28,8 @@ module cve2_controller #(
   input  logic                  ebrk_insn_i,             // decoder has EBREAK instr
   input  logic                  csr_pipe_flush_i,        // do CSR-related pipeline flush
 
+  input  logic                  xif_scoreboard_busy_i,   // tells if the the core is waiting for XIF
+
   // instr from IF-ID pipeline stage
   input  logic                  instr_valid_i,           // instr is valid
   input  logic [31:0]           instr_i,                 // uncompressed instr data for mtval
@@ -447,8 +449,8 @@ module cve2_controller #(
           retain_id = 1'b1;
 
           // The FSM will always go directly to FLUSH.
-
-          ctrl_fsm_ns = FLUSH;
+          // when X-IF is active and xif_scoreboard_busy_i, wait the scoreboard to be empty before switching state
+          ctrl_fsm_ns = xif_scoreboard_busy_i ? DECODE: FLUSH;
         end
 
         if (branch_set_i || jump_set_i) begin
@@ -467,13 +469,13 @@ module cve2_controller #(
         if (!stall && !special_req && !instr_valid_i) begin
           if (enter_debug_mode) begin
             // enter debug mode
-            ctrl_fsm_ns = DBG_TAKEN_IF;
+            ctrl_fsm_ns = xif_scoreboard_busy_i ? DECODE : DBG_TAKEN_IF;
             // Halt IF only for now, ID will be flushed in DBG_TAKEN_IF as the
             // ID state is needed for correct debug mode entry
             halt_if     = 1'b1;
           end else if (handle_irq) begin
             // handle interrupt (not in debug mode)
-            ctrl_fsm_ns = IRQ_TAKEN;
+            ctrl_fsm_ns = xif_scoreboard_busy_i ? DECODE : IRQ_TAKEN;
             // We are handling an interrupt (not in debug mode). Set halt_if to
             // tell IF not to give us any more instructions before it redirects
             // to the handler, but don't set flush_id: we must allow this

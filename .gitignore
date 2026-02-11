@@ -18,11 +18,16 @@ run_verif_rtl_log.txt
 
 # Automatically generated hw files
 tb/tb_util.svh
+tb/testharness.sv
 
 hw/core-v-mini-mcu/include/core_v_mini_mcu_pkg.sv
 hw/core-v-mini-mcu/system_bus.sv
 hw/core-v-mini-mcu/system_xbar.sv
+hw/core-v-mini-mcu/ao_peripheral_subsystem.sv
+hw/core-v-mini-mcu/cpu_subsystem.sv
 hw/core-v-mini-mcu/memory_subsystem.sv
+hw/core-v-mini-mcu/peripheral_subsystem.sv
+hw/core-v-mini-mcu/spi_subsystem.sv
 
 hw/system/x_heep_system.sv
 hw/system/pad_ring.sv

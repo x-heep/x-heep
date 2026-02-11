@@ -1,12 +1,6 @@
-# Copyright 2026 EPFL
-# Licensed under the Apache License, Version 2.0, see LICENSE for details.
-# SPDX-License-Identifier: Apache-2.0
-#
-# Author(s): David Mallasen
-# Description: Generic (default) configuration for X-HEEP
-
 from x_heep_gen.xheep import XHeep
-from x_heep_gen.cpu.cv32e20 import cv32e20
+from x_heep_gen.cpu.cv32e40px import cv32e40px
+from x_heep_gen.cv_x_if import CvXIf
 from x_heep_gen.bus_type import BusType
 from x_heep_gen.memory_ss.memory_ss import MemorySS
 from x_heep_gen.memory_ss.linker_section import LinkerSection
@@ -15,7 +9,6 @@ from x_heep_gen.peripherals.base_peripherals import (
     Bootrom,
     SPI_flash,
     SPI_memio,
-    W25Q128JW_Controller,
     DMA,
     Power_manager,
     RV_timer_ao,
@@ -42,13 +35,26 @@ from x_heep_gen.peripherals.user_peripherals import (
 
 
 def config():
-    system = XHeep(BusType.onetoM)
-    system.set_cpu(cv32e20(rv32e=False, rv32m="RV32MSlow"))
+    system = XHeep(BusType.NtoM)
+    system.set_cpu(cv32e40px())
+
+    system.set_xif(
+        CvXIf(
+            x_num_rs=2,  # cv32e40px supports 3 but quadrilatero has only 2
+            x_id_width=4,
+            x_mem_width=32,
+            x_rfr_width=32,
+            x_rfw_width=32,
+            x_misa=0x0,
+            x_ecs_xs=0x0,
+        )
+    )
 
     memory_ss = MemorySS()
     memory_ss.add_ram_banks([32] * 2)
-    memory_ss.add_linker_section(LinkerSection.by_size("code", 0, 0x00000E800))
-    memory_ss.add_linker_section(LinkerSection("data", 0x00000E800, None))
+    memory_ss.add_ram_banks_il(4, 16, "data_interleaved")
+    memory_ss.add_linker_section(LinkerSection.by_size("code", 0, 0x000008000))
+    memory_ss.add_linker_section(LinkerSection("data", 0x000008000, None))
     system.set_memory_ss(memory_ss)
 
     # Peripheral domains initialization
@@ -59,8 +65,7 @@ def config():
     base_peripheral_domain.add_peripheral(SOC_ctrl(0x00000000))
     base_peripheral_domain.add_peripheral(Bootrom(0x00010000))
     base_peripheral_domain.add_peripheral(SPI_flash(0x00020000, 0x00008000))
-    base_peripheral_domain.add_peripheral(SPI_memio(0x00028000, 0x00000008))
-    base_peripheral_domain.add_peripheral(W25Q128JW_Controller(0x00029000, 0x00007000))
+    base_peripheral_domain.add_peripheral(SPI_memio(0x00028000, 0x00008000))
     base_peripheral_domain.add_peripheral(
         DMA(
             address=0x30000,
@@ -79,16 +84,18 @@ def config():
 
     # User peripherals. All are optional. They must be added with "add_peripheral".
     user_peripheral_domain.add_peripheral(RV_plic(0x00000000))
-    user_peripheral_domain.add_peripheral(SPI_host(0x00010000))
-    user_peripheral_domain.add_peripheral(GPIO(0x00020000))
-    user_peripheral_domain.add_peripheral(I2C(0x00030000))
-    user_peripheral_domain.add_peripheral(RV_timer(0x00040000))
-    user_peripheral_domain.add_peripheral(SPI2(0x00050000))
-    user_peripheral_domain.add_peripheral(I2S(0x00070000))
     user_peripheral_domain.add_peripheral(UART(0x00080000))
 
     # Add the peripheral domains to the system
     system.add_peripheral_domain(base_peripheral_domain)
     system.add_peripheral_domain(user_peripheral_domain)
+
+    # X-HEEP testharness extension
+    # Here we enable the "ZFINX" RISC-V extension for the FPU
+    testharness_extension = {
+        "FPU_SS_ZFINX": 0,
+        "QUADRILATERO": 1,  # Enables Matrix custom RISC-V extensions. Admitted values: 1|0.
+    }
+    system.add_extension("testharness", testharness_extension)
 
     return system

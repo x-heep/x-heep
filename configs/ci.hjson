@@ -116,7 +116,7 @@
 
     peripherals: {
         address: 0x30000000
-        length:  0x00200000
+        length:  0x00100000
         rv_plic: {
             offset:  0x00000000
             length:  0x00010000

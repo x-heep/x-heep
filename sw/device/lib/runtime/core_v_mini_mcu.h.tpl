@@ -70,9 +70,9 @@ extern "C" {
 // End of the section
 
 
-#define DMA_CH_NUM ${hex(dma.get_num_channels())[2:]}
-#define DMA_CH_SIZE 0x${hex(dma.get_ch_length())[2:]}
-#define DMA_NUM_MASTER_PORTS ${hex(dma.get_num_master_ports())[2:]}
+#define DMA_CH_NUM ${hex(dma.get_num_channels())}
+#define DMA_CH_SIZE ${hex(dma.get_ch_length())}
+#define DMA_NUM_MASTER_PORTS ${hex(dma.get_num_master_ports())}
 #define DMA_ADDR_MODE ${dma.get_addr_mode()}
 #define DMA_SUBADDR_MODE ${dma.get_subaddr_mode()}
 #define DMA_HW_FIFO_MODE ${dma.get_hw_fifo_mode()}

@@ -3,23 +3,8 @@ from .cpu import CPU
 
 class cv32e40x(CPU):
 
-    def __init__(self, cv_x_if=None, num_mhpmcounters=None):
+    def __init__(self, num_mhpmcounters=None):
         super().__init__("cv32e40x")
-
-        if cv_x_if is not None:
-            if isinstance(cv_x_if, str):
-                if cv_x_if.lower() not in ("true", "false", "1", "0"):
-                    raise ValueError(
-                        f"cv_x_if must be 0, 1, True, or False, got '{cv_x_if}'"
-                    )
-                cv_x_if = cv_x_if.lower() in ("true", "1")
-
-            if cv_x_if not in (0, 1, True, False):
-                raise ValueError(
-                    f"cv_x_if must be 0, 1, True, or False, got '{cv_x_if}'"
-                )
-
-            self.params["cv_x_if"] = bool(cv_x_if)
 
         if num_mhpmcounters is not None:
             if isinstance(num_mhpmcounters, str):
@@ -47,7 +32,4 @@ class cv32e40x(CPU):
             return ""
 
         value = self.params.get(param_name)
-        if param_name == "cv_x_if":
-            return "1" if value else "0"
-        else:
-            return str(value)
+        return str(value)

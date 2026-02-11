@@ -9,10 +9,23 @@ For this purpose we support the [CV-X-IF](https://docs.openhwgroup.org/projects/
 In addition, the X-HEEP testbench has been extended with a DMA, dummy peripherals (including the flash), and two CV-X-IF compatible coprocessor: one implementing the RV32F RISC-V extension and one implementing custom matrix extensions.
 This has been done to help us maintaining and verifying the extension interface.
 
-If you want to try the FPU-like coprocessor with a CV-X-IF compatible CPU as the cv32e40px, you can do it in the base X-HEEP by first [configuring the CPU](../Configuration/CPUConfiguration.md) with the `cv_x_if` parameter using mcu-gen, and then:
+If you want to try the FPU-like coprocessor with a CV-X-IF compatible CPU as the cv32e40px, you can do it in the base X-HEEP by configuring it as the system [CPU](../Configuration/CPUConfiguration.md) and enabling the [CV-X-IF](../Configuration/XIFConfiguration.md) in your `my-config.py` Python configuration file, as follows:
 
+```python
+    # ...
+
+    system.set_cpu(cv32e40px())
+    system.set_xif(CvXIf(
+        x_num_rs    = 3 # R4-type floating-point instructions require 3 source operands
+    ))
+
+    # ...
 ```
-make mcu-gen ...
+
+Then, generate the RTL with MCU-GEN, compile the simulation model, and run the example application with:
+
+```bash
+make mcu-gen PYTHON_X_HEEP_CFG=configs/my-config.py X_HEEP_CFG=configs/python_unsupported.hjson
 make verilator-build
 make app PROJECT=example_matfadd ARCH=rv32imfc
 make verilator-run
@@ -20,62 +33,25 @@ make verilator-run
 
 The program should terminate with value 0.
 
-Also, you can try the FPU-like coprocessor with a CV-X-IF extended cve2 using the Zfinx extensions (i.e. the Floating-Point register-file is actually the same as the General-Purpose register-file).
+Also, you can try the FPU-like coprocessor with a CV-X-IF extended `cv32e20` CPU using the Zfinx extensions (i.e. the Floating-Point register-file is actually the same as the General-Purpose register-file).
 The reason why you cannot use the RVF without ZFinx is that the cv32e20 core X-IF does not support memory X-operations.
 
-First, you need the OpenHW Group CORE-V Compiler, then [configure the CPU](../Configuration/CPUConfiguration.md) with the `cv_x_if` parameter using mcu-gen, and then:
+First, you need the OpenHW Group CORE-V Compiler, then configure the [CPU](../Configuration/CPUConfiguration.md), enable the [CV-X-IF](../Configuration/XIFConfiguration.md), and define the `FPU_SS_ZFINX` extension parameter (see [Extension Configuration](../Configuration/ExtensionConfiguration.md)) in your `my-config.py`, similar to what is done in [this example](https://github.com/x-heep/x-heep/blob/main/configs/cv32e20_xif_fpu.py). Then, generate the RTL with MCU-GEN, compile the simulation model, and run the example application with:
 
-```
-make mcu-gen ...
-make verilator-build FUSESOC_PARAM="--FPU_SS_ZFINX=1"
+```bash
+make mcu-gen PYTHON_X_HEEP_CFG=configs/my-config.py X_HEEP_CFG=configs/python_unsupported.hjson
+make verilator-build
 make app PROJECT=example_matfadd COMPILER_PREFIX=riscv32-corev- ARCH=rv32imc_zicsr_zifencei_zfinx
 make verilator-run
 ```
 
-If you want to try [Quadrilatero](https://github.com/pulp-platform/quadrilatero), the custom matrix ISA extensions, you can use any of the cores as the co-processor has its own load/store unit.
+If you want to try [Quadrilatero](https://github.com/pulp-platform/quadrilatero), the custom matrix ISA extensions, you can use any of the cores supporting the CV-X-IF as the co-processor has its own load/store unit.
 
-First, install the compiler as written [here](https://github.com/esl-epfl/xheep_matrix_spec/blob/main/BUILDING.md), then, configure X-HEEP to have:
+First, install the compiler as written [here](https://github.com/esl-epfl/xheep_matrix_spec/blob/main/BUILDING.md), then, configure X-HEEP with the `QUADRILATERO` extension parameter (see [Extension Configuration](../Configuration/ExtensionConfiguration.md)), similarly to what is done in [this example](https://github.com/x-heep/x-heep/blob/main/configs/cv32e20_xif_quadrilatero.py). Then, compile the simulation model and run the example application with:
 
-```
-    bus_type: "NtoM"
-    ram_banks: {
-        code_and_data: {
-            num: 3
-            sizes: [32]
-        }
-        data_interleaved: {
-            auto_section: auto
-            type: interleaved
-            num: 4
-            size: 16
-        }
-    }
-
-    linker_sections:
-    [
-        {
-            name: code
-            start: 0
-            size: 0x00000F800
-        }
-        {
-            name: data
-            start: 0x00000F800
-        }
-    ]
-
-    cpu_features: {
-        cv_x_if: true
-    }
-
-    ...
-
-```
-
-
-```
-make mcu-gen (make sure you pass the configuration file set above)
-make verilator-build FUSESOC_PARAM="--QUADRILATERO=1"
+```bash
+make mcu-gen PYTHON_X_HEEP_CFG=configs/my-config.py X_HEEP_CFG=configs/python_unsupported.hjson
+make verilator-build
 make app PROJECT=example_matmul_quadrilatero ARCH=rv32imc_zicsr_xtheadmatrix0p1 COMPILER_FLAGS=-menable-experimental-extensions COMPILER=clang CLANG_LINKER_USE_LD=1
 make verilator-run
 ```

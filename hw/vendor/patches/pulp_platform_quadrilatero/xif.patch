@@ -1,0 +1,13 @@
+diff --git a/rtl/include/xif_pkg.sv b/rtl/include/xif_pkg.sv
+index 3dd9df7..f556dbc 100644
+--- a/rtl/include/xif_pkg.sv
++++ b/rtl/include/xif_pkg.sv
+@@ -9,7 +9,7 @@ package xif_pkg;
+   // cv-x-if structs and parameters
+   // ------------------------------
+ 
+-  parameter int X_NUM_RS = 3;
++  parameter int X_NUM_RS = 2;
+   parameter int X_ID_WIDTH = 4;
+   parameter int X_MEM_WIDTH = 32;
+   parameter int X_RFR_WIDTH = 32;

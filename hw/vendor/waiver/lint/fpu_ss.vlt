@@ -14,3 +14,5 @@ lint_off -rule UNOPTFLAT -file "*/src/fpu_ss.sv" -match "Signal unoptimizable: F
 lint_off -rule UNDRIVEN -file "*/src/fpu_ss.sv" -match "Signal is not driven: 'fpr_raddr'*"
 lint_off -rule UNDRIVEN -file "*/src/fpu_ss.sv" -match "Signal is not driven: 'fpr_wb_addr'*"
 lint_off -rule CASEINCOMPLETE -file "*/src/fpu_ss.sv" -match "Case values incompletely covered (example pattern 0x7)*"
+lint_off -rule UNOPTFLAT -file "*/src/fpu_ss.sv" -match "Signal unoptimizable*"
+lint_off -rule UNOPTFLAT -file "*/src/fpu_ss_controller.sv" -match "Signal unoptimizable*"

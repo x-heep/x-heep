@@ -143,10 +143,10 @@ module cve2_xif_wrapper
   // CV32E20 CORE
   // ------------
   cve2_top #(
-      .MHPMCounterNum,
-      .MHPMCounterWidth,
-      .RV32E,
-      .RV32M,
+      .MHPMCounterNum(MHPMCounterNum),
+      .MHPMCounterWidth(MHPMCounterWidth),
+      .RV32E(RV32E),
+      .RV32M(RV32M),
       .XInterface(X_INTERFACE != '0)
   ) u_cve2_top (
       .clk_i,

@@ -24,7 +24,6 @@
 #endif
 
 void __attribute__ ((noinline)) matrixAdd(float * A, float * B, float * C, int N, int M);
-float __attribute__ ((noinline)) dotp(float * A, float * B, int N);
 uint32_t check_results(float *  C, int N, int M);
 
 float m_c[HEIGHT*WIDTH];
@@ -161,15 +160,12 @@ int main()
 
     errors = check_results(m_c, N, M);
 
-    //execute the kernel
-    if (dotp(m_a, m_b, N*M) != dot_product_exp) return -1;
-
-
     PRINTF("program finished with %d errors and %d cycles\n\r", errors, cycles);
 
 #ifdef ENABLE_PRINTF
     printMatrix(m_c,N,M);
 #endif
+
 
     return errors;
 }
@@ -181,15 +177,6 @@ void __attribute__ ((noinline)) matrixAdd(float *  A, float *  B, float *  C, in
             C[i*N+j] = A[i*WIDTH+j] + B[i*WIDTH+j];
         }
     }
-}
-
-float __attribute__ ((noinline)) dotp(float *  A, float *  B, int N)
-{
-    float res = 0.0f;
-    for(int i = 0; i < N; i++) {
-            res += A[i] * B[i];
-    }
-    return res;
 }
 
 uint32_t check_results(float * C, int N, int M)

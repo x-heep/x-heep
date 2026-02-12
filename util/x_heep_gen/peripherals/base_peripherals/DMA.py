@@ -239,33 +239,29 @@ class DMA(BasePeripheral):
 
     def validate(self):
         """
-        Checks if the DMA peripheral is valid (number of channels between 0 and 256, master ports between 0 and number of channels, channels per master port between 0 and number of channels, number of channels per master port is not 0 if number of channels is not 1).
+        Checks if the DMA peripheral is valid (number of channels between 0 and 256, master ports
+        between 0 and number of channels, channels per master port between 0 and number of channels,
+        number of channels per master port is not 0 if number of channels is not 1).
         """
-        valid = True
         if self.get_num_channels() > 256 or self.get_num_channels() == 0:
-            print("Number of DMA channels has to be between 0 and 256, excluded")
-            valid = False
+            raise RuntimeError(
+                "[MCU-GEN - DMA] ERROR: Number of DMA channels has to be between 0 and 256, excluded"
+            )
 
         if (
             self.get_num_master_ports() > self.get_num_channels()
             or self.get_num_master_ports() == 0
         ):
-            print(
-                "Number of DMA master ports has to be between 0 and "
-                + str(self.get_num_channels())
-                + ", 0 excluded"
+            raise RuntimeError(
+                f"[MCU-GEN - DMA] ERROR: Number of DMA master ports has to be between 0 and "
+                f"{self.get_num_channels()}, 0 excluded"
             )
-            valid = False
 
         if (
             self.get_num_channels_per_master_port() > self.get_num_channels()
             and self.get_num_channels() != 1
         ) or self.get_num_channels_per_master_port() == 0:
-            print(
-                "Number of DMA channels per system bus master ports has to be between 0 and "
-                + str(self.get_num_channels())
-                + ", excluded"
+            raise RuntimeError(
+                f"[MCU-GEN - DMA] ERROR: Number of DMA channels per system bus master ports has to be between 0 and "
+                f"{self.get_num_channels()}, 0 excluded"
             )
-            valid = False
-
-        return valid

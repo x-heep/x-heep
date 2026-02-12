@@ -1,6 +1,17 @@
 // Copyright EPFL contributors.
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
+
+<%!
+    from x_heep_gen.pads.pin import PinDigital
+%>
+
+<%
+    attribute_bits = xheep.get_padring().attributes.get("bits")
+    attribute_resval = xheep.get_padring().attributes.get("resval")
+    any_muxed_pads = xheep.get_padring().num_muxed_pads() > 0
+%>
+
 { name: "pad_control",
   clock_primary: "clk_i",
   bus_interfaces: [
@@ -23,17 +34,17 @@
   % endif
 % endfor
 
-% if "bits" in xheep.get_padring().attributes:
+% if attribute_bits:
   % for pad in xheep.get_padring().pad_list:
-    % if pad.pins and is_instance(pad.pins[0], PinDigital):
-      % if "constant_attribute" not in pad.attributes:
+    % if pad.pins and isinstance(pad.pins[0], PinDigital):
+      % if pad.attributes.get("constant_attribute") != True:
     { name:     "PAD_ATTRIBUTE_${pad.name.upper()}",
       desc:     "${pad.name} Attributes (Pull Up En, Pull Down En, etc. It is technology specific.",
-      resval:   "${pad.attributes["constant_attribute"]}"
+      resval:   "${attribute_resval}"
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "${xheep.get_padring().pads_attributes['bits']}", name: "PAD_ATTRIBUTE_${pad.name.upper()}", desc: "Pad Attribute ${pad.name.upper()} Reg" }
+        { bits: "${xheep.get_padring().attributes['bits']}", name: "PAD_ATTRIBUTE_${pad.name.upper()}", desc: "Pad Attribute ${pad.name.upper()} Reg" }
       ]
     }
       % endif

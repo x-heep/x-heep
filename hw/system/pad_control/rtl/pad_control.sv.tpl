@@ -7,6 +7,7 @@
 %>
 <%
     attribute_bits = xheep.get_padring().attributes.get("bits")
+    attribute_resval = xheep.get_padring().attributes.get("resval")
     any_muxed_pads = xheep.get_padring().num_muxed_pads() > 0
 %>
 
@@ -68,9 +69,9 @@ module pad_control #(
 
 % if attribute_bits != None:
     % for pad in xheep.get_padring().pad_list:
-        % if pad.pins and is_instance(pad.pins[0], PinDigital):
-            % if "constant_attribute" in pad.attributes:
-                assign pad_attributes_o[PAD_${pad.name.upper()}] = ${int(pad.attributes["constant_attribute"], 16)};
+        % if pad.pins and isinstance(pad.pins[0], PinDigital):
+            % if pad.attributes.get("constant_attribute") == True:
+                assign pad_attributes_o[PAD_${pad.name.upper()}] = ${int(attribute_resval, 16)};
             % else:
                 assign pad_attributes_o[PAD_${pad.name.upper()}] = reg2hw.pad_attribute_${pad.name.lower()}.q;
             % endif

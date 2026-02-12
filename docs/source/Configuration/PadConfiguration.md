@@ -195,12 +195,34 @@ padring = PadRing(
     mapping=mapping,
     attributes={
         "bits": "7:0",  # Custom bit width for pad control
+        "resval": 0x0,  # Default reset value for pad control
         "technology": "sky130",
     },
 )
 ```
 
-These attributes are accessible in template files during RTL generation.
+These attributes are accessible in template files during RTL generation. The following predefined attributes are supported for pad control generation:
+
+- `bits`: Bit range string that defines the pad attribute field width (e.g., `"7:0"` or `"3:0"`).
+- `resval`: Reset value for the pad attribute register. Must fit in the width defined by `bits`.
+- `constant_attribute`: Per-pad attribute (set on a Pad/Pin attributes dict) that, when `True`, fixes
+  the pad attribute to `resval` and omits the writable register for that pad.
+
+Example:
+
+```python
+# PadRing attributes
+padring = PadRing(
+    # ...existing args...
+    attributes={
+        "bits": "3:0",
+        "resval": 0x5,
+    },
+)
+
+# Per-pin/per-pad attribute to lock the pad attribute
+gpio = Inout("gpio_0", attributes={"constant_attribute": True})
+```
 
 ### Spacing Pads by Pitch
 

@@ -303,3 +303,43 @@ class PadRing:
                 )
                 pad.bp_space = space
                 last_bp = i + 1
+
+    def validate(self):
+        """
+        Validate the pad ring configuration.
+        """
+        # Check that the "bits" field, if defined, is in the correct format "msb:lsb" and that msb >= lsb
+        if "bits" in self.attributes:
+            bits_str = self.attributes["bits"]
+            if not isinstance(bits_str, str) or ":" not in bits_str:
+                raise RuntimeError(
+                    "[MCU-GEN - PadRing] ERROR: The 'bits' field in the padring attributes is defined but is not a string in the format 'msb:lsb'."
+                )
+            msb_str, lsb_str = bits_str.split(":")
+            if not msb_str.isdigit() or not lsb_str.isdigit():
+                raise RuntimeError(
+                    "[MCU-GEN - PadRing] ERROR: The 'bits' field in the padring attributes is defined but does not contain valid integers for msb and lsb."
+                )
+            msb = int(msb_str)
+            lsb = int(lsb_str)
+            if msb < lsb:
+                raise RuntimeError(
+                    "[MCU-GEN - PadRing] ERROR: The 'bits' field in the padring attributes is defined but msb is less than lsb."
+                )
+
+        # If the "bits" field is defined in the padring attributes, also the "resval" field has to
+        # be defined, and its value has to fit in the number of bits defined by the "bits" field.
+        if "bits" in self.attributes:
+            if "resval" not in self.attributes:
+                raise RuntimeError(
+                    "[MCU-GEN - PadRing] ERROR: The padring has a 'bits' field defined in its attributes but does not have a 'resval' field defined."
+                )
+            bits_str = self.attributes["bits"]
+            msb, lsb = map(int, bits_str.split(":"))
+            num_bits = msb - lsb + 1
+
+            resval = self.attributes["resval"]
+            if resval >= (1 << num_bits):
+                raise RuntimeError(
+                    f"[MCU-GEN - PadRing] ERROR: The padring has a 'bits' field with {num_bits} bits, but the 'resval' field has a value of {resval} which does not fit in {num_bits} bits."
+                )

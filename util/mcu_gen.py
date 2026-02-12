@@ -12,13 +12,11 @@ import pathlib
 import sys
 import re
 import logging
-import pickle
 from jsonref import JsonRef
 from mako.template import Template
 import x_heep_gen.load_config
 from x_heep_gen.xheep import BusType
 from x_heep_gen.cpu.cpu import CPU
-import os
 
 
 # ANSI color codes for pretty printing
@@ -145,8 +143,8 @@ def generate_xheep(args):
     # The missing gaps are filled, like the missing end address of the data section.
     xheep.build()
 
-    if not xheep.validate():
-        raise RuntimeError("There are errors when configuring X-HEEP")
+    # Validate the configuration, performing some sanity checks
+    xheep.validate()
 
     if (
         int(stack_size, 16) + int(heap_size, 16)

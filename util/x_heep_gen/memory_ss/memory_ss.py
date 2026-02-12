@@ -304,42 +304,42 @@ class MemorySS:
                 )
             old_sec.end = self._ram_banks[-1].end_address()
 
-    def validate(self) -> bool:
+    def validate(self):
         """
         Validates the memory subsystem configuration.
-
-        :return: `True` if the configuration is valid.
-        :rtype: bool
         """
         if not self.ram_numbanks() in range(1, 17):
-            print(
-                f"The number of banks should be between 1 and 16 instead of {self.ram_numbanks()}"
+            raise RuntimeError(
+                f"[MCU-GEN - MemorySS] ERROR: The number of banks should be between 1 and 16 instead of {self.ram_numbanks()}"
             )  # TODO: clarify upper limit
-            return False
 
         if not (
             "code" in self._used_section_names and "data" in self._used_section_names
         ):
-            print("The code and data sections are needed")
-            return False
+            raise RuntimeError(
+                "[MCU-GEN - MemorySS] ERROR: The code and data sections are needed"
+            )
 
         for l in self._linker_sections:
             l.check()
 
-        ret = True
         old_sec: Union[LinkerSection, None] = None
 
         for i, sec in enumerate(self._linker_sections):
             if i == 0 and sec.name != "code":
-                print("The first linker section should be called code.")
-                ret = False
+                raise RuntimeError(
+                    "[MCU-GEN - MemorySS] ERROR: The first linker section should be called code."
+                )
             elif i == 1 and sec.name != "data":
-                print("The second linker section should be called data.")
-                ret = False
+                raise RuntimeError(
+                    "[MCU-GEN - MemorySS] ERROR: The second linker section should be called data."
+                )
 
             if old_sec is not None:
                 if sec.start < old_sec.end:
-                    print(f"Section {sec.name} and {old_sec.name} overlap.")
+                    raise RuntimeError(
+                        f"[MCU-GEN - MemorySS] ERROR: Section {sec.name} and {old_sec.name} overlap."
+                    )
 
             start = sec.start
             found_start = False
@@ -347,12 +347,9 @@ class MemorySS:
             for b in self._ram_banks:
                 if found_start:
                     if b.start_address() > start:
-                        print(
-                            f"Section {sec.name} has a memory hole starting at {start:#08X}"
+                        raise RuntimeError(
+                            f"[MCU-GEN - MemorySS] ERROR: Section {sec.name} has a memory hole starting at {start:#08X}"
                         )
-                        ret = False
-                        found_end = True
-                        break
                     else:
                         start = b.end_address()
 
@@ -365,12 +362,13 @@ class MemorySS:
                     break
 
             if not found_start:
-                print(f"Section {sec.name} does not start in any ram bank.")
-                ret = False
+                raise RuntimeError(
+                    f"[MCU-GEN - MemorySS] ERROR: Section {sec.name} does not start in any ram bank."
+                )
 
             if not found_end:
-                ret = False
-                print(f"Section {sec.name} does not end in any ram bank.")
+                raise RuntimeError(
+                    f"[MCU-GEN - MemorySS] ERROR: Section {sec.name} does not end in any ram bank."
+                )
 
             old_sec = sec
-        return ret

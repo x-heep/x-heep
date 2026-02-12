@@ -291,28 +291,30 @@ class PeripheralDomain(ABC):
         for idx, _ in peripherals_without_address:
             self._peripherals[idx].set_address(offsets[idx])
 
-    # Validate functions
-    def __check_peripheral_non_overlap(self):
+    def validate(self):
         """
-        Check if the peripherals do not overlap.
+        Validate the peripheral domain.
 
-        :return: True if the peripherals do not overlap, False otherwise.
-        :rtype: bool
+        Checks if the peripherals do not overlap and if the peripheral domain is within the bounds.
         """
 
+        # Check if the peripherals do not overlap
         if self._peripherals is None or len(self._peripherals) == 0:
-            print(f"Warning : No peripherals in {self._name}")
-            return True
+            print(
+                f"[MCU-GEN - PeripheralDomain] WARNING: No peripherals in {self._name}"
+            )
+            return
 
         peripherals_sorted = sorted(
             filter(lambda x: x != None, self._peripherals),
             key=lambda x: x.get_address(),
         )  # Filter out None values and sort by offset in growing order
-        return_bool = True
 
         if len(peripherals_sorted) == 0:
-            print(f"Warning : No peripherals in {self._name}")
-            return return_bool
+            print(
+                f"[MCU-GEN - PeripheralDomain] WARNING: No peripherals in {self._name}"
+            )
+            return
 
         # Check if every peripheral does not overlap with the next one (works because peripherals_sorted is sorted by address)
         for i in range(len(peripherals_sorted) - 1):
@@ -320,58 +322,29 @@ class PeripheralDomain(ABC):
                 peripherals_sorted[i].get_address() + peripherals_sorted[i].get_length()
                 > peripherals_sorted[i + 1].get_address()
             ):
-                print(
-                    f"The peripheral {peripherals_sorted[i].get_name()} overflows over the domain (starts at {peripherals_sorted[i].get_address():#08X} and ends at {peripherals_sorted[i].get_address() + peripherals_sorted[i].get_length():#08X}, peripheral {peripherals_sorted[i+1].get_name()} starts at {peripherals_sorted[i+1].get_address():#08X})."
+                raise RuntimeError(
+                    f"[MCU-GEN - PeripheralDomain] ERROR: The peripheral {peripherals_sorted[i].get_name()} overflows over the domain (starts at {peripherals_sorted[i].get_address():#08X} and ends at {peripherals_sorted[i].get_address() + peripherals_sorted[i].get_length():#08X}, peripheral {peripherals_sorted[i+1].get_name()} starts at {peripherals_sorted[i+1].get_address():#08X})."
                 )
-                return_bool = False
             if peripherals_sorted[i].get_address() >= self._length:
-                print(
-                    f"The peripheral {peripherals_sorted[i].get_name()} is out of the domain (starts at {peripherals_sorted[i].get_address():#08X}, domain ends at {self._length:#08X})."
+                raise RuntimeError(
+                    f"[MCU-GEN - PeripheralDomain] ERROR: The peripheral {peripherals_sorted[i].get_name()} is out of the domain (starts at {peripherals_sorted[i].get_address():#08X}, domain ends at {self._length:#08X})."
                 )
-                return_bool = False
 
         # Check if the last peripheral is out of the domain
         if (
             peripherals_sorted[-1].get_address() + peripherals_sorted[-1].get_length()
             > self._length
         ):
-            print(
-                f"The peripheral {peripherals_sorted[-1].get_name()} is out of the domain (starts at {peripherals_sorted[-1].get_address():#08X}, domain ends at {self._length:#08X})."
+            raise RuntimeError(
+                f"[MCU-GEN - PeripheralDomain] ERROR: The peripheral {peripherals_sorted[-1].get_name()} is out of the domain (starts at {peripherals_sorted[-1].get_address():#08X}, domain ends at {self._length:#08X})."
             )
-            return_bool = False
         if peripherals_sorted[-1].get_address() >= self._length:
-            print(
-                f"The peripheral {peripherals_sorted[-1].get_name()} is out of the domain (starts at {peripherals_sorted[-1].get_address():#08X}, domain ends at {self._length:#08X})."
+            raise RuntimeError(
+                f"[MCU-GEN - PeripheralDomain] ERROR: The peripheral {peripherals_sorted[-1].get_name()} is out of the domain (starts at {peripherals_sorted[-1].get_address():#08X}, domain ends at {self._length:#08X})."
             )
-            return_bool = False
 
-        return return_bool
-
-    def __check_peripheral_domain_bounds(self):
-        """
-        Check if the peripheral domain is within the bounds it can use (being above 0x10000).
-
-        :return: True if the peripheral domain is within the bounds of the memory, False otherwise.
-        :rtype: bool
-        """
-
+        # Check if the peripheral domain is within the bounds it can use (being above 0x10000)
         if self.get_start_address() < int("10000", 16):
-            print(
-                f"Peripheral domain {self._name} start address must be greater than 0x10000"
+            raise RuntimeError(
+                f"[MCU-GEN - PeripheralDomain] ERROR: Peripheral domain {self._name} start address must be greater than 0x10000"
             )
-            return False
-
-        return True
-
-    def validate(self):
-        """
-        Validate the peripheral domain. Checks if the peripherals do not overlap and if the peripheral domain is within the bounds.
-
-        :return: True if the peripheral domain is valid, False otherwise.
-        :rtype: bool
-        """
-
-        return (
-            self.__check_peripheral_non_overlap()
-            and self.__check_peripheral_domain_bounds()
-        )

@@ -121,15 +121,16 @@ class BasePeripheralDomain(PeripheralDomain):
         """
         return self.get_all_dmas()[0]
 
-    # Validate functions
-
-    def __check_all_peripherals_added(self):
+    def validate(self):
         """
-        Check if all base peripherals are added.
+        Validate the base peripheral domain. Checks if all base peripherals are added, if they don't
+        overlap and if their configuration paths are valid. Checks also if dmas are valid.
         """
+        for dma in self.get_all_dmas():
+            dma.validate()
 
-        # For each default peripheral, there should be at least one instance in the domain
-        all_peripherals_added = True
+        # Check if all base peripherals are added
+        missing = []
         for default_peripheral in self._default_base_peripherals:
             added = False
             for peripheral in self._peripherals:
@@ -137,22 +138,11 @@ class BasePeripheralDomain(PeripheralDomain):
                     added = True
                     break
             if not added:
-                all_peripherals_added = False
-                print(
-                    f"Peripheral {peripheral.get_name()} is not in the domain {self._name}"
-                )
+                missing.append(default_peripheral.get_name())
 
-        return all_peripherals_added
+        if missing:
+            raise RuntimeError(
+                f"[MCU-GEN - BasePeripheralDomain] ERROR: Missing base peripherals in domain {self._name}: {', '.join(missing)}"
+            )
 
-    def validate(self):
-        """
-        Validate the base peripheral domain. Checks if all base peripherals are added, if they don't overlap and if their configuration paths are valid. Checks also if dmas are valid.
-
-        :return: True if the base peripheral domain is valid, False otherwise.
-        :rtype: bool
-        """
-        dma_valid = True
-        for dma in self.get_all_dmas():
-            dma_valid &= dma.validate()
-
-        return self.__check_all_peripherals_added() and super().validate() and dma_valid
+        super().validate()

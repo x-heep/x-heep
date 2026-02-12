@@ -1,5 +1,5 @@
 CAPI=2:
-name: "x-heep:ip:serial_link"
+name: "x-heep:ip:serial_link_xheep_wrapper"
 # Copyright 2025 EPFL
 # Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 # SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
@@ -9,13 +9,9 @@ filesets:
     depend:
     - pulp-platform.org::serial_link 
     files:
-    - rtl/serial_link_single_channel_reg_pkg.sv
-    - rtl/serial_link_single_channel_reg_top.sv
-    - rtl/serial_link_reg_pkg.sv
-    - rtl/serial_link_reg_top.sv
     - rtl/serial_link_minimum_axi_pkg.sv
     - rtl/serial_link_xheep_wrapper.sv
-    - rtl/fifo_serial_link_wrapper.sv
+    - rtl/serial_link_xheep_wrapper_fifo.sv
     file_type: systemVerilogSource
 
 targets:

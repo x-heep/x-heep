@@ -46,3 +46,5 @@ Unlike direct memory access, the serial link does **not write output directly to
 ---
 
 **Note:** This documentation describes the minimal configuration and usage of the Serial Link peripheral within X-HEEP. For advanced features and customizations, refer to the original vendor documentation.
+
+**Note:** If you are using `verilator 4.210`, make sure to disable the Serial Link (not include it) because it is not capable of compiling it. Use `verilator 5.040` instead.

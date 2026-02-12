@@ -19,6 +19,8 @@ filesets:
     - example:ip:simple_accelerator
     - example:ip:dlc
     - example:ip:im2col_spc
+    - example:ip:dlc
+    - x-heep:ip:serial_link_xheep_wrapper
 
   files_verilator_waiver:
     files:

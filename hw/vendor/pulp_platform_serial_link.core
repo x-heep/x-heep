@@ -17,6 +17,10 @@ filesets:
     - pulp-platform.org::register_interface
     - pulp-platform.org::axi_slice   
     files:
+    - pulp_platform_serial_link/src/regs/serial_link_reg_pkg.sv
+    - pulp_platform_serial_link/src/regs/serial_link_reg_top.sv
+    - pulp_platform_serial_link/src/regs/serial_link_single_channel_reg_pkg.sv
+    - pulp_platform_serial_link/src/regs/serial_link_single_channel_reg_top.sv
     - pulp_platform_serial_link/src/serial_link_pkg.sv
     - pulp_platform_serial_link/src/channel_allocator/serial_link_channel_allocator.sv
     - pulp_platform_serial_link/src/channel_allocator/stream_dechopper.sv

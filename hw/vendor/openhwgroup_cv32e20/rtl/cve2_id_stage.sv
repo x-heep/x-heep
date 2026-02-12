@@ -153,11 +153,8 @@ module cve2_id_stage #(
   input  logic [31:0]               rf_rdata_a_i,
   output logic [4:0]                rf_raddr_b_o,
   input  logic [31:0]               rf_rdata_b_i,
-  output logic [4:0]                rf_raddr_c_o,
-  input  logic [31:0]               rf_rdata_c_i,
   output logic                      rf_ren_a_o,
   output logic                      rf_ren_b_o,
-  output logic                      rf_ren_c_o,
 
   // Register file write (via writeback)
   output logic [4:0]                rf_waddr_id_o,
@@ -223,21 +220,18 @@ module cve2_id_stage #(
 
   logic [XInterface:0] rf_wdata_sel;
   logic                rf_we_dec, rf_we_raw;
-  logic                rf_ren_a, rf_ren_b, rf_ren_c;
-  logic                rf_ren_a_dec, rf_ren_b_dec, rf_ren_c_dec;
+  logic                rf_ren_a, rf_ren_b;
+  logic                rf_ren_a_dec, rf_ren_b_dec;
 
   // Read enables should only be asserted for valid and legal instructions
   assign rf_ren_a = instr_valid_i & ~instr_fetch_err_i & ~illegal_insn_o & rf_ren_a_dec;
   assign rf_ren_b = instr_valid_i & ~instr_fetch_err_i & ~illegal_insn_o & rf_ren_b_dec;
-  assign rf_ren_c = instr_valid_i & ~instr_fetch_err_i & ~illegal_insn_o & rf_ren_c_dec;
 
   assign rf_ren_a_o = rf_ren_a;
   assign rf_ren_b_o = rf_ren_b;
-  assign rf_ren_c_o = XInterface ? rf_ren_c : '0;
 
   logic [31:0] rf_rdata_a_fwd;
   logic [31:0] rf_rdata_b_fwd;
-  logic [31:0] rf_rdata_c_fwd;
 
   // ALU Control
   alu_op_e     alu_operator;
@@ -359,7 +353,6 @@ module cve2_id_stage #(
     // Register Interface
     assign x_register_o.rs[0]    = rf_rdata_a_fwd;
     assign x_register_o.rs[1]    = rf_rdata_b_fwd;
-    assign x_register_o.rs[2]    = rf_rdata_c_fwd;
     assign x_register_o.rs_valid = '1;
     assign x_register_o.id       = x_instr_id_q;
     assign x_register_o.hartid   = hart_id_i;
@@ -538,11 +531,9 @@ module cve2_id_stage #(
 
     .rf_raddr_a_o(rf_raddr_a_o),
     .rf_raddr_b_o(rf_raddr_b_o),
-    .rf_raddr_c_o(rf_raddr_c_o),
     .rf_waddr_o  (rf_waddr_id_o),
     .rf_ren_a_o  (rf_ren_a_dec),
     .rf_ren_b_o  (rf_ren_b_dec),
-    .rf_ren_c_o  (rf_ren_c_dec),
 
     // ALU
     .alu_operator_o    (alu_operator),
@@ -923,7 +914,6 @@ module cve2_id_stage #(
   // register file
   assign rf_rdata_a_fwd = rf_rdata_a_i;
   assign rf_rdata_b_fwd = rf_rdata_b_i;
-  assign rf_rdata_c_fwd = rf_rdata_c_i;
 
   // Unused Writeback stage only IO & wiring
   // Assign inputs and internal wiring to unused signals to satisfy lint checks

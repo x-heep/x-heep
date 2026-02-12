@@ -38,7 +38,7 @@ filesets:
     - x-heep:ip:fast_intr_ctrl
     - x-heep:ip:obi_fifo
     - x-heep:ip:pdm2pcm
-    - x-heep:ip:serial_link
+    - x-heep:ip:serial_link_xheep_wrapper
     - esl_epfl:ip:obi_spi_slave
     - x-heep:ip:w25q128jw_controller
     files:
@@ -102,7 +102,7 @@ filesets:
     - hw/system/x_heep_system.vlt
     - hw/simulation/simulation.vlt
     - hw/ip/i2s/i2s.vlt
-    - hw/ip/serial_link/serial_link.vlt
+    - hw/ip/serial_link_xheep_wrapper/serial_link_xheep_wrapper.vlt
     file_type: vlt
 
   rtl-fpga:

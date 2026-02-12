@@ -41,6 +41,7 @@ generate:
       waivers_v5:
       - lint/common_cells_v5.vlt
       - lint/cv32e40p_v5.vlt
+      - lint/axi_v5.vlt
 
 targets:
   default: &default_target

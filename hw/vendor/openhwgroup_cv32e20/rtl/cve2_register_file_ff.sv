@@ -14,8 +14,7 @@
 module cve2_register_file_ff #(
   parameter bit                   RV32E             = 0,
   parameter int unsigned          DataWidth         = 32,
-  parameter logic [DataWidth-1:0] WordZeroVal       = '0,
-  parameter bit                   XInterface        = 1'b0
+  parameter logic [DataWidth-1:0] WordZeroVal       = '0
 ) (
   // Clock and Reset
   input  logic                 clk_i,
@@ -31,9 +30,6 @@ module cve2_register_file_ff #(
   input  logic [4:0]           raddr_b_i,
   output logic [DataWidth-1:0] rdata_b_o,
 
-  //Read port R3 -- Only when using the X-iF
-  input  logic [4:0]           raddr_c_i,
-  output logic [DataWidth-1:0] rdata_c_o,
 
   // Write port W1
   input  logic [4:0]           waddr_a_i,
@@ -73,7 +69,6 @@ module cve2_register_file_ff #(
 
   assign rdata_a_o = rf_reg[raddr_a_i];
   assign rdata_b_o = rf_reg[raddr_b_i];
-  assign rdata_c_o = XInterface ? rf_reg[raddr_c_i] : '0;
 
   // Signal not used in FF register file
   logic unused_test_en;

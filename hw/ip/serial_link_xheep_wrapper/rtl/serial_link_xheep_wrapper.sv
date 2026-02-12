@@ -43,24 +43,12 @@ module serial_link_xheep_wrapper
 
 );
 
+  import serial_link_reg_pkg::*;
   logic rst_serial_link_n;
-
   logic reset_n;
 
-  // Debug signals for the Serial Link 
-  logic fifo_empty_o;
-  logic fifo_full_o;
-
-  serial_link_minimum_axi_pkg::axi_req_t
-      fast_sl_req_i, fast_sl_req_O, axi_in_req_i, axi_out_req_o, axi_lite_req;
-  serial_link_minimum_axi_pkg::axi_resp_t
-      fast_sl_rsp_i, fast_sl_rsp_O, axi_in_rsp_o, axi_out_rsp_i, axi_lite_rsp;
-  reg_pkg::reg_req_t  fast_cfg_req_i;
-  reg_pkg::reg_rsp_t  fast_cfg_rsp_o;
-
-  obi_pkg::obi_req_t  obi_req_o;  //fifo writing
-  obi_pkg::obi_resp_t obi_rsp_o;
-
+  serial_link_minimum_axi_pkg::axi_req_t fast_sl_req_O, axi_in_req, axi_lite_req;
+  serial_link_minimum_axi_pkg::axi_resp_t fast_sl_rsp_O, axi_in_rsp, axi_lite_rsp;
 
   axi_lite_from_mem #(
       .MemAddrWidth(AddrWidth),
@@ -99,37 +87,27 @@ module serial_link_xheep_wrapper
       .slv_resp_lite_o(axi_lite_rsp),
       .slv_aw_cache_i(),
       .slv_ar_cache_i(),
-      .mst_req_o(axi_in_req_i),
-      .mst_resp_i(axi_in_rsp_o)
+      .mst_req_o(axi_in_req),
+      .mst_resp_i(axi_in_rsp)
   );
 
   // Slave interface for the Serial Link
   // Data is saved in the fifo of parametrizable depth
   // The new transactions can be accepted only when fifo is empty
-  fifo_serial_link_wrapper #(
+  serial_link_xheep_wrapper_fifo #(
       .axi_req_t (axi_req_t),
       .axi_rsp_t (axi_resp_t),
       .FIFO_DEPTH(8)
-  ) fifo_serial_link_wrapper_i (
-      .testmode_i('0),
-
-      .reader_gnt_o   (reader_resp_o.gnt),
-      .reader_req_i   (reader_req_i.req),
-      .reader_rvalid_o(reader_resp_o.rvalid),
-      .reader_addr_i  (reader_req_i.addr),
-      .reader_we_i    (reader_req_i.we),
-      .reader_be_i    (reader_req_i.be),
-      .reader_rdata_o (reader_resp_o.rdata),
-      .reader_wdata_i (reader_req_i.wdata),
-
-      .writer_axi_req(fast_sl_req_O),
-      .writer_axi_rsp(fast_sl_rsp_O),
-
-      .fifo_empty_o,
-      .fifo_full_o,
-
-      .clk_i (clk_i),
-      .rst_ni(rst_ni)
+  ) serial_link_xheep_wrapper_fifo_i (
+      .clk_i,
+      .rst_ni,
+      .reader_gnt_o    (reader_resp_o.gnt),
+      .reader_req_i    (reader_req_i.req),
+      .reader_rvalid_o (reader_resp_o.rvalid),
+      .reader_we_i     (reader_req_i.we),
+      .reader_rdata_o  (reader_resp_o.rdata),
+      .writer_axi_req_i(fast_sl_req_O),
+      .writer_axi_rsp_o(fast_sl_rsp_O)
   );
 
   tc_clk_mux2 i_tc_reset_mux (
@@ -163,8 +141,8 @@ module serial_link_xheep_wrapper
         .clk_reg_i    (clk_reg_i),
         .rst_reg_ni   (rst_reg_ni),
         .testmode_i   (1'b0),
-        .axi_in_req_i (axi_in_req_i),
-        .axi_in_rsp_o (axi_in_rsp_o),
+        .axi_in_req_i (axi_in_req),
+        .axi_in_rsp_o (axi_in_rsp),
         .axi_out_req_o(fast_sl_req_O),
         .axi_out_rsp_i(fast_sl_rsp_O),
         .cfg_req_i    (cfg_req_i),
@@ -202,8 +180,8 @@ module serial_link_xheep_wrapper
         .clk_reg_i    (clk_reg_i),
         .rst_reg_ni   (rst_reg_ni),
         .testmode_i   (1'b0),
-        .axi_in_req_i (axi_in_req_i),
-        .axi_in_rsp_o (axi_in_rsp_o),
+        .axi_in_req_i (axi_in_req),
+        .axi_in_rsp_o (axi_in_rsp),
         .axi_out_req_o(fast_sl_req_O),
         .axi_out_rsp_i(fast_sl_rsp_O),
         .cfg_req_i    (cfg_req_i),

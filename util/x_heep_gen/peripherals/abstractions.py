@@ -167,11 +167,6 @@ class PeripheralDomain(ABC):
         """
         Build the peripheral domain. This function will compute the offset of the peripherals that have no offset.
         """
-
-        if self._peripherals is None or len(self._peripherals) == 0:
-            print(f"Warning : No peripherals in {self._name}")
-            return
-
         # Setup
 
         # List of peripherals without address, sorted by length in descending order. Original index is kept to update the peripheral with the offset after placement.

@@ -58,10 +58,4 @@ def config():
     system.add_peripheral_domain(base_peripheral_domain)
     system.add_peripheral_domain(user_peripheral_domain)
 
-    # Here the system is build,
-    # The missing gaps are filled, like the missing end address of the data section.
-    system.build()
-    if not system.validate():
-        raise RuntimeError("there are errors")
-
     return system

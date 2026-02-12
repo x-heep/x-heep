@@ -44,7 +44,7 @@
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "${xheep.get_padring().attributes['bits']}", name: "PAD_ATTRIBUTE_${pad.name.upper()}", desc: "Pad Attribute ${pad.name.upper()} Reg" }
+        { bits: "${attribute_bits}", name: "PAD_ATTRIBUTE_${pad.name.upper()}", desc: "Pad Attribute ${pad.name.upper()} Reg" }
       ]
     }
       % endif

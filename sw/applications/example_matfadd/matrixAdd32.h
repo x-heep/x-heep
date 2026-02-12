@@ -7,8 +7,6 @@ float m_b[2*2] = {0.1f, 0.01f, 0.001f, 0.0001f};
 
 float m_exp[2*2] = {1.1f, 2.01f, 3.001f, 4.0001f};
 
-float dot_product_exp = 0.1234;
-
 #define WIDTH 2
 #define HEIGHT 2
 

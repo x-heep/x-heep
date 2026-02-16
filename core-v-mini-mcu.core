@@ -298,7 +298,13 @@ scripts:
     - python
     - ../../../scripts/sim/vcs/patch_vcs_ams_Makefile.py
 
-  # Simulation utils
+  generate_xsa: 
+    cmd: 
+    - vivado
+    - -mode
+    - batch
+    - -source ../../../scripts/fpga/export_xsa.tcl
+    # - openhwgroup.org_systems_core-v-mini-mcu_0.xpr
   remove_uart_log:
     cmd: [sh, -c, rm -f uart0.log]
   print_uart_log:
@@ -515,10 +521,13 @@ targets:
     - FPGA_ZCU104=true
     tools:
       vivado:
+        jobs: 64
         part: xczu7ev-ffvc1156-2-e
         board_part: xilinx.com:zcu104:part0:1.0
         board_repo_paths: [../../../hw/fpga/board_files/vendor/esl_epfl_zcu104_board_files]
     toplevel: [xilinx_core_v_mini_mcu_wrapper]
+    hooks: 
+      post_build: [generate_xsa]
     
   zcu102:
     <<: *default_target

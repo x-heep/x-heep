@@ -39,11 +39,11 @@ set_property -dict {PACKAGE_PIN G8 IOSTANDARD LVCMOS33} [get_ports uart_tx_o]
 set_property -dict {PACKAGE_PIN G6 IOSTANDARD LVCMOS33} [get_ports uart_rx_i]
 
 # JTAG
-set_property -dict {PACKAGE_PIN H8 IOSTANDARD LVCMOS33} [get_ports jtag_tdi_i]
-set_property -dict {PACKAGE_PIN J6 IOSTANDARD LVCMOS33} [get_ports jtag_tdo_o]
-set_property -dict {PACKAGE_PIN G7 IOSTANDARD LVCMOS33} [get_ports jtag_tms_i]
-set_property -dict {PACKAGE_PIN H6 IOSTANDARD LVCMOS33} [get_ports jtag_tck_i]
-set_property -dict {PACKAGE_PIN M9 IOSTANDARD LVCMOS33} [get_ports jtag_trst_ni]
+#set_property -dict {PACKAGE_PIN H8 IOSTANDARD LVCMOS33} [get_ports jtag_tdi_i]
+#set_property -dict {PACKAGE_PIN J6 IOSTANDARD LVCMOS33} [get_ports jtag_tdo_o]
+#set_property -dict {PACKAGE_PIN G7 IOSTANDARD LVCMOS33} [get_ports jtag_tms_i]
+#set_property -dict {PACKAGE_PIN H6 IOSTANDARD LVCMOS33} [get_ports jtag_tck_i]
+#set_property -dict {PACKAGE_PIN M9 IOSTANDARD LVCMOS33} [get_ports jtag_trst_ni]
 
 # I2C
 set_property -dict {PACKAGE_PIN J7 IOSTANDARD LVCMOS33} [get_ports i2c_scl_io]

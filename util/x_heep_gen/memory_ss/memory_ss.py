@@ -285,7 +285,6 @@ class MemorySS:
             self.add_ram_banks_il(
                 self._override_numbanks_il, 32, sec_name, ignore_ignore=True
             )  # Add automatically a section for compatibility purposes.
-
         self._linker_sections.sort(key=lambda l: l.start)
 
         old_sec: Optional[LinkerSection] = None
@@ -311,12 +310,15 @@ class MemorySS:
         :return: `True` if the configuration is valid.
         :rtype: bool
         """
+
+        """
         if not self.ram_numbanks() in range(1, 17):
             print(
                 f"The number of banks should be between 1 and 16 instead of {self.ram_numbanks()}"
             )  # TODO: clarify upper limit
             return False
-
+        # Attempting to remove this dependency
+        """
         if not (
             "code" in self._used_section_names and "data" in self._used_section_names
         ):

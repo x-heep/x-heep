@@ -493,7 +493,9 @@ Port;FD4A0000;FD4AFFFF;1|FPD;DPDMA;FD4C0000;FD4CFFFF;1|FPD;DDR_XMPU5_CFG;FD05000
 
   # Create instance: axi_jtag_0, and set properties
   set axi_jtag_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_jtag:1.0 axi_jtag_0 ]
-  set_property CONFIG.C_TCK_CLOCK_RATIO {16} [get_bd_cells axi_jtag_0]
+  set_property -dict [list \
+    CONFIG.C_TCK_CLOCK_RATIO {32} \
+  ] $axi_jtag_0
   # Create instance: axi_smc, and set properties
   set axi_smc [ create_bd_cell -type ip -vlnv xilinx.com:ip:smartconnect:1.0 axi_smc ]
   set_property -dict [list \
@@ -550,3 +552,14 @@ create_root_design ""
 # Create Wrapper
 set wrapper_path [ make_wrapper -fileset sources_1 -files [ get_files -norecurse axi_jtag_bridge.bd ] -top ]
 add_files -norecurse -fileset sources_1 $wrapper_path
+
+# Add implementation-only constraints for AXI JTAG clock domain crossing
+# set impl_xdc_path [file normalize "[file dirname [info script]]/../../constraints/zcu104/constraints_impl.xdc"]
+# if {[file exists $impl_xdc_path]} {
+#     add_files -fileset constrs_1 -norecurse $impl_xdc_path
+#     set_property USED_IN_SYNTHESIS false [get_files constraints_impl.xdc]
+#     set_property USED_IN_IMPLEMENTATION true [get_files constraints_impl.xdc]
+#     set_property PROCESSING_ORDER LATE [get_files constraints_impl.xdc]
+# } else {
+#     puts "WARNING: Could not find $impl_xdc_path"
+# }

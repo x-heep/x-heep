@@ -28,7 +28,7 @@ module reg_to_tlul #(
 );
 
 
-  assign tl_o.a_valid    = reg_req_i.valid & tl_i.a_ready;
+  assign tl_o.a_valid    = reg_req_i.valid;
   assign tl_o.a_opcode   = reg_req_i.write ? PutFullData : Get;
   assign tl_o.a_param    = '0;
   assign tl_o.a_size     = 'h2;

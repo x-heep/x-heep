@@ -3,6 +3,65 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
+
+## 0.4.6 - 2025-08-05
+### Fixed
+- Fix error signaling in `reg_to_axi`.
+- Replaced deprecated `bender import` with new `bender vendor` command.
+- Update link to OpenTitan `reggen`.
+
+## 0.4.5 - 2024-09-11
+### Fixed
+- Use `RegDataWidth` instead of `AxiDataWidth` for output multiplexing in `axi_to_reg_v2`.
+
+## 0.4.4 - 2024-03-14
+### Added
+- Add `reg_to_axi` module.
+
+## 0.4.3 - 2024-03-01
+### Added
+- Provide `CutMem(Reqs|Rsps)` parameters in `axi_to_reg_v2` to cut long timing paths.
+
+## 0.4.2 - 2023-09-15
+### Added
+- Expose `axi_to_axi_lite` module's `FULL_BW` parameter in `axi_to_reg`.
+- Add `axi_to_reg_v2` with simpler design and improved performance.
+- Add `regtool` patch to generate documentation.
+### Changed
+- Deprecate `axi_to_reg` in favor of `axi_to_reg_v2`.
+- Bump `axi` dependency minor version to `v0.39.1`.
+
+## 0.4.1 - 2023-06-12
+### Added
+- `reg_cut` module that cuts all combinational paths between src and dst
+- Added basic CI tests
+### Changed
+- Added optional parameter to `reg_cdc` to choose between different CDC flavors.
+### Fixed
+- Fix typo in `reg_filter_empty_writes`.
+- Remove timing loop in `reg_to_tlul`
+- Add option to use 4phase CDC 
+
+## 0.4.0 - 2023-04-28
+### Breaking Changes
+- Removed payload_t parameter of reg_err_slave and directly use a logic array to improve general tool support.
+
+### Added
+- Add `reg_filter_empty_writes` to return a ready without forwarding the valid for writes with strb='0.
+- Split `reg_cdc` module into two different modules (`reg_cdc_src` and `reg_cdc_dst`) for source and destination side of the clock domain crossing. The `reg_cdc` module internally instantiates these IPs while maintaining the same external interface.
+
+### Changed
+- Add optional parameter to apb_to_reg converter to latch inputs on apb_sel assertions rather than feeding all signals through combinationally. The default parameter value is to not change existing behavior and this particular change is thus backward compatible.
+
+
+## 0.3.9 - 2023-03-28
+### Changed
+- Updated Bender.yml to be in line with latest bender vendor syntax
+
+### Fixed
+- Packported upstream fix for wrong mux sel width in case of more than one window.
+- Use BlockAW width rather than AW for address signal width.
+
 ## 0.3.8 - 2022-12-13
 ### Added
 - Added interface variant of the apb_to_reg converter

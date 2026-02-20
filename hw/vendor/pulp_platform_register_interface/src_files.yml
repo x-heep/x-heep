@@ -12,18 +12,22 @@ register_interface:
     - src/reg_intf.sv
     # Level 1
     - src/apb_to_reg.sv
-    - src/axi_to_reg.sv
+    - src/axi_lite_to_reg.sv
+    - src/axi_to_reg_v2.sv
     - src/periph_to_reg.sv
     - src/reg_cdc.sv
+    - src/reg_cut.sv
     - src/reg_demux.sv
     - src/reg_err_slv.sv
+    - src/reg_filter_empty_writes.sv
     - src/reg_mux.sv
     - src/reg_to_apb.sv
     - src/reg_to_mem.sv
-    - src/reg_uniform.sv
     - src/reg_to_tlul.sv
+    - src/reg_to_axi.sv
+    - src/reg_uniform.sv
     # Level 2
-    - src/axi_lite_to_reg.sv
+    - src/deprecated/axi_to_reg.sv
 
 reggen_primitives:
   vlog_opts:

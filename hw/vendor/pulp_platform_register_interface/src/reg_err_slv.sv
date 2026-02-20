@@ -8,9 +8,8 @@
 // Simple module that permanently answers with an error
 
 module reg_err_slv #(
-  parameter int unsigned    DW        = -1,
-  parameter type            payload_t = logic [DW-1:0],
-  parameter payload_t       ERR_VAL   = '0,
+  parameter int unsigned    DW        = 0,
+  parameter logic [DW-1:0]  ERR_VAL   = '0,
   parameter type            req_t     = logic,
   parameter type            rsp_t     = logic
 ) (

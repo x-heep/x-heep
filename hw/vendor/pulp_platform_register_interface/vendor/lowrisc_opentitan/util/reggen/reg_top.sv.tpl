@@ -121,7 +121,7 @@ module ${mod_name} \
   // register signals
   logic           reg_we;
   logic           reg_re;
-  logic [AW-1:0]  reg_addr;
+  logic [BlockAw-1:0]  reg_addr;
   logic [DW-1:0]  reg_wdata;
   logic [DBW-1:0] reg_be;
   logic [DW-1:0]  reg_rdata;
@@ -321,7 +321,7 @@ module ${mod_name} \
 % if use_reg_iface:
   assign reg_we = reg_intf_req.valid & reg_intf_req.write;
   assign reg_re = reg_intf_req.valid & ~reg_intf_req.write;
-  assign reg_addr = reg_intf_req.addr;
+  assign reg_addr = reg_intf_req.addr[BlockAw-1:0];
   assign reg_wdata = reg_intf_req.wdata;
   assign reg_be = reg_intf_req.wstrb;
   assign reg_intf_rsp.rdata = reg_rdata;

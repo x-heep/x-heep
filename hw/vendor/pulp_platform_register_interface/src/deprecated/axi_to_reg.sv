@@ -27,6 +27,8 @@ module axi_to_reg #(
   parameter int unsigned AXI_MAX_WRITE_TXNS = 32'd2,
   /// Maximum number of outstanding reads.
   parameter int unsigned AXI_MAX_READ_TXNS  = 32'd2,
+  /// Can work in two bandwidth modes: see id_queue.sv for details
+  parameter bit FULL_BW = 0,
   /// Whether the AXI-Lite W channel should be decoupled with a register. This
   /// can help break long paths at the expense of registers.
   parameter bit DECOUPLE_W = 1,
@@ -73,6 +75,7 @@ module axi_to_reg #(
     .AxiMaxWriteTxns ( AXI_MAX_WRITE_TXNS ),
     /// Maximum number of outstanding reads.
     .AxiMaxReadTxns  ( AXI_MAX_READ_TXNS ),
+    .FullBW          ( FULL_BW ),
     .FallThrough     ( 0 ),
     .full_req_t      ( axi_req_t ),
     .full_resp_t     ( axi_rsp_t ),
@@ -125,6 +128,8 @@ module axi_to_reg_intf #(
   parameter int unsigned AXI_MAX_WRITE_TXNS = 32'd2,
   /// Maximum number of outstanding reads.
   parameter int unsigned AXI_MAX_READ_TXNS  = 32'd2,
+  /// Can work in two bandwidth modes: see id_queue.sv for details
+  parameter bit FULL_BW = 0,
   /// Whether the AXI-Lite W channel should be decoupled with a register. This
   /// can help break long paths at the expense of registers.
   parameter bit DECOUPLE_W = 1
@@ -151,7 +156,8 @@ module axi_to_reg_intf #(
     .AXI_MAX_WRITE_TXNS ( AXI_MAX_WRITE_TXNS ),
     /// Maximum number of outstanding reads.
     .AXI_MAX_READ_TXNS  ( AXI_MAX_READ_TXNS ),
-    .FALL_THROUGH       ( 0                 )
+    .FALL_THROUGH       ( 0                 ),
+    .FULL_BW            ( FULL_BW           )
   ) i_axi_to_axi_lite (
     .clk_i,
     .rst_ni,

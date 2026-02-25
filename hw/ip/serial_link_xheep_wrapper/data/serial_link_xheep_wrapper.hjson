@@ -1,0 +1,29 @@
+// Copyright 2026 EPFL
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+//
+// Author: Thomas Tran <thomas.tran@epfl.ch>, EPFL, STI-SEL
+//    
+//
+// Date: 02.2026
+
+{ name: "serial_link_xheep_wrapper"
+  clock_primary: "clk_i"
+  bus_interfaces: [
+    { protocol: "reg_iface", direction: "device" }
+  ]
+  regwidth: "32"
+  registers: [
+
+    // MODE CONTROL
+    { name:     "RX_MODE"
+      desc:     "Receiver mode configuration"
+      swaccess: "rw"
+      hwaccess: "hro"
+      fields: [
+        { bits: "0", name: "DIRECT_WRITE_EN", desc: "Receiver mode select. 0 = FIFO mode (default), 1 = direct write mode (incoming data written directly to memory via OBI master)." resval: 0 }
+      ]
+    }
+
+  ]
+}

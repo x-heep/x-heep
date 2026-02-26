@@ -13,26 +13,22 @@ package serial_link_xheep_wrapper_reg_pkg;
   // Typedefs for registers //
   ////////////////////////////
 
-  typedef struct packed {
-    logic        q;
-  } serial_link_xheep_wrapper_reg2hw_rx_mode_reg_t;
+  typedef struct packed {logic q;} serial_link_xheep_wrapper_reg2hw_rx_mode_reg_t;
 
   // Register -> HW type
   typedef struct packed {
-    serial_link_xheep_wrapper_reg2hw_rx_mode_reg_t rx_mode; // [0:0]
+    serial_link_xheep_wrapper_reg2hw_rx_mode_reg_t rx_mode;  // [0:0]
   } serial_link_xheep_wrapper_reg2hw_t;
 
   // Register offsets
-  parameter logic [BlockAw-1:0] SERIAL_LINK_XHEEP_WRAPPER_RX_MODE_OFFSET = 2'h 0;
+  parameter logic [BlockAw-1:0] SERIAL_LINK_XHEEP_WRAPPER_RX_MODE_OFFSET = 2'h0;
 
   // Register index
-  typedef enum int {
-    SERIAL_LINK_XHEEP_WRAPPER_RX_MODE
-  } serial_link_xheep_wrapper_id_e;
+  typedef enum int {SERIAL_LINK_XHEEP_WRAPPER_RX_MODE} serial_link_xheep_wrapper_id_e;
 
   // Register width information to check illegal writes
-  parameter logic [3:0] SERIAL_LINK_XHEEP_WRAPPER_PERMIT [1] = '{
-    4'b 0001  // index[0] SERIAL_LINK_XHEEP_WRAPPER_RX_MODE
+  parameter logic [3:0] SERIAL_LINK_XHEEP_WRAPPER_PERMIT[1] = '{
+      4'b0001  // index[0] SERIAL_LINK_XHEEP_WRAPPER_RX_MODE
   };
 
 endpackage

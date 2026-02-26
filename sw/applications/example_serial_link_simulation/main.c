@@ -13,7 +13,7 @@
 
 /* By default, printfs are activated for FPGA and disabled for simulation. */
 #define PRINTF_IN_FPGA  1
-#define PRINTF_IN_SIM   0
+#define PRINTF_IN_SIM   1
 
 // simulation only -> Testharness last slave address on the external bus (size of the Slow memory in testharness pkg))
 #if TARGET_SIM 
@@ -34,7 +34,6 @@
 int32_t NUM_TO_CHECK = 525;
 int main(int argc, char *argv[])
 {
-
     volatile int32_t *addr_p_external = SL_EXTERNAL_WRITE;
     volatile int32_t *addr_p_recreg = SL_READ;
     int32_t rcv_data;

@@ -33,6 +33,7 @@ from .user_peripherals import (
     SerialLink,
     SerialLinkReg,
     SerialLinkReceiverFifo,
+    SerialLinkWrapperReg, 
 )
 
 
@@ -75,6 +76,7 @@ def load_peripherals_config(system, config: hjson.OrderedDict):
         "serial_link": lambda o, l: SerialLink(o, l),
         "serial_link_reg": lambda o, l: SerialLinkReg(o, l),
         "serial_link_receiver_fifo": lambda o, l: SerialLinkReceiverFifo(o, l),
+        "serial_link_wrapper_reg": lambda o, l: SerialLinkWrapperReg(o, l),
     }
 
     for name, fields in config.items():

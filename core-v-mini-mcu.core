@@ -107,6 +107,7 @@ filesets:
   rtl-fpga:
     depend:
     - openhwgroup.org:systems:core-v-mini-mcu-fpga
+    - pulp-platform.org:ip:quadrilatero
     files:
     - hw/fpga/xilinx_core_v_mini_mcu_wrapper.sv
     file_type: systemVerilogSource
@@ -452,6 +453,7 @@ targets:
     - REMOVE_OBI_FIFO
     - FPGA_SYNTHESIS=true
     - FPGA_NEXYS=true
+    - COMMON_CELLS_ASSERTS_OFF
     tools:
       vivado:
         part: xc7a100tcsg324-1
@@ -470,6 +472,7 @@ targets:
     - SYNTHESIS=true
     - REMOVE_OBI_FIFO
     - FPGA_SYNTHESIS=true
+    - COMMON_CELLS_ASSERTS_OFF
     tools:
       vivado:
         part: xc7z020clg400-1
@@ -489,6 +492,7 @@ targets:
     - REMOVE_OBI_FIFO
     - FPGA_SYNTHESIS=true
     - FPGA_ZCU104=true
+    - COMMON_CELLS_ASSERTS_OFF
     tools:
       vivado:
         part: xczu7ev-ffvc1156-2-e
@@ -508,6 +512,7 @@ targets:
     - REMOVE_OBI_FIFO
     - FPGA_SYNTHESIS=true
     - FPGA_ZCU102=true
+    - COMMON_CELLS_ASSERTS_OFF
     tools:
       vivado:
         part: xczu9eg-ffvb1156-2-e
@@ -527,6 +532,7 @@ targets:
     - REMOVE_OBI_FIFO
     - FPGA_SYNTHESIS=true
     - FPGA_AUP_ZU3=true
+    - COMMON_CELLS_ASSERTS_OFF
     tools:
       vivado:
         part: xczu3eg-sfvc784-2-e
@@ -546,6 +552,7 @@ targets:
     - REMOVE_OBI_FIFO
     - FPGA_SYNTHESIS=true
     - FPGA_GENESYS2=true
+    - COMMON_CELLS_ASSERTS_OFF
     tools:
       vivado:
         part: xc7k325tffg900-2

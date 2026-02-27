@@ -128,6 +128,8 @@ module core_v_mini_mcu
       output logic [serial_link_single_channel_reg_pkg::NumChannels-1:0]    ddr_rcv_clk_o,
       input  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_i,
       output logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_o,
+      output obi_pkg::obi_req_t  serial_link_direct_write_req_o,   
+      input  obi_pkg::obi_resp_t serial_link_direct_write_resp_i, 
     %endif
 
     // External SPC interface
@@ -167,6 +169,10 @@ module core_v_mini_mcu
   obi_resp_t [${dma_obi_msb}:0]dma_write_resp;
   obi_req_t [${dma_obi_msb}:0]dma_addr_req;
   obi_resp_t [${dma_obi_msb}:0]dma_addr_resp;
+
+  % if user_peripheral_domain.contains_peripheral('serial_link'):
+  obi_pkg::obi_resp_t serial_link_direct_write_resp;
+  % endif
 
   // ram signals
   obi_req_t [core_v_mini_mcu_pkg::NUM_BANKS-1:0] ram_slave_req;
@@ -374,6 +380,10 @@ module core_v_mini_mcu
       .dma_write_resp_o(dma_write_resp),
       .dma_addr_req_i(dma_addr_req),
       .dma_addr_resp_o(dma_addr_resp),
+      % if user_peripheral_domain.contains_peripheral('serial_link'):
+      .serial_link_direct_write_req_i(serial_link_direct_write_req_o),
+      .serial_link_direct_write_resp_o(serial_link_direct_write_resp),
+      % endif
       .ext_xbar_master_req_i(ext_xbar_master_req_i),
       .ext_xbar_master_resp_o(ext_xbar_master_resp_o),
       .ram_req_o(ram_slave_req),
@@ -537,6 +547,8 @@ module core_v_mini_mcu
         .ddr_rcv_clk_o,
         .ddr_i,
         .ddr_o,
+        .serial_link_direct_write_req_o,
+        .serial_link_direct_write_resp_i(serial_link_direct_write_resp),
       %endif
       .uart_rx_i,
       .uart_tx_o

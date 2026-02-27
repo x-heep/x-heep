@@ -371,7 +371,9 @@ module testharness #(
       .ddr_i(ddr_i_xheep),
       .ddr_o(ddr_o_xheep),
       .ddr_rcv_clk_i(clk_sl_ext2int),
-      .ddr_rcv_clk_o(clk_sl_int2ext)
+      .ddr_rcv_clk_o(clk_sl_int2ext),
+      .serial_link_direct_write_req_o(),
+      .serial_link_direct_write_resp_i('0)
       %endif
   );
 
@@ -782,7 +784,7 @@ module testharness #(
           .cfg_rsp_o    (ext_periph_slv_rsp[testharness_pkg::SL_REG_IDX]),
           .wrapper_cfg_req_i('0),
           .wrapper_cfg_rsp_o(),
-          .direct_write_req_o(),
+          .direct_write_req_o(/* unused */),
           .direct_write_resp_i('0),
           .ddr_i        (ddr_o_xheep),
           .ddr_rcv_clk_i(clk_sl_int2ext),

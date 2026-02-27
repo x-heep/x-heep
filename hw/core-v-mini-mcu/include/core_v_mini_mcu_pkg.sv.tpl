@@ -49,7 +49,12 @@ package core_v_mini_mcu_pkg;
   localparam logic [31:0] DMA_WRITE_P0_IDX = 4;
   localparam logic [31:0] DMA_ADDR_P0_IDX = 5;
  
+  % if user_peripheral_domain.contains_peripheral('serial_link'):
+  localparam SYSTEM_XBAR_NMASTER = ${3 + int(dma.get_num_master_ports())*3 + 1};
+  localparam SL_DIRECT_WRITE_MASTER_IDX = ${3 + int(dma.get_num_master_ports())*3};
+  % else:
   localparam SYSTEM_XBAR_NMASTER = ${3 + int(dma.get_num_master_ports())*3};
+  % endif
 
   // Internal slave memory map and index
   // -----------------------------------

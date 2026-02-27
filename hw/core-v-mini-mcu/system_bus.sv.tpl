@@ -18,6 +18,7 @@
 <%
   dma = xheep.get_base_peripheral_domain().get_dma()
   memory_ss = xheep.memory_ss()
+  user_peripheral_domain = xheep.get_user_peripheral_domain()
 %>
 
 module system_bus
@@ -50,6 +51,12 @@ module system_bus
 
     input  obi_req_t  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_addr_req_i,
     output obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_addr_resp_o,
+
+    % if user_peripheral_domain.contains_peripheral('serial_link'):
+    // Serial Link direct write master port
+    input  obi_req_t  serial_link_direct_write_req_i,
+    output obi_resp_t serial_link_direct_write_resp_o,
+    % endif
 
     // External master ports
     input  obi_req_t  [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_req_i,
@@ -132,6 +139,10 @@ module system_bus
   assign int_master_req[${5+i*3}]  = dma_addr_req_i[${i}];
   % endfor
 
+  % if user_peripheral_domain.contains_peripheral('serial_link'):
+  assign int_master_req[core_v_mini_mcu_pkg::SL_DIRECT_WRITE_MASTER_IDX] = serial_link_direct_write_req_i;
+  % endif
+
   // Internal + external master requests
   generate
     for (genvar i = 0; i < SYSTEM_XBAR_NMASTER; i++) begin: gen_sys_master_req_map
@@ -157,6 +168,10 @@ module system_bus
   assign dma_write_resp_o[${i}] = int_master_resp[${4+i*3}];
   assign dma_addr_resp_o[${i}] = int_master_resp[${5+i*3}];
   % endfor
+
+  % if user_peripheral_domain.contains_peripheral('serial_link'):
+  assign serial_link_direct_write_resp_o = int_master_resp[core_v_mini_mcu_pkg::SL_DIRECT_WRITE_MASTER_IDX];
+  % endif
   
   // External master responses
   if (EXT_XBAR_NMASTER == 0) begin : gen_no_ext_master_resp

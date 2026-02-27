@@ -119,42 +119,42 @@ module serial_link_xheep_wrapper
 
   // MUX - route fast_sl_req_O to either FIFO or direct write path
   always_comb begin
-    fifo_axi_req = '0;
-    direct_axi_req = '0; 
+    fifo_axi_req   = '0;
+    direct_axi_req = '0;
     if (rx_mode) begin
-        direct_axi_req = fast_sl_req_O; 
-        fast_sl_rsp_O  = direct_axi_rsp;
+      direct_axi_req = fast_sl_req_O;
+      fast_sl_rsp_O  = direct_axi_rsp;
     end else begin
-        fifo_axi_req  = fast_sl_req_O;
-        fast_sl_rsp_O = fifo_axi_rsp;
+      fifo_axi_req  = fast_sl_req_O;
+      fast_sl_rsp_O = fifo_axi_rsp;
     end
   end
-  
+
   axi_to_mem #(
-      .axi_req_t  (serial_link_minimum_axi_pkg::axi_req_t),
-      .axi_resp_t (serial_link_minimum_axi_pkg::axi_resp_t),
-      .AddrWidth  (AddrWidth),
-      .DataWidth  (DataWidth),
-      .IdWidth    (serial_link_minimum_axi_pkg::AXI_ID_WIDTH),
-      .NumBanks   (1),
-      .BufDepth   (1)
+      .axi_req_t (serial_link_minimum_axi_pkg::axi_req_t),
+      .axi_resp_t(serial_link_minimum_axi_pkg::axi_resp_t),
+      .AddrWidth (AddrWidth),
+      .DataWidth (DataWidth),
+      .IdWidth   (serial_link_minimum_axi_pkg::AXI_ID_WIDTH),
+      .NumBanks  (1),
+      .BufDepth  (1)
   ) i_axi_to_mem (
       .clk_i,
       .rst_ni,
-      .busy_o     (),
-      .axi_req_i  (direct_axi_req),
-      .axi_resp_o (direct_axi_rsp),
-      .mem_req_o  (direct_write_req_o.req),
-      .mem_gnt_i  (direct_write_resp_i.gnt),
-      .mem_addr_o (direct_write_req_o.addr),
-      .mem_wdata_o(direct_write_req_o.wdata),
-      .mem_strb_o (direct_write_req_o.be),
-      .mem_atop_o (),
-      .mem_we_o   (direct_write_req_o.we),
+      .busy_o      (),
+      .axi_req_i   (direct_axi_req),
+      .axi_resp_o  (direct_axi_rsp),
+      .mem_req_o   (direct_write_req_o.req),
+      .mem_gnt_i   (direct_write_resp_i.gnt),
+      .mem_addr_o  (direct_write_req_o.addr),
+      .mem_wdata_o (direct_write_req_o.wdata),
+      .mem_strb_o  (direct_write_req_o.be),
+      .mem_atop_o  (),
+      .mem_we_o    (direct_write_req_o.we),
       .mem_rvalid_i(direct_write_resp_i.rvalid),
       .mem_rdata_i (direct_write_resp_i.rdata)
-);
-  
+  );
+
   // Slave interface for the Serial Link
   // Data is saved in the fifo of parametrizable depth
   // The new transactions can be accepted only when fifo is empty

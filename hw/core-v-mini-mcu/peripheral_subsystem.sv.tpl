@@ -90,6 +90,8 @@ module peripheral_subsystem
       output logic [serial_link_single_channel_reg_pkg::NumChannels-1:0]    ddr_rcv_clk_o,
       input  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_i,
       output logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_o,
+      output obi_pkg::obi_req_t  serial_link_direct_write_req_o,
+      input  obi_pkg::obi_resp_t serial_link_direct_write_resp_i,
     %endif
     // PDM2PCM Interface
     output logic pdm2pcm_clk_o,
@@ -652,8 +654,8 @@ module peripheral_subsystem
     .cfg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SERIAL_LINK_REG_IDX]),
     .wrapper_cfg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SERIAL_LINK_WRAPPER_REG_IDX]),
     .wrapper_cfg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SERIAL_LINK_WRAPPER_REG_IDX]),
-    .direct_write_req_o(),
-    .direct_write_resp_i('0),
+    .direct_write_req_o (serial_link_direct_write_req_o),
+    .direct_write_resp_i(serial_link_direct_write_resp_i),
     .ddr_rcv_clk_i,         
     .ddr_i,                   
     .ddr_rcv_clk_o,          

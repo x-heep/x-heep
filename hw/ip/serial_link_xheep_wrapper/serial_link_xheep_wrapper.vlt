@@ -14,3 +14,4 @@ lint_off -rule UNUSEDSIGNAL -file "*/serial_link_xheep_wrapper.sv" -match "*rx_m
 lint_off -rule WIDTHEXPAND -file "*/axi_to_detailed_mem.sv"
 lint_off -rule UNOPTFLAT -file "*/axi_to_detailed_mem.sv"
 lint_off -rule UNOPTFLAT -file "*/stream_fifo.sv"
+lint_off -rule UNOPTFLAT -file "*/stream_fork_dynamic.sv"

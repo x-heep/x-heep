@@ -245,6 +245,13 @@ module xilinx_core_v_mini_mcu_wrapper
       .intr_ext_peripheral_i('0),
       .hw_fifo_done_i('0),
       .dma_done_o()
+      .dma_done_o(),
+      .ddr_rcv_clk_i('0),
+      .ddr_rcv_clk_o(),
+      .ddr_i('0),
+      .ddr_o(),
+      .serial_link_direct_write_req_o(),
+      .serial_link_direct_write_resp_i('0)
   );
 
   assign exit_value_o = exit_value[0];

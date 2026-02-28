@@ -769,7 +769,8 @@ module testharness #(
       serial_link_xheep_wrapper #(
           .MaxClkDiv(32),
           .AddrWidth(32),
-          .DataWidth(32)
+          .DataWidth(32),
+          .AxiAddrOffset(testharness_pkg::SL_EXT_START_ADDRESS)
       ) serial_link_xheep_wrapper_i (
           .clk_i        (clk_i),
           .rst_ni       (rst_ni),

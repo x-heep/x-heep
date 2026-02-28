@@ -639,7 +639,8 @@ module peripheral_subsystem
   serial_link_xheep_wrapper #(
     .MaxClkDiv(32),
     .AddrWidth(32),
-    .DataWidth(32)
+    .DataWidth(32),
+    .AxiAddrOffset(core_v_mini_mcu_pkg::SERIAL_LINK_START_ADDRESS)
   ) serial_link_xheep_wrapper_i (
     .clk_i(clk_i),
     .rst_ni(rst_ni),

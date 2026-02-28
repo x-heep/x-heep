@@ -37,7 +37,8 @@ package testharness_pkg;
   % if user_peripheral_domain.contains_peripheral('serial_link'):
     //slave sl
     localparam logic [31:0] SL_EXT_START_ADDRESS = SLOW_MEMORY_END_ADDRESS;
-    localparam logic [31:0] SL_EXT_SIZE = 32'h200;
+    //localparam logic [31:0] SL_EXT_SIZE = 32'h200;
+    localparam logic [31:0] SL_EXT_SIZE = 32'h10000;
     localparam logic [31:0] SL_EXT_END_ADDRESS = SL_EXT_START_ADDRESS + SL_EXT_SIZE;
     localparam logic [31:0] SL_EXT_IDX = 32'd2;
   %endif

@@ -19,7 +19,8 @@ module serial_link_xheep_wrapper
 #(
     parameter int MaxClkDiv = 32,
     parameter int AddrWidth = 32,
-    parameter int DataWidth = 32
+    parameter int DataWidth = 32,
+    parameter logic [31:0] AxiAddrOffset = 32'h0
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -87,7 +88,7 @@ module serial_link_xheep_wrapper
       .clk_i,
       .rst_ni,
       .mem_req_i      (writer_req_i.req),
-      .mem_addr_i     (writer_req_i.addr),
+      .mem_addr_i     (writer_req_i.addr - AxiAddrOffset),
       .mem_we_i       (writer_req_i.we),
       .mem_wdata_i    (writer_req_i.wdata),
       .mem_be_i       (writer_req_i.be),

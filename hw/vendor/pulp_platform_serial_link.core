@@ -30,7 +30,7 @@ filesets:
     - pulp_platform_serial_link/src/serial_link_network.sv
     - pulp_platform_serial_link/src/serial_link_physical.sv
     - pulp_platform_serial_link/src/serial_link_data_link.sv
-    - pulp_platform_serial_link/src/serial_link.sv
+    #- pulp_platform_serial_link/src/serial_link.sv
     file_type: systemVerilogSource
     include_dirs:
       - pulp_platform_serial_link/src/axis/include

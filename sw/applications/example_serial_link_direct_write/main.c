@@ -5,8 +5,6 @@
 //              Tests both FIFO mode and direct write mode, measuring cycle counts
 //              for each to enable performance comparison 
 
-//Note : need to reduce stack to from 0x800 to 0x7B0 in general.hjson otherwise ram1 overflows 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include "serial_link_single_channel_regs.h"

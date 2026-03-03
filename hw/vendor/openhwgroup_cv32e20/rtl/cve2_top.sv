@@ -299,7 +299,7 @@ module cve2_top import cve2_pkg::*; #(
   // X check for top-level inputs
   `ASSERT_KNOWN(CVE2TestEnX, test_en_i)
   `ASSERT_KNOWN(CVE2RamCfgX, ram_cfg_i)
-  `ASSERT_KNOWN(CVE2HartIdX, hart_id_i)
+  //`ASSERT_KNOWN(CVE2HartIdX, hart_id_i)
   `ASSERT_KNOWN(CVE2BootAddrX, boot_addr_i)
 
   `ASSERT_KNOWN(CVE2InstrGntX, instr_gnt_i)

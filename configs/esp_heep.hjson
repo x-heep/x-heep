@@ -1,4 +1,5 @@
 {
+    ram_address: 0
     bus_type: "onetoM"
     ram_banks: {
         code_and_data: {
@@ -40,8 +41,6 @@
         has_spi_slave: "no"
     }
 
-    //if is_include is missing, it means it is always instantiated (like is_included "yes")
-    // spi_memio is included is the same of the spi_flash (little hack, this peripheral is going to be removed)
     ao_peripherals: {
         address: 0x20000000
         length:  0x00100000
@@ -56,7 +55,7 @@
         spi_flash: {
             offset:  0x00020000
             length:  0x00008000
-            is_included: "yes"
+            is_included: "no"
         }
         spi_memio: {
             offset:  0x00028000
@@ -79,7 +78,7 @@
             subaddr_mode_en: "yes"
             hw_fifo_mode_en: "yes"
             zero_padding_en: "yes"
-            is_included: "yes"
+            is_included: "no"
         }
         power_manager: {
             offset:  0x00040000
@@ -100,12 +99,12 @@
         pad_control: {
             offset:  0x00080000
             length:  0x00010000
-            is_included: "yes"
+            is_included: "no"
         }
         gpio_ao: {
             offset:  0x00090000
             length:  0x00010000
-            is_included: "yes"
+            is_included: "no"
         }
     }
 
@@ -115,27 +114,27 @@
         rv_plic: {
             offset:  0x00000000
             length:  0x00010000
-            is_included: "yes"
+            is_included: "no"
         }
         spi_host: {
             offset:  0x00010000
             length:  0x00010000
-            is_included: "yes"
+            is_included: "no"
         }
         gpio: {
             offset:  0x00020000
             length:  0x00010000
-            is_included: "yes"
+            is_included: "no"
         }
         i2c: {
             offset:  0x00030000
             length:  0x00010000
-            is_included: "yes"
+            is_included: "no"
         }
         rv_timer: {
             offset:  0x00040000
             length:  0x00010000
-            is_included: "yes"
+            is_included: "no"
         }
         spi2: {
             offset:  0x00050000
@@ -151,25 +150,10 @@
         i2s: {
             offset:  0x00070000
             length:  0x00010000
-            is_included: "yes"
+            is_included: "no"
         }
         uart: {
             offset:  0x00080000
-            length:  0x00010000
-            is_included: "yes"
-        }
-        serial_link: {
-            offset:  0x00090000
-            length:  0x00010000
-            is_included: "no"
-        }
-        serial_link_reg: {
-            offset:  0x000A0000
-            length:  0x00010000
-            is_included: "no"
-        }
-        serial_link_receiver_fifo: {
-            offset:  0x000B0000
             length:  0x00010000
             is_included: "no"
         }

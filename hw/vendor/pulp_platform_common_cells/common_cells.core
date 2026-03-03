@@ -78,7 +78,7 @@ filesets:
       - src/cdc_reset_ctrlr.sv
       - src/cdc_fifo_gray.sv
       - src/fall_through_register.sv
-      - src/id_queue.sv
+      # - src/id_queue.sv
       - src/stream_to_mem.sv
       - src/stream_arbiter_flushable.sv
       - src/stream_fifo_optimal_wrap.sv
@@ -87,11 +87,11 @@ filesets:
       # Level 3
       - src/cdc_fifo_gray_clearable.sv
       - src/cdc_2phase_clearable.sv
-      - src/mem_to_banks_detailed.sv
+      # - src/mem_to_banks_detailed.sv
       - src/stream_arbiter.sv
       - src/stream_omega_net.sv
       # Level 4
-      - src/mem_to_banks.sv
+      # - src/mem_to_banks.sv
     file_type : systemVerilogSource
 
   deprecated:

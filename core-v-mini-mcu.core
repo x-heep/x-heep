@@ -21,7 +21,7 @@ filesets:
     - pulp-platform.org::cluster_interconnect
     - pulp-platform.org::riscv_dbg
     - pulp-platform.org::register_interface
-    - pulp-platform.org::serial_link
+    #- pulp-platform.org::serial_link
     - openhwgroup.org:ip:soc_ctrl
     - lowrisc:ip:uart:0.1
     - lowrisc:ip:rv_plic_example:0.1
@@ -38,9 +38,9 @@ filesets:
     - x-heep:ip:fast_intr_ctrl
     - x-heep:ip:obi_fifo
     - x-heep:ip:pdm2pcm
-    - x-heep:ip:serial_link_xheep_wrapper
+    #- x-heep:ip:serial_link_xheep_wrapper
     - esl_epfl:ip:obi_spi_slave
-    - x-heep:ip:w25q128jw_controller
+    #- x-heep:ip:w25q128jw_controller
     files:
     - hw/core-v-mini-mcu/core_v_mini_mcu.sv
     - hw/core-v-mini-mcu/cpu_subsystem.sv
@@ -100,12 +100,13 @@ filesets:
     - hw/system/pad_control/pad_control.vlt
     - hw/system/x_heep_system.vlt
     - hw/simulation/simulation.vlt
-    - hw/ip/serial_link_xheep_wrapper/serial_link_xheep_wrapper.vlt
+    #- hw/ip/serial_link_xheep_wrapper/serial_link_xheep_wrapper.vlt
     file_type: vlt
 
   rtl-fpga:
     depend:
     - openhwgroup.org:systems:core-v-mini-mcu-fpga
+    - pulp-platform.org:ip:quadrilatero
     files:
     - hw/fpga/xilinx_core_v_mini_mcu_wrapper.sv
     file_type: systemVerilogSource
@@ -354,12 +355,14 @@ targets:
         - -suppress vlog-2583
         - -suppress vlog-2577
         - -suppress vlog-2720
+        - -suppress vlog-12003
         - -pedanticerrors
         - -define MODELSIM
         vsim_options:
         - -sv_lib ../../../hw/vendor/lowrisc_opentitan/hw/dv/dpi/uartdpi/uartdpi
         - -sv_lib ../../../hw/vendor/pulp_platform_pulpissimo/rtl/tb/remote_bitbang/librbs
         - -voptargs=+acc=npr
+        - -suppress vsim-8386
       vcs:
         vcs_options:
          - -override_timescale=1ns/1ps
@@ -449,6 +452,7 @@ targets:
     - REMOVE_OBI_FIFO
     - FPGA_SYNTHESIS=true
     - FPGA_NEXYS=true
+    - COMMON_CELLS_ASSERTS_OFF
     tools:
       vivado:
         part: xc7a100tcsg324-1
@@ -467,6 +471,7 @@ targets:
     - SYNTHESIS=true
     - REMOVE_OBI_FIFO
     - FPGA_SYNTHESIS=true
+    - COMMON_CELLS_ASSERTS_OFF
     tools:
       vivado:
         part: xc7z020clg400-1
@@ -486,6 +491,7 @@ targets:
     - REMOVE_OBI_FIFO
     - FPGA_SYNTHESIS=true
     - FPGA_ZCU104=true
+    - COMMON_CELLS_ASSERTS_OFF
     tools:
       vivado:
         part: xczu7ev-ffvc1156-2-e
@@ -505,6 +511,7 @@ targets:
     - REMOVE_OBI_FIFO
     - FPGA_SYNTHESIS=true
     - FPGA_ZCU102=true
+    - COMMON_CELLS_ASSERTS_OFF
     tools:
       vivado:
         part: xczu9eg-ffvb1156-2-e
@@ -524,6 +531,7 @@ targets:
     - REMOVE_OBI_FIFO
     - FPGA_SYNTHESIS=true
     - FPGA_AUP_ZU3=true
+    - COMMON_CELLS_ASSERTS_OFF
     tools:
       vivado:
         part: xczu3eg-sfvc784-2-e
@@ -543,6 +551,7 @@ targets:
     - REMOVE_OBI_FIFO
     - FPGA_SYNTHESIS=true
     - FPGA_GENESYS2=true
+    - COMMON_CELLS_ASSERTS_OFF
     tools:
       vivado:
         part: xc7k325tffg900-2

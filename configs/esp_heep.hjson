@@ -47,7 +47,6 @@
         soc_ctrl: {
             offset:  0x00000000
             length:  0x00010000
-            path:    "./hw/ip/soc_ctrl/data/soc_ctrl.hjson"
         }
         bootrom: {
             offset:  0x00010000
@@ -56,10 +55,16 @@
         spi_flash: {
             offset:  0x00020000
             length:  0x00008000
+            is_included: "no"
         }
         spi_memio: {
             offset:  0x00028000
-            length:  0x00008000
+            length:  0x00000008
+        }
+        w25q128jw_controller: {
+            offset:  0x00029000
+            length:  0x00007000
+            is_included: "no"
         }
         dma: {
             offset:  0x00030000
@@ -73,12 +78,11 @@
             subaddr_mode_en: "yes"
             hw_fifo_mode_en: "yes"
             zero_padding_en: "yes"
-            path:    "./hw/ip/dma/data/dma.hjson"
+            is_included: "no"
         }
         power_manager: {
             offset:  0x00040000
             length:  0x00010000
-            path:    "./hw/ip/power_manager/data/power_manager.hjson"
         }
         rv_timer_ao: {
             offset:  0x00050000
@@ -87,7 +91,6 @@
         fast_intr_ctrl: {
             offset:  0x00060000
             length:  0x00010000
-            path:    "./hw/ip/fast_intr_ctrl/data/fast_intr_ctrl.hjson"
         }
         ext_peripheral: {
             offset:  0x00070000
@@ -96,15 +99,12 @@
         pad_control: {
             offset:  0x00080000
             length:  0x00010000
+            is_included: "no"
         }
         gpio_ao: {
             offset:  0x00090000
             length:  0x00010000
-        }
-        uart: {
-            offset:  0x000A0000
-            length:  0x00010000
-            path:    "./hw/vendor/lowrisc_opentitan/hw/ip/uart/data/uart.hjson"
+            is_included: "no"
         }
     }
 
@@ -115,31 +115,26 @@
             offset:  0x00000000
             length:  0x00010000
             is_included: "no"
-            path:    "./hw/vendor/lowrisc_opentitan/hw/ip/rv_plic/data/rv_plic.hjson"
         }
         spi_host: {
             offset:  0x00010000
             length:  0x00010000
-            is_included: "yes"
-            path:    "./hw/vendor/lowrisc_opentitan_spi_host/data/spi_host.hjson"
+            is_included: "no"
         }
         gpio: {
             offset:  0x00020000
             length:  0x00010000
             is_included: "no"
-            path:    "./hw/vendor/pulp_platform_gpio/gpio_regs.hjson"
         }
         i2c: {
             offset:  0x00030000
             length:  0x00010000
             is_included: "no"
-            path:    "./hw/vendor/lowrisc_opentitan/hw/ip/i2c/data/i2c.hjson"
         }
         rv_timer: {
             offset:  0x00040000
             length:  0x00010000
             is_included: "no"
-            path:    "./hw/vendor/lowrisc_opentitan/hw/ip/rv_timer/data/rv_timer.hjson"
         }
         spi2: {
             offset:  0x00050000
@@ -150,16 +145,18 @@
             offset:  0x00060000
             length:  0x00010000
             is_included: "no"
-            path:    "./hw/ip/pdm2pcm/data/pdm2pcm.hjson"
             cic_only: 0x1
         }
         i2s: {
             offset:  0x00070000
             length:  0x00010000
             is_included: "no"
-            path:    "./hw/ip/i2s/data/i2s.hjson"
         }
-
+        uart: {
+            offset:  0x00080000
+            length:  0x00010000
+            is_included: "no"
+        }
     }
 
     flash_mem: {
@@ -227,6 +224,7 @@
             intr_host_timeout:       48
             spi2_intr_event:         49
             i2s_intr_event:          50
+            w25q128jw_controller_intr_event:        51
         }
     }
 }

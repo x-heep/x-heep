@@ -72,7 +72,6 @@ int main(int argc, char *argv[]) {
     // =========================================================================
     // TEST 1: FIFO MODE (rx_mode = 0)
     // =========================================================================
-    PRINTF("\n--- FIFO Mode ---\n");
 
     // Set rx_mode = 0 (FIFO)
     *rx_mode_reg &= ~(1u << SERIAL_LINK_XHEEP_WRAPPER_RX_MODE_DIRECT_WRITE_EN_BIT);
@@ -91,12 +90,10 @@ int main(int argc, char *argv[]) {
 
     CSR_READ(CSR_REG_MCYCLE, &cycles_end);
     fifo_cycles = cycles_end - cycles_start;
-    PRINTF("FIFO mode: %u cycles for %d words\n", fifo_cycles, NUM_WORDS);
-
+   
     // =========================================================================
     // TEST 2: DIRECT WRITE MODE (rx_mode = 1)
     // =========================================================================
-    PRINTF("\n--- Direct Write Mode ---\n");
 
     // Set rx_mode = 1 (direct write)
     *rx_mode_reg |= (1u << SERIAL_LINK_XHEEP_WRAPPER_RX_MODE_DIRECT_WRITE_EN_BIT);
@@ -121,8 +118,7 @@ int main(int argc, char *argv[]) {
 
     CSR_READ(CSR_REG_MCYCLE, &cycles_end);
     direct_write_cycles = cycles_end - cycles_start;
-    PRINTF("Direct write mode: %u cycles for %d words\n", direct_write_cycles, NUM_WORDS);
-
+ 
     // =========================================================================
     // SUMMARY
     // =========================================================================

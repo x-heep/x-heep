@@ -59,6 +59,8 @@ module serial_link_xheep_wrapper
 
   serial_link_minimum_axi_pkg::axi_req_t fifo_axi_req, direct_axi_req;
   serial_link_minimum_axi_pkg::axi_resp_t fifo_axi_rsp, direct_axi_rsp;
+  serial_link_minimum_axi_pkg::axi_req_t direct_axi_req_cut;
+  serial_link_minimum_axi_pkg::axi_resp_t direct_axi_rsp_cut;
 
   logic rx_mode;
   serial_link_xheep_wrapper_reg_pkg::serial_link_xheep_wrapper_reg2hw_t reg2hw;
@@ -131,6 +133,23 @@ module serial_link_xheep_wrapper
     end
   end
 
+  axi_cut #(
+      .aw_chan_t (serial_link_minimum_axi_pkg::axi_aw_t),
+      .w_chan_t  (serial_link_minimum_axi_pkg::axi_w_t),
+      .b_chan_t  (serial_link_minimum_axi_pkg::axi_b_t),
+      .ar_chan_t (serial_link_minimum_axi_pkg::axi_ar_t),
+      .r_chan_t  (serial_link_minimum_axi_pkg::axi_r_t),
+      .axi_req_t (serial_link_minimum_axi_pkg::axi_req_t),
+      .axi_resp_t(serial_link_minimum_axi_pkg::axi_resp_t)
+  ) i_axi_cut (
+      .clk_i,
+      .rst_ni,
+      .slv_req_i (direct_axi_req),
+      .slv_resp_o(direct_axi_rsp),
+      .mst_req_o (direct_axi_req_cut),
+      .mst_resp_i(direct_axi_rsp_cut)
+  );
+
   axi_to_mem #(
       .axi_req_t (serial_link_minimum_axi_pkg::axi_req_t),
       .axi_resp_t(serial_link_minimum_axi_pkg::axi_resp_t),
@@ -143,8 +162,8 @@ module serial_link_xheep_wrapper
       .clk_i,
       .rst_ni,
       .busy_o      (),
-      .axi_req_i   (direct_axi_req),
-      .axi_resp_o  (direct_axi_rsp),
+      .axi_req_i   (direct_axi_req_cut),
+      .axi_resp_o  (direct_axi_rsp_cut),
       .mem_req_o   (direct_write_req_o.req),
       .mem_gnt_i   (direct_write_resp_i.gnt),
       .mem_addr_o  (direct_write_req_o.addr),

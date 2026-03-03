@@ -32,14 +32,14 @@ class BasePeripheralDomain(PeripheralDomain):
     _default_base_peripherals = [
         SOC_ctrl(),
         Bootrom(),
-        SPI_flash(),
-        SPI_memio(),
+        # SPI_flash(),
+        # SPI_memio(),
         DMA(),
         Power_manager(),
         RV_timer_ao(),
         Fast_intr_ctrl(),
         Ext_peripheral(),
-        Pad_control(),
+        # Pad_control(),
         GPIO_ao(),
     ]
 

@@ -6,16 +6,18 @@ Here you can find a list of `X-HEEP` based open-source examples. If you want to 
 * [F-HEEP](https://github.com/davidmallasen/F-HEEP): System integrating [fpu_ss](https://github.com/pulp-platform/fpu_ss) into X-HEEP via the eXtension interface and cv32e40px.
 * [KALIPSO](https://github.com/vlsi-lab/ntt_intt_kyber) and [KRONOS](https://github.com/vlsi-lab/keccak_integration/tree/keccak_xheep): Loosely-coupled, post-quantum cryptography accelerators for NTT/INTT and Keccak hash function integrated into X-HEEP.
 
-## Socsim-Generator: Automating Inter-Process Communication with X-HEEP
-X-HEEP simulations often require communication between the CPU and external accelerators or co-processors. Traditionally, this was done using Verilator’s [Direct Programming Interface (DPI)](https://verilator.org/guide/latest/connecting.html), which involves manually writing C code to send and receive data via Unix Domain Sockets, embedding this logic in a peripheral module, and customizing the accelerator’s interface. While functional, this approach is time-consuming and error-prone for each new accelerator. An example implementation of this approach can be seen [here](https://github.com/specs-feup/x-heep), where a CGRA peripheral is integrated into X-HEEP using DPI-based communication.
+## Socsim-Generator: External Co-Simulation Flow for X-HEEP
 
-[Socsim-Generator](https://github.com/specs-feup/socsim-generator) simplifies and generalizes this workflow. It is a co-simulation framework that automates the integration of high-level simulators with X-HEEP, letting users focus on the accelerator’s behavior rather than low-level communication details. Using a JSON configuration, Socsim-Generator can:
+X-HEEP natively supports Verilator-based simulation, where the SoC RTL is converted to C/C++ and executed as a single simulation process. In many development scenarios, however, peripherals or ISA extensions need to be validated before a full RTL implementation exists. Architectural models, algorithmic prototypes, or accelerator simulators may already exist in C++, Java, or Python and can be used to functionally validate the software stack, instruction encodings, and integration strategy. Integrating such models directly into RTL is often unnecessary at early stages and slows down iteration.
 
+The [Socsim-Generator](https://github.com/specs-feup/socsim-generator) framework enables structured co-simulation between X-HEEP and an external simulator process. Using a JSON configuration, Socsim-Generator can:
 - Generate the X-HEEP-side interface logic and communication code.
 - Generate skeleton code for the external high-level simulator (in C++, Java or Python).
-- Set up the underlying communication channel between X-HEEP and the simulator.
+- Set up the underlying communication channel between X-HEEP and the simulator. Communication is cycle-accurate and in lock step, through a state-machine model the simulated peripheral must be compliant with.
 
-This means that adding a new peripheral or co-processor no longer requires manually writing DPI code or socket-handling logic. Users only define the interface and memory-mapped registers in JSON, and Socsim-Generator handles the rest.
+The generated component is attached to X-HEEP either as a memory-mapped peripheral (OBI-based interface) or as a custom instruction extension. At runtime, accesses to the generated interface trigger DPI-C calls that forward transactions to an external process which models the peripheral, i.e., accelerator. The external simulator computes the response and returns data to the Verilated X-HEEP process, allowing the RISC-V software to interact with the model as if it were a hardware block. This makes it possible to validate register maps, protocols, instruction semantics, and software drivers without committing to RTL.
+
+The approach has been validated for both OBI-based peripherals and custom instruction-based extensions. In the latter case, the flow was used to replicate the existing [bit-reversal custom instruction example](https://github.com/esl-epfl/xif_copro) provided in X-HEEP, using a generated external co-simulation interface, confirming correct integration through the instruction path. The framework supports attaching multiple external processes, each through its own interface.
 
 Example JSON configuration:
 

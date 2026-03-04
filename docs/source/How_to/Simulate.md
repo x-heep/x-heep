@@ -92,7 +92,7 @@ cd ./build/openhwgroup.org_systems_core-v-mini-mcu_<version>/sim-vcs
 
 and running the same executable as for the digital simulation. Note that with Verdi you can view both the digital and the analog waveforms.
 
-Additional instructions on how to run an analog / mixed-signal simulation of X-HEEP can be found [here](./AnalogMixedSignal.md). To try out the simulation, we provide an example SPICE netlist of an simple 1-bit ADC created by us and exported from [xschem](https://xschem.sourceforge.io/stefan/index.html) and which uses the PTM 65nm bulk CMOS model from [https://ptm.asu.edu](https://ptm.asu.edu/).
+Additional instructions on how to run an analog / mixed-signal simulation of X-HEEP can be found [here](./AnalogMixedSignal.md). To try out the simulation, we provide an example SPICE netlist of a simple 1-bit ADC created by us and exported from [xschem](https://xschem.sourceforge.io/stefan/index.html) and which uses the PTM 65nm bulk CMOS model from [https://ptm.asu.edu](https://ptm.asu.edu/).
 
 ## Simulating with Questasim
 

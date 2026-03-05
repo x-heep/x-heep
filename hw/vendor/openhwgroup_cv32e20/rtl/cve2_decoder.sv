@@ -56,9 +56,11 @@ module cve2_decoder #(
   output logic                     rf_we_o,          // write enable for regfile
   output logic [4:0]               rf_raddr_a_o,
   output logic [4:0]               rf_raddr_b_o,
+  output logic [4:0]               rf_raddr_c_o,
   output logic [4:0]               rf_waddr_o,
   output logic                     rf_ren_a_o,          // Instruction reads from RF addr A
   output logic                     rf_ren_b_o,          // Instruction reads from RF addr B
+  output logic                     rf_ren_c_o,          // Instruction reads from RF addr C (if X-IF if used)
 
   // ALU
   output cve2_pkg::alu_op_e        alu_operator_o,        // ALU operation selection
@@ -169,6 +171,7 @@ module cve2_decoder #(
   assign instr_rs3 = instr[31:27];
   assign rf_raddr_a_o = (use_rs3_q & ~instr_first_cycle_i) ? instr_rs3 : instr_rs1; // rs3 / rs1
   assign rf_raddr_b_o = instr_rs2; // rs2
+  assign rf_raddr_c_o = XInterface ? instr_rs3 : '0;
 
   // destination register
   assign instr_rd = instr[11:7];
@@ -215,6 +218,7 @@ module cve2_decoder #(
     rf_we                 = 1'b0;
     rf_ren_a_o            = 1'b0;
     rf_ren_b_o            = 1'b0;
+    rf_ren_c_o            = 1'b0;
 
     csr_access_o          = 1'b0;
     csr_illegal           = 1'b0;
@@ -663,6 +667,7 @@ module cve2_decoder #(
       if(XInterface) begin
         rf_ren_a_o       = x_issue_resp_register_read_i[0];
         rf_ren_b_o       = x_issue_resp_register_read_i[1];
+        rf_ren_c_o       = x_issue_resp_register_read_i[2];
         rf_we            = x_issue_resp_writeback_i;
         rf_wdata_sel_o   = $bits(rf_wdata_sel_o)'({RF_WD_COPROC});
       end 

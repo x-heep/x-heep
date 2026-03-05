@@ -113,6 +113,18 @@ uint32_t check_results(int K, int N, int M);
 
 #define MACC(HEAD,__mat1__, __mat2__, __mat3__) HEAD "  m" #__mat1__", m"#__mat2__", m"#__mat3__
 // -------------------------------------------------------------------------------------------------------------------------------------
+void handler_instr_ill_fault(void) {
+    uintptr_t epc;
+    /* Read mepc (faulting PC) */
+    __asm__ volatile ("csrr %0, mepc" : "=r"(epc));
+
+    /* Skip the illegal instruction */
+    epc = epc + 4;
+
+    /* Write updated PC back */
+    __asm__ volatile ("csrw mepc, %0" :: "r"(epc));
+
+}
 
 
 int main()
@@ -253,10 +265,12 @@ void  __attribute__ ((noinline))  matrixMul_8x8(DATA_IN_t* addrA,DATA_IN_t* addr
     asm volatile("slli    t5,t1, 2              "                            );   // t5  = n0*4;
     asm volatile("mld.w   m0, (s1) , s3         "                            );   // m0  = A[s1] 
     asm volatile("mzero   m4                    "                            );   // m4  = 0;
+    asm volatile(".word 0x01588087");
     asm volatile("mul     s9,s3,t1              "                            );   // s9  = K*4*n0;
     asm volatile("add     s9 ,%0,s9             " :: "r" (addrB)             );   // s9  = startAddrB0 = addrB + K*4*n0 
     asm volatile("mld.w   m1, (s9) , a6         "                            );   // m1  = B[s9]
     asm volatile("mzero   m6                    "                            );   // m6  = 0
+    asm volatile(".word 0x01588087");
     asm volatile("mul     s11,s3,t4             "                            );   // s11 = K*4*(n0+WIDTH);
     asm volatile(MACC(HEAD_LINE,4,1,0)                                                 );   // m4 += m1 * m0
     asm volatile("mld.w   m2, (s2) , s3         "                            );   // m2  = A[s2]

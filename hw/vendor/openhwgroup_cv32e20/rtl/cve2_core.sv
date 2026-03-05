@@ -177,8 +177,13 @@ module cve2_core import cve2_pkg::*; #(
   logic [31:0] rf_rdata_a;
   logic [4:0]  rf_raddr_b;
   logic [31:0] rf_rdata_b;
+  logic [4:0]  rf_raddr_c;
+  logic [31:0] rf_rdata_c;
   logic        rf_ren_a;
   logic        rf_ren_b;
+  // verilator lint_off UNUSED
+  logic        rf_ren_c;
+  // verilator lint_on UNUSED
   logic [4:0]  rf_waddr_wb;
   logic [31:0] rf_wdata_wb;
   // Writeback register write data that can be used on the forwarding path (doesn't factor in memory
@@ -506,8 +511,11 @@ module cve2_core import cve2_pkg::*; #(
     .rf_rdata_a_i      (rf_rdata_a),
     .rf_raddr_b_o      (rf_raddr_b),
     .rf_rdata_b_i      (rf_rdata_b),
+    .rf_raddr_c_o      (rf_raddr_c),
+    .rf_rdata_c_i      (rf_rdata_c),
     .rf_ren_a_o        (rf_ren_a),
     .rf_ren_b_o        (rf_ren_b),
+    .rf_ren_c_o        (rf_ren_c),
     .rf_waddr_id_o     (rf_waddr_id),
     .rf_wdata_id_o     (rf_wdata_id),
     .rf_we_id_o        (rf_we_id),
@@ -691,7 +699,8 @@ module cve2_core import cve2_pkg::*; #(
   cve2_register_file_ff #(
     .RV32E            (RV32E),
     .DataWidth        (32),
-    .WordZeroVal      (32'h0)
+    .WordZeroVal      (32'h0),
+    .XInterface
   ) register_file_i (
     .clk_i (clk_i),
     .rst_ni(rst_ni),
@@ -702,6 +711,8 @@ module cve2_core import cve2_pkg::*; #(
     .rdata_a_o(rf_rdata_a),
     .raddr_b_i(rf_raddr_b),
     .rdata_b_o(rf_rdata_b),
+    .raddr_c_i(rf_raddr_c),
+    .rdata_c_o(rf_rdata_c),
     .waddr_a_i(rf_waddr_wb),
     .wdata_a_i(rf_wdata_wb),
     .we_a_i   (rf_we_wb)

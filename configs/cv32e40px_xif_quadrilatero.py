@@ -1,5 +1,5 @@
 from x_heep_gen.xheep import XHeep
-from x_heep_gen.cpu.cv32e40px import cv32e40px
+from x_heep_gen.cpu.cv32e20 import cv32e20
 from x_heep_gen.cv_x_if import CvXIf
 from x_heep_gen.bus_type import BusType
 from x_heep_gen.memory_ss.memory_ss import MemorySS
@@ -36,7 +36,7 @@ from x_heep_gen.peripherals.user_peripherals import (
 
 def config():
     system = XHeep(BusType.NtoM)
-    system.set_cpu(cv32e40px())
+    system.set_cpu(cv32e20(rv32e=False, rv32m="RV32MFast"))
 
     system.set_xif(
         CvXIf(

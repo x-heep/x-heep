@@ -2,7 +2,9 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
-
+<%
+  user_peripheral_domain = xheep.get_user_peripheral_domain()
+%>
 
 module xilinx_core_v_mini_mcu_wrapper
   import obi_pkg::*;
@@ -147,13 +149,15 @@ module xilinx_core_v_mini_mcu_wrapper
 
 
   x_heep_system x_heep_system_i (
+    % if user_peripheral_domain.contains_peripheral('serial_link'):
       //Serial Link
-      //.ddr_rcv_clk_i,
+      //.ddr_rcv_clk_i,  
       //.ddr_rcv_clk_o,
       //.ddr_i,
       //.ddr_o,
       .serial_link_direct_write_req_o(),
       .serial_link_direct_write_resp_i('0),
+    %endif  
       .hart_id_i('0),
       .xheep_instance_id_i('0),
       .intr_vector_ext_i('0),
@@ -249,7 +253,7 @@ module xilinx_core_v_mini_mcu_wrapper
       .intr_ext_peripheral_i('0),
       .hw_fifo_done_i('0),
       .dma_done_o()
-
+      
   );
 
   assign exit_value_o = exit_value[0];

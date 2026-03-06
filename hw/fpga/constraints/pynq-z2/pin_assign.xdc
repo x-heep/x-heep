@@ -62,21 +62,14 @@ set_property -dict {PACKAGE_PIN N17 IOSTANDARD LVCMOS33} [get_ports {spi_sd_io[3
 
 # GPIOs
 set_property -dict {PACKAGE_PIN T14 IOSTANDARD LVCMOS33} [get_ports {gpio_io[0]}] ; # arduino_gpio_tri_io[0]
-set_property -dict {PACKAGE_PIN Y8 IOSTANDARD LVCMOS33} [get_ports {gpio_io[1]}] ; # rpi_gpio_tri_io[11]
-set_property -dict {PACKAGE_PIN W8 IOSTANDARD LVCMOS33} [get_ports {gpio_io[2]}] ; # rpi_gpio_tri_io[5]
-set_property -dict {PACKAGE_PIN Y7 IOSTANDARD LVCMOS33} [get_ports {gpio_io[3]}] ; # rpi_gpio_tri_io[16]
-set_property -dict {PACKAGE_PIN Y6 IOSTANDARD LVCMOS33} [get_ports {gpio_io[4]}] ; # rpi_gpio_tri_io[7]
-set_property -dict {PACKAGE_PIN U12 IOSTANDARD LVCMOS33} [get_ports {gpio_io[5]}] ; # arduino_gpio_tri_io[1]
-set_property -dict {PACKAGE_PIN W10 IOSTANDARD LVCMOS33} [get_ports {gpio_io[6]}] ; # rpi_gpio_tri_io[3]
-set_property -dict {PACKAGE_PIN V10 IOSTANDARD LVCMOS33} [get_ports {gpio_io[7]}] ; # rpi_gpio_tri_io[1]
-set_property -dict {PACKAGE_PIN V8 IOSTANDARD LVCMOS33} [get_ports {gpio_io[8]}] ; # rpi_gpio_tri_io[2]
-set_property -dict {PACKAGE_PIN U8 IOSTANDARD LVCMOS33} [get_ports {gpio_io[9]}] ; # rpi_gpio_tri_io[14]
-set_property -dict {PACKAGE_PIN V7 IOSTANDARD LVCMOS33} [get_ports {gpio_io[10]}] ; # rpi_gpio_tri_io[19]
+set_property -dict {PACKAGE_PIN Y7 IOSTANDARD LVCMOS33} [get_ports {gpio_io[1]}] ; # rpi_gpio_tri_io[16]
+set_property -dict {PACKAGE_PIN Y6 IOSTANDARD LVCMOS33} [get_ports {gpio_io[2]}] ; # rpi_gpio_tri_io[7]
+set_property -dict {PACKAGE_PIN U12 IOSTANDARD LVCMOS33} [get_ports {gpio_io[3]}] ; # arduino_gpio_tri_io[1]
 
 # Tri-color LEDs for TARGET_PYNQ_Z2
-set_property -dict {PACKAGE_PIN M15 IOSTANDARD LVCMOS33} [get_ports {gpio_io[11]}] ; # rgbleds_6bits_tri_o[5]
-set_property -dict {PACKAGE_PIN G14 IOSTANDARD LVCMOS33} [get_ports {gpio_io[12]}] ; # rgbled_6bits_tri_o[3]
-set_property -dict {PACKAGE_PIN L14 IOSTANDARD LVCMOS33} [get_ports {gpio_io[13]}] ; # rgbleds_6bits_tri_o[4]
+set_property -dict {PACKAGE_PIN M15 IOSTANDARD LVCMOS33} [get_ports {gpio_io[4]}] ; # rgbleds_6bits_tri_o[5]
+set_property -dict {PACKAGE_PIN G14 IOSTANDARD LVCMOS33} [get_ports {gpio_io[5]}] ; # rgbled_6bits_tri_o[3]
+set_property -dict {PACKAGE_PIN L14 IOSTANDARD LVCMOS33} [get_ports {gpio_io[6]}] ; # rgbleds_6bits_tri_o[4]
 
 # SPI SLAVE
 set_property -dict {PACKAGE_PIN U7 IOSTANDARD LVCMOS33} [get_ports {spi_slave_sck_io}] ; # rpi_gpio_tri_io[9]
@@ -101,3 +94,19 @@ set_property -dict {PACKAGE_PIN V17 IOSTANDARD LVCMOS33} [get_ports {spi2_sd_io[
 set_property -dict {PACKAGE_PIN V18 IOSTANDARD LVCMOS33} [get_ports {spi2_sd_io[1]}] ; # arduino_gpio_tri_io[9]
 set_property -dict {PACKAGE_PIN T16 IOSTANDARD LVCMOS33} [get_ports {spi2_sd_io[2]}] ; # arduino_gpio_tri_io[10]
 set_property -dict {PACKAGE_PIN R17 IOSTANDARD LVCMOS33} [get_ports {spi2_sd_io[3]}] ; # arduino_gpio_tri_io[11]
+
+# Serial Link
+set_property -dict {PACKAGE_PIN W9 IOSTANDARD LVCMOS33}  [get_ports {ddr_i[0]}] ;
+set_property -dict {PACKAGE_PIN Y8 IOSTANDARD LVCMOS33}  [get_ports {ddr_i[1]}] ; # [get_ports {gpio_io[1]}] ; # rpi_gpio_tri_io[11]
+set_property -dict {PACKAGE_PIN W8 IOSTANDARD LVCMOS33}  [get_ports {ddr_i[2]}] ; # [get_ports {gpio_io[2]}] ; # rpi_gpio_tri_io[5]
+set_property -dict {PACKAGE_PIN W10 IOSTANDARD LVCMOS33} [get_ports {ddr_i[3]}] ; # [get_ports {gpio_io[6]}] ; # rpi_gpio_tri_io[3]
+set_property -dict {PACKAGE_PIN V10 IOSTANDARD LVCMOS33} [get_ports {ddr_o[0]}] ; # [get_ports {gpio_io[7]}] ; # rpi_gpio_tri_io[1]
+set_property -dict {PACKAGE_PIN V8 IOSTANDARD LVCMOS33}  [get_ports {ddr_o[1]}] ; # [get_ports {gpio_io[8]}] ; # rpi_gpio_tri_io[2]
+set_property -dict {PACKAGE_PIN U8 IOSTANDARD LVCMOS33}  [get_ports {ddr_o[2]}] ; # [get_ports {gpio_io[9]}] ; # rpi_gpio_tri_io[14]
+set_property -dict {PACKAGE_PIN V7 IOSTANDARD LVCMOS33}  [get_ports {ddr_o[3]}] ; # [get_ports {gpio_io[10]}] ; # rpi_gpio_tri_io[19]
+
+set_property -dict {PACKAGE_PIN U17 IOSTANDARD LVCMOS33} [get_ports {ddr_rcv_clk_i}] ; # rpi_gpio_tri_io[17]
+set_property -dict {PACKAGE_PIN F20 IOSTANDARD LVCMOS33} [get_ports {ddr_rcv_clk_o}] ; # rpi_gpio_tri_io[11]
+
+set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets ddr_rcv_clk_i_IBUF]
+set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets ddr_rcv_clk_o_OBUF]

@@ -96,17 +96,32 @@ set_property -dict {PACKAGE_PIN T16 IOSTANDARD LVCMOS33} [get_ports {spi2_sd_io[
 set_property -dict {PACKAGE_PIN R17 IOSTANDARD LVCMOS33} [get_ports {spi2_sd_io[3]}] ; # arduino_gpio_tri_io[11]
 
 # Serial Link
-set_property -dict {PACKAGE_PIN W9 IOSTANDARD LVCMOS33}  [get_ports {ddr_i[0]}] ;
-set_property -dict {PACKAGE_PIN Y8 IOSTANDARD LVCMOS33}  [get_ports {ddr_i[1]}] ; # [get_ports {gpio_io[1]}] ; # rpi_gpio_tri_io[11]
-set_property -dict {PACKAGE_PIN W8 IOSTANDARD LVCMOS33}  [get_ports {ddr_i[2]}] ; # [get_ports {gpio_io[2]}] ; # rpi_gpio_tri_io[5]
-set_property -dict {PACKAGE_PIN W10 IOSTANDARD LVCMOS33} [get_ports {ddr_i[3]}] ; # [get_ports {gpio_io[6]}] ; # rpi_gpio_tri_io[3]
-set_property -dict {PACKAGE_PIN V10 IOSTANDARD LVCMOS33} [get_ports {ddr_o[0]}] ; # [get_ports {gpio_io[7]}] ; # rpi_gpio_tri_io[1]
-set_property -dict {PACKAGE_PIN V8 IOSTANDARD LVCMOS33}  [get_ports {ddr_o[1]}] ; # [get_ports {gpio_io[8]}] ; # rpi_gpio_tri_io[2]
-set_property -dict {PACKAGE_PIN U8 IOSTANDARD LVCMOS33}  [get_ports {ddr_o[2]}] ; # [get_ports {gpio_io[9]}] ; # rpi_gpio_tri_io[14]
-set_property -dict {PACKAGE_PIN V7 IOSTANDARD LVCMOS33}  [get_ports {ddr_o[3]}] ; # [get_ports {gpio_io[10]}] ; # rpi_gpio_tri_io[19]
+# set_property -dict {PACKAGE_PIN W9 IOSTANDARD LVCMOS33}  [get_ports {ddr_i[0]}] ;
+# set_property -dict {PACKAGE_PIN Y8 IOSTANDARD LVCMOS33}  [get_ports {ddr_i[1]}] ; # [get_ports {gpio_io[1]}] ; # rpi_gpio_tri_io[11]
+# set_property -dict {PACKAGE_PIN W8 IOSTANDARD LVCMOS33}  [get_ports {ddr_i[2]}] ; # [get_ports {gpio_io[2]}] ; # rpi_gpio_tri_io[5]
+# set_property -dict {PACKAGE_PIN W10 IOSTANDARD LVCMOS33} [get_ports {ddr_i[3]}] ; # [get_ports {gpio_io[6]}] ; # rpi_gpio_tri_io[3]
+# set_property -dict {PACKAGE_PIN V10 IOSTANDARD LVCMOS33} [get_ports {ddr_o[0]}] ; # [get_ports {gpio_io[7]}] ; # rpi_gpio_tri_io[1]
+# set_property -dict {PACKAGE_PIN V8 IOSTANDARD LVCMOS33}  [get_ports {ddr_o[1]}] ; # [get_ports {gpio_io[8]}] ; # rpi_gpio_tri_io[2]
+# set_property -dict {PACKAGE_PIN U8 IOSTANDARD LVCMOS33}  [get_ports {ddr_o[2]}] ; # [get_ports {gpio_io[9]}] ; # rpi_gpio_tri_io[14]
+# set_property -dict {PACKAGE_PIN V7 IOSTANDARD LVCMOS33}  [get_ports {ddr_o[3]}] ; # [get_ports {gpio_io[10]}] ; # rpi_gpio_tri_io[19]
 
-set_property -dict {PACKAGE_PIN U17 IOSTANDARD LVCMOS33} [get_ports {ddr_rcv_clk_i}] ; # rpi_gpio_tri_io[17]
-set_property -dict {PACKAGE_PIN F20 IOSTANDARD LVCMOS33} [get_ports {ddr_rcv_clk_o}] ; # rpi_gpio_tri_io[11]
+# set_property -dict {PACKAGE_PIN U17 IOSTANDARD LVCMOS33} [get_ports {ddr_rcv_clk_i}] ; # rpi_gpio_tri_io[17]
+# set_property -dict {PACKAGE_PIN F20 IOSTANDARD LVCMOS33} [get_ports {ddr_rcv_clk_o}] ; # rpi_gpio_tri_io[11]
 
-set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets ddr_rcv_clk_i_IBUF]
-set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets ddr_rcv_clk_o_OBUF]
+# set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets ddr_rcv_clk_i_IBUF]
+# set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets ddr_rcv_clk_o_OBUF]
+
+set_property -dict {PACKAGE_PIN W9  IOSTANDARD LVCMOS33} [get_ports {ddr_i_0_i}]
+set_property -dict {PACKAGE_PIN Y8  IOSTANDARD LVCMOS33} [get_ports {ddr_i_1_io}]
+set_property -dict {PACKAGE_PIN W8  IOSTANDARD LVCMOS33} [get_ports {ddr_i_2_io}]
+set_property -dict {PACKAGE_PIN W10 IOSTANDARD LVCMOS33} [get_ports {ddr_i_3_io}]
+set_property -dict {PACKAGE_PIN V10 IOSTANDARD LVCMOS33} [get_ports {ddr_o_0_io}]
+set_property -dict {PACKAGE_PIN V8  IOSTANDARD LVCMOS33} [get_ports {ddr_o_1_io}]
+set_property -dict {PACKAGE_PIN U8  IOSTANDARD LVCMOS33} [get_ports {ddr_o_2_io}]
+set_property -dict {PACKAGE_PIN V7  IOSTANDARD LVCMOS33} [get_ports {ddr_o_3_io}]
+
+set_property -dict {PACKAGE_PIN U17 IOSTANDARD LVCMOS33} [get_ports {ddr_rcv_clk_i_i}]
+set_property -dict {PACKAGE_PIN F20 IOSTANDARD LVCMOS33} [get_ports {ddr_rcv_clk_o_o}]
+
+set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets ddr_rcv_clk_i_i_IBUF]
+set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets ddr_rcv_clk_o_o_OBUF]

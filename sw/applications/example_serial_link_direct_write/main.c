@@ -38,7 +38,12 @@
     (volatile uint32_t *)(SERIAL_LINK_WRAPPER_REG_START_ADDRESS + SERIAL_LINK_XHEEP_WRAPPER_RX_MODE_REG_OFFSET)
 // Use upper area of RAM0 as direct write target (safe, away from code/data)
 #define DIRECT_WRITE_TARGET_ADDR    (int32_t *)(0x00007F00)
-#define SL_EXTERNAL_DIRECT_WRITE    (int32_t *)(EXT_SLAVE_START_ADDRESS + EXT_SLAVE_LENGTH + 0x7F00)
+
+#if TARGET_SIM
+    #define SL_EXTERNAL_DIRECT_WRITE    (int32_t *)(EXT_SLAVE_START_ADDRESS + EXT_SLAVE_LENGTH + 0x7F00)
+#else
+    #define SL_EXTERNAL_DIRECT_WRITE    (int32_t *)(SERIAL_LINK_START_ADDRESS + 0x7F00)
+#endif
 
 // Test data
 #define NUM_WORDS   4

@@ -167,7 +167,7 @@ module testharness #(
   fifo_req_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_req;
   fifo_resp_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_resp;
 
-  % if user_peripheral_domain.contains_peripheral('serial_link'):
+  % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
   logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_i_xheep; 
   logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_o_xheep;
   logic [serial_link_single_channel_reg_pkg::NumChannels-1:0] clk_sl_int2ext;
@@ -366,7 +366,7 @@ module testharness #(
       .intr_ext_peripheral_i(gpio[31]),
       .hw_fifo_done_i({{(core_v_mini_mcu_pkg::DMA_CH_NUM - 1) {1'b0}}, dlc_done}),
       .dma_done_o(dma_busy)
-       % if user_peripheral_domain.contains_peripheral('serial_link'):
+       % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
       ,
       .ddr_i(ddr_i_xheep),
       .ddr_o(ddr_o_xheep),
@@ -765,7 +765,7 @@ module testharness #(
 
       end
 
-      % if user_peripheral_domain.contains_peripheral('serial_link'):
+      % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
       serial_link_xheep_wrapper #(
           .MaxClkDiv(32),
           .AddrWidth(32),

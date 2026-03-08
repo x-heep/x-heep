@@ -77,7 +77,7 @@ module xilinx_core_v_mini_mcu_wrapper
     inout logic i2s_ws_io,
     inout logic i2s_sd_io
 
-    % if user_peripheral_domain.contains_peripheral('serial_link'):
+    % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
     ,
     inout logic ddr_rcv_clk_i_i,
     inout logic ddr_rcv_clk_o_o,
@@ -163,7 +163,7 @@ module xilinx_core_v_mini_mcu_wrapper
 
 
   x_heep_system x_heep_system_i (
-    % if user_peripheral_domain.contains_peripheral('serial_link'):
+    % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
       .serial_link_direct_write_req_o(),
       .serial_link_direct_write_resp_i('0),
       .ddr_rcv_clk_i_i,

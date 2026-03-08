@@ -170,6 +170,10 @@ module core_v_mini_mcu
   obi_pkg::obi_resp_t serial_link_direct_write_resp;
   obi_req_t serial_link_slave_req;
   obi_resp_t serial_link_slave_resp;
+  logic [serial_link_minimum_axi_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_i;
+  logic [serial_link_minimum_axi_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_o;
+  logic [serial_link_minimum_axi_pkg::NumChannels-1:0] ddr_rcv_clk_i;
+  logic [serial_link_minimum_axi_pkg::NumChannels-1:0] ddr_rcv_clk_o;
   % endif
 
   // ram signals
@@ -600,11 +604,7 @@ module core_v_mini_mcu
     % endif
   % endfor
 
-  % if user_peripheral_domain.contains_peripheral('serial_link'):
-  logic [serial_link_minimum_axi_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_i;
-  logic [serial_link_minimum_axi_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_o;
-  logic [serial_link_minimum_axi_pkg::NumChannels-1:0] ddr_rcv_clk_i;
-  logic [serial_link_minimum_axi_pkg::NumChannels-1:0] ddr_rcv_clk_o;
+  % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
   // Serial Link pin assignments
   // For now supports only single channel 4 lanes 
   assign ddr_rcv_clk_o_o = ddr_rcv_clk_o ;

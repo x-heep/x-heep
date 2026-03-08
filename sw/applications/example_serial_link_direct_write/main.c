@@ -26,21 +26,15 @@
     #define PRINTF(...)
 #endif
 
+// Use upper area of RAM0 as direct write target (safe, away from code/data)
+#define DIRECT_WRITE_TARGET_ADDR    0x00007F00
+
 // simulation only -> Testharness last slave address on the external bus
 #if TARGET_SIM
     #define EXT_SLAVE_LENGTH            0x400
     #define SL_EXTERNAL_WRITE           (volatile int32_t *)(EXT_SLAVE_START_ADDRESS + EXT_SLAVE_LENGTH)
     #define SL_EXTERNAL_CTRL_REG_ADDR   (int32_t *)(EXT_PERIPHERAL_START_ADDRESS + 0x06000 + SERIAL_LINK_SINGLE_CHANNEL_CTRL_REG_OFFSET)
-    #define SL_EXTERNAL_DIRECT_WRITE    (volatile int32_t *)(EXT_SLAVE_START_ADDRESS + EXT_SLAVE_LENGTH + DIRECT_WRITE_TARGET_ADDR)
-#endif
-
-// Use upper area of RAM0 as direct write target (safe, away from code/data)
-#define DIRECT_WRITE_TARGET_ADDR    (int32_t *)(0x00007F00)
-
-#if TARGET_SIM
-    #define SL_EXTERNAL_DIRECT_WRITE    (int32_t *)(EXT_SLAVE_START_ADDRESS + EXT_SLAVE_LENGTH + 0x7F00)
-#else
-    #define SL_EXTERNAL_DIRECT_WRITE    (int32_t *)(SERIAL_LINK_START_ADDRESS + 0x7F00)
+    #define SL_EXTERNAL_DIRECT_WRITE    (int32_t *)(EXT_SLAVE_START_ADDRESS + EXT_SLAVE_LENGTH + DIRECT_WRITE_TARGET_ADDR)
 #endif
 
 // Test data

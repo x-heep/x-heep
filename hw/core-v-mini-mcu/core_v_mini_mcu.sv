@@ -343,6 +343,10 @@ module core_v_mini_mcu
   obi_pkg::obi_resp_t serial_link_direct_write_resp;
   obi_req_t serial_link_slave_req;
   obi_resp_t serial_link_slave_resp;
+  logic [serial_link_minimum_axi_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_i;
+  logic [serial_link_minimum_axi_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_o;
+  logic [serial_link_minimum_axi_pkg::NumChannels-1:0] ddr_rcv_clk_i;
+  logic [serial_link_minimum_axi_pkg::NumChannels-1:0] ddr_rcv_clk_o;
 
   // ram signals
   obi_req_t [core_v_mini_mcu_pkg::NUM_BANKS-1:0] ram_slave_req;
@@ -886,21 +890,17 @@ module core_v_mini_mcu
   assign gpio_30_o                = gpio_out[30];
   assign gpio_30_oe_o             = gpio_oe[30];
 
-  logic [serial_link_minimum_axi_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_i;
-  logic [serial_link_minimum_axi_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_o;
-  logic [serial_link_minimum_axi_pkg::NumChannels-1:0] ddr_rcv_clk_i;
-  logic [serial_link_minimum_axi_pkg::NumChannels-1:0] ddr_rcv_clk_o;
   // Serial Link pin assignments
   // For now supports only single channel 4 lanes
-  assign ddr_rcv_clk_o_o = ddr_rcv_clk_o;
-  assign ddr_rcv_clk_i = ddr_rcv_clk_i_i;
-  assign ddr_o_0_o = ddr_o[0][0];
-  assign ddr_o_1_o = ddr_o[0][1];
-  assign ddr_o_2_o = ddr_o[0][2];
-  assign ddr_o_3_o = ddr_o[0][3];
-  assign ddr_i[0][0] = ddr_i_0_i;
-  assign ddr_i[0][1] = ddr_i_1_i;
-  assign ddr_i[0][2] = ddr_i_2_i;
-  assign ddr_i[0][3] = ddr_i_3_i;
+  assign ddr_rcv_clk_o_o          = ddr_rcv_clk_o;
+  assign ddr_rcv_clk_i            = ddr_rcv_clk_i_i;
+  assign ddr_o_0_o                = ddr_o[0][0];
+  assign ddr_o_1_o                = ddr_o[0][1];
+  assign ddr_o_2_o                = ddr_o[0][2];
+  assign ddr_o_3_o                = ddr_o[0][3];
+  assign ddr_i[0][0]              = ddr_i_0_i;
+  assign ddr_i[0][1]              = ddr_i_1_i;
+  assign ddr_i[0][2]              = ddr_i_2_i;
+  assign ddr_i[0][3]              = ddr_i_3_i;
 
 endmodule  // core_v_mini_mcu

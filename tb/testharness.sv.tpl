@@ -172,6 +172,7 @@ module testharness #(
   logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_o_xheep;
   logic [serial_link_single_channel_reg_pkg::NumChannels-1:0] ddr_clk_o_xheep;
   logic [serial_link_single_channel_reg_pkg::NumChannels-1:0] ddr_clk_i_xheep;
+  %endif
   % if not (user_peripheral_domain.contains_peripheral('serial_link_reg')):
   assign ddr_clk_o_xheep = '0;  
   assign ddr_o_xheep[0] = '0;

@@ -127,6 +127,9 @@ def generate_xheep(args):
     flash_mem_start_address = string2int(config["flash_mem"]["address"])
     flash_mem_size_address = string2int(config["flash_mem"]["length"])
 
+    serial_link_start_address = string2int(config["serial_link"]["address"]) if "serial_link" in config else "50000000"
+    serial_link_size_address = string2int(config["serial_link"]["length"]) if "serial_link" in config else "01000000"
+
     stack_size = string2int(config["linker_script"]["stack_size"])
     heap_size = string2int(config["linker_script"]["heap_size"])
 
@@ -167,6 +170,8 @@ def generate_xheep(args):
         "ext_slave_size_address": ext_slave_size_address,
         "flash_mem_start_address": flash_mem_start_address,
         "flash_mem_size_address": flash_mem_size_address,
+        "serial_link_start_address": serial_link_start_address,
+        "serial_link_size_address": serial_link_size_address,
         "stack_size": stack_size,
         "heap_size": heap_size,
         "plic_used_n_interrupts": plic_used_n_interrupts,

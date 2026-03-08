@@ -122,7 +122,7 @@ module core_v_mini_mcu
     output logic [EXT_DOMAINS_RND-1:0] external_subsystem_clkgate_en_no,
 
     output logic [31:0] exit_value_o,
-    % if user_peripheral_domain.contains_peripheral('serial_link'):
+    % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
       //Serial Link
       output obi_pkg::obi_req_t  serial_link_direct_write_req_o,   
       input  obi_pkg::obi_resp_t serial_link_direct_write_resp_i, 
@@ -166,8 +166,10 @@ module core_v_mini_mcu
   obi_req_t [${dma_obi_msb}:0]dma_addr_req;
   obi_resp_t [${dma_obi_msb}:0]dma_addr_resp;
 
-  % if user_peripheral_domain.contains_peripheral('serial_link'):
+  % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
   obi_pkg::obi_resp_t serial_link_direct_write_resp;
+  obi_req_t serial_link_slave_req;
+  obi_resp_t serial_link_slave_resp;
   % endif
 
   // ram signals
@@ -376,9 +378,11 @@ module core_v_mini_mcu
       .dma_write_resp_o(dma_write_resp),
       .dma_addr_req_i(dma_addr_req),
       .dma_addr_resp_o(dma_addr_resp),
-      % if user_peripheral_domain.contains_peripheral('serial_link'):
+      % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
       .serial_link_direct_write_req_i(serial_link_direct_write_req_o),
       .serial_link_direct_write_resp_o(serial_link_direct_write_resp),
+      .serial_link_slave_req_o(serial_link_slave_req),
+      .serial_link_slave_resp_i(serial_link_slave_resp),
       % endif
       .ext_xbar_master_req_i(ext_xbar_master_req_i),
       .ext_xbar_master_resp_o(ext_xbar_master_resp_o),
@@ -548,13 +552,15 @@ module core_v_mini_mcu
       .i2s_sd_oe_o(i2s_sd_oe_o),
       .i2s_sd_i(i2s_sd_i),
       .i2s_rx_valid_o(i2s_rx_valid),
-      % if user_peripheral_domain.contains_peripheral('serial_link'):
+      % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
         .ddr_rcv_clk_i,  
         .ddr_rcv_clk_o,
         .ddr_i,
         .ddr_o,
         .serial_link_direct_write_req_o,
         .serial_link_direct_write_resp_i(serial_link_direct_write_resp),
+        .serial_link_slave_req_i(serial_link_slave_req),
+        .serial_link_slave_resp_o(serial_link_slave_resp),
       %endif
       .uart_rx_i,
       .uart_tx_o

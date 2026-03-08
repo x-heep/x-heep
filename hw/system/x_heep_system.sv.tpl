@@ -76,7 +76,7 @@ module x_heep_system
 
     output logic [31:0] exit_value_o,
 
-    % if user_peripheral_domain.contains_peripheral('serial_link'):
+    % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
     //Serial Link
     output obi_pkg::obi_req_t  serial_link_direct_write_req_o,   
     input  obi_pkg::obi_resp_t serial_link_direct_write_resp_i,  
@@ -161,7 +161,7 @@ module x_heep_system
     .AO_SPC_NUM(AO_SPC_NUM),
     .EXT_HARTS(EXT_HARTS)
   ) core_v_mini_mcu_i (  
-    % if user_peripheral_domain.contains_peripheral('serial_link'):
+    % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
     .serial_link_direct_write_req_o,   
     .serial_link_direct_write_resp_i,  
     %endif 

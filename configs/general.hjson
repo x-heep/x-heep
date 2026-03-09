@@ -1,5 +1,5 @@
 {
-    bus_type: "NtoM"
+      bus_type: "NtoM"
     ram_banks: {
         code_and_data: {
             num: 3
@@ -9,8 +9,8 @@
             auto_section: auto
             // the name is used by example_matadd_interleaved as .xheep_data_interleaved
             type: interleaved
-            num: 8
-            size: 32
+            num: 4
+            size: 16
         }
     }
 
@@ -26,12 +26,8 @@
             name: data
             start: 0x00000F800
         }
-    ]    
-    debug: {
-        address: 0x10000000
-        length:  0x00100000
-        has_spi_slave: "yes"
-}
+    ] 
+
 // Copyright 2020 ETH Zurich and University of Bologna.
     // Solderpad Hardware License, Version 0.51, see LICENSE for details.
     // SPDX-License-Identifier: SHL-0.51
@@ -45,6 +41,10 @@
         heap_size: 0x800
     }
 
+    debug: {
+        address: 0x10000000
+        length:  0x00100000
+    }
     //if is_include is missing, it means it is always instantiated (like is_included "yes")
     // spi_memio is included is the same of the spi_flash (little hack, this peripheral is going to be removed)
     ao_peripherals: {

@@ -1,0 +1,59 @@
+
+sw/build/main.elf:     file format elf32-littleriscv
+
+Sections:
+Idx Name          Size      VMA       LMA       File off  Algn
+  0 .vectors      00000080  00000000  00000000  00001000  2**0
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  1 .init         0000006a  00000180  00000180  00001180  2**0
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  2 .text         0000131a  000001ec  000001ec  000011ec  2**2
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  3 .power_manager 00000100  00002000  00002000  00003000  2**12
+                  ALLOC
+  4 .rodata       00000181  0000f800  0000f800  00003800  2**2
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+  5 .eh_frame     00000000  00002100  00002100  00003100  2**2
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+  6 .init_array   00000004  0000f984  0000f984  00003984  2**2
+                  CONTENTS, ALLOC, LOAD, DATA
+  7 .data         00000500  0000f988  0000f988  00003988  2**3
+                  CONTENTS, ALLOC, LOAD, DATA
+  8 .sdata        00000004  0000fe88  0000fe88  00003e88  2**2
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+  9 .sbss         00000004  0000fe8c  0000fe8c  00003e8c  2**2
+                  ALLOC
+ 10 .bss          00000130  0000fe90  0000fe90  00003e8c  2**2
+                  ALLOC
+ 11 .heap         00000800  0000ffc0  0000ffc0  00003e8c  2**0
+                  ALLOC
+ 12 .stack        00000800  000107c0  000107c0  00003e8c  2**4
+                  ALLOC
+ 13 .data_interleaved 00010000  00018000  00018000  00004000  2**2
+                  CONTENTS, ALLOC, LOAD, DATA
+ 14 .comment      00000087  00000000  00000000  00014000  2**0
+                  CONTENTS, READONLY
+ 15 .riscv.attributes 0000003f  00000000  00000000  00014087  2**0
+                  CONTENTS, READONLY
+ 16 .debug_aranges 00000088  00000000  00000000  000140c6  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+ 17 .debug_info   00009d65  00000000  00000000  0001414e  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+ 18 .debug_abbrev 00001894  00000000  00000000  0001deb3  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+ 19 .debug_line   000085d7  00000000  00000000  0001f747  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+ 20 .debug_frame  00001318  00000000  00000000  00027d20  2**2
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+ 21 .debug_str    000033db  00000000  00000000  00029038  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+ 22 .debug_loc    00004e96  00000000  00000000  0002c413  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+ 23 .debug_ranges 00000c20  00000000  00000000  000312a9  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+ 24 .debug_loclists 00001303  00000000  00000000  00031ec9  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+ 25 .debug_rnglists 000001e2  00000000  00000000  000331cc  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+ 26 .debug_line_str 000000b0  00000000  00000000  000333ae  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS

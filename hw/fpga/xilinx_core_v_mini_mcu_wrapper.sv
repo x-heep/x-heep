@@ -24,21 +24,15 @@ module xilinx_core_v_mini_mcu_wrapper
     inout logic clk_i,
 `endif
     inout logic rst_i,
-
     output logic rst_led_o,
     output logic clk_led_o,
+    
+    output logic tck_dbg,
 
-    inout logic boot_select_i,
-    inout logic execute_from_flash_i,
-
-    inout logic jtag_tck_i,
-    inout logic jtag_tms_i,
-    inout logic jtag_trst_ni,
-    inout logic jtag_tdi_i,
-    inout logic jtag_tdo_o,
-
-    inout logic uart_rx_i,
-    inout logic uart_tx_o,
+    inout  logic boot_select_i,
+    inout  logic execute_from_flash_i,
+    //inout  logic uart_rx_i,
+    //inout  logic uart_tx_o,
 
     inout logic [13:0] gpio_io,
 
@@ -88,6 +82,12 @@ module xilinx_core_v_mini_mcu_wrapper
   wire                                    int_jtag_tms_i;
   wire                                    int_jtag_tdi_i;
   wire                                    int_jtag_tdo_o;
+  
+  // Internal reset
+  wire                                    int_pynq_rst_o;  
+  // Internal UART
+  wire                                    int_pynq_uart_tx_o;
+  wire                                    int_pynq_uart_rx_i;
 
   // OBI Connections to quadrilatero
   obi_req_t  [      EXT_XBAR_NMASTER-1:0] ext_master_req;
@@ -96,7 +96,7 @@ module xilinx_core_v_mini_mcu_wrapper
 `ifdef FPGA_NEXYS
   assign rst_n = rst_i;
 `else
-  assign rst_n = !rst_i;
+  assign rst_n = !(rst_i | int_pynq_rst_o);
 `endif
 
   // reset LED for debugging
@@ -129,7 +129,11 @@ module xilinx_core_v_mini_mcu_wrapper
       .clk_out1_0(clk_gen)
   );
   axi_jtag_bridge_wrapper axi_jtag_bridge_wrapper_i (
+      .pynq_rst_o(int_pynq_rst_o),
+      .pynq_uart_rx_i(int_pynq_uart_rx_i),
+      .pynq_uart_tx_o(int_pynq_uart_tx_o),
       .tck_0(int_jtag_tck_i),
+      .tck_dbg(tck_dbg),
       .tdi_0(int_jtag_tdi_i),
       .tms_0(int_jtag_tms_i),
       .tdo_0(int_jtag_tdo_o)
@@ -232,8 +236,10 @@ module xilinx_core_v_mini_mcu_wrapper
       .jtag_trst_ni(1'b1),
       .jtag_tdi_i(int_jtag_tdi_i),
       .jtag_tdo_o(int_jtag_tdo_o),
-      .uart_rx_i(uart_rx_i),
-      .uart_tx_o(uart_tx_o),
+      //.uart_rx_i(uart_rx_i),
+      //.uart_tx_o(uart_tx_o),
+      .uart_rx_i(int_pynq_uart_tx_0),
+      .uart_tx_o(int_pynq_uart_rx_i),
       .exit_valid_o(exit_valid_o),
       .gpio_0_io(gpio_io[0]),
       .gpio_1_io(gpio_io[1]),

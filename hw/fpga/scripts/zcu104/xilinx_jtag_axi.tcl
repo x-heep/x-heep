@@ -494,7 +494,7 @@ Port;FD4A0000;FD4AFFFF;1|FPD;DPDMA;FD4C0000;FD4CFFFF;1|FPD;DDR_XMPU5_CFG;FD05000
   # Create instance: axi_jtag_0, and set properties
   set axi_jtag_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_jtag:1.0 axi_jtag_0 ]
   set_property -dict [list \
-    CONFIG.C_TCK_CLOCK_RATIO {32} \
+    CONFIG.C_TCK_CLOCK_RATIO {64} \
   ] $axi_jtag_0
   # Create instance: axi_smc, and set properties
   set axi_smc [ create_bd_cell -type ip -vlnv xilinx.com:ip:smartconnect:1.0 axi_smc ]

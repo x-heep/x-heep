@@ -52,6 +52,16 @@ filesets:
     - hw/core-v-mini-mcu/ao_peripheral_subsystem.sv
     file_type: systemVerilogSource
 
+  quadrilatero-headers: 
+    files:
+    # Use the path relative to the core file location
+    - hw/vendor/pulp_platform_common_cells/include/common_cells/registers.svh: {is_include_file: true}
+    - hw/vendor/pulp_platform_common_cells/include/common_cells/assertions.svh: {is_include_file: true}
+    - hw/fpga/ignore.svh: {is_include_file: true}
+    - hw/vendor/pulp_platform_register_interface/include/register_interface/assign.svh: {is_include_file: true}
+    - hw/vendor/pulp_platform_register_interface/include/register_interface/typedef.svh: {is_include_file: true}
+    file_type: systemVerilogSource
+
   rtl-simulation:
     depend:
     - pulp-platform.org::tech_cells_generic
@@ -509,6 +519,7 @@ targets:
     filesets_append:
     - x_heep_system
     - rtl-fpga
+    - quadrilatero-headers
     parameters:
     - COREV_PULP
     - FPU
@@ -521,10 +532,12 @@ targets:
     - FPGA_ZCU104=true
     tools:
       vivado:
-        jobs: 64
+        jobs: 32
         part: xczu7ev-ffvc1156-2-e
         board_part: xilinx.com:zcu104:part0:1.0
         board_repo_paths: [../../../hw/fpga/board_files/vendor/esl_epfl_zcu104_board_files]
+        pre_run_scripts:
+         - hw/fpga/scripts/set_constraint_late.tcl
     toplevel: [xilinx_core_v_mini_mcu_wrapper]
     hooks: 
       post_build: [generate_xsa]

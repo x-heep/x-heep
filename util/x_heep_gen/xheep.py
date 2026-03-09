@@ -1,11 +1,13 @@
+import sys
 from copy import deepcopy
 from .bus_type import BusType
 from .memory_ss.memory_ss import MemorySS
 from .cpu.cpu import CPU
+from .cv_x_if import CvXIf
 from .peripherals.abstractions import PeripheralDomain
 from .peripherals.base_peripherals_domain import BasePeripheralDomain
 from .peripherals.user_peripherals_domain import UserPeripheralDomain
-from .pads.PadRing import PadRing
+from .pads.pad_ring import PadRing
 
 
 class XHeep:
@@ -31,6 +33,8 @@ class XHeep:
             )
 
         self._cpu = None
+
+        self._xif: CvXIf = None
 
         self._bus_type: BusType = bus_type
 
@@ -63,6 +67,29 @@ class XHeep:
         :rtype: CPU
         """
         return self._cpu
+
+    # ------------------------------------------------------------
+    # CORE-V eXtension Interface (CV-X-IF)
+    # ------------------------------------------------------------
+
+    def set_xif(self, xif: CvXIf):
+        """
+        Sets the configuration of the CORE-V eXtension Interface (CV-X-IF).
+
+        :param CvXIf xif: CV-X-IF instance with the desired paramters.
+
+        :raise TypeError: when xif is of incorrect type.
+        """
+        if not isinstance(xif, CvXIf):
+            raise TypeError(f"XHeep.xif should be of type CvXIf not {type(xif)}")
+        self._xif = xif
+
+    def xif(self) -> CvXIf:
+        """
+        :return: the configured CV-X-IF
+        :rtype: CvXIf
+        """
+        return self._xif
 
     # ------------------------------------------------------------
     # Bus
@@ -216,6 +243,16 @@ class XHeep:
         """
         return self._extensions.get(name, None)
 
+    def is_extension_defined(self, name):
+        """
+        Check if an extension is defined.
+
+        :param str name: Name of the extension.
+        :return: `True` if the extension is defined, `False` otherwise.
+        :rtype: bool
+        """
+        return name in self._extensions
+
     # ------------------------------------------------------------
     # Build and Validate
     # ------------------------------------------------------------
@@ -232,31 +269,25 @@ class XHeep:
         if self.are_user_peripherals_configured():
             self._user_peripheral_domain.build()
 
-    def validate(self) -> bool:
+    def validate(self):
         """
         Does some basics checks on the configuration
 
         This should be called before using the XHeep object to generate the project.
-
-        :return: the validity of the configuration
-        :rtype: bool
         """
         if not self.cpu():
-            print("A CPU must be configured")
-            return False
+            raise RuntimeError("[MCU-GEN] ERROR: A CPU must be configured")
 
         if not self.memory_ss():
-            print("A memory subsystem must be configured")
-            return False
-        else:
-            if not self.memory_ss().validate():
-                return False
-            if self.memory_ss().has_il_ram() and (
-                self._bus_type not in self.IL_COMPATIBLE_BUS_TYPES
-            ):
-                raise RuntimeError(
-                    f"This system has a {self._bus_type} bus, one of {self.IL_COMPATIBLE_BUS_TYPES} is required for interleaved memory"
-                )
+            raise RuntimeError("[MCU-GEN] ERROR: A memory subsystem must be configured")
+        self.memory_ss().validate()
+
+        if self.memory_ss().has_il_ram() and (
+            self._bus_type not in self.IL_COMPATIBLE_BUS_TYPES
+        ):
+            raise RuntimeError(
+                f"[MCU-GEN] ERROR: This system has a {self._bus_type} bus, one of {self.IL_COMPATIBLE_BUS_TYPES} is required for interleaved memory"
+            )
 
         # Check that each peripheral domain is valid
         if self.are_base_peripherals_configured():
@@ -265,7 +296,6 @@ class XHeep:
             self._user_peripheral_domain.validate()
 
         # Check that peripherals domains do not overlap
-        ret = True
         if (
             self.are_base_peripherals_configured()
             and self._base_peripheral_domain.get_start_address()
@@ -274,10 +304,10 @@ class XHeep:
             + self._base_peripheral_domain.get_length()
             > self._user_peripheral_domain.get_start_address()
         ):  # base peripheral domain comes before user peripheral domain
-            print(
-                f"The base peripheral domain (ends at {self._base_peripheral_domain.get_start_address() + self._base_peripheral_domain.get_length():#08X}) overflows over user peripheral domain (starts at {self._user_peripheral_domain.get_start_address():#08X})."
+            raise RuntimeError(
+                f"[MCU-GEN] ERROR: The base peripheral domain (ends at {self._base_peripheral_domain.get_start_address() + self._base_peripheral_domain.get_length():#08X}) overflows over user peripheral domain (starts at {self._user_peripheral_domain.get_start_address():#08X})."
             )
-            ret = False
+
         if (
             self.are_user_peripherals_configured()
             and self._user_peripheral_domain.get_start_address()
@@ -286,26 +316,36 @@ class XHeep:
             + self._user_peripheral_domain.get_length()
             > self._base_peripheral_domain.get_start_address()
         ):  # user peripheral domain comes before base peripheral domain
-            print(
-                f"The user peripheral domain (ends at {self._user_peripheral_domain.get_start_address() + self._user_peripheral_domain.get_length():#08X}) overflows over base peripheral domain (starts at {self._base_peripheral_domain.get_start_address():#08X})."
+            raise RuntimeError(
+                f"[MCU-GEN] ERROR: The user peripheral domain (ends at {self._user_peripheral_domain.get_start_address() + self._user_peripheral_domain.get_length():#08X}) overflows over base peripheral domain (starts at {self._base_peripheral_domain.get_start_address():#08X})."
             )
-            ret = False
+
         if (
             self.are_user_peripherals_configured()
             and self.are_base_peripherals_configured()
             and self._user_peripheral_domain.get_start_address()
             == self._base_peripheral_domain.get_start_address()
         ):  # both domains start at the same address
-            print(
-                f"The base peripheral domain and the user peripheral domain should not start at the same address (current addresses are {self._base_peripheral_domain.get_start_address():#08X} and {self._user_peripheral_domain.get_start_address():#08X})."
+            raise RuntimeError(
+                f"[MCU-GEN] ERROR: The base peripheral domain and the user peripheral domain should not start at the same address (current addresses are {self._base_peripheral_domain.get_start_address():#08X} and {self._user_peripheral_domain.get_start_address():#08X})."
             )
-            ret = False
+
         if (
             self.are_base_peripherals_configured()
             and self._base_peripheral_domain.get_start_address() < 0x10000
         ):  # from mcu_gen.py
-            print(
-                f"Always on peripheral start address must be greater than 0x10000, current address is {self._base_peripheral_domain.get_start_address():#08X}."
+            raise RuntimeError(
+                f"[MCU-GEN] ERROR: Always on peripheral start address must be greater than 0x10000, current address is {self._base_peripheral_domain.get_start_address():#08X}."
             )
-            ret = False
-        return ret
+
+        # Check that the extension interface is enabled with a supported core
+        if self.xif() is not None and self.cpu().get_name() in ["cv32e40p"]:
+            raise RuntimeError(
+                f"[MCU-GEN] ERROR: CV-X-IF enabled (xheep.set_xif()) with incompatible CPU ({self.cpu().get_name()})."
+            )
+
+        if not self._padring:
+            raise RuntimeError("[MCU-GEN] ERROR: A padring must be configured")
+        self._padring.validate()
+
+        return True

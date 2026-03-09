@@ -71,12 +71,12 @@ filesets:
 
   xdc-fpga-zcu104:
     files:
-    - constraints/zcu104/pin_assign.xdc
-    - constraints/zcu104/constraints.xdc
-    - constraints/common/spi_slave.xdc
-    - constraints/common/jtag.xdc
-    - constraints/common/sync.xdc
-    file_type: xdc
+    - constraints/zcu104/pin_assign.xdc: {file_type: xdc}
+    - constraints/zcu104/constraints.xdc: {file_type: xdc}
+    - constraints/common/spi_slave.xdc: {file_type: xdc}
+    - constraints/common/jtag.xdc: {file_type: xdc}
+    - constraints/common/sync.xdc: {file_type: xdc}
+    - scripts/zcu104/set_constraint_late.tcl: {file_type: tclSource}
 
   xdc-fpga-zcu102:
     files:
@@ -86,7 +86,6 @@ filesets:
     - constraints/common/jtag.xdc
     - constraints/common/sync.xdc
     file_type: xdc
-
 targets:
   default: &default_target
     filesets:

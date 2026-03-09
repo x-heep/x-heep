@@ -2,10 +2,11 @@
 # Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 # SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
+############
 # CLOCK
 set_property -dict {PACKAGE_PIN AH18 IOSTANDARD DIFF_SSTL12} [get_ports clk_300mhz_p]
 set_property -dict {PACKAGE_PIN AH17 IOSTANDARD DIFF_SSTL12} [get_ports clk_300mhz_n]
-set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets jtag_tck_i]
+#set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets jtag_tck_i]
 
 # RESET
 set_property -dict {PACKAGE_PIN M11 IOSTANDARD LVCMOS33} [get_ports rst_i]
@@ -35,8 +36,8 @@ set_property -dict {PACKAGE_PIN M8 IOSTANDARD LVCMOS33} [get_ports {spi_flash_sd
 set_property -dict {PACKAGE_PIN K8 IOSTANDARD LVCMOS33} [get_ports {spi_flash_sd_io[3]}]
 
 # UART
-set_property -dict {PACKAGE_PIN G8 IOSTANDARD LVCMOS33} [get_ports uart_tx_o]
-set_property -dict {PACKAGE_PIN G6 IOSTANDARD LVCMOS33} [get_ports uart_rx_i]
+#set_property -dict {PACKAGE_PIN G8 IOSTANDARD LVCMOS33} [get_ports uart_tx_o]
+#set_property -dict {PACKAGE_PIN G6 IOSTANDARD LVCMOS33} [get_ports uart_rx_i]
 
 # JTAG
 #set_property -dict {PACKAGE_PIN H8 IOSTANDARD LVCMOS33} [get_ports jtag_tdi_i]
@@ -44,6 +45,8 @@ set_property -dict {PACKAGE_PIN G6 IOSTANDARD LVCMOS33} [get_ports uart_rx_i]
 #set_property -dict {PACKAGE_PIN G7 IOSTANDARD LVCMOS33} [get_ports jtag_tms_i]
 #set_property -dict {PACKAGE_PIN H6 IOSTANDARD LVCMOS33} [get_ports jtag_tck_i]
 #set_property -dict {PACKAGE_PIN M9 IOSTANDARD LVCMOS33} [get_ports jtag_trst_ni]
+
+set_property -dict {PACKAGE_PIN H6 IOSTANDARD LVCMOS33} [get_ports tck_dbg]
 
 # I2C
 set_property -dict {PACKAGE_PIN J7 IOSTANDARD LVCMOS33} [get_ports i2c_scl_io]
@@ -72,6 +75,7 @@ set_property -dict {PACKAGE_PIN J17 IOSTANDARD LVCMOS18} [get_ports {gpio_io[7]}
 set_property -dict {PACKAGE_PIN H16 IOSTANDARD LVCMOS18} [get_ports {gpio_io[8]}]
 set_property -dict {PACKAGE_PIN G16 IOSTANDARD LVCMOS18} [get_ports {gpio_io[9]}]
 set_property -dict {PACKAGE_PIN G15 IOSTANDARD LVCMOS18} [get_ports {gpio_io[10]}]
+
 set_property -dict {PACKAGE_PIN F15 IOSTANDARD LVCMOS18} [get_ports {spi_slave_sck_io}]
 set_property -dict {PACKAGE_PIN F11 IOSTANDARD LVCMOS18} [get_ports {spi_slave_cs_io}]
 set_property -dict {PACKAGE_PIN E10 IOSTANDARD LVCMOS18} [get_ports {spi_slave_miso_io}]

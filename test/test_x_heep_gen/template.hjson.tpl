@@ -6,6 +6,7 @@
     dma = base_peripheral_domain.get_dma()
     pdm2pcm = user_peripheral_domain.get_pdm2pcm()
     cpu = xheep.cpu()
+    external_domains = base_peripheral_domain.get_power_manager().get_external_domains()
 %>
 
 {

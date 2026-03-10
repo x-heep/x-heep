@@ -4,6 +4,7 @@
 
 <%
     memory_ss = xheep.memory_ss()
+    external_domains = xheep.get_base_peripheral_domain().get_power_manager().get_external_domains()
 %>
 
 `include "common_cells/assertions.svh"

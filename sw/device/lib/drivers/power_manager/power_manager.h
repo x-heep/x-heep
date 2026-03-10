@@ -8,6 +8,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "mmio.h"
+#include "power_manager_regs.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -70,6 +73,13 @@ typedef struct monitor_signals {
  * Initialization parameters for POWER MANAGER.
  *
  */
+typedef struct power_manager {
+  /**
+   * The base address for the power_manager hardware registers.
+   */
+  mmio_region_t base_addr;
+} power_manager_t;
+
 typedef struct power_manager_counters {
   /**
    * The counter to set and unset the reset and switch of the CPU.
@@ -84,59 +94,49 @@ typedef struct power_manager_counters {
   uint32_t retentive_on;
 } power_manager_counters_t;
 
-typedef struct __attribute__((packed)) power_manager_ram_map_t {
+// this struct is used to collect in an array 
+// pointers to the power manager to control vectors of power domains
+// as memory banks or external domains 
+typedef struct power_manager_vector_sram_map_t {
   uint32_t* clk_gate;
   uint32_t* power_gate_ack;
   uint32_t* switch_off;
   uint32_t* wait_ack_switch;
   uint32_t* iso;
   uint32_t* retentive;
-} power_manager_ram_map_t;
+} power_manager_vector_sram_map_t;
 
-typedef struct power_manager_external_map_t {
+typedef struct power_manager_vector_ext_map_t {
   uint32_t* clk_gate;
   uint32_t* power_gate_ack;
+  uint32_t* switch_off;
+  uint32_t* wait_ack_switch;
+  uint32_t* iso;
+  uint32_t* retentive;
   uint32_t* reset;
-  uint32_t* switch_off;
-  uint32_t* wait_ack_switch;
-  uint32_t* iso;
-  uint32_t* retentive;
-  uint32_t* monitor_power_gate;
-} power_manager_external_map_t;
-
-static power_manager_external_map_t power_manager_external_map[${external_domains}];
-
-power_manager_result_t power_gate_counters_init(power_manager_counters_t* counters, uint32_t reset_off, uint32_t reset_on, uint32_t switch_off, uint32_t switch_on, uint32_t iso_off, uint32_t iso_on, uint32_t retentive_off, uint32_t retentive_on);
-
-power_manager_result_t power_gate_core(power_manager_sel_intr_t sel_intr, power_manager_counters_t* cpu_counters);
-
-power_manager_result_t power_gate_periph(power_manager_sel_state_t sel_state, power_manager_counters_t* periph_counters);
-
-power_manager_result_t power_gate_ram_block(uint32_t sel_block, power_manager_sel_state_t sel_state, power_manager_counters_t* ram_block_counters);
-
-power_manager_result_t power_gate_external(uint32_t sel_external, power_manager_sel_state_t sel_state, power_manager_counters_t* external_counters);
-
-uint32_t periph_power_domain_is_off();
-
-uint32_t ram_block_power_domain_is_off(uint32_t sel_block);
-
-uint32_t external_power_domain_is_off(uint32_t sel_external);
-
-monitor_signals_t monitor_power_gate_core();
-
-monitor_signals_t monitor_power_gate_periph();
-
-monitor_signals_t monitor_power_gate_ram_block(uint32_t sel_block);
-
-monitor_signals_t monitor_power_gate_external(uint32_t sel_external);
+} power_manager_vector_ext_map_t;
 
 void power_manager_init();
 
-power_manager_result_t __attribute__ ((noinline)) power_manager_clock_gate_periph(uint32_t enable);
+power_manager_result_t power_manager_pwr_gate_counters_init(power_manager_counters_t* counters, uint32_t reset_off, uint32_t reset_on, uint32_t switch_off, uint32_t switch_on, uint32_t iso_off, uint32_t iso_on, uint32_t retentive_off, uint32_t retentive_on);
 
-power_manager_result_t __attribute__ ((noinline)) power_manager_clock_gate_periph(uint32_t enable);
+power_manager_result_t power_manager_pwr_gate_core(power_manager_sel_intr_t sel_intr, power_manager_counters_t* cpu_counters);
 
-power_manager_result_t __attribute__ ((noinline)) power_manager_clock_gate_ram_block(uint32_t enable, uint32_t sel_block);
+power_manager_result_t power_manager_pwr_gate_periph(power_manager_sel_state_t sel_state, power_manager_counters_t* periph_counters);
+power_manager_result_t power_manager_clk_gate_periph(uint32_t enable);
+
+power_manager_result_t power_manager_pwr_gate_ram_block(uint32_t sel_block, power_manager_sel_state_t sel_state, power_manager_counters_t* ram_block_counters);
+power_manager_result_t power_manager_clk_gate_ram_block(uint32_t enable, uint32_t sel_block);
+
+power_manager_result_t power_manager_pwr_gate_external(uint32_t sel_external, power_manager_sel_state_t sel_state, power_manager_counters_t* external_counters);
+power_manager_result_t ppower_manager_clk_gate_external(uint32_t enable, uint32_t sel_external);
+
+uint32_t power_manager_periph_domain_is_off();
+
+uint32_t power_manager_ram_block_domain_is_off(uint32_t sel_block);
+
+uint32_t power_manager_external_domain_is_off(uint32_t sel_external);
+
 
 #ifdef __cplusplus
 }

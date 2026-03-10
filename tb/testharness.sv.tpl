@@ -192,6 +192,9 @@ module testharness #(
   logic [EXT_DOMAINS_RND-1:0] external_ram_banks_set_retentive_n;
   logic [EXT_DOMAINS_RND-1:0] external_subsystem_clkgate_en_n;
 
+  //simple accelerator external domain
+  logic simple_acc_rst_n, simple_acc_clk;
+
   // CORE-V eXtension Interface (CV-X-IF)
 % if xif != None:
   if_xif #(
@@ -577,14 +580,27 @@ module testharness #(
           .dlc_dir_o
       );
 
+      if(core_v_mini_mcu_pkg::EXTERNAL_DOMAINS > 0) begin: gen_simple_acc_pd
+        assign simple_acc_rst_n = external_subsystem_rst_n[0];
+        tc_clk_gating clk_gating_simple_acc_i (
+            .clk_i,
+            .en_i(external_subsystem_clkgate_en_n[0]),
+            .test_en_i(1'b0),
+            .clk_o(simple_acc_clk)
+        );
+      end else begin: gen_simple_acc_no_pd
+        assign simple_acc_rst_n = rst_ni;
+        assign simple_acc_clk   = clk_i;
+      end
+
       simple_accelerator #(
           .reg_req_t (reg_pkg::reg_req_t),
           .reg_rsp_t (reg_pkg::reg_rsp_t),
           .obi_req_t (obi_pkg::obi_req_t),
           .obi_resp_t(obi_pkg::obi_resp_t)
       ) simple_accelerator_i (
-          .clk_i,
-          .rst_ni,
+          .clk_i(simple_acc_clk),
+          .rst_ni(simple_acc_rst_n),
           .reg_req_i(ext_periph_slv_req[testharness_pkg::SIMPLE_ACC_IDX]),
           .reg_rsp_o(ext_periph_slv_rsp[testharness_pkg::SIMPLE_ACC_IDX]),
           .acc_read_ch0_req_o(ext_master_req[testharness_pkg::EXT_MASTER2_IDX]),

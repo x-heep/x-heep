@@ -129,7 +129,7 @@ power_manager_result_t power_manager_pwr_gate_ram_block(uint32_t sel_block, powe
 power_manager_result_t power_manager_clk_gate_ram_block(uint32_t enable, uint32_t sel_block);
 
 power_manager_result_t power_manager_pwr_gate_external(uint32_t sel_external, power_manager_sel_state_t sel_state, power_manager_counters_t* external_counters);
-power_manager_result_t ppower_manager_clk_gate_external(uint32_t enable, uint32_t sel_external);
+power_manager_result_t power_manager_clk_gate_external(uint32_t enable, uint32_t sel_external);
 
 uint32_t power_manager_periph_domain_is_off();
 

@@ -369,7 +369,7 @@ int main(int argc, char *argv[])
                 return EXIT_FAILURE;
             }
             // Check that the ram block i domain is actually OFF
-            while(!ram_block_power_domain_is_off(i));
+            while(!power_manager_ram_block_domain_is_off(i));
 
             // Wait some time
             for (int i=0; i<100; i++) asm volatile("nop");
@@ -415,67 +415,67 @@ int main(int argc, char *argv[])
 
 #if EXTERNAL_DOMAINS > 0
 
-//     // ------------ External SUBSYSTEM  ------------
-//     PRINTF("Testing External Domain Subsystems...\n\r");
+    // ------------ External SUBSYSTEM  ------------
+    PRINTF("Testing External Domain Subsystems...\n\r");
 
-//     // ------------ clock gating ------------
-//     for(uint32_t i = 0; i < EXTERNAL_DOMAINS; ++i)
-//        power_manager_clk_gate_external(0x1, i);
-//     // Wait some time
-//     for (int i=0; i<100; i++) asm volatile("nop;");
-//     // Enabling external subsystems
-//     for(uint32_t i = 0; i < EXTERNAL_DOMAINS; ++i)
-//        power_manager_clk_gate_external(0x0, i);
+    // ------------ clock gating ------------
+    for(uint32_t i = 0; i < EXTERNAL_DOMAINS; ++i)
+       power_manager_clk_gate_external(0x1, i);
+    // Wait some time
+    for (int i=0; i<100; i++) asm volatile("nop;");
+    // Enabling external subsystems
+    for(uint32_t i = 0; i < EXTERNAL_DOMAINS; ++i)
+       power_manager_clk_gate_external(0x0, i);
 
-//     PRINTF("External Clock Gating Test Successefull\n\r");
+    PRINTF("External Clock Gating Test Successefull\n\r");
 
-//     // ------------ power gating domain 0 ------------
-//     if (power_manager_pwr_gate_counters_init(&power_manager_counters, 30, 30, 30, 30, 30, 30, 0, 0) != kPowerManagerOk_e)
-//     {
-//         PRINTF("Error: power manager fail. Check the reset and powergate counters value\n\r");
-//         return EXIT_FAILURE;
-//     }
-//     // Power off external domain
-//     if (power_manager_pwr_gate_external(&power_manager, 0, kOff_e, &power_manager_counters) != kPowerManagerOk_e)
-//     {
-//         PRINTF("Error: power manager fail.\n\r");
-//         return EXIT_FAILURE;
-//     }
-//     // Check that the external domain is actually OFF
-//     while(!external_power_domain_is_off(&power_manager, 0));
-//     // Wait some time
-//     for (int i=0; i<100; i++) asm volatile("nop");
-//     // Power on external domain
-//     if (power_manager_pwr_gate_external(&power_manager, 0, kOn_e, &power_manager_counters) != kPowerManagerOk_e)
-//     {
-//         PRINTF("Error: power manager fail.\n\r");
-//         return EXIT_FAILURE;
-//     }
+    // ------------ power gating domain 0 ------------
+    if (power_manager_pwr_gate_counters_init(&power_manager_counters, 30, 30, 30, 30, 30, 30, 0, 0) != kPowerManagerOk_e)
+    {
+        PRINTF("Error: power manager fail. Check the reset and powergate counters value\n\r");
+        return EXIT_FAILURE;
+    }
+    // Power off external domain
+    if (power_manager_pwr_gate_external(0, kOff_e, &power_manager_counters) != kPowerManagerOk_e)
+    {
+        PRINTF("Error: power manager fail.\n\r");
+        return EXIT_FAILURE;
+    }
+    // Check that the external domain is actually OFF
+    while(!power_manager_external_domain_is_off(0));
+    // Wait some time
+    for (int i=0; i<100; i++) asm volatile("nop");
+    // Power on external domain
+    if (power_manager_pwr_gate_external(0, kOn_e, &power_manager_counters) != kPowerManagerOk_e)
+    {
+        PRINTF("Error: power manager fail.\n\r");
+        return EXIT_FAILURE;
+    }
 
-//     PRINTF("External Power Gating Test Successefull\n\r");
+    PRINTF("External Power Gating Test Successefull\n\r");
 
-//     // ------------ set retentive domain 0------------
-//    if (power_manager_pwr_gate_counters_init(&power_manager_counters, 0, 0, 0, 0, 0, 0, 30, 30) != kPowerManagerOk_e)
-//     {
-//         PRINTF("Error: power manager fail. Check the reset and powergate counters value\n\r");
-//         return EXIT_FAILURE;
-//     }
-//     // Set retention mode on for external domain block 0
-//     if (power_manager_pwr_gate_external(&power_manager, 0, kRetOn_e, &power_manager_counters) != kPowerManagerOk_e)
-//     {
-//         PRINTF("Error: power manager fail.\n\r");
-//         return EXIT_FAILURE;
-//     }
-//     // Wait some time
-//     for (int i=0; i<100; i++) asm volatile("nop");
-//     // Set retention mode off for external domain block 0
-//     if (power_manager_pwr_gate_external(&power_manager, 0, kRetOff_e, &power_manager_counters) != kPowerManagerOk_e)
-//     {
-//         PRINTF("Error: power manager fail.\n\r");
-//         return EXIT_FAILURE;
-//     }
+    // ------------ set retentive domain 0------------
+   if (power_manager_pwr_gate_counters_init(&power_manager_counters, 0, 0, 0, 0, 0, 0, 30, 30) != kPowerManagerOk_e)
+    {
+        PRINTF("Error: power manager fail. Check the reset and powergate counters value\n\r");
+        return EXIT_FAILURE;
+    }
+    // Set retention mode on for external domain block 0
+    if (power_manager_pwr_gate_external(0, kRetOn_e, &power_manager_counters) != kPowerManagerOk_e)
+    {
+        PRINTF("Error: power manager fail.\n\r");
+        return EXIT_FAILURE;
+    }
+    // Wait some time
+    for (int i=0; i<100; i++) asm volatile("nop");
+    // Set retention mode off for external domain block 0
+    if (power_manager_pwr_gate_external(0, kRetOff_e, &power_manager_counters) != kPowerManagerOk_e)
+    {
+        PRINTF("Error: power manager fail.\n\r");
+        return EXIT_FAILURE;
+    }
 
-//     PRINTF("External Set Retentive Test Successefull\n\r");
+    PRINTF("External Set Retentive Test Successefull\n\r");
 #else
     #pragma message ( "the external domain test can only run if EXTERNAL_DOMAINS > 0" )
 #endif

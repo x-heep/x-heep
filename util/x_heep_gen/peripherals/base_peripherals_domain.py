@@ -132,7 +132,6 @@ class BasePeripheralDomain(PeripheralDomain):
 
         raise ValueError("No Power_manager peripheral found")
 
-
     def validate(self):
         """
         Validate the base peripheral domain. Checks if all base peripherals are added, if they don't

@@ -22,6 +22,13 @@ class Power_manager(BasePeripheral):
         :param int external_domains: the number of power domains external to X-HEEP.
         """
         super().__init__(address, length)
+
+        if external_domains > 32:
+            raise ValueError(
+                "Power_manager: external_domains must be less than 32 instead of "
+                + str(external_domains)
+            )
+
         self._external_domains = external_domains
 
     def get_external_domains(self):

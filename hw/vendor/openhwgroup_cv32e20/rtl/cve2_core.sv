@@ -181,9 +181,7 @@ module cve2_core import cve2_pkg::*; #(
   logic [31:0] rf_rdata_c;
   logic        rf_ren_a;
   logic        rf_ren_b;
-  // verilator lint_off UNUSED
   logic        rf_ren_c;
-  // verilator lint_on UNUSED
   logic [4:0]  rf_waddr_wb;
   logic [31:0] rf_wdata_wb;
   // Writeback register write data that can be used on the forwarding path (doesn't factor in memory

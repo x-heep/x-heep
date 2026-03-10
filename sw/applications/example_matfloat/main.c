@@ -29,12 +29,6 @@ uint32_t check_results(float * computed, float * expected, int N);
 
 float vec_c[SIZE];
 
-static inline int float32_close(float a, float b, float rtol, float atol) {
-    float diff = fabsf(a - b);
-    float scale = fmaxf(fabsf(a), fabsf(b));
-    return diff <= fmaxf(atol, rtol * scale);
-}
-
 void putlong(long i)
 {
     char int_str[20]; // An array to store the digits

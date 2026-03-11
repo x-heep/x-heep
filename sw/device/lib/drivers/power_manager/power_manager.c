@@ -22,12 +22,12 @@ power_manager_result_t __attribute__ ((noinline)) power_manager_pwr_gate_core(po
 {
     uint32_t reg = 0;
 
-    power_manager_peri->CPU_RESET_ASSERT_COUNTER = cpu_counter->reset_off;
-    power_manager_peri->CPU_RESET_DEASSERT_COUNTER = cpu_counter->reset_on;
-    power_manager_peri->CPU_SWITCH_OFF_COUNTER = cpu_counter->switch_off;
-    power_manager_peri->CPU_SWITCH_ON_COUNTER = cpu_counter->switch_on;
-    power_manager_peri->CPU_ISO_OFF_COUNTER = cpu_counter->iso_off;
-    power_manager_peri->CPU_ISO_ON_COUNTER = cpu_counter->iso_on;
+    power_manager_peri->CPU_RESET_ASSERT_COUNTER = (cpu_counter->reset_off & POWER_MANAGER_CPU_RESET_ASSERT_COUNTER_CPU_RESET_ASSERT_COUNTER_MASK);
+    power_manager_peri->CPU_RESET_DEASSERT_COUNTER = (cpu_counter->reset_on & POWER_MANAGER_CPU_RESET_DEASSERT_COUNTER_CPU_RESET_DEASSERT_COUNTER_MASK);
+    power_manager_peri->CPU_SWITCH_OFF_COUNTER = (cpu_counter->switch_off & POWER_MANAGER_CPU_SWITCH_OFF_COUNTER_CPU_SWITCH_OFF_COUNTER_MASK);
+    power_manager_peri->CPU_SWITCH_ON_COUNTER = (cpu_counter->switch_on & POWER_MANAGER_CPU_SWITCH_ON_COUNTER_CPU_SWITCH_ON_COUNTER_MASK);
+    power_manager_peri->CPU_ISO_OFF_COUNTER = (cpu_counter->iso_off & POWER_MANAGER_CPU_ISO_OFF_COUNTER_CPU_ISO_OFF_COUNTER_MASK);
+    power_manager_peri->CPU_ISO_ON_COUNTER = (cpu_counter->iso_on & POWER_MANAGER_CPU_ISO_ON_COUNTER_CPU_ISO_ON_COUNTER_MASK);
 
 
     // enable wakeup timers
@@ -107,9 +107,7 @@ power_manager_result_t __attribute__ ((noinline)) power_manager_pwr_gate_ram_blo
     }
     else if (sel_state == kOff_e)
     {
-        asm volatile("davide1: nop");
         *(power_manager_ram_map[sel_block].wait_ack_switch) = 0x1;
-        asm volatile("davide2: nop");
         for (int i=0; i<ram_block_counters->iso_on; i++) asm volatile ("nop;");
         *(power_manager_ram_map[sel_block].iso) = 0x1;
         for (int i=0; i<ram_block_counters->switch_off; i++) asm volatile ("nop;");

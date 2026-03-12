@@ -146,21 +146,7 @@ module xilinx_core_v_mini_mcu_wrapper
   );
 `endif
 
-
-
   x_heep_system x_heep_system_i (
-      .serial_link_direct_write_req_o(),
-      .serial_link_direct_write_resp_i('0),
-      .ddr_rcv_clk_i_i,
-      .ddr_rcv_clk_o_o,
-      .ddr_i_0_i,
-      .ddr_i_1_io,
-      .ddr_i_2_io,
-      .ddr_i_3_io,
-      .ddr_o_0_io,
-      .ddr_o_1_io,
-      .ddr_o_2_io,
-      .ddr_o_3_io,
       .hart_id_i('0),
       .xheep_instance_id_i('0),
       .intr_vector_ext_i('0),

@@ -128,7 +128,7 @@ jobs:
         run: pip install -r util/python-requirements.txt
       - name: Re-vendor and diff
         run: |
-          find . -name '*.vendor.hjson' | xargs -n1 util/vendor.py --verbose &&
+          find hw/vendor sw/vendor -maxdepth 1 -type f -name '*.vendor.hjson' | xargs -n1 util/vendor.py --verbose &&
           util/git-diff.py --error-msg '::error ::Found differences, please re-vendor.'
 
   black-formatter:

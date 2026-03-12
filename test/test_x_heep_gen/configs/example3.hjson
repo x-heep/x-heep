@@ -84,10 +84,12 @@
         pad_control: {
             offset:  0x00080000
             length:  0x00010000
+            is_included: "no"
         }
         gpio_ao: {
             offset:  0x00090000
             length:  0x00010000
+            is_included: "no"
         }
     }
 

@@ -657,7 +657,7 @@ package cve2_pkg;
   } rvfi_csr_t;
 
   // CV-X-IF
-  parameter int unsigned X_NUM_RS         = 2;
+  parameter int unsigned X_NUM_RS         = 3;
   parameter int unsigned X_ID_WIDTH       = 4;
   parameter int unsigned X_RFR_WIDTH      = 32;
   parameter int unsigned X_RFW_WIDTH      = 32;

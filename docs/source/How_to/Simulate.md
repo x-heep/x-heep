@@ -12,7 +12,7 @@ To simulate your application with Verilator, first build the Verilator model:
 make verilator-build
 ```
 
-Then, you can run the application with:
+Then, you can run the compiled application with:
 
 ```bash
 make verilator-run
@@ -102,7 +102,13 @@ To simulate your application with Questasim, first set the env variable `MODEL_T
 make questasim-build
 ```
 
-then, go to your target system built folder
+Then, you can run the compiled application with:
+
+```bash
+make questasim-run
+```
+
+Alternatively, you can run the application manually by going to your target system build folder
 
 ```bash
 cd ./build/openhwgroup.org_systems_core-v-mini-mcu_<version>/sim-modelsim/
@@ -114,13 +120,25 @@ and type to run your compiled software:
 make run PLUSARGS="c firmware=../../../sw/build/main.hex"
 ```
 
+You can directly compile the app and run all of the previous steps with:
+
+```bash
+make questasim-run-app
+```
+
 You can also use vopt for HDL optimized compilation:
 
 ```bash
 make questasim-build-opt
 ```
 
-then go to
+Then, you can run the compiled application with:
+
+```bash
+make questasim-run-opt
+```
+
+Alternatively, go to
 
 ```bash
 cd ./build/openhwgroup.org_systems_core-v-mini-mcu_<version>/sim-modelsim/
@@ -130,6 +148,12 @@ and
 
 ```bash
 make run RUN_OPT=1 PLUSARGS="c firmware=../../../sw/build/main.hex"
+```
+
+You can directly compile the app and run all of the previous steps with:
+
+```bash
+make questasim-run-opt-app
 ```
 
 You can also compile with the UPF power domain description as:

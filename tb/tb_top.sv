@@ -190,7 +190,6 @@ module tb_top #(
 
   // wrapper for riscv, the memory system and stdout peripheral
   testharness #(
-      .FPU_SS_ZFINX               (FPU_SS_ZFINX),
       .JTAG_DPI                   (JTAG_DPI),
       .USE_EXTERNAL_DEVICE_EXAMPLE(USE_EXTERNAL_DEVICE_EXAMPLE),
       .CLK_FREQUENCY              (CLK_FREQUENCY_KHz)

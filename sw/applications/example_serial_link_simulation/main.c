@@ -9,6 +9,8 @@
 #include "serial_link_regs.h"
 #include "serial_link.h"
 #include "csr.h"
+#include "pad_control.h"
+#include "pad_control_regs.h"  // Generated.
 
 
 /* By default, printfs are activated for FPGA and disabled for simulation. */
@@ -31,14 +33,32 @@
 #endif
 
 
+
+
 int32_t NUM_TO_CHECK = 525;
 int main(int argc, char *argv[])
 {
+    // MUX of the PADS from GPIO to Serial Link
+    pad_control_t pad_control;
+    pad_control.base_addr = mmio_region_from_addr((uintptr_t)PAD_CONTROL_START_ADDRESS);
+    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_1_REG_OFFSET), 1);
+    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_2_REG_OFFSET), 1);
+    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_3_REG_OFFSET), 1);
+    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_6_REG_OFFSET), 1);
+    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_7_REG_OFFSET), 1);
+    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_8_REG_OFFSET), 1);
+    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_9_REG_OFFSET), 1);
+    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_10_REG_OFFSET), 1);
+
+
+
+
+    sl_init((volatile uint32_t *)CTRL_REG_ADDR, (int32_t *)CTRL_REG_ADDR);
+    #if TARGET_SIM 
     volatile int32_t *addr_p_external = SL_EXTERNAL_WRITE;
     volatile int32_t *addr_p_recreg = SL_READ;
     int32_t rcv_data;
 
-    sl_init((volatile uint32_t *)CTRL_REG_ADDR, (int32_t *)CTRL_REG_ADDR);
     sl_init((volatile uint32_t *)SL_EXTERNAL_CTRL_REG_ADDR, (int32_t *)SL_EXTERNAL_CTRL_REG_ADDR);
     
     *addr_p_external = NUM_TO_CHECK;
@@ -47,6 +67,10 @@ int main(int argc, char *argv[])
         PRINTF("Received data (%u) does not match expected (%d)\n", rcv_data, NUM_TO_CHECK);
         return EXIT_FAILURE;
     }
+    #else
+    volatile int32_t *addr_p_write = SL_WRITE;
+    *addr_p_write = NUM_TO_CHECK;
+    #endif
 
     PRINTF("DONE\n");
     

@@ -8,7 +8,7 @@
 {
   upstream:
   {
-    url: https://github.com/x-heep/obi_spi_slave.git
-    rev: f08cf8c9fe00316e58ea4674305407f41b076fd5
+    url: https://github.com/x-heep/xheep_dma.git
+    rev: 3ef233c96bad9ed01fa90c197d6ccc8b9a822e4a
   }
 }

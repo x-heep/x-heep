@@ -8,4 +8,3 @@ lint_off -rule LITENDIAN -file "*/src/periph_to_reg.sv" -match "Little bit endia
 lint_off -rule UNUSED -file "*/src/reg_demux.sv" -match "*"
 lint_off -rule UNOPTFLAT -file "*/src/periph_to_reg.sv" -match "*"
 lint_off -rule DECLFILENAME -file "*/src/reg_cdc.sv" -match "Filename 'reg_cdc' does not match MODULE name: 'reg_cdc_src'"
-lint_off -rule UNUSEDPARAM -file "*/*_reg_top.sv" -match "Parameter is not used: 'AW'"

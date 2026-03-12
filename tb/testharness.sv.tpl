@@ -167,19 +167,29 @@ module testharness #(
   fifo_req_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_req;
   fifo_resp_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_resp;
 
+  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0] ddr_clk_o_xheep;
+  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0] ddr_clk_i_xheep;
   % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
   logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_i_xheep; 
   logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_o_xheep;
-  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0] ddr_clk_o_xheep;
-  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0] ddr_clk_i_xheep;
-  %endif
-  % if not (user_peripheral_domain.contains_peripheral('serial_link_reg')):
+  assign ddr_o_xheep[0][0] = gpio[7];
+  assign ddr_o_xheep[0][1] = gpio[8];
+  assign ddr_o_xheep[0][2] = gpio[9];
+  assign ddr_o_xheep[0][3] = gpio[10];
+
+  assign gpio[1] = ddr_i_xheep[0][0];
+  assign gpio[2] = ddr_i_xheep[0][1];
+  assign gpio[3] = ddr_i_xheep[0][2];
+  assign gpio[6] = ddr_i_xheep[0][3];
+  %else:
+
   assign ddr_clk_o_xheep = '0;  
   assign ddr_o_xheep[0] = '0;
   assign ddr_o_xheep[1] = '0;
   assign ddr_o_xheep[2] = '0;
   assign ddr_o_xheep[3] = '0;
   %endif
+
   reg_pkg::reg_req_t [testharness_pkg::EXT_NPERIPHERALS-1:0] ext_periph_slv_req;
   reg_pkg::reg_rsp_t [testharness_pkg::EXT_NPERIPHERALS-1:0] ext_periph_slv_rsp;
 
@@ -290,16 +300,15 @@ module testharness #(
       .gpio_4_io(gpio[4]),
       .gpio_5_io(gpio[5]),
       .gpio_6_io(gpio[6]),
+      .gpio_7_io(gpio[7]),
+      .gpio_8_io(gpio[8]),
+      .gpio_9_io(gpio[9]),
+      .gpio_10_io(gpio[10]),
+      .gpio_11_io(gpio[11]),
+      .gpio_12_io(gpio[12]),
+      .gpio_13_io(gpio[13]),
       .ddr_rcv_clk_i_i(ddr_clk_i_xheep[0]),
       .ddr_rcv_clk_o_o(ddr_clk_o_xheep[0]),
-      .ddr_i_0_i(ddr_i_xheep[0][0]),
-      .ddr_i_1_io(ddr_i_xheep[0][1]),
-      .ddr_i_2_io(ddr_i_xheep[0][2]),
-      .ddr_i_3_io(ddr_i_xheep[0][3]),
-      .ddr_o_0_io(ddr_o_xheep[0][0]),
-      .ddr_o_1_io(ddr_o_xheep[0][1]),
-      .ddr_o_2_io(ddr_o_xheep[0][2]),
-      .ddr_o_3_io(ddr_o_xheep[0][3]),
       .spi_slave_sck_io(spi_sck),
       .spi_slave_cs_io(spi_csb[0]),
       .spi_slave_miso_io(spi_sd_io[1]),

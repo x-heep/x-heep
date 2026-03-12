@@ -103,13 +103,15 @@ module cve2_xif_wrapper
   assign cve2_x_issue_resp.accept           = xif_issue_if.issue_resp.accept;
   assign cve2_x_issue_resp.writeback        = xif_issue_if.issue_resp.writeback;
   generate
-    if (X_INTERFACE_NUM_RS == 3) begin : gen_xif_upsize_rs
+    if (X_INTERFACE_NUM_RS == 3) begin : gen_xif_same_rs
       // The third operand is tied to zero
-      assign xif_issue_if.issue_req.rs       = {{X_RFR_WIDTH{1'b0}}, cve2_x_register.rs};
-      assign xif_issue_if.issue_req.rs_valid = {1'b0, cve2_x_register.rs_valid};
-    end else begin : gen_xif_same_rs
-      assign xif_issue_if.issue_req.rs[1:0]       = cve2_x_register.rs;
-      assign xif_issue_if.issue_req.rs_valid[1:0] = cve2_x_register.rs_valid;
+      assign xif_issue_if.issue_req.rs       = cve2_x_register.rs;
+      assign xif_issue_if.issue_req.rs_valid = cve2_x_register.rs_valid;
+    end else begin : gen_xif_downsize_rs
+      //if 2 ports (we do not support 1 or >3 ports)
+      assign xif_issue_if.issue_req.rs[0]         = cve2_x_register.rs[0];
+      assign xif_issue_if.issue_req.rs[1]         = cve2_x_register.rs[1];
+      assign xif_issue_if.issue_req.rs_valid[1:0] = cve2_x_register.rs_valid[1:0];
     end
   endgenerate
   // NOTE: the following is suboptimal as it forces CVE2 to read all the registers,

@@ -1,9 +1,11 @@
-
+<%
+  user_peripheral_domain = xheep.get_user_peripheral_domain()
+%>
 # Copyright 2022 EPFL
 # Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 # SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
-# For pinout of the PYNQ-Z2 please refer to
+# For pinout of the PYNQ-Z2 please refer to 
 # https://us1.discourse-cdn.com/flex019/uploads/pynq1/original/2X/5/5b969c46185b0799d848915df3762fce368bf55d.png
 
 # Clock signal
@@ -75,9 +77,9 @@ set_property -dict {PACKAGE_PIN U8 IOSTANDARD LVCMOS33} [get_ports {gpio_io[9]}]
 set_property -dict {PACKAGE_PIN V7 IOSTANDARD LVCMOS33} [get_ports {gpio_io[10]}] ;#   ddr_o_3  | # rpi_gpio_tri_io[19]
 
 # Tri-color LEDs for TARGET_PYNQ_Z2
-set_property -dict {PACKAGE_PIN M15 IOSTANDARD LVCMOS33} [get_ports {gpio_io[4]}] ; # rgbleds_6bits_tri_o[5]
-set_property -dict {PACKAGE_PIN G14 IOSTANDARD LVCMOS33} [get_ports {gpio_io[5]}] ; # rgbled_6bits_tri_o[3]
-set_property -dict {PACKAGE_PIN L14 IOSTANDARD LVCMOS33} [get_ports {gpio_io[6]}] ; # rgbleds_6bits_tri_o[4]
+set_property -dict {PACKAGE_PIN M15 IOSTANDARD LVCMOS33} [get_ports {gpio_io[11]}] ; # rgbleds_6bits_tri_o[5]
+set_property -dict {PACKAGE_PIN G14 IOSTANDARD LVCMOS33} [get_ports {gpio_io[12]}] ; # rgbled_6bits_tri_o[3]
+set_property -dict {PACKAGE_PIN L14 IOSTANDARD LVCMOS33} [get_ports {gpio_io[13]}] ; # rgbleds_6bits_tri_o[4]
 
 # SPI SLAVE
 set_property -dict {PACKAGE_PIN U7 IOSTANDARD LVCMOS33} [get_ports {spi_slave_sck_io}] ; # rpi_gpio_tri_io[9]
@@ -105,3 +107,7 @@ set_property -dict {PACKAGE_PIN R17 IOSTANDARD LVCMOS33} [get_ports {spi2_sd_io[
 
 set_property -dict {PACKAGE_PIN U17 IOSTANDARD LVCMOS33} [get_ports {ddr_rcv_clk_i_i}] ; # rpi_gpio_tri_io[17]
 set_property -dict {PACKAGE_PIN F20 IOSTANDARD LVCMOS33} [get_ports {ddr_rcv_clk_o_o}] ; # rpi_gpio_tri_io[11]
+% if user_peripheral_domain.contains_peripheral('serial_link'):
+set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets ddr_rcv_clk_i_i_IBUF]
+set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets ddr_rcv_clk_o_o_OBUF]
+%endif

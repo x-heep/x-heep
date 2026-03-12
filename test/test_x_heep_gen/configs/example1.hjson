@@ -47,6 +47,7 @@
         spi_flash: {
             offset:  0x00020000
             length:  0x00008000
+            is_included: "yes"
         }
         spi_memio: {
             offset:  0x00028000
@@ -84,10 +85,12 @@
         pad_control: {
             offset:  0x00080000
             length:  0x00010000
+            is_included: "no"
         }
         gpio_ao: {
             offset:  0x00090000
             length:  0x00010000
+            is_included: "no"
         }
     }
 

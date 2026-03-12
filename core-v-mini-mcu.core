@@ -92,7 +92,6 @@ filesets:
     - hw/ip/boot_rom/boot_rom.vlt
     - hw/ip/obi_spimemio/obi_spimemio.vlt
     - hw/ip/w25q128jw_controller/w25q128jw_controller.vlt
-    - hw/ip/dma/dma.vlt
     - hw/ip/dma_subsystem/dma_subsystem.vlt
     - hw/ip/pdm2pcm/pdm2pcm.vlt
     - hw/ip_examples/pdm2pcm_dummy/pdm2pcm_dummy.vlt

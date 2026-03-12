@@ -30,6 +30,17 @@ filesets:
     - data/dma_conf.svh: { is_include_file: true }
     file_type: systemVerilogSource
 
+  files_verilator_waiver:
+    files:
+      - dma.vlt
+    file_type: vlt
+
+
+
 targets:
   default:
-    filesets: [files_rtl, headers]
+    filesets: 
+    - files_rtl
+    - headers
+    - tool_verilator ? (files_verilator_waiver)
+

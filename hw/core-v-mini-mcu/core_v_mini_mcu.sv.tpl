@@ -14,7 +14,7 @@
   memory_ss = xheep.memory_ss()
   dma_obi_msb = dma.get_num_master_ports() - 1
 
-  clk_module = next((p for p in xheep.get_padring().get_connected_pins() if p.name == "clk"), None).module
+  clk_module = next((p for p in xheep.get_padring().get_connected_pins() if p.name in ["clk", "ref_clk"] ), None).module
   rst_module = next((p for p in xheep.get_padring().get_connected_pins() if p.name == "rst"), None).module
 
 %>
@@ -495,15 +495,16 @@ module core_v_mini_mcu
       .dma_done_o
   );
 
-  //ILA_check_wrapper #(
-  //  ) ILA_check_wrapper_i (
-  //      addr(peripheral_slave_req.addr),
-  //      be(peripheral_slave_req.be),
-  //      clk_0(clk_i),
-  //      req(peripheral_slave_req.req),
-  //      wdata(peripheral_slave_req.wdata),
-  //      we(peripheral_slave_req.we)
-  //  );
+//ILA_check_wrapper #(
+//  ) ILA_check_wrapper_i (
+//      addr(peripheral_slave_req.addr),
+//      be(peripheral_slave_req.be),
+//      clk_0(clk_i),
+//      req(peripheral_slave_req.req),
+//      wdata(peripheral_slave_req.wdata),
+//      we(peripheral_slave_req.we)
+//  );
+  
 
   peripheral_subsystem peripheral_subsystem_i (
       .clk_i,
@@ -605,26 +606,32 @@ module core_v_mini_mcu
   % endfor
 
   % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
-  // Serial Link pin assignments
-  // For now supports only single channel 4 lanes 
-  assign ddr_rcv_clk_o_o = ddr_rcv_clk_o ;
-  assign ddr_rcv_clk_i = ddr_rcv_clk_i_i;
-  assign ddr_o_0_o = ddr_o[0][0];
-  assign ddr_o_1_o = ddr_o[0][1];
-  assign ddr_o_2_o = ddr_o[0][2];
-  assign ddr_o_3_o = ddr_o[0][3];
-  assign ddr_i[0][0] = ddr_i_0_i;
-  assign ddr_i[0][1] = ddr_i_1_i;
-  assign ddr_i[0][2] = ddr_i_2_i;
-  assign ddr_i[0][3] = ddr_i_3_i;
-% else:
-  // Tie off serial link signals if peripheral is not included
-  assign ddr_rcv_clk_o_io = '0;
-  assign ddr_o_0_o = '0;
-  assign ddr_o_1_o = '0;
-  assign ddr_o_2_o = '0;
-  assign ddr_o_3_o = '0;
-
-% endif
+    logic [serial_link_minimum_axi_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_i;
+    logic [serial_link_minimum_axi_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_o;
+    logic [serial_link_minimum_axi_pkg::NumChannels-1:0] ddr_rcv_clk_i;
+    logic [serial_link_minimum_axi_pkg::NumChannels-1:0] ddr_rcv_clk_o;
+    // Serial Link pin assignments
+    // For now supports only single channel 4 lanes 
+    assign ddr_rcv_clk_o_o = ddr_rcv_clk_o;
+    assign ddr_rcv_clk_i = ddr_rcv_clk_i_i;
+  
+    assign ddr_o_0_o = ddr_o[0][0];
+    assign ddr_o_1_o = ddr_o[0][1];
+    assign ddr_o_2_o = ddr_o[0][2];
+    assign ddr_o_3_o = ddr_o[0][3];
+    
+    assign ddr_i[0][0] = ddr_i_0_i;
+    assign ddr_i[0][1] = ddr_i_1_i;
+    assign ddr_i[0][2] = ddr_i_2_i;
+    assign ddr_i[0][3] = ddr_i_3_i;
+  % else:
+    // Tie off serial link signals if peripheral is not included
+    assign ddr_rcv_clk_o_o = '0;
+    assign ddr_o_0_o = '0;
+    assign ddr_o_1_o = '0;
+    assign ddr_o_2_o = '0;
+    assign ddr_o_3_o = '0;
+    
+  % endif
 
 endmodule  // core_v_mini_mcu

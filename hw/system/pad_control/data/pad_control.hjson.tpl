@@ -28,7 +28,7 @@
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "${xheep.get_padring().get_muxed_pad_select_width()-1}:0", name: "PAD_MUX_${pad.name.upper()}", desc: "Pad Mux ${pad.name.upper()} Reg" }
+        { bits: "${(len(pad.pins)-1).bit_length()-1}:0", name: "PAD_MUX_${pad.name.upper()}", desc: "Pad Mux ${pad.name.upper()} Reg" }
       ]
     }
   % endif

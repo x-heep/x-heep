@@ -81,7 +81,7 @@ module pad_control #(
 
 % for pad in xheep.get_padring().pad_list:
     % if len(pad.pins) > 1:
-        assign pad_muxes_o[PAD_${pad.name.upper()}] = $unsigned(reg2hw.pad_mux_${pad.name.lower()}.q);
+        assign pad_muxes_o[PAD_${pad.name.upper()}] = ${xheep.get_padring().get_muxed_pad_select_width()}'(reg2hw.pad_mux_${pad.name.lower()}.q);
     % endif
 % endfor
 

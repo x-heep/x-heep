@@ -7,7 +7,6 @@
  */
 
 module dma
-  import fifo_pkg::*;
   import dma_reg_pkg::*;
 #(
     parameter int FIFO_DEPTH = 4,
@@ -16,7 +15,9 @@ module dma
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic,
     parameter type obi_req_t = logic,
-    parameter type obi_resp_t = logic
+    parameter type obi_resp_t = logic,
+    parameter type fifo_resp_t = logic,
+    parameter type fifo_req_t = logic
 ) (
     input logic clk_i,
     input logic rst_ni,

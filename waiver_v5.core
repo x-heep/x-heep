@@ -1,0 +1,21 @@
+CAPI=2:
+
+# Copyright 2026 EPFL
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+#
+# Author: Michele Caon
+# Description: Generator of Verilator 5 waivers
+
+name: xheep:gen:waiver_generator_v5
+description: Top-level module of Morpheus
+
+# Generators
+generators:
+  # Waivers generator for Verilator 5.XXX
+  waiver-v5-gen:
+    interpreter: python
+    command: util/waiver-gen.py
+    cache_type: input
+    file_input_parameters:
+    - waivers_v5 # list of .vlt files only required for Verilator 5.XXX

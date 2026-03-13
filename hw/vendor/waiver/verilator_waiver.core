@@ -9,6 +9,8 @@ description: "Waiver for Verilator"
 
 filesets:
   files_verilator_waiver:
+    depend:
+    - xheep:gen:waiver_generator_v5
     files:
     - lint/cv32e40p.vlt
     - lint/cv32e40x.vlt

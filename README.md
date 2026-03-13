@@ -1,3 +1,39 @@
+# X-HEEP quick setup
+
+This is a quick tutorial on how to get started with this tool, more information can be found in the [documentation](https://x-heep.readthedocs.io/en/latest/GettingStarted/Setup.html#manual-setup), this is a manual setup for linux.
+
+### OS requirements: 
+For ubuntu:
+```
+sudo apt install autoconf automake autotools-dev curl python3 python3-pip python3-tomli libmpc-dev libmpfr-dev libgmp-dev gawk build-essential bison flex texinfo gperf libtool patchutils bc zlib1g-dev libexpat-dev ninja-build git cmake libglib2.0-dev libslirp-dev help2man perl make g++ libfl2 libfl-dev zlibc zlib1g zlib1g-dev ccache mold libgoogle-perftools-dev numactl libelf-dev
+```
+For Alma Linux:
+```
+sudo dnf install -y autoconf automake curl python3 python3-pip libmpc-devel mpfr-devel gmp-devel gawk gcc gcc-c++ bison flex texinfo gperf libtool patchutils bc zlib-devel expat-devel ninja-build git cmake glib2-devel libslirp-devel help2man perl make flex-devel ccache numactl elfutils-libelf-devel
+```
+
+### Python:
+Create your own python environnement
+```
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r python-requirements.txt
+```
+
+### RISC-V toolchain:
+Follow the documentation directly if you don't have a `riscv32-unknown` toolchain. \
+It can be found [here](https://x-heep.readthedocs.io/en/latest/GettingStarted/Setup.html#install-the-risc-v-compiler)
+
+### Other tool:
+Verible and Verilator are needed too.\
+After that, all the requirements for x-heep should be satisfied.
+
+# X-HEEP fork with SoCMake Support
+
+This fork adds SoCMake support to x-heep, as a small examples to show SoCMake.
+
+***
+
 <br />
 <p align="center"><img src="docs/source/images/x-heep-outline.png" width="500"></p>
 

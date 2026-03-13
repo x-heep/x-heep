@@ -2,19 +2,23 @@
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 
-# Author: Michele Caon, David Mallasen
+# Author: Michele Caon, David Mallasen, Davide Schiavone
 # Description: Script to generate the i2s registers
+# Usage: ./i2s_gen.sh [REGTOOL_PATH] [PERIPH_GEN_PATH] [TEMPLATE_FILE] [SW_DIR_PATH]
 
 PERIPHERAL_NAME=i2s
 
 REG_DIR=$(dirname -- $0)
 ROOT="$(dirname -- $0)/../../.."
-REGTOOL=$ROOT/hw/vendor/pulp_platform_register_interface/vendor/lowrisc_opentitan/util/regtool.py
-PERIPH_STRUCTS_GEN=$ROOT/util/periph_structs_gen/periph_structs_gen.py
 HJSON_FILE=$REG_DIR/data/$PERIPHERAL_NAME.hjson
-TEMPLATE_FILE=$ROOT/util/periph_structs_gen/periph_structs.tpl
 RTL_DIR=$REG_DIR/rtl
-SW_DIR=$ROOT/sw/device/lib/drivers/$PERIPHERAL_NAME
+
+
+REGTOOL=${1:-$ROOT/hw/vendor/pulp_platform_register_interface/vendor/lowrisc_opentitan/util/regtool.py}
+PERIPH_STRUCTS_GEN=${2:-$ROOT/util/periph_structs_gen/periph_structs_gen.py}
+TEMPLATE_FILE=${3-$ROOT/util/periph_structs_gen/periph_structs.tpl}
+SW_DIR=${4-$ROOT/sw/device/lib/drivers/$PERIPHERAL_NAME}
+
 
 mkdir -p $RTL_DIR $SW_DIR
 

@@ -63,18 +63,19 @@ include("./cmake/mcu_gen_structs_periph_gen.cmake")
 include("./cmake/xheep_add_top_target.cmake")
 include("./cmake/add_sw.cmake")
 
+# TODO : UPDATE THIS COMMENT
 # This is the X-Heep config IP.
 # It creates a target to generate a pickle file and keep it in XHEEP_CACHE language
-# Later IP libraries that need generation from template should link to this ip and call cu_gen_template()
-xheep_add_cfg_ip(xheep_cfg
+# Later IP libraries that need generation from template should link to this ip and call mcu_gen_template()
+xheep_add_cfg_ip(MCU_GEN_FLAGS
     X_HEEP_CFG ${XHEEP_CFG}
-    PADS_CFG ./configs/pad_cfg.hjson
+    PADS_CFG ./configs/pad_cfg.py
     CPU ${XHEEP_CPU}
     MEMORY_BANKS ${XHEEP_MEMORY_BANKS}
     MEMORY_BANKS_IL ${XHEEP_MEMORY_BANKS_IL}
     BUS ${XHEEP_BUS}
 )
-set(XHEEP_CFG_IP xheep_cfg)
+# set(XHEEP_CFG_IP xheep_cfg)
 
 add_ip_from_fusesoc("./hw/vendor/lowrisc_opentitan/hw/lint/common.core")
 add_ip_from_fusesoc("./hw/vendor/lowrisc_opentitan/hw/ip/prim/prim_subreg.core")
@@ -160,7 +161,6 @@ ip_sources(${IP} OPENTITAN_ASM_TEMPLATE
 )
 
 ip_link(${IP}
-        xheep_cfg
         xheep_linker
         )
 
@@ -168,10 +168,10 @@ ip_link(pulp-platform.org::tech_cells_generic
     openhwgroup.org::ip::verilator_waiver
 )
 
-mcu_gen_template(${IP} FILE_SET files_rtl)
-
-# TODO this python script is a mess
-mcu_gen_structs_periph_gen(${IP})
+# TODO : Not needed anymore, everything is done in a single command.
+#    Add support for template with `--outtpl` flag
+mcu_gen_template(${IP} FILE_SET files_rtl MCU_GEN_FLAGS ${MCU_GEN_FLAGS})
+# mcu_gen_structs_periph_gen(${IP})
 
 xheep_add_top_target(mcu_gen ${IP})
 ## SW tests:

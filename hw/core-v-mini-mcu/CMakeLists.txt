@@ -52,8 +52,7 @@ ip_sources(${IP} OPENTITAN_SV_TEMPLATE
     ./include/core_v_mini_mcu_pkg.sv.tpl
 )
 ip_link(${IP}
-    ${XHEEP_CFG_IP}
     x-heep::core::addr_map_rule_pkg
     x-heep::core::power_manager_pkg
     )
-mcu_gen_template(${IP} FILE_SET files_rtl)
+mcu_gen_template(${IP} FILE_SET files_rtl MCU_GEN_FLAGS ${MCU_GEN_FLAGS})

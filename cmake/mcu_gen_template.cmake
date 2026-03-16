@@ -2,13 +2,13 @@ macro(__mcu_gen_template_file_gen_command generated_files)
     unset(gen_lang_files)
     foreach(source ${sources})
         set(cmd ${Python3_EXECUTABLE} ${MCU_GEN_EXECUTABLE}
-                --cached_path "${cache}" --cached --outtpl "${source}")
+                ${MCU_GEN_FLAGS} --outtpl "${source}")
         cmake_path(REMOVE_EXTENSION source LAST_ONLY OUTPUT_VARIABLE gen_file)
         set(DESCRIPTION "${Green}Generate ${gen_file} for '${IP_LIB}'${ColourReset}")
         add_custom_command(
             OUTPUT ${gen_file}
             COMMAND ${cmd}
-            DEPENDS ${sources} ${cache}
+            DEPENDS ${sources}
             COMMENT ${DESCRIPTION}
             COMMAND_EXPAND_LISTS
         )
@@ -22,7 +22,7 @@ endmacro()
 
 function(mcu_gen_template IP_LIB)
     # Parse keyword arguments
-    cmake_parse_arguments(ARG "" "OUTDIR;FILE_SET" "ARGS" ${ARGN})
+    cmake_parse_arguments(ARG "" "OUTDIR;FILE_SET" "MCU_GEN_FLAGS" "" ${ARGN})
     # Check for any unknown argument
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument "
@@ -41,7 +41,10 @@ function(mcu_gen_template IP_LIB)
         set(ARG_FILE_SET FILE_SET ${ARG_FILE_SET})
     endif()
 
-    get_ip_sources(cache ${IP_LIB} XHEEP_CACHE)
+    if(NOT ARG_MCU_GEN_FLAGS)
+        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION}: missing MCU_GEN_FLAGS for mcu_gen config")
+    endif()
+    set(MCU_GEN_FLAGS ${ARG_MCU_GEN_FLAGS})
 
     get_ip_links(ips ${IP_LIB})
 

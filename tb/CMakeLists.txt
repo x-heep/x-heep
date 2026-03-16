@@ -7,14 +7,10 @@ add_subdirectory("../hw/vendor/pulp_platform_pulpissimo/rtl/tb/" "remote_bitbang
 
 add_ip_from_fusesoc("./x-heep-tb-utils.core")
 
-
-ip_link(${IP}
-    ${XHEEP_CFG_IP}
-)
 ip_sources(${IP} OPENTITAN_SVH_TEMPLATE
     ./tb_util.svh.tpl
 )
-mcu_gen_template(${IP} FILE_SET files_rtl)
+mcu_gen_template(${IP} FILE_SET files_rtl MCU_GEN_FLAGS ${MCU_GEN_FLAGS})
 
 #### Testbench
 add_ip(tb_top)

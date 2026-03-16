@@ -135,8 +135,6 @@ int main(void) {
 
     // Read from flash memory at specific address (i.e. flash_buffer_test1) in HW
     // we use polling
-    //disable interrupts
-    w25q128jw_controller_enable_interrupt(0);
     w25q128jw_controller_run(0, 0, flash_ptr_test1);
 
     // Check Results
@@ -236,8 +234,6 @@ int main(void) {
 
     // Read from flash memory at specific address (i.e. flash_buffer_test1) in HW
     // we use polling
-    //disable interrupts
-    w25q128jw_controller_enable_interrupt(0);
     w25q128jw_controller_run(0, 1, flash_ptr_test1);
 
     // Check Results

@@ -137,6 +137,7 @@ mcu-gen:
 	bash -c "cd hw/ip/pdm2pcm; source pdm2pcm_gen.sh; cd ../../../"
 	bash -c "cd hw/system/pad_control; source pad_control_gen.sh; cd ../../../"
 	bash -c "cd hw/vendor/xheep_dma; source dma_gen.sh; cd ../../../"
+	bash -c "cd hw/ip/w25q128jw_controller; source w25q128jw_controller.sh; cd ../../../"
 	bash -c "cd hw/ip/boot_rom; make clean; make all; cd ../../../"
 	$(MAKE) verible
 

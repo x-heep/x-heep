@@ -27,7 +27,7 @@
 
 /* By default, printfs are activated for FPGA and disabled for simulation. */
 #define PRINTF_IN_FPGA  1
-#define PRINTF_IN_SIM   0
+#define PRINTF_IN_SIM   1
 
 #if TARGET_SIM && PRINTF_IN_SIM
         #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
@@ -122,7 +122,7 @@ int main(void) {
      * |_|   |______||_____/    |_|          |_|  
      * * [ TEST ]                            [ NO. 1 ]
      **************************************************************/
-
+    PRINTF("Test 1\n");
     // First, check that the Flash has been programmed/initialized correctly
     // we read in SW as we assume the SW is the golden model
     w25q128jw_read_standard_dma((uint32_t)flash_ptr_test1, sram_buffer_read_flash_back, LENGTH_BYTES, 0, 0);
@@ -143,7 +143,7 @@ int main(void) {
      * |_|   |______||_____/    |_|         |____|
      * * [ TEST ]                            [ NO. 2 ]
      * **************************************************************/
-
+    PRINTF("Test 2\n");
     // Reset the flash data buffer
     memset(sram_buffer_read_flash_back, 0, LENGTH_BYTES);
 
@@ -174,7 +174,7 @@ int main(void) {
      * |_|   |______||_____/    |_|          |____/ 
      * * [ TEST ]                            [ NO. 3 ]
      * **************************************************************/
-
+    PRINTF("Test 3\n");
     // Reset the flash data buffer
     memset(sram_buffer_read_flash_back, 0, LENGTH_BYTES);
 
@@ -199,7 +199,7 @@ int main(void) {
      * |_|   |______||_____/    |_|            |_|  
      * * [ TEST ]                            [ NO. 4 ]
      * **************************************************************/
-
+    PRINTF("Test 4\n");
     // Reset the flash data buffer
     memset(sram_buffer_read_flash_back, 0, LENGTH_BYTES);
 
@@ -245,7 +245,7 @@ int main(void) {
      * |_|   |______||_____/    |_|         |____/ 
      * * [ TEST ]                            [ NO. 5 ]
      * **************************************************************/
-
+    PRINTF("Test 5\n");
     // Reset the flash data buffer
     memset(sram_buffer_read_flash_back, 0, LENGTH_BYTES);
 
@@ -296,7 +296,7 @@ int main(void) {
      * |_|   |______||_____/    |_|         \___/  
      * * [ TEST ]                            [ NO. 6 ]
      * **************************************************************/
-
+    PRINTF("Test 6\n");
     // Reset the flash data buffer
     memset(sram_buffer_read_flash_back, 0, LENGTH_BYTES);
     //change sram_data
@@ -356,7 +356,7 @@ int main(void) {
      * |_|   |______||_____/    |_|           /_/    
      * * [ TEST ]                            [ NO. 7 ]
      * **************************************************************/
-
+    PRINTF("Test 7\n");
 
     //As the controller uses the DMA, check you can use it as before soon after
     dma_init(NULL);

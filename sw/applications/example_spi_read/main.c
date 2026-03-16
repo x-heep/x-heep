@@ -17,7 +17,7 @@
 
 /* By default, PRINTFs are activated for FPGA and disabled for simulation. */
 #define PRINTF_IN_FPGA  1
-#define PRINTF_IN_SIM   0
+#define PRINTF_IN_SIM   1
 
 #if TARGET_SIM && PRINTF_IN_SIM
         #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
@@ -305,7 +305,7 @@ uint32_t check_result(uint8_t *test_buffer, uint32_t len) {
         if (test_buffer[i] != flash_data_char[i]) {
             PRINTF("Error at position %d: expected %x, got %x\n", i, test_buffer[i], flash_data_char[i]);
             errors++;
-            break;
+            // break;
         }
     }
 

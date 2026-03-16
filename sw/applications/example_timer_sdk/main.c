@@ -18,7 +18,7 @@
 
 /* By default, printfs are activated for FPGA and disabled for simulation. */
 #define PRINTF_IN_FPGA  1
-#define PRINTF_IN_SIM   0
+#define PRINTF_IN_SIM   1
 
 /* Error tolerances for the tests. */
 #define CYCLE_TOLERANCE  2         // cycles tolerance for simple timer reads

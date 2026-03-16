@@ -5,7 +5,7 @@ The X-HEEP system can be configured by three methods:
 - Using an hjson file.
 - Using a Python script (recommended)
 
-If an `hjson` file or `Python` script is used for configuration, the following parameters can be overriden from the make command:
+If an `hjson` file or `Python` script is used for configuration, the following parameters can be overridden from the make command:
 
 - `CPU`
 - `BUS`

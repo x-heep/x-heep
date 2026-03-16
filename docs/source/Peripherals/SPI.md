@@ -791,7 +791,7 @@ typedef struct spi_status_s {
     uint8_t rxqd        : 8;
     // CMD queue depth (how many unprocessed commands are in the FIFO)
     uint8_t cmdqd       : 4;
-    // Indicates wether rxqd is above the RX Watermark
+    // Indicates whether rxqd is above the RX Watermark
     bool    rxwm        : 1;
     // Not used
     bool    __rsvd0     : 1;
@@ -803,7 +803,7 @@ typedef struct spi_status_s {
     bool    rxempty     : 1;
     // Indicates RX FIFO is full
     bool    rxfull      : 1;
-    // Indicates wether txqd is below the TX Watermark
+    // Indicates whether txqd is below the TX Watermark
     bool    txwm        : 1;
     // Indicates if the SPI still has more data to send but the TX FIFO is empty
     bool    txstall     : 1;

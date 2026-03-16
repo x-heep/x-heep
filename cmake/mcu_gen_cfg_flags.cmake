@@ -1,4 +1,4 @@
-function(xheep_add_cfg_ip MCU_GEN_FLAGS)
+function(mcu_gen_cfg_flags MCU_GEN_FLAGS)
     # Parse keyword arguments
     cmake_parse_arguments(ARG "" "X_HEEP_CFG;X_HEEP_PY_CFG;PADS_CFG;CPU;BUS;MEMORY_BANKS;MEMORY_BANKS_IL;EXTERNAL_DOMAINS" "" ${ARGN})
     # Check for any unknown argument

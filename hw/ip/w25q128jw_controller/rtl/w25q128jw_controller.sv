@@ -588,9 +588,16 @@ module w25q128jw_controller
             spi_host_reg_req_o.valid = 1'b1;
 
 `ifndef FPGA_SYNTHESIS
-            spi_host_reg_req_o.wdata = spi_cmd_pack(SPI_DIR_DUMMY, SPI_SPEED_QUAD, 1'b1, 24'h7);
+`ifndef SYNTHESIS
+            spi_host_reg_req_o.wdata =
+                spi_cmd_pack(SPI_DIR_DUMMY, SPI_SPEED_QUAD, 1'b1, 24'h7);  //Sim
 `else
-            spi_host_reg_req_o.wdata = spi_cmd_pack(SPI_DIR_DUMMY, SPI_SPEED_QUAD, 1'b1, 24'h3);
+            spi_host_reg_req_o.wdata =
+                spi_cmd_pack(SPI_DIR_DUMMY, SPI_SPEED_QUAD, 1'b1, 24'h7);  // Also sim
+`endif
+`else
+            spi_host_reg_req_o.wdata =
+                spi_cmd_pack(SPI_DIR_DUMMY, SPI_SPEED_QUAD, 1'b1, 24'h3);  // FPGA
 `endif
             if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error) begin
               read_state_d = READ_SPI_QUAD_WAIT_READY_DUMMY;

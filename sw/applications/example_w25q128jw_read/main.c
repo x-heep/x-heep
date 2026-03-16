@@ -219,9 +219,6 @@ int main(void) {
 
     w25q128jw_controller_run(1, 0, flash_ptr_test1);
 
-    //reset counter for next tests
-    w25q128jw_set_dma_slot_wait_counter(0); 
-
      // Check Results
     for(int i=0;i<NUM_WORDS;i++) {
         if(sram_buffer_read_flash_back[i]!=i) {
@@ -302,9 +299,6 @@ int main(void) {
     w25q128jw_set_dma_slot_wait_counter(12);
 
     w25q128jw_controller_run(1, 1, flash_ptr_test1);
-
-    //reset counter for next tests
-    w25q128jw_set_dma_slot_wait_counter(0); 
 
      // Check Results
     for(int i=0;i<NUM_WORDS;i++) {

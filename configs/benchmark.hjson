@@ -27,7 +27,7 @@
     // Derived from Occamy: https://github.com/pulp-platform/snitch/blob/master/hw/system/occamy/src/occamy_cfg.hjson
     // Peripherals configuration for core-v-mini-mcu.
 
-    cpu_type: cv32e20
+    cpu_type: cv32e40p
 
     linker_script: {
         stack_size: 0x800
@@ -65,7 +65,7 @@
         w25q128jw_controller: {
             offset:  0x00029000
             length:  0x00007000
-            is_included: "yes"
+            is_included: "no"
         }
         dma: {
             offset:  0x00030000

@@ -11,6 +11,7 @@
       swaccess: "rw"
       hwaccess: "hrw"
       fields: [
+        { bits: "2", name: "QUAD", desc: "Quad spi mode", resval: "0x0" }
         { bits: "1", name: "RNW", desc: "Read Not Write operation mode", resval: "0x0" }
         { bits: "0", name: "START", desc: "Start operation", resval: "0x0" }
       ]

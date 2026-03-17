@@ -6,7 +6,7 @@
 # Description: Script to generate the dma registers
 
 # Variables with command-line overrides
-# Usage: ./dma_gen.sh [REGTOOL_PATH] [PERIPH_GEN_PATH] [SW_DIR_PATH]
+# Usage: ./dma_gen.sh [REGTOOL_PATH] [PERIPH_GEN_PATH] [TEMPLATE_FILE] [SW_DIR_PATH]
 
 PERIPHERAL_NAME=dma
 

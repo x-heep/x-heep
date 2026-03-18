@@ -35,7 +35,7 @@
       Syncronization (Sy), SPI clock (Ck), Chip select (Cs), Master-out-Slave-in (Mo), Master-in-Slave-out (Mi).
  4) Have fun
  4.a) Reset both boards. 
- 4.b) The one that resets first (master) will light a red LED and start requesting a read from the slave (toggling a green LED). 
+ 4.b) The one that resets first (master) will light a yellow LED and start requesting a read from the slave (toggling between cyan and white).
  4.c) The one that resets the last (slave) will turn the blue LED and go to sleep. 
  4.d) If the transaction is successful, the master will leave the green LED on and the last LED (LD0) will light up.
       If the transaction fails (common after the first syncronization), the master will leave the red LED on and both LD0 and LD1 will light up. 
@@ -148,14 +148,15 @@ int main(){
     pin_cfg.mode    = GpioModeOutPushPull;
     pin_cfg.pin     = GPIO_LD5_R;
     gpio_config(pin_cfg);
+    pin_cfg.pin     = GPIO_LD5_G;
+    gpio_config(pin_cfg);
     pin_cfg.pin     = GPIO_LD5_B;
     gpio_config(pin_cfg);
-	pin_cfg.pin     = GPIO_LD5_G;
-    gpio_config(pin_cfg);
-    // Start all LEDs off. 
+
+    // Start color LED off
     gpio_write(GPIO_LD5_R, false);
-    gpio_write(GPIO_LD5_B, false);
     gpio_write(GPIO_LD5_G, false);
+    gpio_write(GPIO_LD5_B, false);
 
     // Read the synq GPIO to know if you are master
     gpio_read( GPIO_SYNQ, &synq );
@@ -170,8 +171,10 @@ int main(){
         // Declare dominance
         PRINTF("Look at me. I am the captain now.\n\r");
 
-        // Turn on the red LED to identify the master. 
+        // Turn LED yellow to identify the master
         gpio_write(GPIO_LD5_R, true);
+        gpio_write(GPIO_LD5_G, true);
+        gpio_write(GPIO_LD5_B, false);
 
         // Enable the timer interrupts to go to sleep between packets. 
         enable_timer_interrupt();
@@ -180,8 +183,19 @@ int main(){
         timer_wait_us(1000000);
         #endif
 
-        // Initilize the SPI host IP
-        if( spi_host_init(spi_host1, 0)!= SPI_FLAG_SUCCESS) return EXIT_FAILURE;
+        // Turn LED cyan to signal start of transfer
+        gpio_write(GPIO_LD5_R, false);
+        gpio_write(GPIO_LD5_G, true);
+        gpio_write(GPIO_LD5_B, true);
+
+        // Initialize the SPI host IP
+        if( spi_host_init(spi_host1, 0)!= SPI_FLAG_SUCCESS){
+            // Something went wrong!  Turn on the pink beacon of doom and abort.
+            gpio_write(GPIO_LD5_R, true);
+            gpio_write(GPIO_LD5_G, false);
+            gpio_write(GPIO_LD5_B, true);
+            return EXIT_FAILURE;
+        }
 
         // We will request chunks of chunk_w words. 
         // We will repeat the process N times until we have read the entirety of the buffer. 
@@ -196,23 +210,33 @@ int main(){
             #if !TARGET_SIM
             timer_wait_us(250000);
             #endif
-            gpio_toggle(GPIO_LD5_G);
+            gpio_toggle(GPIO_LD5_R); // toggle between cyan and white
         }
 
         // Check if the read values are ok.
         for( i=0; i < chunks_n*chunk_w*4; i++){
             // If any value is not wahat you expected, the two rightmost LEDs of the board will be light up. 
-            if(buffer_read_from[i] != buffer_read_to[i]) return EXIT_FAILURE;
+            if(buffer_read_from[i] != buffer_read_to[i]){
+                // Wrong result!  Turn on the red light of wrongness and abort.
+                gpio_write(GPIO_LD5_R, true);
+                gpio_write(GPIO_LD5_G, false);
+                gpio_write(GPIO_LD5_B, false);
+                return EXIT_FAILURE;
+            }
         }
 
-        // Celebrate in a fairly lame way
+        // Celebrate by going green
         PRINTF("Well done!\n\r");
-        gpio_write(GPIO_LD5_G,  true);
+        gpio_write(GPIO_LD5_R, false);
+        gpio_write(GPIO_LD5_G, true);
+        gpio_write(GPIO_LD5_B, false);
     
     } else { // if instead your role is to be the slave
         // Lament it
         PRINTF("Oh snap, slave again it is...\n\r");
-        // Turn the red LED in disapproval 
+        // Turn the LED blue in disapproval
+        gpio_write(GPIO_LD5_R, false);
+        gpio_write(GPIO_LD5_G, false);
         gpio_write(GPIO_LD5_B, true);
         // Go to sleep, nothing else to be done by the CPU
         wait_for_interrupt();

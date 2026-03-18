@@ -299,7 +299,140 @@ int main(void) {
 
 
     /**************************************************************** */
-    PRINTF("Test 7: Manual dma copy\n");
+    PRINTF("Test 7: Hardware Write, quad speed, DMA, interrupt\n");
+    // Reset the flash data buffer
+    memset(sram_buffer_read_flash_back, 0, LENGTH_BYTES);
+
+    //change sram_data
+    for(int i=0;i<NUM_WORDS;i++)
+       sram_data[i]|= 0xAAAA0000;
+
+    // Write to flash memory at specific address (i.e. flash_buffer_test2) the value from sram_data in HW
+    // we use interrupt now
+    // Clear HW regs before starting operation
+    w25q128jw_controller_clear_status_register();
+    // Clear SW flag of ISR before starting operation
+    w25q128jw_controller_clear_done_flag();
+    // Activate interrupt in PLIC
+    plic_Init();
+    plic_irq_set_priority(W25Q128JW_CONTROLLER_INTR_EVENT, 1);
+    plic_irq_set_enabled(W25Q128JW_CONTROLLER_INTR_EVENT, kPlicToggleEnabled);
+    // Activate global CPU interrupts
+    CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);   // Global interrupt enable for machine mode (MIE) bit in Machine Status Registers
+    CSR_SET_BITS(CSR_REG_MIE, (1 << 11)); // Machine External Interrupt Enable (MEIE) bit in Machine Interrupt Pending Register
+
+    w25q128jw_controller_run(1, 1, flash_ptr_test2);
+
+    // we read back in SW as we assume the SW is the golden model
+    w25q128jw_read_quad_dma((uint32_t)flash_ptr_test2, sram_buffer_read_flash_back, LENGTH_BYTES);
+
+    // Check Results
+    for(int i=0;i<NUM_WORDS;i++) {
+        if(sram_buffer_read_flash_back[i]!=sram_data[i]) {
+            PRINTF("At %d: expected %x, got %x\n", i, sram_data[i], sram_buffer_read_flash_back[i]);
+            return 7;
+        }
+    }
+
+    /**************************************************************** */
+    PRINTF("Test 8: Hardware Write + Read, quad speed, DMA, interrupt\n");
+    // Reset the flash data buffer
+    memset(sram_buffer_read_flash_back, 0, LENGTH_BYTES);
+
+    //change sram_data
+    for(int i=0;i<NUM_WORDS;i++)
+       sram_data[i] = MAGIC_TEST_NUM + i;
+
+
+    // Write to flash memory at specific address (i.e. flash_buffer_test1) the value from sram_data in HW
+    // we use interrupt now
+    // Clear HW regs before starting operation
+    w25q128jw_controller_clear_status_register();
+    // Clear SW flag of ISR before starting operation
+    w25q128jw_controller_clear_done_flag();
+    //no need for PLIC or INT enable as done before
+
+    w25q128jw_controller_run(1, 1, flash_ptr_test1);
+
+    // we read back in HW to test READ-After-WRITE
+
+    // we use interrupt now
+    // Clear HW regs before starting operation
+    w25q128jw_controller_clear_status_register();
+    // Clear SW flag of ISR before starting operation
+    w25q128jw_controller_clear_done_flag();
+    //no need for PLIC or INT enable as done before
+
+    w25q128jw_controller_read((void*) &sram_buffer_read_flash_back[0], (void*) &flash_ptr_test1[0], LENGTH_BYTES, 1);
+
+    while(!w25q128jw_controller_is_ready_intr()) {
+        asm volatile("wfi");  // Wait For Interrupt - CPU sleeps
+    }
+
+    // Check Results
+    for(int i=0;i<NUM_WORDS;i++) {
+        if(sram_buffer_read_flash_back[i]!=sram_data[i]) {
+            PRINTF("At %d: expected %x, got %x\n", i, sram_data[i], sram_buffer_read_flash_back[i]);
+            return 8;
+        }
+    }
+
+    /**************************************************************** */
+    PRINTF("Test 9: Hardware Write + Read, quad speed, DMA with delay, interrupt\n");
+    // Reset the flash data buffer
+    memset(sram_buffer_read_flash_back, 0, LENGTH_BYTES);
+    //change sram_data
+    for(int i=0;i<NUM_WORDS;i++)
+       sram_data[i] = MAGIC_TEST_NUM + (2*i);
+
+    // Write to flash memory at specific address (i.e. flash_buffer_test2) in HW, but we use wait counters
+    // we use interrupt now
+    // Clear HW regs before starting operation
+    w25q128jw_controller_clear_status_register();
+    // Clear SW flag of ISR before starting operation
+    w25q128jw_controller_clear_done_flag();
+    // Activate interrupt in PLIC
+    plic_Init();
+    plic_irq_set_priority(W25Q128JW_CONTROLLER_INTR_EVENT, 1);
+    plic_irq_set_enabled(W25Q128JW_CONTROLLER_INTR_EVENT, kPlicToggleEnabled);
+    // Activate global CPU interrupts
+    CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);   // Global interrupt enable for machine mode (MIE) bit in Machine Status Registers
+    CSR_SET_BITS(CSR_REG_MIE, (1 << 11)); // Machine External Interrupt Enable (MEIE) bit in Machine Interrupt Pending Register
+
+    //we also use the dma slot delay counter (we wait 12 cycles after rvalid in both reads and writes)
+    w25q128jw_set_dma_slot_wait_counter(2);
+
+    w25q128jw_controller_run(1, 1, flash_ptr_test2);
+
+    // we read back in HW to test READ-After-WRITE
+    
+    // we use interrupt now
+    // Clear HW regs before starting operation
+    w25q128jw_controller_clear_status_register();
+    // Clear SW flag of ISR before starting operation
+    w25q128jw_controller_clear_done_flag();
+    //no need for PLIC or INT enable as done before
+
+    w25q128jw_controller_read((void*) &sram_buffer_read_flash_back[0], (void*) &flash_ptr_test2[0], LENGTH_BYTES, 1);
+
+    while(!w25q128jw_controller_is_ready_intr()) {
+        asm volatile("wfi");  // Wait For Interrupt - CPU sleeps
+    }
+
+    // Check Results
+    for(int i=0;i<NUM_WORDS;i++) {
+        if(sram_buffer_read_flash_back[i]!=sram_data[i]) {
+            PRINTF("At %d: expected %x, got %x\n", i, sram_data[i], sram_buffer_read_flash_back[i]);
+            return 9;
+        }
+    }
+
+    // Reset dma wait counter
+    w25q128jw_set_dma_slot_wait_counter(2);
+
+
+    /**************************************************************** */
+    PRINTF("Test 10: Manual dma copy\n");
     //As the controller uses the DMA, check you can use it as before soon after
     dma_init(NULL);
     dma_trans_t dma_trans = {0};
@@ -337,7 +470,7 @@ int main(void) {
     for(int i=0;i<NUM_WORDS;i++) {
         if(sram_buffer_read_flash_back[i]!=dma_mem_copy[i]) {
             PRINTF("At %d: expected %x, got %x\n", i, dma_mem_copy[i], sram_buffer_read_flash_back[i]);
-            return 7;
+            return 10;
         }
     }
 

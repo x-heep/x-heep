@@ -32,18 +32,24 @@
  3) Connect the FPGAs
  3.a) On the top three lines of pins of the diagram below there are the SPI slave pins. Connect the ones from one board 
       to the master ones of the other board. The pins stand for:
-      Syncronization (Sy), SPI clock (Ck), Chip select (Cs), Master-out-Slave-in (Mo), Master-in-Slave-out (Mi).
+      Role (Ro), SPI clock (Ck), Chip select (Cs), Master-out-Slave-in (Mo), Master-in-Slave-out (Mi).
+ 3.b) For flexible roles (decided at run time), connect the master pins of one board to the slave pins of the other and vice versa (8 wires),
+      and connect Ro of both boards together.
+ 3.c) For fixed roles, connect only the master pins of the master board to the slave pins of the slave board (4 wires),
+      leave Ro unconnected on the master board, and connect Ro to ground (GD) on the slave board.
+ 3.d) For self-test (single board acting both as master and slave), connect the master pins on the board to the corresponding slave pins
+      and leave Ro unconnected.
  4) Have fun
  4.a) Reset both boards. 
  4.b) The one that resets first (master) will light a yellow LED and start requesting a read from the slave (toggling between cyan and white).
  4.c) The one that resets the last (slave) will turn the blue LED and go to sleep. 
  4.d) If the transaction is successful, the master will leave the green LED on and the last LED (LD0) will light up.
-      If the transaction fails (common after the first syncronization), the master will leave the red LED on and both LD0 and LD1 will light up. 
+      If the transaction fails (common after the first synchronization), the master will leave the red LED on and both LD0 and LD1 will light up. 
  4.e) You can restart the demo by resetting the master. 
  4.f) You can invert the roles by resetting both and releasing first the former slave.
 _____________________________________________________
               17      13  11   9                     |
-  ...[  ][  ][Vd][  ](Sy)(Ck)[GD][  ][  ][  ][Vd] 1  |    }
+  ...[  ][  ][Vd][  ](Ro)(Ck)[GD][  ][  ][  ][Vd] 1  |    }
   ...[  ][  ][  ][  ][  ][  ][  ](Cs)[  ][  ][  ] 2  |    }
                                    8             ____|_   }-- Slave
              ... AR3 AR2 AR1 AR0                 |    |   }
@@ -55,8 +61,6 @@ _____________________________________________________
                          {   (Cs)[GD]            |  A |
                                                  |____|
                                                      |
-
-To self-test you can connect the Sy to Vd (3V3)
 
 Disclaimer: 
 The FPGAs can have different bitstreams as long as the pinout remains the same. 
@@ -89,9 +93,9 @@ so the application will fail (you will read from the wrong address).
 #endif
 
 #if TARGET_SIM
-#define SYNC_LOGIC(x) ~x
+#define ROLE_LOGIC(x) (~(x))
 #else
-#define SYNC_LOGIC(x) x
+#define ROLE_LOGIC(x) (x)
 #endif
 
 #define GPIO_LD5_R  11
@@ -99,7 +103,7 @@ so the application will fail (you will read from the wrong address).
 #define GPIO_LD5_G  13
 
 #define DUMMY_CYCLES  32
-#define GPIO_SYNQ 10
+#define GPIO_ROLE 10
 
 #define DATA_LENGTH_B   100
 #define DATA_CHUNK_W    1
@@ -128,15 +132,15 @@ void __attribute__((aligned(4), interrupt)) handler_irq_timer(void) {
 
 int main(){
     uint16_t i;
-    uint8_t synq;
+    uint8_t role;
 
-    // Configure a GPIO to use to synq both FPGAs.
+    // Configure a GPIO to use to set the role of both FPGAs.
     // GPIOs by default are set high. 
     // If one of the devices detects it is the master, it 
     // will lower the GPIO. The other, if it finds the 
     // GPIO lowered will know it should be a slave.
     gpio_cfg_t pin_cfg = {
-    .pin = GPIO_SYNQ,
+    .pin = GPIO_ROLE,
     .mode = GpioModeIn,
     .en_input_sampling = true,
     .en_intr = false,
@@ -158,15 +162,15 @@ int main(){
     gpio_write(GPIO_LD5_G, false);
     gpio_write(GPIO_LD5_B, false);
 
-    // Read the synq GPIO to know if you are master
-    gpio_read( GPIO_SYNQ, &synq );
+    // Read the role GPIO to know if you are master
+    gpio_read( GPIO_ROLE, &role );
 
-    if( SYNC_LOGIC(synq) ){ // If synq == 1, you will be master. 
+    if( ROLE_LOGIC(role) ){ // If role == 1, you will be master. 
 
         // Write 0 on that GPIO to notify to the slave that the master
         // has been assigned. 
-        gpio_set_mode( GPIO_SYNQ, GpioModeOutPushPull );
-        gpio_write(GPIO_SYNQ, SYNC_LOGIC(false));
+        gpio_set_mode( GPIO_ROLE, GpioModeOutPushPull );
+        gpio_write(GPIO_ROLE, ROLE_LOGIC(false));
 
         // Declare dominance
         PRINTF("Look at me. I am the captain now.\n\r");

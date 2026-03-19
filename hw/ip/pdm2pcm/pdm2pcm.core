@@ -15,8 +15,8 @@ filesets:
     depend:
       - pulp-platform.org::common_cells
     files:
-      - rtl/pdm2pcm_reg_pkg.sv 
-      - rtl/pdm2pcm_reg_top.sv 
+      # - rtl/pdm2pcm_reg_pkg.sv 
+      # - rtl/pdm2pcm_reg_top.sv 
       - rtl/cic_combs.sv 
       - rtl/cic_comb.sv 
       - rtl/cic_integrators.sv 

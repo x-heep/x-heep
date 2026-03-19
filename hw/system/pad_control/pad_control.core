@@ -11,9 +11,10 @@ filesets:
   files_rtl:
     depend:
       - pulp-platform.org::common_cells
+      - x-heep:core:core_v_mini_mcu_pkg
     files:
-    - rtl/pad_control_reg_pkg.sv
-    - rtl/pad_control_reg_top.sv
+    # - rtl/pad_control_reg_pkg.sv
+    # - rtl/pad_control_reg_top.sv
     - rtl/pad_control.sv
     file_type: systemVerilogSource
 

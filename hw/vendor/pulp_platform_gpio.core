@@ -28,10 +28,10 @@ filesets:
     - pulp_platform_gpio/src/gpio_input_stage.sv
     file_type: systemVerilogSource
 
-  testbench:
-    files:
-    - pulp_platform_gpio/test/tb_gpio.sv
-    file_type: systemVerilogSource
+  # testbench:
+  #   files:
+  #   - pulp_platform_gpio/test/tb_gpio.sv
+  #   file_type: systemVerilogSource
 
 targets:
   default: &default_target

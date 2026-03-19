@@ -12,9 +12,12 @@ filesets:
     depend:
       - pulp-platform.org::common_cells
       - x-heep:ip:dma
+      - x-heep:core:core_v_mini_mcu_pkg
+      - x-heep:core:obi_pkg
+      - x-heep:core:reg_pkg
     files:
-    - rtl/im2col_spc_reg_pkg.sv
-    - rtl/im2col_spc_reg_top.sv
+    # - rtl/im2col_spc_reg_pkg.sv
+    # - rtl/im2col_spc_reg_top.sv
     - rtl/dma_if_pkg.sv
     - rtl/pipe_reg.sv
     - rtl/im2col_spc_regintfc_controller.sv

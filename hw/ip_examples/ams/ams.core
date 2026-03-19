@@ -12,10 +12,11 @@ filesets:
     depend:
       - pulp-platform.org::common_cells
     files:
-    - rtl/ams_reg_pkg.sv
-    - rtl/ams_reg_top.sv
+    # - rtl/ams_reg_pkg.sv
+    # - rtl/ams_reg_top.sv
     - rtl/ams.sv
-    - "!ams_sim? (rtl/dummy_adc.sv)"
+    - rtl/dummy_adc.sv
+    # - "!ams_sim? (rtl/dummy_adc.sv)"
     file_type: systemVerilogSource
 
 targets:

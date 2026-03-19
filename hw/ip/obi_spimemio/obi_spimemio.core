@@ -1,12 +1,15 @@
 CAPI=2:
 
-name : x-heep:obi_spimemio:0.1.0
+name : x-heep::obi_spimemio:0.1.0
 description: OBI interface for the spimemio core from picosoc
 
 filesets:
   rtl:
     depend:
       - yosyshq:picorv32_spimemio:0-r1
+      - x-heep:core:obi_pkg
+      - x-heep:core:reg_pkg
+      - pulp-platform.org::common_cells
     files: 
       - rtl/obi_spimemio_reg_pkg.sv
       - rtl/obi_spimemio_reg_top.sv

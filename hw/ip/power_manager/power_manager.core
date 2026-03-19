@@ -13,9 +13,10 @@ filesets:
       - lowrisc:prim:all
       - pulp-platform.org::register_interface
       - pulp-platform.org::common_cells
-      - x-heep:ip:power_manager_pkg
+      - x-heep:core:core_v_mini_mcu_pkg
+      # - x-heep:ip:power_manager_pkg
     files:
-    - rtl/power_manager_reg_top.sv
+    # - rtl/power_manager_reg_top.sv
     - rtl/power_manager_counter_sequence.sv
     - rtl/power_manager_sequence.sv
     - rtl/power_manager.sv

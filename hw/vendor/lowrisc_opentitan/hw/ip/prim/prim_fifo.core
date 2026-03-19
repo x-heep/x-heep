@@ -10,6 +10,7 @@ filesets:
     depend:
       - lowrisc:prim:assert
       - lowrisc:prim:flop_2sync
+      - lowrisc:prim:util
     files:
       - rtl/prim_fifo_async.sv
       - rtl/prim_fifo_sync.sv

@@ -15,8 +15,8 @@ filesets:
     depend:
       - pulp-platform.org::common_cells
     files:
-    - rtl/iffifo_reg_pkg.sv
-    - rtl/iffifo_reg_top.sv
+    # - rtl/iffifo_reg_pkg.sv
+    # - rtl/iffifo_reg_top.sv
     - rtl/iffifo.sv
     file_type: systemVerilogSource
 

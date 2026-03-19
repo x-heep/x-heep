@@ -1,5 +1,5 @@
 CAPI=2:
-name : yosyshq:picorv32_spimemio:0-r1
+name : yosyshq::picorv32_spimemio:0-r1
 
 filesets:
   rtl:

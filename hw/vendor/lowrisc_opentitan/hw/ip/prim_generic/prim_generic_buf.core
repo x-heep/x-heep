@@ -7,6 +7,8 @@ name: "lowrisc:prim_generic:buf"
 description: "buffer"
 filesets:
   files_rtl:
+    depend:
+      - lowrisc:prim:assert
     files:
       - rtl/prim_generic_buf.sv
     file_type: systemVerilogSource

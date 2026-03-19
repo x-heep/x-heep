@@ -107,6 +107,7 @@ add_ip_from_fusesoc("./hw/vendor/lowrisc_opentitan_spi_host/spi_host.core")
 
 add_subdirectory("./hw/core-v-mini-mcu/")
 
+add_subdirectory("./hw/vendor/xheep_dma")
 add_subdirectory("./hw/ip/")
 
 

@@ -43,6 +43,7 @@ function(boot_rom_sv_gen)
                 -o "${ELF}"
         DEPENDS "${SRC}" "${LD}"
         COMMENT "[BootRomGen] boot_rom.S -> boot_rom.elf"
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         VERBATIM
     )
  

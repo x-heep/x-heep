@@ -12,14 +12,15 @@ parser.add_argument('filename', metavar='filename', nargs=1,
                    help='filename of input binary')
 
 args = parser.parse_args()
-file = args.filename[0];
+file = args.filename[0]
 
 # check that file exists
 if not os.path.isfile(file):
-    print("File {} does not exist.".format(filename))
+    print("File {} does not exist.".format(file))
     sys.exit(1)
 
-filename = os.path.splitext(file)[0]
+filepath = os.path.splitext(file)[0]
+filename = os.path.basename(filepath)
 
 license = """\
 /* Copyright 2018 ETH Zurich and University of Bologna.

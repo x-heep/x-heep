@@ -128,7 +128,7 @@ add_subdirectory("./hw/vendor/lowrisc_opentitan/hw/ip/rv_plic/")
 add_ip_from_fusesoc("./hw/vendor/lowrisc_opentitan/hw/ip/rv_timer/rv_timer.core")
 
 add_ip_from_fusesoc("./hw/vendor/lowrisc_opentitan/hw/ip/i2c/i2c.core")
-add_ip_from_fusesoc("./hw/ip/boot_rom/boot_rom.core")
+add_subdirectory("./hw/ip/boot_rom/")
 add_ip_from_fusesoc("./hw/vendor/pulp_platform_obi_spi_slave/obi_spi_slave.core")
 add_subdirectory("./hw/system/pad_control")
 

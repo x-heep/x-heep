@@ -139,6 +139,8 @@ add_subdirectory("./sw/linker/")
 add_ip_from_fusesoc("./hw/vendor/waiver/verilator_waiver.core")
 add_ip_from_fusesoc("./core-v-mini-mcu.core")
 ip_sources(${IP} OPENTITAN_SV_TEMPLATE
+    ./hw/core-v-mini-mcu/ao_peripheral_subsystem.sv.tpl
+    ./hw/core-v-mini-mcu/spi_subsystem.sv.tpl
     ./hw/core-v-mini-mcu/system_bus.sv.tpl
     ./hw/core-v-mini-mcu/system_xbar.sv.tpl
     ./hw/core-v-mini-mcu/memory_subsystem.sv.tpl

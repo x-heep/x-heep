@@ -10,6 +10,10 @@ add_ip_from_fusesoc("./x-heep-tb-utils.core")
 ip_sources(${IP} OPENTITAN_SVH_TEMPLATE
     ./tb_util.svh.tpl
 )
+ip_sources(${IP} OPENTITAN_SV_TEMPLATE
+    ./testharness_pkg.sv.tpl
+    ./testharness.sv.tpl
+)
 mcu_gen_template(${IP} FILE_SET files_rtl MCU_GEN_FLAGS ${MCU_GEN_FLAGS})
 
 #### Testbench

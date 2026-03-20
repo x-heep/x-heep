@@ -50,7 +50,7 @@ lint_off -rule UNUSED -file "*/ao_peripheral_subsystem.sv" -match "Signal is not
 lint_off -rule UNUSED -file "*/ao_peripheral_subsystem.sv" -match "Signal is not used: 'use_spimemio'*"
 lint_off -rule UNUSED -file "*/ao_peripheral_subsystem.sv" -match "Signal is not used: 'external_dma_hw2reg'*"
 lint_off -rule UNUSED -file "*/cve2_xif_wrapper.sv" -match "Bits of signal are not used: 'cve2_x_issue_req'[35:4]"
-lint_off -rule UNUSED -file "*/cve2_xif_wrapper.sv" -match "Bits of signal are not used: 'cve2_x_register'[101:66]"
+lint_off -rule UNUSED -file "*/cve2_xif_wrapper.sv" -match "Bits of signal are not used: 'cve2_x_register'[134:99]"
 lint_off -rule UNUSED -file "*/cve2_xif_wrapper.sv" -match "Bits of signal are not used: 'cve2_x_commit'[36:5]"
 lint_off -rule UNOPTFLAT -file "*/cv32e40px_xif_wrapper.sv" -match "Signal unoptimizable: Circular combinational logic: '*cv32e40px_xif_wrapper_i.x_issue_valid'"
 lint_off -rule UNUSED -file "*/cpu_subsystem.sv" -match "Signal is not used: 'hart_id_i'*"

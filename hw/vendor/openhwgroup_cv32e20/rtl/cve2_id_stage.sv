@@ -153,8 +153,11 @@ module cve2_id_stage #(
   input  logic [31:0]               rf_rdata_a_i,
   output logic [4:0]                rf_raddr_b_o,
   input  logic [31:0]               rf_rdata_b_i,
+  output logic [4:0]                rf_raddr_c_o,
+  input  logic [31:0]               rf_rdata_c_i,
   output logic                      rf_ren_a_o,
   output logic                      rf_ren_b_o,
+  output logic                      rf_ren_c_o,
 
   // Register file write (via writeback)
   output logic [4:0]                rf_waddr_id_o,
@@ -220,18 +223,21 @@ module cve2_id_stage #(
 
   logic [XInterface:0] rf_wdata_sel;
   logic                rf_we_dec, rf_we_raw;
-  logic                rf_ren_a, rf_ren_b;
-  logic                rf_ren_a_dec, rf_ren_b_dec;
+  logic                rf_ren_a, rf_ren_b, rf_ren_c;
+  logic                rf_ren_a_dec, rf_ren_b_dec, rf_ren_c_dec;
 
   // Read enables should only be asserted for valid and legal instructions
   assign rf_ren_a = instr_valid_i & ~instr_fetch_err_i & ~illegal_insn_o & rf_ren_a_dec;
   assign rf_ren_b = instr_valid_i & ~instr_fetch_err_i & ~illegal_insn_o & rf_ren_b_dec;
+  assign rf_ren_c = instr_valid_i & ~instr_fetch_err_i & ~illegal_insn_o & rf_ren_c_dec;
 
   assign rf_ren_a_o = rf_ren_a;
   assign rf_ren_b_o = rf_ren_b;
+  assign rf_ren_c_o = XInterface ? rf_ren_c : '0;
 
   logic [31:0] rf_rdata_a_fwd;
   logic [31:0] rf_rdata_b_fwd;
+  logic [31:0] rf_rdata_c_fwd;
 
   // ALU Control
   alu_op_e     alu_operator;
@@ -284,10 +290,11 @@ module cve2_id_stage #(
     end
   end
 
+  logic coproc_done;
+
   // CV-X-IF
   if (XInterface) begin: gen_xif
 
-    logic coproc_done;
     logic [X_INSTR_INFLIGHT-1:0] scoreboard_d, scoreboard_q;
     id_t x_instr_id_d, x_instr_id_q;
 
@@ -342,8 +349,6 @@ module cve2_id_stage #(
 
     assign multicycle_done = lsu_req_dec ? lsu_resp_valid_i : (illegal_insn_dec ? coproc_done : ex_valid_i);
 
-    assign coproc_done = (x_issue_valid_o & x_issue_ready_i & ~x_issue_resp_i.writeback) | (x_result_valid_i & x_result_i.we);
-
     // Issue Interface
     assign x_issue_valid_o      = instr_executing & illegal_insn_dec & (id_fsm_q == FIRST_CYCLE) & scoreboard_free;
     assign x_issue_req_o.instr  = instr_rdata_i;
@@ -353,6 +358,7 @@ module cve2_id_stage #(
     // Register Interface
     assign x_register_o.rs[0]    = rf_rdata_a_fwd;
     assign x_register_o.rs[1]    = rf_rdata_b_fwd;
+    assign x_register_o.rs[2]    = rf_rdata_c_fwd;
     assign x_register_o.rs_valid = '1;
     assign x_register_o.id       = x_instr_id_q;
     assign x_register_o.hartid   = hart_id_i;
@@ -372,7 +378,11 @@ module cve2_id_stage #(
     x_issue_resp_t unused_x_issue_resp;
     logic          unused_x_result_valid;
     x_result_t     unused_x_result;
+    logic          unused_coproc_done;
+    logic [31:0]   unused_rf_rdata_c_fwd;
 
+    assign unused_coproc_done = coproc_done;
+    assign unused_rf_rdata_c_fwd = rf_rdata_c_fwd;
 
     assign multicycle_done = lsu_req_dec ? lsu_resp_valid_i : ex_valid_i;
     assign scoreboard_busy = 1'b0;
@@ -531,9 +541,11 @@ module cve2_id_stage #(
 
     .rf_raddr_a_o(rf_raddr_a_o),
     .rf_raddr_b_o(rf_raddr_b_o),
+    .rf_raddr_c_o(rf_raddr_c_o),
     .rf_waddr_o  (rf_waddr_id_o),
     .rf_ren_a_o  (rf_ren_a_dec),
     .rf_ren_b_o  (rf_ren_b_dec),
+    .rf_ren_c_o  (rf_ren_c_dec),
 
     // ALU
     .alu_operator_o    (alu_operator),
@@ -561,7 +573,6 @@ module cve2_id_stage #(
 
     // Core-V eXtension Interface (CV-X-IF)
     .x_issue_resp_register_read_i(x_issue_resp_i.register_read),
-    .x_issue_resp_writeback_i(x_issue_resp_i.writeback),
 
     // jump/branches
     .jump_in_dec_o  (jump_in_dec),
@@ -775,6 +786,7 @@ module cve2_id_stage #(
     branch_set_raw_d        = 1'b0;
     jump_set_raw            = 1'b0;
     perf_branch_o           = 1'b0;
+    coproc_done             = 1'b1;
 
     if (instr_executing_spec) begin
       unique case (id_fsm_q)
@@ -827,6 +839,7 @@ module cve2_id_stage #(
                   if(x_issue_resp_i.accept && x_issue_resp_i.writeback) begin
                       id_fsm_d = MULTI_CYCLE;
                       stall_coproc = 1'b1;
+                      coproc_done  = 1'b0;
                   end
                   else begin
                     id_fsm_d = FIRST_CYCLE;
@@ -853,7 +866,10 @@ module cve2_id_stage #(
           if(multdiv_en_dec) begin
             rf_we_raw       = rf_we_dec & ex_valid_i;
           end
-
+          if (illegal_insn_dec && XInterface) begin
+            coproc_done     = x_result_valid_i;
+            rf_we_raw       = x_result_valid_i & x_result_i.we;
+          end
           if (multicycle_done) begin
             id_fsm_d        = FIRST_CYCLE;
           end else begin
@@ -914,6 +930,7 @@ module cve2_id_stage #(
   // register file
   assign rf_rdata_a_fwd = rf_rdata_a_i;
   assign rf_rdata_b_fwd = rf_rdata_b_i;
+  assign rf_rdata_c_fwd = rf_rdata_c_i;
 
   // Unused Writeback stage only IO & wiring
   // Assign inputs and internal wiring to unused signals to satisfy lint checks

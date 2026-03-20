@@ -3,9 +3,14 @@
 
 # X-HEEP
 
-`X-HEEP` (eXtendable Heterogeneous Energy-Efficient Platform) is a `RISC-V` microcontroller described in `SystemVerilog`
-that can be configured to target small and tiny platforms as well as extended to support accelerators.
-The cool thing about `X-HEEP` is that we provide a simple customizable MCU, so CPUs, common peripherals, memories, etc.
+`X-HEEP` (eXtensible Heterogeneous Energy-Efficient Platform) is a `RISC-V` microcontroller described in `SystemVerilog`.
+
+Originally designed at the [ESL](https://www.epfl.ch/labs/esl/) lab of EPFL, the project has grown into a collaborative effort, currently maintained by the ESL, the [CEI](https://www.cei.upm.es/) at UPM, and POLITO's [VLSI](https://www.vlsilab.polito.it/) lab.
+
+Built on the foundations of the [PULP-Platform](https://pulp-platform.org/) project from ETHZ and UniBO, and the [OpenTitan](https://opentitan.org/) project, `X-HEEP` blends energy efficiency with an extensible architecture designed for the future of heterogeneous computing.
+
+`X-HEEP` can be configured to target small and tiny platforms as well as extended to support multiple and diverse accelerators.
+The cool thing about `X-HEEP` is that we provide a simple, customizable MCU, with industry verified CPUs, common peripherals, memories, etc.
 so that you can extend it with your own accelerator without modifying the MCU, but just instantiating it in your design.
 By doing so, you inherit an IP capable of running baremetal or booting RTOS (such as `freeRTOS`) with the whole FW stack, including `HAL` drivers and `SDK`,
 and you can focus on building your special HW or APP supported by the microcontroller.

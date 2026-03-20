@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include "matrixAdd32.h"
+#include "matfloat.h"
 #include "csr.h"
 #include "x-heep.h"
 
@@ -23,10 +23,11 @@
     #define PRINTF(...)
 #endif
 
-void __attribute__ ((noinline)) matrixAdd(float * A, float * B, float * C, int N, int M);
-uint32_t check_results(float *  C, int N, int M);
+void __attribute__ ((noinline)) vector_add(float *  A, float *  B, float *  C, int N);
+float __attribute__ ((noinline)) dotp(float * A, float * B, int N);
+uint32_t check_results(float * computed, float * expected, int N);
 
-float m_c[HEIGHT*WIDTH];
+float vec_c[SIZE];
 
 void putlong(long i)
 {
@@ -124,22 +125,17 @@ void putfloat(float x, int p)
         putlong((long)f);
 }
 
-void __attribute__ ((noinline)) printMatrix(float *  C, int N, int M)
+void __attribute__ ((noinline)) print_vector(float *  C, int N)
 {
     for(int i = 0; i < N; i++) {
-        for(int j = 0; j < M; j++) {
-            putfloat(C[i*N+j], 2);
-            if( j != M -1)
-                printf(", ");
-        }
+        putfloat(C[i], 2);
         printf("\n");
     }
 }
 
 int main()
 {
-    int N = WIDTH;
-    int M = HEIGHT;
+
     uint32_t errors = 0;
     unsigned int instr, cycles;
 
@@ -152,45 +148,52 @@ int main()
     CSR_WRITE(CSR_REG_MCYCLE, 0);
 
     //execute the kernel
-    matrixAdd(m_a, m_b, m_c, N, M);
+    vector_add(vec_a, vec_b, vec_c, SIZE);
 
     CSR_READ(CSR_REG_MCYCLE, &cycles) ;
 
     //stop the HW counter used for monitoring
 
-    errors = check_results(m_c, N, M);
+    if(check_results(vec_c, vec_sum, SIZE)) return -1;
 
-    PRINTF("program finished with %d errors and %d cycles\n\r", errors, cycles);
+    //execute the kernel
+    float dot_res = dotp(vec_a, vec_b, SIZE);
+    if( fabs(dot_res - dot_exp) > 0.0001f ) return -2;
 
 #ifdef ENABLE_PRINTF
-    printMatrix(m_c,N,M);
+    print_vector(vec_c,SIZE);
 #endif
-
 
     return errors;
 }
 
-void __attribute__ ((noinline)) matrixAdd(float *  A, float *  B, float *  C, int N, int M)
+void __attribute__ ((noinline)) vector_add(float *  A, float *  B, float *  C, int N)
 {
     for(int i = 0; i < N; i++) {
-        for(int j = 0; j < M; j++) {
-            C[i*N+j] = A[i*WIDTH+j] + B[i*WIDTH+j];
-        }
+        C[i] = A[i] + B[i];
     }
 }
 
-uint32_t check_results(float * C, int N, int M)
+float __attribute__ ((noinline)) dotp(float *  A, float *  B, int N)
+{
+    float res = 0.0f;
+    for(int i = 0; i < N; i++) {
+            res += A[i] * B[i];
+    }
+    return res;
+}
+
+uint32_t check_results(float * computed, float * expected, int N)
 {
     // check
     int i, j;
     uint32_t err = 0;
 
     for(i = 0; i < N; i++) {
-        for(j = 0; j < M; j++) {
-            if(C[i*N+j] != m_exp[i*WIDTH+j]) {
-                err++;
-                PRINTF("Error at index %d, %d, expected %d, got %d\n\r", i, j, m_exp[i*WIDTH+j], C[i*N+j]);
-            }
+        if( fabs(computed[i] - expected[i]) > 0.0001f ) {
+            err++;
+            PRINTF("Error at index %d, expected %x, got %x\n\r", i, expected[i], computed[i]);
+            break;
         }
     }
 

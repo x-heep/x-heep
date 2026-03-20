@@ -31,13 +31,13 @@ module w25q128jw_controller_reg_top #(
   localparam int DBW = DW / 8;  // Byte Width
 
   // register signals
-  logic           reg_we;
-  logic           reg_re;
-  logic [ AW-1:0] reg_addr;
-  logic [ DW-1:0] reg_wdata;
-  logic [DBW-1:0] reg_be;
-  logic [ DW-1:0] reg_rdata;
-  logic           reg_error;
+  logic               reg_we;
+  logic               reg_re;
+  logic [BlockAw-1:0] reg_addr;
+  logic [     DW-1:0] reg_wdata;
+  logic [    DBW-1:0] reg_be;
+  logic [     DW-1:0] reg_rdata;
+  logic               reg_error;
 
   logic addrmiss, wr_err;
 
@@ -54,7 +54,7 @@ module w25q128jw_controller_reg_top #(
 
   assign reg_we = reg_intf_req.valid & reg_intf_req.write;
   assign reg_re = reg_intf_req.valid & ~reg_intf_req.write;
-  assign reg_addr = reg_intf_req.addr;
+  assign reg_addr = reg_intf_req.addr[BlockAw-1:0];
   assign reg_wdata = reg_intf_req.wdata;
   assign reg_be = reg_intf_req.wstrb;
   assign reg_intf_rsp.rdata = reg_rdata;
@@ -74,6 +74,9 @@ module w25q128jw_controller_reg_top #(
   logic control_rnw_qs;
   logic control_rnw_wd;
   logic control_rnw_we;
+  logic control_quad_qs;
+  logic control_quad_wd;
+  logic control_quad_we;
   logic status_qs;
   logic status_wd;
   logic status_we;
@@ -151,6 +154,32 @@ module w25q128jw_controller_reg_top #(
 
       // to register interface (read)
       .qs(control_rnw_qs)
+  );
+
+
+  //   F[quad]: 2:2
+  prim_subreg #(
+      .DW      (1),
+      .SWACCESS("RW"),
+      .RESVAL  (1'h0)
+  ) u_control_quad (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(control_quad_we),
+      .wd(control_quad_wd),
+
+      // from internal hardware
+      .de(hw2reg.control.quad.de),
+      .d (hw2reg.control.quad.d),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.control.quad.q),
+
+      // to register interface (read)
+      .qs(control_quad_qs)
   );
 
 
@@ -408,6 +437,9 @@ module w25q128jw_controller_reg_top #(
   assign control_rnw_we = addr_hit[0] & reg_we & !reg_error;
   assign control_rnw_wd = reg_wdata[1];
 
+  assign control_quad_we = addr_hit[0] & reg_we & !reg_error;
+  assign control_quad_wd = reg_wdata[2];
+
   assign status_we = addr_hit[1] & reg_we & !reg_error;
   assign status_wd = reg_wdata[0];
 
@@ -439,6 +471,7 @@ module w25q128jw_controller_reg_top #(
       addr_hit[0]: begin
         reg_rdata_next[0] = control_start_qs;
         reg_rdata_next[1] = control_rnw_qs;
+        reg_rdata_next[2] = control_quad_qs;
       end
 
       addr_hit[1]: begin

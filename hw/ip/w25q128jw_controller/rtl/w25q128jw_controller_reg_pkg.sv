@@ -16,6 +16,7 @@ package w25q128jw_controller_reg_pkg;
   typedef struct packed {
     struct packed {logic q;} start;
     struct packed {logic q;} rnw;
+    struct packed {logic q;} quad;
   } w25q128jw_controller_reg2hw_control_reg_t;
 
   typedef struct packed {logic q;} w25q128jw_controller_reg2hw_status_reg_t;
@@ -43,6 +44,10 @@ package w25q128jw_controller_reg_pkg;
       logic d;
       logic de;
     } rnw;
+    struct packed {
+      logic d;
+      logic de;
+    } quad;
   } w25q128jw_controller_hw2reg_control_reg_t;
 
   typedef struct packed {
@@ -62,7 +67,7 @@ package w25q128jw_controller_reg_pkg;
 
   // Register -> HW type
   typedef struct packed {
-    w25q128jw_controller_reg2hw_control_reg_t control;  // [140:139]
+    w25q128jw_controller_reg2hw_control_reg_t control;  // [141:139]
     w25q128jw_controller_reg2hw_status_reg_t status;  // [138:138]
     w25q128jw_controller_reg2hw_f_address_reg_t f_address;  // [137:106]
     w25q128jw_controller_reg2hw_s_address_reg_t s_address;  // [105:74]
@@ -75,7 +80,7 @@ package w25q128jw_controller_reg_pkg;
 
   // HW -> register type
   typedef struct packed {
-    w25q128jw_controller_hw2reg_control_reg_t control;  // [40:37]
+    w25q128jw_controller_hw2reg_control_reg_t control;  // [42:37]
     w25q128jw_controller_hw2reg_status_reg_t status;  // [36:35]
     w25q128jw_controller_hw2reg_length_reg_t length;  // [34:2]
     w25q128jw_controller_hw2reg_intr_status_reg_t intr_status;  // [1:0]

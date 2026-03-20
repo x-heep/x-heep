@@ -84,17 +84,19 @@ __attribute__((weak, optimize("O0"))) void handler_irq_w25q128jw_controller(uint
  *   - Data from 'ram_buffer' is written back to flash at 'flash_address'
  *
  * @param rnw Read (1) or Write (0) operation. Read Not Write.
+ * @param quad SPI mode (1 for quad SPI, 0 for standard SPI).
  * @param length_bytes Number of bytes to transfer. Byte precision for read operation and word precision for write operation.
  * @param flash_address Target address in flash memory.
  * @param ram_buffer Pointer to RAM buffer for read operation/sector save for write operation.
  * @param ram_w_new_data Pointer to RAM buffer containing data to write into flash memory.
  */
 
-void w25q128jw_controller_rnw(uint32_t rnw,
-                                                            size_t length_bytes,
-                                                            void* flash_address,
-                                                            void* ram_buffer,
-                                                            void* ram_w_new_data) {
+void w25q128jw_controller_rnw(  uint32_t rnw,
+                                uint32_t quad,
+                                size_t length_bytes,
+                                void* flash_address,
+                                void* ram_buffer,
+                                void* ram_w_new_data) {
     // Send flash address to controller
     w25q128jw_controller_peri->F_ADDRESS = (uint32_t)flash_address;
     // Send RAM buffer address to controller
@@ -106,6 +108,9 @@ void w25q128jw_controller_rnw(uint32_t rnw,
     // Specify operation type (rnw = 1 for read, 0 for write)
     w25q128jw_controller_peri->CONTROL &= ~(1 << W25Q128JW_CONTROLLER_CONTROL_RNW_BIT);
     w25q128jw_controller_peri->CONTROL |= ((rnw & 0x1) << W25Q128JW_CONTROLLER_CONTROL_RNW_BIT);
+    // Specify SPI mode (quad = 1 for quad SPI, 0 for standard SPI)
+    w25q128jw_controller_peri->CONTROL &= ~(1 << W25Q128JW_CONTROLLER_CONTROL_QUAD_BIT);
+    w25q128jw_controller_peri->CONTROL |= ((quad & 0x1) << W25Q128JW_CONTROLLER_CONTROL_QUAD_BIT);
     // Tell the DMA to accept write operations from w25q128jw_controller in HW
     dma_set_hw_configuration_mode(1,0);
     // Start operation
@@ -118,18 +123,20 @@ void w25q128jw_controller_rnw(uint32_t rnw,
  * @param dest Pointer to the on-chip SRAM
  * @param src  Pointer to the Flash
  * @param length_bytes Number of bytes to transfer.
+ * @param quad SPI mode (1 for quad SPI, 0 for standard SPI).
  */
-void w25q128jw_controller_read(void* dest, void* src, size_t length_bytes) {
-    w25q128jw_controller_rnw(1, length_bytes, src, dest, NULL);
+void w25q128jw_controller_read(void* dest, void* src, size_t length_bytes, uint32_t quad) {
+    w25q128jw_controller_rnw(1, quad, length_bytes, src, dest, NULL);
 }
 
 /**
  * @param dest Pointer to the Flash
  * @param src  Pointer to the on-chip SRAM
  * @param length_bytes Number of bytes to transfer.
+ * @param quad SPI mode (1 for quad SPI, 0 for standard SPI).
  */
-void w25q128jw_controller_write(void* dest, void* src, size_t length_bytes) {
-    w25q128jw_controller_rnw(0, length_bytes, dest, w25q128jw_sector_data_buffer, src);
+void w25q128jw_controller_write(void* dest, void* src, size_t length_bytes, uint32_t quad) {
+    w25q128jw_controller_rnw(0, quad, length_bytes, dest, w25q128jw_sector_data_buffer, src);
 }
 
 /**

@@ -28,25 +28,26 @@ module serial_link_xheep_wrapper_fifo #(
 );
 
   logic push, pop, full, empty;
-  logic reader_req_q;
+  //logic reader_req_q;
   logic reader_req_rising;
   logic [DATA_WIDTH-1:0] reader_rdata_n;
 
   assign reader_gnt_o = ~empty;
 
   assign push = writer_axi_req_i.w_valid & writer_axi_rsp_o.w_ready;
-  assign reader_req_rising = reader_req_i & ~reader_req_q;
-  assign pop = (~empty) & reader_req_rising & (~reader_we_i);
+  //assign reader_req_rising = reader_req_i & ~reader_req_q;
+  //assign pop = (~empty) & reader_req_rising & (~reader_we_i);
+  assign pop = (~empty) & reader_req_i & (~reader_we_i) & ~reader_rvalid_o;
 
   always_ff @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
       reader_rvalid_o <= 0;
       reader_rdata_o  <= 0;
-      reader_req_q    <= 0;
+      //reader_req_q    <= 0;
     end else begin
       reader_rvalid_o <= pop;
       reader_rdata_o  <= reader_rdata_n;
-      reader_req_q    <= reader_req_i;
+      //reader_req_q    <= reader_req_i;
     end
   end
 
@@ -111,6 +112,20 @@ module serial_link_xheep_wrapper_fifo #(
       .pop_i     (pop)                       // pop head from queue
   );
 
+  ila_fifo_wrapper ila_fifo_i (
+      .clk_0        (clk_i),
+      .state        (state),
+      .push         (push),
+      .pop          (pop),
+      .empty        (empty),
+      .aw_valid     (writer_axi_req_i.aw_valid),
+      .b_valid      (writer_axi_rsp_o.b_valid),
+      .b_ready      (writer_axi_req_i.b_ready),
+      .w_valid      (writer_axi_req_i.w_valid),
+      .reader_req   (reader_req_i),
+      .reader_gnt   (reader_gnt_o),
+      .reader_rvalid(reader_rvalid_o)
+  );
 
 endmodule
 

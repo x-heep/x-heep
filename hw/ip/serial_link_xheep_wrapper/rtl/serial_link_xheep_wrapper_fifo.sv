@@ -37,7 +37,7 @@ module serial_link_xheep_wrapper_fifo #(
   assign push = writer_axi_req_i.w_valid & writer_axi_rsp_o.w_ready;
   //assign reader_req_rising = reader_req_i & ~reader_req_q;
   //assign pop = (~empty) & reader_req_rising & (~reader_we_i);
-  assign pop = (~empty) & reader_req_i & (~reader_rvalid_o) & (~reader_we_i);
+  assign pop = (~empty) & reader_req_i & (~reader_we_i) & ~reader_rvalid_o;
 
   always_ff @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin

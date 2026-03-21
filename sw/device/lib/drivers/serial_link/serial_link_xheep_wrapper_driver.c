@@ -25,11 +25,7 @@ void sl_wrapper_direct_write(uint32_t dest, uint32_t data) {
     *SL_WRAPPER_DIRECT_WRITE_ADDR(dest) = data;
 }
 
-uint32_t sl_wrapper_direct_read(uint32_t dest) {
-    return *SL_WRAPPER_DIRECT_READ_ADDR(dest);
-}
-
-void sl_wrapper_direct_write_burst(uint32_t dest, const uint32_t *data, uint32_t count) {
+void sl_wrapper_direct_write_multiple(uint32_t dest, const uint32_t *data, uint32_t count) {
     for (uint32_t i = 0; i < count; i++) {
         sl_wrapper_direct_write(dest + i * 4, data[i]);
     }

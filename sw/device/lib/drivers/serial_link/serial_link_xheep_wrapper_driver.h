@@ -9,13 +9,13 @@
 //  - FIFO mode (default): incoming data is stored in a memory-mapped FIFO
 //    and read by the CPU via SL_READ (SERIAL_LINK_RECEIVER_FIFO_START_ADDRESS).
 //
-//  - Direct write mode: incoming AXI transactions are routed through axi_to_mem
-//    directly into X-HEEP RAM, bypassing the FIFO entirely.
+//  - Direct write mode : incoming AXI transactions are routed
+//    through axi_to_mem directly into X-HEEP memory space, bypassing the FIFO.
 //    The sender encodes the destination address as an offset within the
 //    Serial Link TX window (SERIAL_LINK_START_ADDRESS + dest). The wrapper
-//    subtracts AxiAddrOffset so that axi_to_mem writes to the correct
-//    destination address in the receiver's RAM.
-//
+//    subtracts AxiAddrOffset so that axi_to_mem writes to dest in the
+//    receiver's memory space (RAM, peripherals, or any valid address).
+//    
 // Typical usage (direct write):
 //   sl_wrapper_set_rx_mode(SL_WRAPPER_RX_MODE_DIRECT_WRITE);
 //   sl_wrapper_direct_write(0x7F00, 0xDEADBEEF);
@@ -47,21 +47,12 @@
  * The wrapper's AxiAddrOffset subtracts SERIAL_LINK_START_ADDRESS,
  * so axi_to_mem on the receiver writes to dest_offset in remote RAM.
  *
- * @param dest  Byte offset in the remote chiplet's memory space (0 to 0xFFFF)
+ * @param dest  Byte offset in the remote chiplet's memory space.
+ *              Can target RAM, peripherals, or any valid address.
+ *              Range: 0x00000000 to 0x00FFFFFF (16MB window)
  */
 #define SL_WRAPPER_DIRECT_WRITE_ADDR(dest) \
     ((volatile uint32_t *)(SERIAL_LINK_START_ADDRESS + (uint32_t)(dest)))
-
-/**
- * Direct read address macro.
- *
- * After a direct write, data sits at dest_offset in local RAM.
- * Use this macro to read it back.
- *
- * @param dest  Byte offset used during the direct write
- */
-#define SL_WRAPPER_DIRECT_READ_ADDR(dest) \
-    ((volatile uint32_t *)(dest))
 
 // ============================================================================
 // Types
@@ -106,21 +97,12 @@ sl_wrapper_rx_mode_t sl_wrapper_get_rx_mode(void);
  *
  * The wrapper must be in SL_WRAPPER_RX_MODE_DIRECT_WRITE before calling this.
  *
- * @param dest  Destination byte offset in remote chiplet RAM (0 to 0xFFFF)
+ * @param dest  Destination byte offset in remote chiplet memory space.
+ *              Can address RAM, peripherals, or any valid address within
+ *              the 16MB Serial Link TX window (0 to 0x00FFFFFF).
  * @param data  32-bit word to write
  */
 void sl_wrapper_direct_write(uint32_t dest, uint32_t data);
-
-/**
- * @brief Read a 32-bit word from a local RAM address after a direct write.
- *
- * After sl_wrapper_direct_write(dest, data), the data is in local RAM at
- * address dest. This function reads it back.
- *
- * @param dest  Destination byte offset used during sl_wrapper_direct_write
- * @return      32-bit word read from local RAM at dest
- */
-uint32_t sl_wrapper_direct_read(uint32_t dest);
 
 /**
  * @brief Write multiple 32-bit words directly to the remote chiplet.
@@ -131,6 +113,6 @@ uint32_t sl_wrapper_direct_read(uint32_t dest);
  * @param data   Pointer to array of 32-bit words to write
  * @param count  Number of words to write
  */
-void sl_wrapper_direct_write_burst(uint32_t dest, const uint32_t *data, uint32_t count);
+void sl_wrapper_direct_write_multiple(uint32_t dest, const uint32_t *data, uint32_t count);
 
 #endif // SERIAL_LINK_XHEEP_WRAPPER_DRIVER_H

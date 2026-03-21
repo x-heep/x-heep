@@ -235,7 +235,7 @@ int main(int argc, char *argv[]) {
 
     PRINTF("=== Serial Link Performance Evaluation (FPGA SEND) ===\n");
 
-    // Test 1: FIFO mode — measure only the send loop, no printf inside
+    // Test 1: FIFO mode 
     for (int s = 0; s < NUM_SIZES; s++) {
         int n = test_sizes[s];
 

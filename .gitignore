@@ -53,11 +53,6 @@ hw/ip/pdm2pcm/rtl/pdm_core.sv
 hw/ip/pdm2pcm/rtl/pdm2pcm_reg_top.sv
 hw/ip/pdm2pcm/rtl/pdm2pcm_reg_pkg.sv
 
-hw/ip/dma/data/dma.hjson
-hw/ip/dma/data/dma_conf.svh
-hw/ip/dma/rtl/dma_reg_pkg.sv
-hw/ip/dma/rtl/dma_reg_top.sv
-
 hw/ip/boot_rom/boot_rom.sv
 hw/ip/boot_rom/boot_rom.dump
 

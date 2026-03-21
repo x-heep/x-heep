@@ -8,7 +8,7 @@
 {
   upstream:
   {
-    url: https://github.com/esl-epfl/obi_spi_slave.git
+    url: https://github.com/x-heep/obi_spi_slave.git
     rev: f08cf8c9fe00316e58ea4674305407f41b076fd5
   }
 }

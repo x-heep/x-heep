@@ -5,5 +5,6 @@
 `verilator_config
 
 lint_off -rule WIDTH -file "*/soc_ctrl_reg_top.sv" -match "Operator ASSIGNW expects *"
+lint_off -rule UNUSED -file "*/soc_ctrl_reg_top.sv" -match "Parameter is not used: 'AW'*"
 lint_off -rule UNUSED -file "*/soc_ctrl.sv" -match "Bits of signal are not used: 'reg2hw'*"
 lint_off -rule UNUSED -file "*/soc_ctrl.sv" -match "Bits of signal are not used: 'reg2hw'*"

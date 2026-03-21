@@ -84,7 +84,7 @@ module peripheral_subsystem
     input  logic i2s_sd_i,
     output logic i2s_rx_valid_o,
 
-    % if user_peripheral_domain.contains_peripheral('serial_link'):
+    % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
       //Serial Link
       input  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0]    ddr_rcv_clk_i,  
       output logic [serial_link_single_channel_reg_pkg::NumChannels-1:0]    ddr_rcv_clk_o,
@@ -92,6 +92,8 @@ module peripheral_subsystem
       output logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_o,
       output obi_pkg::obi_req_t  serial_link_direct_write_req_o,
       input  obi_pkg::obi_resp_t serial_link_direct_write_resp_i,
+      input  obi_pkg::obi_req_t  serial_link_slave_req_i,
+      output obi_pkg::obi_resp_t serial_link_slave_resp_o,
     %endif
     // PDM2PCM Interface
     output logic pdm2pcm_clk_o,
@@ -635,7 +637,7 @@ module peripheral_subsystem
 
 % endif
 
-% if user_peripheral_domain.contains_peripheral('serial_link'):
+% if user_peripheral_domain.contains_peripheral('serial_link_reg'):
   serial_link_xheep_wrapper #(
     .MaxClkDiv(32),
     .AddrWidth(32),
@@ -647,8 +649,8 @@ module peripheral_subsystem
     .clk_reg_i(clk_i),       
     .rst_reg_ni(rst_ni),      
     .testmode_i('0),
-    .writer_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SERIAL_LINK_IDX]),
-    .writer_rsp_i(peripheral_slv_rsp[core_v_mini_mcu_pkg::SERIAL_LINK_IDX]),
+    .writer_req_i(serial_link_slave_req_i),
+    .writer_rsp_i(serial_link_slave_resp_o),
     .reader_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SERIAL_LINK_RECEIVER_FIFO_IDX]),
     .reader_resp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SERIAL_LINK_RECEIVER_FIFO_IDX]),
     .cfg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SERIAL_LINK_REG_IDX]),

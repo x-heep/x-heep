@@ -26,6 +26,18 @@ lint_off -rule PINCONNECTEMPTY
 lint_off -rule WIDTH -file "*/rtl/cve2_top_tracing.sv"
          -match "*expects 1 bits*Initial value's CONST '32'h1'*"
 
+// Similar to ibex's #2355, Verilator since v5.042+ has a more 
+// agressive UNOPTFLAT, emitting circular combinational logic warnings 
+// that are expected, as the signals value do converge
+lint_off -rule UNOPTFLAT -file "*/rtl/cve2_core.sv"
+         -match "*id_in_ready*"
+lint_off -rule UNOPTFLAT -file "*/rtl/cve2_id_stage.sv"
+         -match "*instr_executing_spec*"
+lint_off -rule UNOPTFLAT -file "*/rtl/cve2_controller.sv"
+         -match "*special_req*"
+lint_off -rule UNOPTFLAT -file "*/rtl/cve2_controller.sv"
+         -match "*id_in_ready_o*"
+
 // Operator expects 1 bit on initial value but initial value's CONST generates
 // 32 bits, need a specific RV32B waiver as it uses enums so the above catch-all
 // waiver doesn't work.

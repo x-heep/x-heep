@@ -5,6 +5,7 @@
 `verilator_config
 
 lint_off -rule DECLFILENAME -file "*/dma_reg_top.sv"
+lint_off -rule UNUSED -file "*/rtl/dma_reg_top.sv" -match "Parameter is not used: 'AW'*"
 
 lint_off -rule WIDTH -file "*/rtl/dma_reg_top.sv" -match "Operator ASSIGNW expects *"
 lint_off -rule WIDTH -file "*/rtl/dma.sv" -match "Operator ASSIGNW expects *"

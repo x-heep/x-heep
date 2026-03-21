@@ -5,6 +5,7 @@
 `verilator_config
 
 lint_off -rule WIDTH -file "*/power_manager_reg_top.sv" -match "Operator ASSIGNW expects *"
+lint_off -rule UNUSED -file "*/power_manager_reg_top.sv" -match "Parameter is not used: 'AW'*"
 lint_off -rule UNUSED -file "*/power_manager.sv" -match "Bits of signal are not used: 'reg2hw'*"
 lint_off -rule UNUSED -file "*/power_manager.sv" -match "Bits of signal are not used: 'reg2hw'*"
 lint_off -rule UNUSED -file "*/power_manager.sv" -match "Bits of signal are not used: 'intr_i'[31:30,15:12,10:8,6:0]*"

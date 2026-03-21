@@ -52,7 +52,7 @@ module system_bus
     input  obi_req_t  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_addr_req_i,
     output obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_addr_resp_o,
 
-    % if user_peripheral_domain.contains_peripheral('serial_link'):
+    % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
     // Serial Link direct write master port
     input  obi_req_t  serial_link_direct_write_req_i,
     output obi_resp_t serial_link_direct_write_resp_o,
@@ -78,6 +78,11 @@ module system_bus
 
     output obi_req_t  flash_mem_slave_req_o,
     input  obi_resp_t flash_mem_slave_resp_i,
+
+    % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
+    output obi_req_t  serial_link_slave_req_o,
+    input  obi_resp_t serial_link_slave_resp_i,
+    % endif
 
     // External slave ports
     output obi_req_t  ext_core_instr_req_o,
@@ -139,7 +144,7 @@ module system_bus
   assign int_master_req[${5+i*3}]  = dma_addr_req_i[${i}];
   % endfor
 
-  % if user_peripheral_domain.contains_peripheral('serial_link'):
+  % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
   assign int_master_req[core_v_mini_mcu_pkg::SL_DIRECT_WRITE_MASTER_IDX] = serial_link_direct_write_req_i;
   % endif
 
@@ -169,7 +174,7 @@ module system_bus
   assign dma_addr_resp_o[${i}] = int_master_resp[${5+i*3}];
   % endfor
 
-  % if user_peripheral_domain.contains_peripheral('serial_link'):
+  % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
   assign serial_link_direct_write_resp_o = int_master_resp[core_v_mini_mcu_pkg::SL_DIRECT_WRITE_MASTER_IDX];
   % endif
   
@@ -191,6 +196,9 @@ module system_bus
   assign ao_peripheral_slave_req_o = int_slave_req[core_v_mini_mcu_pkg::AO_PERIPHERAL_IDX];
   assign peripheral_slave_req_o = int_slave_req[core_v_mini_mcu_pkg::PERIPHERAL_IDX];
   assign flash_mem_slave_req_o = int_slave_req[core_v_mini_mcu_pkg::FLASH_MEM_IDX];
+  % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
+  assign serial_link_slave_req_o = int_slave_req[core_v_mini_mcu_pkg::SERIAL_LINK_IDX];
+  % endif
 
   // External slave requests
   assign ext_core_instr_req_o = demux_xbar_req[CORE_INSTR_IDX][DEMUX_XBAR_EXT_SLAVE_IDX];
@@ -215,6 +223,9 @@ module system_bus
   assign int_slave_resp[core_v_mini_mcu_pkg::AO_PERIPHERAL_IDX] = ao_peripheral_slave_resp_i;
   assign int_slave_resp[core_v_mini_mcu_pkg::PERIPHERAL_IDX] = peripheral_slave_resp_i;
   assign int_slave_resp[core_v_mini_mcu_pkg::FLASH_MEM_IDX] = flash_mem_slave_resp_i;
+  % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
+  assign int_slave_resp[core_v_mini_mcu_pkg::SERIAL_LINK_IDX] = serial_link_slave_resp_i;
+  % endif
 
   // External slave responses
   assign demux_xbar_resp[CORE_INSTR_IDX][DEMUX_XBAR_EXT_SLAVE_IDX] = ext_core_instr_resp_i;

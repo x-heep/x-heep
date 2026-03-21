@@ -14,7 +14,7 @@
   memory_ss = xheep.memory_ss()
   dma_obi_msb = dma.get_num_master_ports() - 1
 
-  clk_module = next((p for p in xheep.get_padring().get_connected_pins() if p.name == "clk"), None).module
+  clk_module = next((p for p in xheep.get_padring().get_connected_pins() if p.name in ["clk", "ref_clk"] ), None).module
   rst_module = next((p for p in xheep.get_padring().get_connected_pins() if p.name == "rst"), None).module
 
 %>
@@ -122,12 +122,8 @@ module core_v_mini_mcu
     output logic [EXT_DOMAINS_RND-1:0] external_subsystem_clkgate_en_no,
 
     output logic [31:0] exit_value_o,
-    % if user_peripheral_domain.contains_peripheral('serial_link'):
+    % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
       //Serial Link
-      input  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0]    ddr_rcv_clk_i,  
-      output logic [serial_link_single_channel_reg_pkg::NumChannels-1:0]    ddr_rcv_clk_o,
-      input  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_i,
-      output logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_o,
       output obi_pkg::obi_req_t  serial_link_direct_write_req_o,   
       input  obi_pkg::obi_resp_t serial_link_direct_write_resp_i, 
     %endif
@@ -170,8 +166,10 @@ module core_v_mini_mcu
   obi_req_t [${dma_obi_msb}:0]dma_addr_req;
   obi_resp_t [${dma_obi_msb}:0]dma_addr_resp;
 
-  % if user_peripheral_domain.contains_peripheral('serial_link'):
+  % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
   obi_pkg::obi_resp_t serial_link_direct_write_resp;
+  obi_req_t serial_link_slave_req;
+  obi_resp_t serial_link_slave_resp;
   % endif
 
   // ram signals
@@ -380,9 +378,11 @@ module core_v_mini_mcu
       .dma_write_resp_o(dma_write_resp),
       .dma_addr_req_i(dma_addr_req),
       .dma_addr_resp_o(dma_addr_resp),
-      % if user_peripheral_domain.contains_peripheral('serial_link'):
+      % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
       .serial_link_direct_write_req_i(serial_link_direct_write_req_o),
       .serial_link_direct_write_resp_o(serial_link_direct_write_resp),
+      .serial_link_slave_req_o(serial_link_slave_req),
+      .serial_link_slave_resp_i(serial_link_slave_resp),
       % endif
       .ext_xbar_master_req_i(ext_xbar_master_req_i),
       .ext_xbar_master_resp_o(ext_xbar_master_resp_o),
@@ -491,6 +491,16 @@ module core_v_mini_mcu
       .dma_done_o
   );
 
+//  ila_design_wrapper ila_i (
+//     .clk_0                        (clk_i),
+//     .ddr_o                        (ddr_o[0]),
+//     .ddr_i                        (ddr_i[0]),
+//     .ddr_rcv_clk_o                (ddr_rcv_clk_o[0]),
+//     .ddr_rcv_clk_i                (ddr_rcv_clk_i[0]),
+//     .serial_link_slave_req_req    (serial_link_slave_req.req),
+//     .serial_link_slave_resp_rvalid(serial_link_slave_resp.rvalid)
+// );
+
   peripheral_subsystem peripheral_subsystem_i (
       .clk_i,
       .rst_ni(peripheral_subsystem_rst_n && debug_reset_n),
@@ -542,13 +552,15 @@ module core_v_mini_mcu
       .i2s_sd_oe_o(i2s_sd_oe_o),
       .i2s_sd_i(i2s_sd_i),
       .i2s_rx_valid_o(i2s_rx_valid),
-      % if user_peripheral_domain.contains_peripheral('serial_link'):
+      % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
         .ddr_rcv_clk_i,  
         .ddr_rcv_clk_o,
         .ddr_i,
         .ddr_o,
         .serial_link_direct_write_req_o,
         .serial_link_direct_write_resp_i(serial_link_direct_write_resp),
+        .serial_link_slave_req_i(serial_link_slave_req),
+        .serial_link_slave_resp_o(serial_link_slave_resp),
       %endif
       .uart_rx_i,
       .uart_tx_o
@@ -587,5 +599,34 @@ module core_v_mini_mcu
       %endif
     % endif
   % endfor
+
+  % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
+    logic [serial_link_minimum_axi_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_i;
+    logic [serial_link_minimum_axi_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_o;
+    logic [serial_link_minimum_axi_pkg::NumChannels-1:0] ddr_rcv_clk_i;
+    logic [serial_link_minimum_axi_pkg::NumChannels-1:0] ddr_rcv_clk_o;
+    // Serial Link pin assignments
+    // For now supports only single channel 4 lanes 
+    assign ddr_rcv_clk_o_o = ddr_rcv_clk_o;
+    assign ddr_rcv_clk_i = ddr_rcv_clk_i_i;
+  
+    assign ddr_o_0_o = ddr_o[0][0];
+    assign ddr_o_1_o = ddr_o[0][1];
+    assign ddr_o_2_o = ddr_o[0][2];
+    assign ddr_o_3_o = ddr_o[0][3];
+    
+    assign ddr_i[0][0] = ddr_i_0_i;
+    assign ddr_i[0][1] = ddr_i_1_i;
+    assign ddr_i[0][2] = ddr_i_2_i;
+    assign ddr_i[0][3] = ddr_i_3_i;
+  % else:
+    // Tie off serial link signals if peripheral is not included
+    assign ddr_rcv_clk_o_o = '0;
+    assign ddr_o_0_o = '0;
+    assign ddr_o_1_o = '0;
+    assign ddr_o_2_o = '0;
+    assign ddr_o_3_o = '0;
+    
+  % endif
 
 endmodule  // core_v_mini_mcu

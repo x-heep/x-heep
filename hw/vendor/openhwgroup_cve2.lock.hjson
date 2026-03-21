@@ -9,6 +9,6 @@
   upstream:
   {
     url: https://github.com/openhwgroup/cve2.git
-    rev: eb28586038230b769d195292fb8ad8814be96c69
+    rev: b72358c73e39914c79568219c03b2d58e12119ba
   }
 }

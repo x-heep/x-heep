@@ -34,18 +34,23 @@ module core_v_mini_mcu
     input  logic uart_rx_i,
     output logic uart_tx_o,
     output logic exit_valid_o,
+    input  logic ddr_rcv_clk_i_i,
+    output logic ddr_rcv_clk_o_o,
     input  logic gpio_0_i,
     output logic gpio_0_o,
     output logic gpio_0_oe_o,
     input  logic gpio_1_i,
     output logic gpio_1_o,
     output logic gpio_1_oe_o,
+    input  logic ddr_i_0_i,
     input  logic gpio_2_i,
     output logic gpio_2_o,
     output logic gpio_2_oe_o,
+    input  logic ddr_i_1_i,
     input  logic gpio_3_i,
     output logic gpio_3_o,
     output logic gpio_3_oe_o,
+    input  logic ddr_i_2_i,
     input  logic gpio_4_i,
     output logic gpio_4_o,
     output logic gpio_4_oe_o,
@@ -55,18 +60,23 @@ module core_v_mini_mcu
     input  logic gpio_6_i,
     output logic gpio_6_o,
     output logic gpio_6_oe_o,
+    input  logic ddr_i_3_i,
     input  logic gpio_7_i,
     output logic gpio_7_o,
     output logic gpio_7_oe_o,
+    output logic ddr_o_0_o,
     input  logic gpio_8_i,
     output logic gpio_8_o,
     output logic gpio_8_oe_o,
+    output logic ddr_o_1_o,
     input  logic gpio_9_i,
     output logic gpio_9_o,
     output logic gpio_9_oe_o,
+    output logic ddr_o_2_o,
     input  logic gpio_10_i,
     output logic gpio_10_o,
     output logic gpio_10_oe_o,
+    output logic ddr_o_3_o,
     input  logic gpio_11_i,
     output logic gpio_11_o,
     output logic gpio_11_oe_o,
@@ -289,10 +299,6 @@ module core_v_mini_mcu
 
     output logic [31:0] exit_value_o,
     //Serial Link
-    input logic [serial_link_single_channel_reg_pkg::NumChannels-1:0] ddr_rcv_clk_i,
-    output logic [serial_link_single_channel_reg_pkg::NumChannels-1:0] ddr_rcv_clk_o,
-    input  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_i,
-    output logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_o,
     output obi_pkg::obi_req_t serial_link_direct_write_req_o,
     input obi_pkg::obi_resp_t serial_link_direct_write_resp_i,
 
@@ -335,6 +341,8 @@ module core_v_mini_mcu
   obi_resp_t [1:0] dma_addr_resp;
 
   obi_pkg::obi_resp_t serial_link_direct_write_resp;
+  obi_req_t serial_link_slave_req;
+  obi_resp_t serial_link_slave_resp;
 
   // ram signals
   obi_req_t [core_v_mini_mcu_pkg::NUM_BANKS-1:0] ram_slave_req;
@@ -546,6 +554,8 @@ module core_v_mini_mcu
       .dma_addr_resp_o(dma_addr_resp),
       .serial_link_direct_write_req_i(serial_link_direct_write_req_o),
       .serial_link_direct_write_resp_o(serial_link_direct_write_resp),
+      .serial_link_slave_req_o(serial_link_slave_req),
+      .serial_link_slave_resp_i(serial_link_slave_resp),
       .ext_xbar_master_req_i(ext_xbar_master_req_i),
       .ext_xbar_master_resp_o(ext_xbar_master_resp_o),
       .ram_req_o(ram_slave_req),
@@ -655,6 +665,16 @@ module core_v_mini_mcu
       .dma_done_o
   );
 
+  //  ila_design_wrapper ila_i (
+  //     .clk_0                        (clk_i),
+  //     .ddr_o                        (ddr_o[0]),
+  //     .ddr_i                        (ddr_i[0]),
+  //     .ddr_rcv_clk_o                (ddr_rcv_clk_o[0]),
+  //     .ddr_rcv_clk_i                (ddr_rcv_clk_i[0]),
+  //     .serial_link_slave_req_req    (serial_link_slave_req.req),
+  //     .serial_link_slave_resp_rvalid(serial_link_slave_resp.rvalid)
+  // );
+
   peripheral_subsystem peripheral_subsystem_i (
       .clk_i,
       .rst_ni(peripheral_subsystem_rst_n && debug_reset_n),
@@ -712,6 +732,8 @@ module core_v_mini_mcu
       .ddr_o,
       .serial_link_direct_write_req_o,
       .serial_link_direct_write_resp_i(serial_link_direct_write_resp),
+      .serial_link_slave_req_i(serial_link_slave_req),
+      .serial_link_slave_resp_o(serial_link_slave_resp),
       .uart_rx_i,
       .uart_tx_o
   );
@@ -863,5 +885,24 @@ module core_v_mini_mcu
   assign gpio_in[30]              = gpio_30_i;
   assign gpio_30_o                = gpio_out[30];
   assign gpio_30_oe_o             = gpio_oe[30];
+
+  logic [serial_link_minimum_axi_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_i;
+  logic [serial_link_minimum_axi_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_o;
+  logic [serial_link_minimum_axi_pkg::NumChannels-1:0] ddr_rcv_clk_i;
+  logic [serial_link_minimum_axi_pkg::NumChannels-1:0] ddr_rcv_clk_o;
+  // Serial Link pin assignments
+  // For now supports only single channel 4 lanes
+  assign ddr_rcv_clk_o_o = ddr_rcv_clk_o;
+  assign ddr_rcv_clk_i = ddr_rcv_clk_i_i;
+
+  assign ddr_o_0_o = ddr_o[0][0];
+  assign ddr_o_1_o = ddr_o[0][1];
+  assign ddr_o_2_o = ddr_o[0][2];
+  assign ddr_o_3_o = ddr_o[0][3];
+
+  assign ddr_i[0][0] = ddr_i_0_i;
+  assign ddr_i[0][1] = ddr_i_1_i;
+  assign ddr_i[0][2] = ddr_i_2_i;
+  assign ddr_i[0][3] = ddr_i_3_i;
 
 endmodule  // core_v_mini_mcu

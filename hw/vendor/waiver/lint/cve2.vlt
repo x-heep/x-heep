@@ -8,6 +8,7 @@ lint_off -rule DECLFILENAME -file "*bhv/cve2_sim_clock_gate.sv" -match "*Filenam
 lint_off -rule UNOPTFLAT -file "*rtl/*.sv" -match "*"
 lint_off -rule UNUSED -file "*rtl/cve2_core.sv" -match "Signal is not used: 'rf_ren_a'*"
 lint_off -rule UNUSED -file "*rtl/cve2_core.sv" -match "Signal is not used: 'rf_ren_b'*"
+lint_off -rule UNUSED -file "*rtl/cve2_core.sv" -match "Signal is not used: 'rf_ren_c'*"
 lint_off -rule UNUSED -file "*rtl/cve2_wb.sv" -match "Signal is not used:*"
 lint_off -rule UNDRIVEN -file "*rtl/cve2_id_stage.sv" -match "Bits of signal are not driven: 'x_issue_req_o'[4:0]*"
 lint_off -rule UNDRIVEN -file "*rtl/cve2_id_stage.sv" -match "Bits of signal are not driven: 'x_register_o'[70:66]*"

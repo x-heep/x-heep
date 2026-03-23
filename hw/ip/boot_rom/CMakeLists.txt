@@ -1,10 +1,3 @@
-ip_sources(${IP} OPENTITAN_C_HEADER_TEMPLATE
-    ../../../sw/device/lib/runtime/core_v_mini_mcu.h.tpl
-    ../../../sw/device/lib/runtime/core_v_mini_mcu.h.tpl
-)
-
-mcu_gen_template(${IP} FILE_SET files_rtl MCU_GEN_FLAGS ${MCU_GEN_FLAGS})
-
 # Might be a local work around
 if(NOT DEFINED RISCV_XHEEP)
     if(DEFINED ENV{RISCV_XHEEP})

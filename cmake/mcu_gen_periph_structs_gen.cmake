@@ -64,7 +64,6 @@ function(mcu_gen_periph_structs_gen IP_LIB)
         list(APPEND gen_files ${output_filename})
     endforeach()
 
-    list(APPEND gen_files "${STAMP_FILE}")
     add_custom_command(
         OUTPUT  ${STAMP_FILE}
         COMMAND touch ${STAMP_FILE}
@@ -74,7 +73,7 @@ function(mcu_gen_periph_structs_gen IP_LIB)
 
     add_custom_target(
         ${target_name}
-        DEPENDS ${gen_files}
+        DEPENDS ${gen_files} ${STAMP_FILE}
     )
     set_property(TARGET ${target_name} PROPERTY DESCRIPTION ${DESCRIPTION})
     add_dependencies(${IP_LIB} ${target_name})

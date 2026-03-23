@@ -11,8 +11,8 @@ filesets:
       - x-heep:core:reg_pkg
       - pulp-platform.org::common_cells
     files: 
-      - rtl/obi_spimemio_reg_pkg.sv
-      - rtl/obi_spimemio_reg_top.sv
+      # - rtl/obi_spimemio_reg_pkg.sv
+      # - rtl/obi_spimemio_reg_top.sv
       - rtl/picorv32_pkg.sv
       - rtl/obi_to_picorv32.sv
       - rtl/obi_spimemio.sv

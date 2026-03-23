@@ -58,6 +58,7 @@ project(xheep)
 include("./cmake/regtool.cmake")
 include("./cmake/mcu_gen_cfg_flags.cmake")
 include("./cmake/mcu_gen_template.cmake")
+include("./cmake/mcu_gen_periph_structs_gen.cmake")
 include("./cmake/primgen.cmake")
 include("./cmake/xheep_add_top_target.cmake")
 include("./cmake/add_sw.cmake")
@@ -169,6 +170,8 @@ ip_link(pulp-platform.org::tech_cells_generic
 
 # Call to mcu-gen
 mcu_gen_template(${IP} FILE_SET files_rtl MCU_GEN_FLAGS ${MCU_GEN_FLAGS})
+
+mcu_gen_periph_structs_gen(${IP})
 
 xheep_add_top_target(mcu_gen ${IP})
 ## SW tests:

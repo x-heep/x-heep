@@ -2,8 +2,10 @@ name: core-v-mini-mcu
 channels:
   - conda-forge
 dependencies:
-  - python=3.8
+  - python=3.11
   - pip
+  - pyYAML
+  - setuptools<81
   - pip:
     - -r python-requirements.txt
     - -r ../docs/python-requirements.txt

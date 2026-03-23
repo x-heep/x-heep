@@ -42,6 +42,7 @@ The Docker setup has certain limitations. For example, the following are not sup
 
 To use `X-HEEP`, first you will need to install some OS dependencies.
 
+#### Linux
 The following command `apt` command should install every required package (tested on an Ubuntu 22.04 distribution):
 ```bash
 sudo apt install autoconf automake autotools-dev curl python3 python3-pip python3-tomli libmpc-dev libmpfr-dev libgmp-dev gawk build-essential bison flex texinfo gperf libtool patchutils bc zlib1g-dev libexpat-dev ninja-build git cmake libglib2.0-dev libslirp-dev help2man perl make g++ libfl2 libfl-dev zlibc zlib1g zlib1g-dev ccache mold libgoogle-perftools-dev numactl libelf-dev
@@ -53,6 +54,22 @@ libfl2 libfl-dev zlibc zlib1g zlib1g-dev
 ```
 
 Links for the packages relative to each software can also be found under the corresponding section of this guide. In general, make sure to have a look at the [Check system requirements](https://opentitan.org/book/doc/getting_started/index.html) section of the OpenTitan documentation.
+
+The script `util/install_tools_and_conda_env.sh` can be used to install the required dependencies and set up the Conda environment on Linux. It uses `apt` to install the required packages and then sets up a Conda environment with the necessary Python dependencies. It also installs the CORE-V toolchain, Verilator and the oss-cad-suite. You can select the versions of the tools you want to install by changing the corresponding variables at the beginning of the script. After running the script, you can activate the environment with `source util/start_env.sh`.
+
+#### MacOS
+If you are using a MacOS with M series chip or intel chip, you can use the `util/install_tools_and_conda_env.zsh` script to install the required dependencies and set up the Conda environment. The script uses [Homebrew (make sure you have it installed)](https://brew.sh/) to install the required packages and then sets up a [Conda environment](https://conda-forge.org/download/) with the necessary Python dependencies. It also installs the CORE-V toolchain, Verilator and the oss-cad-suite. You can select the versions of the tools you want to install by changing the corresponding variables at the beginning of the script. After running the script, you can activate the environment with `source util/start_env.zsh`.
+
+```zsh
+./util/install_tools_and_conda_env.zsh
+```
+
+then to use the environment:
+
+```zsh
+source util/start_env.zsh
+```
+
 
 ### 2. Python
 

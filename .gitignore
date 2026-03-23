@@ -103,5 +103,5 @@ flow/OpenROAD-flow-scripts
 .vscode
 .continue
 private/
-
-
+.DS_Store
+tools/

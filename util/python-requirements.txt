@@ -1,7 +1,6 @@
 gitpython==3.1.25
 hjson==3.0.2
-pyyaml==6.0.2
-yamlfmt==1.1.0
+yamlfmt>=1.1.0
 mako==1.1.6
 jsonref==0.2
 black==24.8.0
@@ -11,7 +10,6 @@ deepdiff
 # Development version with OT-specific changes
 git+https://github.com/x-heep/fusesoc.git@ot#egg=fusesoc
 
-# Install edalize by hand as pip install git+https://github.com/x-heep/edalize.git
 git+https://github.com/x-heep/edalize.git
 
 # RISC-V firmware profiler

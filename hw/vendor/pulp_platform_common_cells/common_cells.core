@@ -71,7 +71,7 @@ filesets:
       - src/stream_delay.sv
       - src/stream_fifo.sv
       - src/stream_fork_dynamic.sv
-      - src/clk_mux_glitch_free.sv
+      #- src/clk_mux_glitch_free.sv
       # Level 2
       - src/addr_decode.sv
       - src/addr_decode_napot.sv

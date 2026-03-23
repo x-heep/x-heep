@@ -15,4 +15,4 @@ ip_sources(${IP} OPENTITAN_SVH_TEMPLATE
 mcu_gen_template(${IP} FILE_SET files_rtl MCU_GEN_FLAGS ${MCU_GEN_FLAGS})
 
 regtool(${IP} RTL FILE_SET files_rtl)
-regtool(${IP} CDEFINES OUTDIR "${CMAKE_CURRENT_LIST_DIR}/../../../sw/device/lib/drivers/xheep_dma/")
+regtool(${IP} CDEFINES OUTDIR "${CMAKE_CURRENT_LIST_DIR}/../../../sw/device/lib/drivers/dma/")

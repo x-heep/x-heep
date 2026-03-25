@@ -7,6 +7,8 @@ name: "lowrisc:prim_generic:xor2"
 description: "Generic 2-input xor"
 filesets:
   files_rtl:
+    depend:
+      - lowrisc:prim:assert
     files:
       - rtl/prim_generic_xor2.sv
     file_type: systemVerilogSource

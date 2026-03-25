@@ -14,7 +14,7 @@ git+https://github.com/x-heep/fusesoc.git@ot#egg=fusesoc
 # Install edalize by hand as pip install git+https://github.com/x-heep/edalize.git
 git+https://github.com/x-heep/edalize.git
 
-# RISC-V firmware profiler
+# RISC-V firmware profiler Be careful, this is not compatible with cmake >= 4.0.0
 git+https://github.com/vlsi-lab/rv_profile.git
 
 # Area Plot

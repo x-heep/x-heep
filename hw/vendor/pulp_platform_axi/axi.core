@@ -77,7 +77,7 @@ filesets:
       - src/axi_xp.sv
     file_type : systemVerilogSource
     depend :
-      - ">=pulp-platform.org::common_cells:1.29.0"
+      - "pulp-platform.org::common_cells"
 
 
 generators:

@@ -4,6 +4,10 @@ name : pulp-platform.org::common_cells:1.38.0
 
 filesets:
   rtl:
+    depend:
+      - pulp-platform.org::register_interface
+      - pulp-platform.org::tech_cells_generic
+      - lowrisc:prim:subreg
     files:
       - include/common_cells/registers.svh : {is_include_file : true, include_path : include}
       - include/common_cells/assertions.svh : {is_include_file : true, include_path : include}

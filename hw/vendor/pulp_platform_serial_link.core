@@ -4,11 +4,11 @@ name : pulp-platform.org::serial_link
 # Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 # SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 filesets:
-  includes:
-    files:
-      #Ugly workaround from https://github.com/fusesoc/fusesoc-cores/blob/master/pulp-platform.org/common_cells-1.16.4.core#L9
-      - pulp_platform_serial_link/src/axis/include/axis : {is_include_file : true}
-    file_type : systemVerilogSource
+#   includes:
+#     files:
+#       #Ugly workaround from https://github.com/fusesoc/fusesoc-cores/blob/master/pulp-platform.org/common_cells-1.16.4.core#L9
+#       - pulp_platform_serial_link/src/axis/include/axis : {is_include_file : true}
+#     file_type : systemVerilogSource
 
   rtl:
     depend:
@@ -17,6 +17,7 @@ filesets:
     - pulp-platform.org::register_interface
     - pulp-platform.org::axi_slice   
     files:
+    - pulp_platform_serial_link/src/axis/include/ : {is_include_file : true, include_path : include}
     - pulp_platform_serial_link/src/regs/serial_link_reg_pkg.sv
     - pulp_platform_serial_link/src/regs/serial_link_reg_top.sv
     - pulp_platform_serial_link/src/regs/serial_link_single_channel_reg_pkg.sv
@@ -37,4 +38,5 @@ filesets:
 
 targets:
   default:
-    filesets : [includes, rtl]
+    filesets : [rtl]
+#     filesets : [includes, rtl]

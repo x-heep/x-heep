@@ -43,9 +43,6 @@ filesets:
     files:
       - lint/verible_waiver.vbw: {file_type: veribleLintWaiver}
 
-  files_check_tool_requirements:
-    depend:
-     - lowrisc:tool:check_tool_requirements
 
 parameters:
   RVFI:

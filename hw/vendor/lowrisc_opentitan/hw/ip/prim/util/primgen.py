@@ -222,7 +222,7 @@ def _generate_prim_pkg(gapi):
         techlib_enums.append(_enum_name_for_techlib(techlib, qualified=False))
 
     # Render prim_pkg.sv file
-    print("Creating prim_pkg.sv")
+    # print("Creating prim_pkg.sv")
     prim_pkg_sv_tpl_filepath = os.path.join(os.path.dirname(__file__),
                                             'primgen', 'prim_pkg.sv.tpl')
     prim_pkg_sv_tpl = Template(filename=prim_pkg_sv_tpl_filepath)
@@ -237,7 +237,7 @@ def _generate_prim_pkg(gapi):
                                      'prim_pkg.core.tpl')
     prim_pkg_core_dest = 'prim_pkg.core'
     shutil.copyfile(prim_pkg_core_src, prim_pkg_core_dest)
-    print("Core file written to %s." % (prim_pkg_core_dest, ))
+    # print("Core file written to %s." % (prim_pkg_core_dest, ))
 
 
 def _instance_sv(prim_name, techlib, parameters):
@@ -304,8 +304,8 @@ def _generate_abstract_impl(gapi):
     if 'generic' not in techlibs:
         raise ValueError("Techlib generic is required, but not found for "
                          "primitive %s." % prim_name)
-    print("Implementations for primitive %s: %s" %
-          (prim_name, ', '.join(techlibs)))
+    # print("Implementations for primitive %s: %s" %
+    #       (prim_name, ', '.join(techlibs)))
 
     # Extract port list out of generic implementation
     generic_core = _core_info_for_techlib(prim_cores, 'generic')[1]
@@ -315,11 +315,11 @@ def _generate_abstract_impl(gapi):
     top_module_file = os.path.join(generic_core['core_root'],
                                    top_module_filename)
 
-    print("Inspecting generic module %s" % (top_module_file, ))
+    # print("Inspecting generic module %s" % (top_module_file, ))
     generic_hdr = _parse_module_header(top_module_file, generic_module_name)
 
     # Render abstract primitive HDL from template
-    print("Creating SystemVerilog module for abstract primitive")
+    # print("Creating SystemVerilog module for abstract primitive")
     abstract_prim_sv_tpl_filepath = os.path.join(os.path.dirname(__file__),
                                                  'primgen',
                                                  'abstract_prim.sv.tpl')
@@ -344,7 +344,7 @@ def _generate_abstract_impl(gapi):
 
     # Create core file depending on all primitive implementations we have in the
     # techlibs.
-    print("Creating core file for primitive %s." % (prim_name, ))
+    # print("Creating core file for primitive %s." % (prim_name, ))
     abstract_prim_core_filepath = os.path.abspath('prim_%s.core' % (prim_name))
     dependencies = []
     dependencies.append('lowrisc:prim:prim_pkg')
@@ -380,7 +380,7 @@ def _generate_abstract_impl(gapi):
                   f,
                   encoding="utf-8",
                   Dumper=YamlDumper)
-    print("Core file written to %s" % (abstract_prim_core_filepath, ))
+    # print("Core file written to %s" % (abstract_prim_core_filepath, ))
 
 
 def _get_action_from_gapi(gapi, default_action):

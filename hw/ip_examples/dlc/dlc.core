@@ -12,9 +12,10 @@ filesets:
   files_rtl:
     depend:
       - x-heep::packages
+      - pulp-platform.org::common_cells
     files:
-    - rtl/dlc_reg_pkg.sv
-    - rtl/dlc_reg_top.sv
+    # - rtl/dlc_reg_pkg.sv
+    # - rtl/dlc_reg_top.sv
     - rtl/dlc.sv
     file_type: systemVerilogSource
 

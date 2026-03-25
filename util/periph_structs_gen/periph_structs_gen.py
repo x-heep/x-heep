@@ -467,7 +467,11 @@ def main(arg_vect):
     structs_definitions += "}} {};".format(data["name"])
 
     final_output = write_template(
-        input_template, structs_definitions, enums_definitions, data["name"], header_filename
+        input_template,
+        structs_definitions,
+        enums_definitions,
+        data["name"],
+        header_filename,
     )
     write_output(output_filename, final_output)
 

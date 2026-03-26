@@ -19,13 +19,15 @@
 # Later it parses the allocated ELF sections, classifies them by section
 # type, and maps them onto the linker memory regions to estimate the
 # amount of code and data stored in each area.
-# The script also handles interleaved (IL) memory banks. For IL data,
-# the bank-by-bank visualization assumes a homogeneous distribution
-# across the interleaved banks, although the real placement may differ.
-# Multiple IL groups are handled independently.
-# When code is linked in FLASH, the script reports RAM data usage and
+# The script also handles interleaved (IL) memory banks. For regions
+# mapped onto IL groups, the bank-by-bank visualization projects the
+# shared address space onto each physical bank assuming a homogeneous
+# distribution across the interleaved banks, although the real placement
+# may differ. Multiple IL groups are handled independently.
+# When code is linked in FLASH, the script reports RAM data usage,
 # emits a warning instead of trying to represent FLASH-resident code in
-# the RAM bank visualization.
+# the RAM bank visualization, and summarizes the amount of FLASH image
+# space occupied by the application.
 
 
 import argparse

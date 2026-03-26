@@ -16,12 +16,13 @@
 # memory banks from the MCU package.
 # Then it extracts the memory regions defined in the linker script, i.e.
 # where code and data can be stored for the selected linker mode.
-# Later it parses the LOAD segments from the ELF, classifies them by
-# section type, and maps them onto the linker memory regions to estimate
-# the amount of code and data stored in each area.
+# Later it parses the allocated ELF sections, classifies them by section
+# type, and maps them onto the linker memory regions to estimate the
+# amount of code and data stored in each area.
 # The script also handles interleaved (IL) memory banks. For IL data,
 # the bank-by-bank visualization assumes a homogeneous distribution
 # across the interleaved banks, although the real placement may differ.
+# Multiple IL groups are handled independently.
 # When code is linked in FLASH, the script reports RAM data usage and
 # emits a warning instead of trying to represent FLASH-resident code in
 # the RAM bank visualization.
@@ -78,6 +79,9 @@ def get_banks_and_sizes(mcu_pkg_path):
     num_il_banks = 0
     sizes_B = []
     bank_starts = {}
+    il_group_starts = {}
+    il_group_sizes = {}
+    il_group_first_bank = {}
     with mcu_pkg_path.open("r", encoding="utf-8") as file:
         for line in file:
             if "NUM_BANKS =" in line:
@@ -93,6 +97,21 @@ def get_banks_and_sizes(mcu_pkg_path):
                 start_match = re.search(r"RAM(\d+)_START_ADDRESS = 32'h([0-9A-Fa-f]+);", line)
                 if start_match:
                     bank_starts[int(start_match.group(1))] = int(start_match.group(2), 16)
+                    continue
+
+                il_start_match = re.search(r"RAM_IL(\d+)_START_ADDRESS = 32'h([0-9A-Fa-f]+);", line)
+                if il_start_match:
+                    il_group_starts[int(il_start_match.group(1))] = int(il_start_match.group(2), 16)
+                    continue
+
+                il_size_match = re.search(r"RAM_IL(\d+)_SIZE = 32'h([0-9A-Fa-f]+);", line)
+                if il_size_match:
+                    il_group_sizes[int(il_size_match.group(1))] = int(il_size_match.group(2), 16)
+                    continue
+
+                il_idx_match = re.search(r"RAM_IL(\d+)_IDX = RAM(\d+)_IDX;", line)
+                if il_idx_match:
+                    il_group_first_bank[int(il_idx_match.group(1))] = int(il_idx_match.group(2))
 
     if num_banks <= 0:
         raise ValueError(f"Could not parse NUM_BANKS from {mcu_pkg_path}")
@@ -108,7 +127,57 @@ def get_banks_and_sizes(mcu_pkg_path):
     else:
         bank_origins = []
 
-    return num_banks, num_il_banks, sizes_B[:num_banks], bank_origins
+    il_groups = []
+    if il_group_starts:
+        for group_idx in sorted(il_group_starts):
+            if group_idx not in il_group_sizes or group_idx not in il_group_first_bank:
+                raise ValueError(f"Incomplete RAM_IL{group_idx} definition in {mcu_pkg_path}")
+
+            first_bank_idx = il_group_first_bank[group_idx]
+            if first_bank_idx >= num_banks:
+                raise ValueError(f"RAM_IL{group_idx} starts at invalid bank index {first_bank_idx}")
+
+            bank_size_B = sizes_B[first_bank_idx]
+            group_size_B = il_group_sizes[group_idx]
+            if bank_size_B <= 0 or group_size_B % bank_size_B != 0:
+                raise ValueError(
+                    f"RAM_IL{group_idx} size 0x{group_size_B:X} is not a multiple of bank size 0x{bank_size_B:X}"
+                )
+
+            group_bank_count = group_size_B // bank_size_B
+            end_bank_idx = first_bank_idx + group_bank_count
+            if end_bank_idx > num_banks:
+                raise ValueError(
+                    f"RAM_IL{group_idx} spans banks [{first_bank_idx}, {end_bank_idx}), beyond NUM_BANKS={num_banks}"
+                )
+
+            il_groups.append(
+                {
+                    "index": group_idx,
+                    "origin": il_group_starts[group_idx],
+                    "size": group_size_B,
+                    "end": il_group_starts[group_idx] + group_size_B,
+                    "first_bank_idx": first_bank_idx,
+                    "num_banks": group_bank_count,
+                    "bank_indices": list(range(first_bank_idx, end_bank_idx)),
+                }
+            )
+    elif num_il_banks:
+        first_il_bank = num_banks - num_il_banks
+        il_origin = bank_origins[first_il_bank] if bank_origins else 0
+        il_groups.append(
+            {
+                "index": 0,
+                "origin": il_origin,
+                "size": sum(sizes_B[first_il_bank:num_banks]),
+                "end": il_origin + sum(sizes_B[first_il_bank:num_banks]),
+                "first_bank_idx": first_il_bank,
+                "num_banks": num_il_banks,
+                "bank_indices": list(range(first_il_bank, num_banks)),
+            }
+        )
+
+    return num_banks, num_il_banks, sizes_B[:num_banks], bank_origins, il_groups
 
 
 def get_memory_sections(ld_path):
@@ -153,6 +222,22 @@ def get_memory_sections(ld_path):
 
 def get_readelf_output(elf_file):
     """
+    Executes readelf -W -S on the provided ELF file.
+    """
+    if not elf_file.is_file():
+        raise FileNotFoundError(f"ELF file not found: {elf_file}")
+
+    try:
+        result = subprocess.run(["readelf", "-W", "-S", str(elf_file)], check=True, capture_output=True, text=True)
+    except subprocess.CalledProcessError as error:
+        stderr = error.stderr.strip()
+        raise RuntimeError(f"readelf failed for {elf_file}: {stderr or error}") from error
+
+    return result.stdout
+
+
+def get_readelf_program_headers_output(elf_file):
+    """
     Executes readelf -l on the provided ELF file.
     """
     if not elf_file.is_file():
@@ -167,13 +252,50 @@ def get_readelf_output(elf_file):
     return result.stdout
 
 
+def parse_section_headers(readelf_output):
+    """
+    Parses the readelf output to extract allocated ELF section headers.
+    """
+    sections = []
+
+    for line in readelf_output.splitlines():
+        match = re.match(r"^\s*\[\s*(\d+)\]\s+(.*)$", line)
+        if not match:
+            continue
+
+        parts = match.group(2).split()
+        if len(parts) < 10:
+            continue
+
+        name, section_type, address, _, size, _, flags = parts[:7]
+        size_B = int(size, 16)
+        if not name or size_B == 0 or "A" not in flags:
+            continue
+
+        start_address = int(address, 16)
+        sections.append(
+            {
+                "name": name,
+                "type": section_type,
+                "flags": flags,
+                "start_add": start_address,
+                "size_B": size_B,
+                "end_add": start_address + size_B,
+            }
+        )
+
+    if not sections:
+        raise ValueError("No allocated ELF sections found in readelf output")
+
+    return sorted(sections, key=lambda section: section["start_add"])
+
+
 def parse_program_headers(readelf_output):
     """
-    Parses the readelf output to extract LOAD program headers.
+    Parses the readelf -l output to extract LOAD program headers.
     """
     program_headers = []
     headers_started = False
-    segment_index = 0
 
     for line in readelf_output.splitlines():
         stripped = line.strip()
@@ -188,13 +310,7 @@ def parse_program_headers(readelf_output):
             continue
 
         parts = re.split(r"\s+", stripped)
-        if len(parts) < 8:
-            continue
-
-        current_index = segment_index
-        segment_index += 1
-
-        if parts[0] != "LOAD":
+        if len(parts) < 8 or parts[0] != "LOAD":
             continue
 
         program_headers.append(
@@ -207,7 +323,6 @@ def parse_program_headers(readelf_output):
                 "MemSiz": int(parts[5], 16),
                 "Flg": "".join(parts[6:-1]),
                 "Align": int(parts[-1], 16),
-                "Idx": current_index,
             }
         )
 
@@ -217,38 +332,14 @@ def parse_program_headers(readelf_output):
     return program_headers
 
 
-def parse_section_to_segment(readelf_output):
+def get_regions(section_headers):
     """
-    Parses the 'Section to Segment mapping' from the output of readelf.
-    """
-    mapping = {}
-    capture = False
-
-    for line in readelf_output.splitlines():
-        if "Section to Segment mapping:" in line:
-            capture = True
-            continue
-        if not capture:
-            continue
-
-        match = re.match(r"\s*(\d+)\s*(.*)$", line)
-        if not match:
-            continue
-
-        segment_index = int(match.group(1))
-        sections = re.findall(r"\.[^\s]+", match.group(2))
-        mapping[segment_index] = sections
-
-    return mapping
-
-
-def get_regions(program_headers, section_to_segment):
-    """
-    Create a list of dictionaries describing each loadable segment's start
+    Create a list of dictionaries describing each allocated section's start
     address, size, and type.
     """
     code_sections = {
         ".vectors",
+        ".fill",
         ".init",
         ".text",
         ".fini",
@@ -259,60 +350,48 @@ def get_regions(program_headers, section_to_segment):
         ".ctors",
         ".dtors",
     }
-    data_sections = {
-        ".power_manager",
-        ".rodata",
-        ".data",
-        ".xheep_init_data_crt0",
-        ".sdata",
-        ".sbss",
-        ".bss",
-        ".heap",
-        ".stack",
-    }
     interleaved_data_sections = {".data_interleaved", ".xheep_data_interleaved"}
     flash_data_sections = {".data_flash_only", ".xheep_data_flash_only"}
 
     regions = []
 
-    for ph in program_headers:
-        sections = section_to_segment.get(ph["Idx"], [])
-        if not sections:
-            continue
-
+    for section in section_headers:
+        section_name = section["name"]
         region_type = "d"
         name = "data"
-        if any(sec in sections for sec in code_sections):
-            region_type = "C"
-            name = "code"
-        elif any(sec in sections for sec in interleaved_data_sections):
+        if section_name in interleaved_data_sections:
             region_type = "i"
             name = "IL data"
-        elif any(sec in sections for sec in data_sections):
-            region_type = "d"
-            name = "data"
-        elif all(sec in flash_data_sections for sec in sections):
+        elif section_name in flash_data_sections:
             region_type = "f"
             name = "FLASH data"
+        elif section_name in code_sections or "X" in section["flags"]:
+            region_type = "C"
+            name = "code"
 
         regions.append(
             {
                 "name": name,
                 "symbol": region_type,
-                "start_add": ph["VirtAddr"],
-                "size_B": ph["MemSiz"],
-                "end_add": ph["VirtAddr"] + ph["MemSiz"],
+                "section_name": section_name,
+                "start_add": section["start_add"],
+                "size_B": section["size_B"],
+                "end_add": section["end_add"],
             }
         )
 
     if not regions:
-        raise ValueError("No loadable memory regions could be derived from readelf output")
+        raise ValueError("No allocatable memory regions could be derived from readelf output")
 
     return regions
 
 
 def is_flash_section(name):
     return name.upper().startswith("FLASH")
+
+
+def is_ram_section(name):
+    return name.lower().startswith("ram")
 
 
 def regions_overlap(start_a, end_a, start_b, end_b):
@@ -347,10 +426,15 @@ def summarize_region(memory_sections, regions, region_name, fallback_section_nam
     end_add = max(section["origin"] + section["length"] for _, section in host_sections)
     used_B = sum(region["size_B"] for region in selected_regions)
 
+    required_B = 0
     if selected_regions:
-        required_B = max(region["end_add"] for region in selected_regions) - min(region["start_add"] for region in selected_regions)
-    else:
-        required_B = 0
+        merged_intervals = []
+        for region in sorted(selected_regions, key=lambda item: item["start_add"]):
+            if not merged_intervals or region["start_add"] > merged_intervals[-1][1]:
+                merged_intervals.append([region["start_add"], region["end_add"]])
+            else:
+                merged_intervals[-1][1] = max(merged_intervals[-1][1], region["end_add"])
+        required_B = sum(interval_end - interval_start for interval_start, interval_end in merged_intervals)
 
     return {
         "mem": ",".join(name for name, _ in host_sections),
@@ -363,39 +447,140 @@ def summarize_region(memory_sections, regions, region_name, fallback_section_nam
     }
 
 
-def create_banks(num_banks, num_il_banks, bank_sizes_B, bank_origins, ram_base_address):
+def summarize_flash_image(memory_sections, program_headers):
+    flash_sections = [(name, section) for name, section in memory_sections.items() if is_flash_section(name)]
+    if not flash_sections:
+        return None
+
+    flash_regions = []
+    for ph in program_headers:
+        if ph["FileSiz"] == 0:
+            continue
+
+        region = {
+            "start_add": ph["PhysAddr"],
+            "end_add": ph["PhysAddr"] + ph["FileSiz"],
+            "size_B": ph["FileSiz"],
+        }
+        if any(
+            regions_overlap(region["start_add"], region["end_add"], section["origin"], section["origin"] + section["length"])
+            for _, section in flash_sections
+        ):
+            flash_regions.append(region)
+
+    if not flash_regions:
+        return None
+
+    capacity_B = sum(section["length"] for _, section in flash_sections)
+    flash_base = min(section["origin"] for _, section in flash_sections)
+    start_add = min(region["start_add"] for region in flash_regions)
+    end_add = max(region["end_add"] for region in flash_regions)
+    used_B = sum(region["size_B"] for region in flash_regions)
+
+    merged_intervals = []
+    for region in sorted(flash_regions, key=lambda item: item["start_add"]):
+        if not merged_intervals or region["start_add"] > merged_intervals[-1][1]:
+            merged_intervals.append([region["start_add"], region["end_add"]])
+        else:
+            merged_intervals[-1][1] = max(merged_intervals[-1][1], region["end_add"])
+    required_B = sum(interval_end - interval_start for interval_start, interval_end in merged_intervals)
+
+    return {
+        "end_offset": end_add - flash_base,
+        "length": capacity_B,
+        "used": used_B,
+        "required": required_B,
+    }
+
+
+def create_banks(num_banks, bank_sizes_B, bank_origins, il_groups, ram_base_address):
     banks = []
+    il_group_by_bank = {}
+
+    for group in il_groups:
+        for bank_idx in group["bank_indices"]:
+            il_group_by_bank[bank_idx] = group
 
     for index in range(num_banks):
         size_B = bank_sizes_B[index]
         origin = bank_origins[index] if bank_origins else ram_base_address + sum(bank_sizes_B[:index])
+        il_group = il_group_by_bank.get(index)
         bank = {
-            "type": "Cont" if index < (num_banks - num_il_banks) else "IntL",
+            "type": "IntL" if il_group is not None else "Cont",
             "size": size_B,
             "origin": origin,
+            "il_group": il_group,
         }
         banks.append(bank)
 
     return banks
 
 
-def print_summary_and_bank_usage(memory_sections, regions, banks, num_il_banks, bank_sizes_B):
+def project_region_onto_bank(bank, region):
+    """
+    Project a memory region onto the visualization space of a single bank.
+
+    For interleaved groups, the visualization compresses the shared address
+    space into the per-bank physical capacity by dividing both offset and size
+    by the number of banks in the group.
+    """
+    if bank["type"] == "Cont":
+        bank_start = bank["origin"]
+        bank_end = bank_start + bank["size"]
+        if not regions_overlap(region["start_add"], region["end_add"], bank_start, bank_end):
+            return None
+        return max(region["start_add"], bank_start), min(region["end_add"], bank_end)
+
+    il_group = bank["il_group"]
+    if il_group is None:
+        return None
+
+    overlap_start = max(region["start_add"], il_group["origin"])
+    overlap_end = min(region["end_add"], il_group["end"])
+    if overlap_start >= overlap_end:
+        return None
+
+    group_origin = il_group["origin"]
+    group_bank_count = il_group["num_banks"]
+    bank_view_start = group_origin + (overlap_start - group_origin) // group_bank_count
+    bank_view_end = group_origin + (overlap_end - group_origin + group_bank_count - 1) // group_bank_count
+    bank_view_limit = group_origin + bank["size"]
+    if bank_view_start >= bank_view_limit:
+        return None
+
+    return bank_view_start, min(bank_view_end, bank_view_limit)
+
+
+def interval_overlap(start_a, end_a, start_b, end_b):
+    return max(0, min(end_a, end_b) - max(start_a, start_b))
+
+
+def print_summary_and_bank_usage(memory_sections, regions, program_headers, banks):
     summaries = {
         "Code": summarize_region(memory_sections, regions, "code", ("ram0", "FLASH0", "FLASH")),
         "Data": summarize_region(memory_sections, regions, "data", ("ram1", "RAM")),
-        "ILdata": summarize_region(memory_sections, regions, "IL data", ("ram2",)),
+        "ILdata": summarize_region(memory_sections, regions, "IL data", ()),
     }
+    flash_summary = summarize_flash_image(memory_sections, program_headers)
 
-    total_size_B = sum(bank_sizes_B)
+    continuous_sizes_kB = [int(bank["size"] / 1024) for bank in banks if bank["type"] == "Cont"]
+    interleaved_sizes_kB = [int(bank["size"] / 1024) for bank in banks if bank["type"] == "IntL"]
+    total_size_B = sum(bank["size"] for bank in banks)
     print(
         f"Total space: {total_size_B/1024:0.1f} kB = Continuous:",
-        [int(size_B / 1024) for size_B in bank_sizes_B[: len(bank_sizes_B) - num_il_banks]],
+        continuous_sizes_kB if continuous_sizes_kB else [],
         "kB + Interleaved:",
-        [int(size_B / 1024) for size_B in bank_sizes_B[-num_il_banks:]] if num_il_banks else [0],
+        interleaved_sizes_kB if interleaved_sizes_kB else [0],
         "kB",
     )
 
     flash_code = summaries["Code"] is not None and any(is_flash_section(name) for name in summaries["Code"]["host_sections"])
+    flash_load_code = (
+        summaries["Code"] is not None
+        and not flash_code
+        and any(is_ram_section(name) for name in summaries["Code"]["host_sections"])
+        and any(re.fullmatch(r"FLASH\d+", name) for name in memory_sections)
+    )
 
     print(f"{'Region':<8} {'Mem':<9} {'Start':>8} {'End':>8} {'Sz(kB)':>8} {'Usd(kB)':>8} {'Req(kB)':>8} {'Utilz(%)':>9}")
     for label in ("Code", "Data", "ILdata"):
@@ -410,11 +595,23 @@ def print_summary_and_bank_usage(memory_sections, regions, banks, num_il_banks, 
             f"{summary['length']/1024:8.1f} {summary['used']/1024:8.1f} {summary['required']/1024:8.1f} {utilization:9.1f}"
         )
 
-    if flash_code:
-        print("Warning: code is linked in FLASH; the RAM bank visualization excludes code stored in FLASH.")
+    if summaries["Code"] is not None:
+        if flash_code:
+            print("Code placement: execute in FLASH; RAM bank visualization excludes FLASH-resident code.")
+        elif flash_load_code:
+            print("Code placement: load from FLASH, execute from RAM; bank visualization reflects RAM execution addresses.")
+        else:
+            print("Code placement: execute from RAM.")
+
+    if flash_summary is not None:
+        flash_utilization = 0.0 if flash_summary["length"] == 0 else 100 * flash_summary["required"] / flash_summary["length"]
+        print(
+            f"Flash usage: {flash_summary['used']/1024:0.1f} kB stored, "
+            f"{flash_summary['required']/1024:0.1f} kB occupied "
+            f"({flash_utilization:0.1f}% of available FLASH image space)."
+        )
 
     granularity_B = 1024
-    il_base_address = banks[len(banks) - num_il_banks]["origin"] if num_il_banks else 0
 
     print("")
     for bank_idx, bank in enumerate(banks):
@@ -422,34 +619,23 @@ def print_summary_and_bank_usage(memory_sections, regions, banks, num_il_banks, 
         utilization = 0
 
         for piece in range(len(bank["use"])):
-            if bank["type"] == "Cont":
-                address = bank["origin"] + granularity_B * piece
-            else:
-                address = il_base_address + granularity_B * piece
+            address_base = bank["origin"] if bank["type"] == "Cont" else bank["il_group"]["origin"]
+            address = address_base + granularity_B * piece
+            address_end = address + granularity_B
 
             for region in regions:
-                region_end = region["end_add"]
-                if bank["type"] == "IntL":
-                    used_by_others = int(region["size_B"] * (num_il_banks - 1) / num_il_banks)
-                    region_end -= used_by_others
+                if region["name"] == "FLASH data":
+                    continue
 
-                if region["start_add"] < address and region_end > (address + granularity_B):
+                bank_region = project_region_onto_bank(bank, region)
+                if bank_region is None:
+                    continue
+
+                region_start, region_end = bank_region
+                overlap = interval_overlap(address, address_end, region_start, region_end)
+                if overlap > 0:
                     bank["use"][piece] = region["symbol"]
-                    utilization += granularity_B
-                elif region["start_add"] < address and region_end > address and region_end <= (address + granularity_B):
-                    bank["use"][piece] = region["symbol"]
-                    utilization += region_end - address
-                elif region["start_add"] >= address and region["start_add"] < (address + granularity_B) and region_end > (address + granularity_B):
-                    bank["use"][piece] = region["symbol"]
-                    utilization += (address + granularity_B) - region["start_add"]
-                elif (
-                    region["start_add"] >= address
-                    and region["start_add"] < (address + granularity_B)
-                    and region_end > address
-                    and region_end <= (address + granularity_B)
-                ):
-                    bank["use"][piece] = region["symbol"]
-                    utilization += region_end - region["start_add"]
+                    utilization += overlap
 
         bank["use"] = "".join(bank["use"])
         print(bank["type"], bank_idx, bank["use"], f"\t{100*(utilization/bank['size']):5.1f}%")
@@ -463,12 +649,13 @@ def main():
         return 1
 
     try:
-        readelf_output = get_readelf_output(args.elf)
-        program_headers = parse_program_headers(readelf_output)
-        section_to_segment = parse_section_to_segment(readelf_output)
-        regions = get_regions(program_headers, section_to_segment)
+        readelf_sections_output = get_readelf_output(args.elf)
+        readelf_program_headers_output = get_readelf_program_headers_output(args.elf)
+        section_headers = parse_section_headers(readelf_sections_output)
+        program_headers = parse_program_headers(readelf_program_headers_output)
+        regions = get_regions(section_headers)
 
-        num_banks, num_il_banks, bank_sizes_B, bank_origins = get_banks_and_sizes(args.mcu_pkg)
+        num_banks, _, bank_sizes_B, bank_origins, il_groups = get_banks_and_sizes(args.mcu_pkg)
         memory_sections = get_memory_sections(args.ld)
 
         ram_sections = [section for name, section in memory_sections.items() if not is_flash_section(name)]
@@ -476,8 +663,8 @@ def main():
             raise ValueError(f"No RAM sections found in linker script: {args.ld}")
 
         ram_base_address = min(section["origin"] for section in ram_sections)
-        banks = create_banks(num_banks, num_il_banks, bank_sizes_B, bank_origins, ram_base_address)
-        print_summary_and_bank_usage(memory_sections, regions, banks, num_il_banks, bank_sizes_B)
+        banks = create_banks(num_banks, bank_sizes_B, bank_origins, il_groups, ram_base_address)
+        print_summary_and_bank_usage(memory_sections, regions, program_headers, banks)
     except (FileNotFoundError, RuntimeError, ValueError) as error:
         print(error, file=sys.stderr)
         return 1

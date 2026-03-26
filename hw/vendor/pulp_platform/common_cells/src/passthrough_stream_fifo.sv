@@ -77,7 +77,7 @@ module passthrough_stream_fifo #(
             valid_o = read_ptr_q[PointerWidth-1] == write_ptr_q[PointerWidth-1]
                 ? read_ptr_q[PointerWidth-2:0] != write_ptr_q[PointerWidth-2:0] : 1'b1;
             if (ready_i) begin
-                if (read_ptr_q[PointerWidth-2:0] == (Depth-1)) begin
+                if (read_ptr_q[PointerWidth-2:0] == (PointerWidth-1)'(Depth-1)) begin
                     // On overflow reset pointer to zero and flip imaginary bit
                     read_ptr_d[PointerWidth-2:0] = '0;
                     read_ptr_d[PointerWidth-1]   = !read_ptr_q[PointerWidth-1];
@@ -96,7 +96,7 @@ module passthrough_stream_fifo #(
                 load_data = 1'b1;
                 data_d[write_ptr_q[PointerWidth-2:0]] = data_i;
 
-                if (write_ptr_q[PointerWidth-2:0] == (Depth-1)) begin
+                if (write_ptr_q[PointerWidth-2:0] == (PointerWidth-1)'(Depth-1)) begin
                     // On overflow reset pointer to zero and flip imaginary bit
                     write_ptr_d[PointerWidth-2:0] = '0;
                     write_ptr_d[PointerWidth-1]   = !write_ptr_q[PointerWidth-1];

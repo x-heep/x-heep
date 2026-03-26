@@ -180,7 +180,10 @@ app: clean-app
 	echo "\033[0;31mI would start by checking b) or c) if I were you!\033[0m"; \
 	exit 1; \
 	}
-	@$(PYTHON) scripts/building/mem_usage.py
+	@$(PYTHON) scripts/building/mem_usage.py \
+		--elf $(mkfile_path)/sw/build/main.elf \
+		--ld $(mkfile_path)/sw/build/main.ld \
+		--mcu-pkg $(mkfile_path)/hw/core-v-mini-mcu/include/core_v_mini_mcu_pkg.sv
 
 ## Just list the different application names available
 app-list:

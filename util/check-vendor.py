@@ -4,6 +4,7 @@ import sys
 import os
 import re
 import subprocess
+import hashlib
 from pathlib import Path
 
 try:
@@ -71,7 +72,7 @@ def check_dependencies(search_path="."):
     vendor_files = list(Path(search_path).rglob("*.vendor.hjson"))
 
     # Dictionary to group dependencies by normalized URL
-    # Format: { 'url': [ {'path': Path, 'rev': str, 'target': str, 'pulled_in': bool}, ... ] }
+    # Format: { 'url': [ {'path': Path, 'rev': str, 'target': str, 'pulled_in': bool, 'patches': list}, ... ] }
     deps_by_url = {}
 
     for v_file in vendor_files:
@@ -119,6 +120,22 @@ def check_dependencies(search_path="."):
                 # Determine if the dependency was actually pulled in
                 is_pulled_in = target_path.is_dir() and any(target_path.iterdir())
 
+                # Extract and hash patches
+                patch_dir = project_data.get("patch_dir")
+                patches = []
+                if patch_dir:
+                    patch_path = v_file.parent / patch_dir
+                    if patch_path.is_dir():
+                        for p_file in sorted(patch_path.glob("*.patch")):
+                            try:
+                                with open(p_file, 'rb') as pf:
+                                    patches.append({
+                                        'name': p_file.name,
+                                        'content_hash': hashlib.md5(pf.read()).hexdigest()
+                                    })
+                            except Exception as e:
+                                print(f"{YELLOW}Warning: Could not read patch {p_file}: {e}{RESET}")
+
                 if norm_url not in deps_by_url:
                     deps_by_url[norm_url] = []
                     
@@ -127,7 +144,8 @@ def check_dependencies(search_path="."):
                     'url': url,
                     'rev': rev,
                     'target': target_path,
-                    'pulled_in': is_pulled_in
+                    'pulled_in': is_pulled_in,
+                    'patches': patches
                 })
             
         except Exception as e:
@@ -136,7 +154,7 @@ def check_dependencies(search_path="."):
     global_errors = 0
 
     print(f"Checking {len(deps_by_url)} unique dependencies...\n")
-    print(f"{'STATUS':<12} {'REPOSITORY':<60} {'REVISION':<40} {'LOCATION'}")
+    print(f"{'STATUS':<15} {'REPOSITORY':<60} {'REVISION':<40} {'LOCATION'}")
     print("-" * 180)
 
     # Evaluate dependencies
@@ -151,39 +169,56 @@ def check_dependencies(search_path="."):
             rev_mismatch = len(resolved_revisions) > 1
             pulled_in_count = sum(1 for entry in entries if entry['pulled_in'])
             multiple_pulls = pulled_in_count > 1
+            
+            # Check for patch mismatch
+            patch_sets = [str(entry['patches']) for entry in entries]
+            patch_mismatch = len(set(patch_sets)) > 1
         else:
             rev_mismatch = False
             multiple_pulls = False
+            patch_mismatch = False
 
         for entry in entries:
             status = "PULLED" if entry['pulled_in'] else "NOT PULLED"
             status_color = GREEN if entry['pulled_in'] else RESET
             
-            if (entry['pulled_in'] and multiple_pulls) or rev_mismatch:
+            # Identify all issues to determine status and color
+            issues = []
+            if entry['pulled_in'] and multiple_pulls:
+                issues.append("DUPLICATE")
+            if rev_mismatch:
+                issues.append("MISMATCH")
+            if patch_mismatch:
+                issues.append("PATCH MISMATCH")
+
+            if issues:
                 status_color = RED
-                if multiple_pulls and entry['pulled_in']:
-                    status = "DUPLICATE"
-                elif rev_mismatch:
-                    status = "MISMATCH"
+                status = " / ".join(issues)
 
             rev_display = entry['rev']
             if rev_mismatch:
                 rev_display = f"{RED}{rev_display}{RESET}"
 
-            print(f"{status_color}{status:<12}{RESET} {entry['url']:<60} {rev_display:>40} {entry['path']}")
+            print(f"{status_color}{status:<15}{RESET} {entry['url']:<60} {rev_display:>40} {entry['path']}")
 
     # Detailed collision reports
     for norm_url, entries in deps_by_url.items():
         if len(entries) <= 1:
             continue
 
+        def get_patch_signature(entry):
+            return tuple((p['name'], p['content_hash']) for p in entry['patches'])
+
         # We already resolved hashes in the summary loop for duplicates
         resolved_revisions = {entry['resolved_rev'] for entry in entries}
         rev_mismatch = len(resolved_revisions) > 1
         pulled_in_count = sum(1 for entry in entries if entry['pulled_in'])
         multiple_pulls = pulled_in_count > 1
+        
+        patch_sets = [get_patch_signature(entry) for entry in entries]
+        patch_mismatch = len(set(patch_sets)) > 1
 
-        if not (rev_mismatch or multiple_pulls):
+        if not (rev_mismatch or multiple_pulls or patch_mismatch):
             continue
 
         print(f"\n{'-'*80}")
@@ -213,26 +248,36 @@ def check_dependencies(search_path="."):
             print(f"  [{i}] {path_str}")
             print(f"      Revision: {rev_str}")
             print(f"      Commit:   {resolved_hash}")
+            if entry['patches']:
+                # Show short hash to help identify mismatches
+                patch_displays = [f"{p['name']} ({p['content_hash'][:8]})" for p in entry['patches']]
+                print(f"      Patches:  {', '.join(patch_displays)}")
+            else:
+                print(f"      Patches:  None")
             print(f"      Status:   {status_str}\n")
 
         # Report specific errors and instructions
-        if rev_mismatch or multiple_pulls:
+        if rev_mismatch or multiple_pulls or patch_mismatch:
             global_errors += 1
             print(f"{RED}ERRORS FOUND:{RESET}")
             
             if rev_mismatch:
                 print(f"  * Revision mismatch: multiple required versions for the same IP.")
             
+            if patch_mismatch:
+                print(f"  * Patch mismatch: different patches are applied to the same IP across projects.")
+            
             if multiple_pulls:
                 print(f"  * Duplicate instantiation: IP is pulled into multiple directories.")
                 
-            print("\nREQUIRED ACTION:")
-            print("  1. Choose ONE primary .vendor.hjson file to maintain the dependency (usually at the top-level).")
-            print("  2. In all other projects dependent on this IP, add the vendor directory to 'exclude_from_upstream' in their respective .vendor.hjson files.")
-            print("  3. Run the 'vendor-update' target again.")
 
     if global_errors > 0:
         print(f"\n{RED}Failure: Found {global_errors} dependency collision(s) requiring resolution.{RESET}")
+        print("\nREQUIRED ACTION:")
+        print("  1. Choose ONE primary .vendor.hjson file to maintain for each dependency (usually at the top-level).")
+        print("  2. In all other projects dependent on this IP, add the vendor directory to 'exclude_from_upstream' in their respective .vendor.hjson files.")
+        print("  3. Ensure that the chosen primary project applies all necessary patches.")
+        print("  4. Run the 'vendor-update' target again.")
         sys.exit(1)
     else:
         print(f"{GREEN}Dependency check passed. No collisions found.{RESET}")

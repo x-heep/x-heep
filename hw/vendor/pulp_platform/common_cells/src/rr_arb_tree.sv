@@ -190,7 +190,7 @@ module rr_arb_tree #(
       if (FairArb) begin : gen_fair_arb
         logic [NumIn-1:0] upper_mask,  lower_mask;
         idx_t             upper_idx,   lower_idx,   next_idx;
-        logic             upper_empty, lower_empty;
+        logic             upper_empty;
 
         for (genvar i = 0; i < NumIn; i++) begin : gen_mask
           assign upper_mask[i] = (i >  rr_q) ? req_d[i] : 1'b0;

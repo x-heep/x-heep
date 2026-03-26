@@ -432,7 +432,6 @@ module cv32e40x_if_stage import cv32e40x_pkg::*;
 
         if_id_pipe_o.priv_lvl         <= prefetch_priv_lvl;
         if_id_pipe_o.trigger_match    <= trigger_match_i;
-        if_id_pipe_o.xif_id           <= xif_id;
         if_id_pipe_o.last_op          <= last_op_o;
         if_id_pipe_o.first_op         <= first_op_o;
         if_id_pipe_o.abort_op         <= abort_op_o;
@@ -477,6 +476,10 @@ module cv32e40x_if_stage import cv32e40x_pkg::*;
         end
       end else if (id_ready_i) begin
         if_id_pipe_o.instr_valid      <= 1'b0;
+      end
+      // Update the xif_id whenever the ID stage attempts to offload an instruction
+      if (id_ready_i && xif_offloading_id_i) begin
+        if_id_pipe_o.xif_id <= xif_id;
       end
     end
   end

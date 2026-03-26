@@ -98,6 +98,8 @@ module cv32e40x_id_stage import cv32e40x_pkg::*;
 
   // eXtension interface
   if_xif.cpu_issue    xif_issue_if,
+  input  logic        xif_mem_valid_i,
+  input  logic        xif_mem_ready_i,
   output logic        xif_offloading_o
 );
 
@@ -680,6 +682,8 @@ module cv32e40x_id_stage import cv32e40x_pkg::*;
         id_ex_pipe_o.xif_meta.accepted      <= xif_insn_accept;
 
       end else if (ex_ready_i) begin
+        id_ex_pipe_o.instr_valid            <= 1'b0;
+      end else if (xif_mem_valid_i && xif_mem_ready_i) begin
         id_ex_pipe_o.instr_valid            <= 1'b0;
       end
     end

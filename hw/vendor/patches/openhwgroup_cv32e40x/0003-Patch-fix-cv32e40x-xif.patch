@@ -1,0 +1,312 @@
+From 228a7dfbf16d2db21c05be04a39baf8d9fbf6860 Mon Sep 17 00:00:00 2001
+From: David Mallasen <dmallase@ucm.es>
+Date: Fri, 31 Mar 2023 16:28:34 +0200
+Subject: [PATCH 1/3] Fix #800 and #814
+
+---
+ rtl/cv32e40x_controller.sv     | 6 ++++--
+ rtl/cv32e40x_controller_fsm.sv | 7 ++++---
+ rtl/cv32e40x_core.sv           | 2 ++
+ rtl/cv32e40x_ex_stage.sv       | 1 +
+ rtl/cv32e40x_id_stage.sv       | 9 +++++++--
+ rtl/cv32e40x_if_stage.sv       | 5 ++++-
+ 6 files changed, 22 insertions(+), 8 deletions(-)
+
+diff --git a/rtl/cv32e40x_controller.sv b/rtl/cv32e40x_controller.sv
+index 01fc9380..55357036 100644
+--- a/rtl/cv32e40x_controller.sv
++++ b/rtl/cv32e40x_controller.sv
+@@ -141,8 +141,9 @@ module cv32e40x_controller import cv32e40x_pkg::*;
+   input logic         fencei_flush_ack_i,
+ 
+   // eXtension interface
+-  if_xif.cpu_commit   xif_commit_if,
+-  input               xif_csr_error_i
++  if_xif.cpu_commit xif_commit_if,
++  if_xif.cpu_mem    xif_mem_if,
++  input             xif_csr_error_i
+ );
+ 
+   // Main FSM and debug FSM
+@@ -239,6 +240,7 @@ module cv32e40x_controller import cv32e40x_pkg::*;
+ 
+     // eXtension interface
+     .xif_commit_if               ( xif_commit_if            ),
++    .xif_mem_if                  ( xif_mem_if               ),
+     .xif_csr_error_i             ( xif_csr_error_i          )
+   );
+ 
+diff --git a/rtl/cv32e40x_controller_fsm.sv b/rtl/cv32e40x_controller_fsm.sv
+index db0c4893..46cf4af0 100644
+--- a/rtl/cv32e40x_controller_fsm.sv
++++ b/rtl/cv32e40x_controller_fsm.sv
+@@ -129,8 +129,9 @@ module cv32e40x_controller_fsm import cv32e40x_pkg::*;
+   if_c_obi.monitor     m_c_obi_data_if,
+ 
+   // eXtension interface
+-  if_xif.cpu_commit    xif_commit_if,
+-  input                xif_csr_error_i
++  if_xif.cpu_commit xif_commit_if,
++  if_xif.cpu_mem    xif_mem_if,
++  input             xif_csr_error_i
+ );
+ 
+    // FSM state encoding
+@@ -1495,7 +1496,7 @@ module cv32e40x_controller_fsm import cv32e40x_pkg::*;
+           commit_valid_q <= 1'b0;
+           commit_kill_q  <= 1'b0;
+         end else begin
+-          if ((ex_valid_i && wb_ready_i) || ctrl_fsm_o.kill_ex) begin
++          if ((ex_valid_i && wb_ready_i) || ctrl_fsm_o.kill_ex || (xif_mem_if.mem_valid && xif_mem_if.mem_ready)) begin
+             commit_valid_q <= 1'b0;
+             commit_kill_q  <= 1'b0;
+           end else begin
+diff --git a/rtl/cv32e40x_core.sv b/rtl/cv32e40x_core.sv
+index 5394f143..90e18de4 100644
+--- a/rtl/cv32e40x_core.sv
++++ b/rtl/cv32e40x_core.sv
+@@ -577,6 +577,7 @@ module cv32e40x_core import cv32e40x_pkg::*;
+ 
+     // eXtension interface
+     .xif_issue_if                 ( xif_issue_if              ),
++    .xif_mem_if                   ( xif_mem_if                ),
+     .xif_offloading_o             ( xif_offloading_id         )
+   );
+ 
+@@ -1005,6 +1006,7 @@ module cv32e40x_core import cv32e40x_pkg::*;
+ 
+     // eXtension interface
+     .xif_commit_if                  ( xif_commit_if          ),
++    .xif_mem_if                     ( xif_mem_if             ),
+     .xif_csr_error_i                ( xif_csr_error_ex       )
+   );
+ 
+diff --git a/rtl/cv32e40x_ex_stage.sv b/rtl/cv32e40x_ex_stage.sv
+index ec80efb4..f401be1d 100644
+--- a/rtl/cv32e40x_ex_stage.sv
++++ b/rtl/cv32e40x_ex_stage.sv
+@@ -428,6 +428,7 @@ module cv32e40x_ex_stage import cv32e40x_pkg::*;
+       end else if (wb_ready_i) begin
+         // we are ready for a new instruction, but there is none available,
+         // so we introduce a bubble
++        ex_wb_pipe_o.xif_en      <= 1'b0;
+         ex_wb_pipe_o.instr_valid <= 1'b0;
+       end
+     end
+diff --git a/rtl/cv32e40x_id_stage.sv b/rtl/cv32e40x_id_stage.sv
+index 1385dfb1..452f4a6f 100644
+--- a/rtl/cv32e40x_id_stage.sv
++++ b/rtl/cv32e40x_id_stage.sv
+@@ -97,8 +97,9 @@ module cv32e40x_id_stage import cv32e40x_pkg::*;
+   input  logic        ex_ready_i,     // EX stage is ready for new data
+ 
+   // eXtension interface
+-  if_xif.cpu_issue    xif_issue_if,
+-  output logic        xif_offloading_o
++  if_xif.cpu_issue xif_issue_if,
++  if_xif.cpu_mem   xif_mem_if,
++  output logic     xif_offloading_o
+ );
+ 
+   // Source/Destination register instruction index
+@@ -681,6 +682,10 @@ module cv32e40x_id_stage import cv32e40x_pkg::*;
+ 
+       end else if (ex_ready_i) begin
+         id_ex_pipe_o.instr_valid            <= 1'b0;
++        id_ex_pipe_o.xif_en                 <= 1'b0;
++      end else if (xif_mem_if.mem_valid && xif_mem_if.mem_ready) begin
++        id_ex_pipe_o.instr_valid            <= 1'b0;
++        id_ex_pipe_o.xif_en                 <= 1'b0;
+       end
+     end
+   end
+diff --git a/rtl/cv32e40x_if_stage.sv b/rtl/cv32e40x_if_stage.sv
+index 2c4235b3..4f46c835 100644
+--- a/rtl/cv32e40x_if_stage.sv
++++ b/rtl/cv32e40x_if_stage.sv
+@@ -432,7 +432,6 @@ module cv32e40x_if_stage import cv32e40x_pkg::*;
+ 
+         if_id_pipe_o.priv_lvl         <= prefetch_priv_lvl;
+         if_id_pipe_o.trigger_match    <= trigger_match_i;
+-        if_id_pipe_o.xif_id           <= xif_id;
+         if_id_pipe_o.last_op          <= last_op_o;
+         if_id_pipe_o.first_op         <= first_op_o;
+         if_id_pipe_o.abort_op         <= abort_op_o;
+@@ -478,6 +477,10 @@ module cv32e40x_if_stage import cv32e40x_pkg::*;
+       end else if (id_ready_i) begin
+         if_id_pipe_o.instr_valid      <= 1'b0;
+       end
++      // Update the xif_id whenever the ID stage attempts to offload an instruction
++      if (id_ready_i && xif_offloading_id_i) begin
++        if_id_pipe_o.xif_id <= xif_id;
++      end
+     end
+   end
+ 
+-- 
+2.34.1
+
+
+From 27c899b4bd8da088acf50d4a0048c08acbc863fc Mon Sep 17 00:00:00 2001
+From: David Mallasen <dmallase@ucm.es>
+Date: Tue, 4 Apr 2023 11:07:09 +0200
+Subject: [PATCH 2/3] Fix multiple drivers for the output signals of the
+ xif_mem
+
+---
+ rtl/cv32e40x_controller.sv     | 10 ++++++----
+ rtl/cv32e40x_controller_fsm.sv |  9 +++++----
+ rtl/cv32e40x_core.sv           |  6 ++++--
+ rtl/cv32e40x_id_stage.sv       |  9 +++++----
+ 4 files changed, 20 insertions(+), 14 deletions(-)
+
+diff --git a/rtl/cv32e40x_controller.sv b/rtl/cv32e40x_controller.sv
+index 55357036..9217b1bb 100644
+--- a/rtl/cv32e40x_controller.sv
++++ b/rtl/cv32e40x_controller.sv
+@@ -141,9 +141,10 @@ module cv32e40x_controller import cv32e40x_pkg::*;
+   input logic         fencei_flush_ack_i,
+ 
+   // eXtension interface
+-  if_xif.cpu_commit xif_commit_if,
+-  if_xif.cpu_mem    xif_mem_if,
+-  input             xif_csr_error_i
++  if_xif.cpu_commit   xif_commit_if,
++  input  logic        xif_mem_valid_i,
++  input  logic        xif_mem_ready_i,
++  input               xif_csr_error_i
+ );
+ 
+   // Main FSM and debug FSM
+@@ -240,7 +241,8 @@ module cv32e40x_controller import cv32e40x_pkg::*;
+ 
+     // eXtension interface
+     .xif_commit_if               ( xif_commit_if            ),
+-    .xif_mem_if                  ( xif_mem_if               ),
++    .xif_mem_valid_i             ( xif_mem_valid_i          ),
++    .xif_mem_ready_i             ( xif_mem_ready_i          ),
+     .xif_csr_error_i             ( xif_csr_error_i          )
+   );
+ 
+diff --git a/rtl/cv32e40x_controller_fsm.sv b/rtl/cv32e40x_controller_fsm.sv
+index 46cf4af0..917d3210 100644
+--- a/rtl/cv32e40x_controller_fsm.sv
++++ b/rtl/cv32e40x_controller_fsm.sv
+@@ -129,9 +129,10 @@ module cv32e40x_controller_fsm import cv32e40x_pkg::*;
+   if_c_obi.monitor     m_c_obi_data_if,
+ 
+   // eXtension interface
+-  if_xif.cpu_commit xif_commit_if,
+-  if_xif.cpu_mem    xif_mem_if,
+-  input             xif_csr_error_i
++  if_xif.cpu_commit    xif_commit_if,
++  input  logic         xif_mem_valid_i,
++  input  logic         xif_mem_ready_i,
++  input                xif_csr_error_i
+ );
+ 
+    // FSM state encoding
+@@ -1496,7 +1497,7 @@ module cv32e40x_controller_fsm import cv32e40x_pkg::*;
+           commit_valid_q <= 1'b0;
+           commit_kill_q  <= 1'b0;
+         end else begin
+-          if ((ex_valid_i && wb_ready_i) || ctrl_fsm_o.kill_ex || (xif_mem_if.mem_valid && xif_mem_if.mem_ready)) begin
++          if ((ex_valid_i && wb_ready_i) || ctrl_fsm_o.kill_ex || (xif_mem_valid_i && xif_mem_ready_i)) begin
+             commit_valid_q <= 1'b0;
+             commit_kill_q  <= 1'b0;
+           end else begin
+diff --git a/rtl/cv32e40x_core.sv b/rtl/cv32e40x_core.sv
+index 90e18de4..839e4a52 100644
+--- a/rtl/cv32e40x_core.sv
++++ b/rtl/cv32e40x_core.sv
+@@ -577,7 +577,8 @@ module cv32e40x_core import cv32e40x_pkg::*;
+ 
+     // eXtension interface
+     .xif_issue_if                 ( xif_issue_if              ),
+-    .xif_mem_if                   ( xif_mem_if                ),
++    .xif_mem_valid_i              ( xif_mem_if.mem_valid      ),
++    .xif_mem_ready_i              ( xif_mem_if.mem_ready      ),
+     .xif_offloading_o             ( xif_offloading_id         )
+   );
+ 
+@@ -1006,7 +1007,8 @@ module cv32e40x_core import cv32e40x_pkg::*;
+ 
+     // eXtension interface
+     .xif_commit_if                  ( xif_commit_if          ),
+-    .xif_mem_if                     ( xif_mem_if             ),
++    .xif_mem_valid_i                ( xif_mem_if.mem_valid   ),
++    .xif_mem_ready_i                ( xif_mem_if.mem_ready   ),
+     .xif_csr_error_i                ( xif_csr_error_ex       )
+   );
+ 
+diff --git a/rtl/cv32e40x_id_stage.sv b/rtl/cv32e40x_id_stage.sv
+index 452f4a6f..50b79fac 100644
+--- a/rtl/cv32e40x_id_stage.sv
++++ b/rtl/cv32e40x_id_stage.sv
+@@ -97,9 +97,10 @@ module cv32e40x_id_stage import cv32e40x_pkg::*;
+   input  logic        ex_ready_i,     // EX stage is ready for new data
+ 
+   // eXtension interface
+-  if_xif.cpu_issue xif_issue_if,
+-  if_xif.cpu_mem   xif_mem_if,
+-  output logic     xif_offloading_o
++  if_xif.cpu_issue    xif_issue_if,
++  input  logic        xif_mem_valid_i,
++  input  logic        xif_mem_ready_i,
++  output logic        xif_offloading_o
+ );
+ 
+   // Source/Destination register instruction index
+@@ -683,7 +684,7 @@ module cv32e40x_id_stage import cv32e40x_pkg::*;
+       end else if (ex_ready_i) begin
+         id_ex_pipe_o.instr_valid            <= 1'b0;
+         id_ex_pipe_o.xif_en                 <= 1'b0;
+-      end else if (xif_mem_if.mem_valid && xif_mem_if.mem_ready) begin
++      end else if (xif_mem_valid_i && xif_mem_ready_i) begin
+         id_ex_pipe_o.instr_valid            <= 1'b0;
+         id_ex_pipe_o.xif_en                 <= 1'b0;
+       end
+-- 
+2.34.1
+
+
+From 7347d38f006cc058a50748d52251616266c67008 Mon Sep 17 00:00:00 2001
+From: David Mallasen <dmallase@ucm.es>
+Date: Tue, 4 Apr 2023 12:01:08 +0200
+Subject: [PATCH 3/3] Remove xif_en clearing
+
+---
+ rtl/cv32e40x_ex_stage.sv | 1 -
+ rtl/cv32e40x_id_stage.sv | 2 --
+ 2 files changed, 3 deletions(-)
+
+diff --git a/rtl/cv32e40x_ex_stage.sv b/rtl/cv32e40x_ex_stage.sv
+index f401be1d..ec80efb4 100644
+--- a/rtl/cv32e40x_ex_stage.sv
++++ b/rtl/cv32e40x_ex_stage.sv
+@@ -428,7 +428,6 @@ module cv32e40x_ex_stage import cv32e40x_pkg::*;
+       end else if (wb_ready_i) begin
+         // we are ready for a new instruction, but there is none available,
+         // so we introduce a bubble
+-        ex_wb_pipe_o.xif_en      <= 1'b0;
+         ex_wb_pipe_o.instr_valid <= 1'b0;
+       end
+     end
+diff --git a/rtl/cv32e40x_id_stage.sv b/rtl/cv32e40x_id_stage.sv
+index 50b79fac..6fe4e075 100644
+--- a/rtl/cv32e40x_id_stage.sv
++++ b/rtl/cv32e40x_id_stage.sv
+@@ -683,10 +683,8 @@ module cv32e40x_id_stage import cv32e40x_pkg::*;
+ 
+       end else if (ex_ready_i) begin
+         id_ex_pipe_o.instr_valid            <= 1'b0;
+-        id_ex_pipe_o.xif_en                 <= 1'b0;
+       end else if (xif_mem_valid_i && xif_mem_ready_i) begin
+         id_ex_pipe_o.instr_valid            <= 1'b0;
+-        id_ex_pipe_o.xif_en                 <= 1'b0;
+       end
+     end
+   end
+-- 
+2.34.1
+

@@ -142,6 +142,8 @@ module cv32e40x_controller import cv32e40x_pkg::*;
 
   // eXtension interface
   if_xif.cpu_commit   xif_commit_if,
+  input  logic        xif_mem_valid_i,
+  input  logic        xif_mem_ready_i,
   input               xif_csr_error_i
 );
 
@@ -239,6 +241,8 @@ module cv32e40x_controller import cv32e40x_pkg::*;
 
     // eXtension interface
     .xif_commit_if               ( xif_commit_if            ),
+    .xif_mem_valid_i             ( xif_mem_valid_i          ),
+    .xif_mem_ready_i             ( xif_mem_ready_i          ),
     .xif_csr_error_i             ( xif_csr_error_i          )
   );
 

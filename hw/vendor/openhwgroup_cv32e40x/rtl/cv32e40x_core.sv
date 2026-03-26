@@ -577,6 +577,8 @@ module cv32e40x_core import cv32e40x_pkg::*;
 
     // eXtension interface
     .xif_issue_if                 ( xif_issue_if              ),
+    .xif_mem_valid_i              ( xif_mem_if.mem_valid      ),
+    .xif_mem_ready_i              ( xif_mem_if.mem_ready      ),
     .xif_offloading_o             ( xif_offloading_id         )
   );
 
@@ -1005,6 +1007,8 @@ module cv32e40x_core import cv32e40x_pkg::*;
 
     // eXtension interface
     .xif_commit_if                  ( xif_commit_if          ),
+    .xif_mem_valid_i                ( xif_mem_if.mem_valid   ),
+    .xif_mem_ready_i                ( xif_mem_if.mem_ready   ),
     .xif_csr_error_i                ( xif_csr_error_ex       )
   );
 

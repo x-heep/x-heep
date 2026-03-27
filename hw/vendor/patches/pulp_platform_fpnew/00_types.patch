@@ -1,0 +1,67 @@
+diff --git a/src/fpnew_pkg.sv b/src/fpnew_pkg.sv
+index 1e8ce09..5251cc3 100644
+--- a/src/fpnew_pkg.sv
++++ b/src/fpnew_pkg.sv
+@@ -103,7 +103,7 @@ package fpnew_pkg;
+         // pragma translate_on
+         // just return any integer to avoid any latches
+         // hopefully this error is caught by simulation
+-        return INT8;
++        return 8;
+       end
+     endcase
+   endfunction
+@@ -346,7 +346,7 @@ package fpnew_pkg;
+   // -------------------------------------------
+   // Returns the width of a FP format
+   function automatic int unsigned fp_width(fp_format_e fmt);
+-    return FP_ENCODINGS[fmt].exp_bits + FP_ENCODINGS[fmt].man_bits + 1;
++    return FP_ENCODINGS[int'(fmt)].exp_bits + FP_ENCODINGS[int'(fmt)].man_bits + 1;
+   endfunction
+ 
+   // Returns the widest FP format present
+@@ -378,24 +378,24 @@ package fpnew_pkg;
+ 
+   // Returns the number of expoent bits for a format
+   function automatic int unsigned exp_bits(fp_format_e fmt);
+-    return FP_ENCODINGS[fmt].exp_bits;
++    return FP_ENCODINGS[int'(fmt)].exp_bits;
+   endfunction
+ 
+   // Returns the number of mantissa bits for a format
+   function automatic int unsigned man_bits(fp_format_e fmt);
+-    return FP_ENCODINGS[fmt].man_bits;
++    return FP_ENCODINGS[int'(fmt)].man_bits;
+   endfunction
+ 
+   // Returns the bias value for a given format (as per IEEE 754-2008)
+   function automatic int unsigned bias(fp_format_e fmt);
+-    return unsigned'(2**(FP_ENCODINGS[fmt].exp_bits-1)-1); // symmetrical bias
++    return unsigned'(2**(FP_ENCODINGS[int'(fmt)].exp_bits-1)-1); // symmetrical bias
+   endfunction
+ 
+   function automatic fp_encoding_t super_format(fmt_logic_t cfg);
+     automatic fp_encoding_t res;
+     res = '0;
+     for (int unsigned fmt = 0; fmt < NUM_FP_FORMATS; fmt++)
+-      if (cfg[fmt]) begin // only active format
++      if (cfg[int'(fmt)]) begin // only active format
+         res.exp_bits = unsigned'(maximum(res.exp_bits, exp_bits(fp_format_e'(fmt))));
+         res.man_bits = unsigned'(maximum(res.man_bits, man_bits(fp_format_e'(fmt))));
+       end
+
+diff --git a/src/fpnew_rounding.sv b/src/fpnew_rounding.sv
+index bb6e868..e05aaa3 100644
+--- a/src/fpnew_rounding.sv
++++ b/src/fpnew_rounding.sv
+@@ -105,7 +105,7 @@ module fpnew_rounding #(
+   end
+ 
+   // Perform the rounding, exponent change and overflow to inf happens automagically
+-  assign abs_rounded_o = abs_value_i + round_up;
++  assign abs_rounded_o = AbsWidth'(abs_value_i + AbsWidth'(round_up));
+ 
+   // True zero result is a zero result without dirty round/sticky bits
+   assign exact_zero_o = (abs_value_i == '0) && (round_sticky_bits_i == '0);
+
+

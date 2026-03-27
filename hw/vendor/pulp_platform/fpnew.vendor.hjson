@@ -1,0 +1,32 @@
+// Copyright 2020 ETH Zurich and University of Bologna.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+{
+  name: "fpnew",
+  target_dir: "fpnew",
+
+  upstream: {
+    url: "https://github.com/pulp-platform/fpnew.git",
+    rev: "79e453139072df42c9ec8f697132ba485d74e23d",
+  },
+
+  exclude_from_upstream: [
+    ".gitignore",
+    ".gitmodules",
+    "CITATION.cff",
+    "README.md",
+    "Bender.yml",
+    "src/common_cells",
+    "src/fpu_div_sqrt_mvp",
+    "tb",
+    "ips_list.yml",
+    "src_files.yml",
+    "docs",
+    "util",
+    "vendor/opene906.lock.hjson",
+    "vendor/opene906.vendor.hjson",
+    "vendor/opene906/README.md",
+    "vendor/patches",
+  ]
+
+}

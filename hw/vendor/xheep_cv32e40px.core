@@ -1,0 +1,63 @@
+CAPI=2:
+
+# Copyright 2023 EPFL
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+name: "x-heep:ip:cv32e40px"
+description: "OpenHW Group RISC-V Core CV32E40Px"
+
+filesets:
+  files_rtl:
+    depend:
+    - pulp-platform.org::fpnew
+    files:
+    - xheep/cv32e40px/rtl/include/cv32e40px_apu_core_pkg.sv
+    - xheep/cv32e40px/rtl/include/cv32e40px_fpu_pkg.sv
+    - xheep/cv32e40px/rtl/include/cv32e40px_pkg.sv
+    - xheep/cv32e40px/rtl/include/cv32e40px_core_v_xif_pkg.sv
+    - xheep/cv32e40px/rtl/cv32e40px_alu.sv
+    - xheep/cv32e40px/rtl/cv32e40px_alu_div.sv
+    - xheep/cv32e40px/rtl/cv32e40px_ff_one.sv
+    - xheep/cv32e40px/rtl/cv32e40px_popcnt.sv
+    - xheep/cv32e40px/rtl/cv32e40px_compressed_decoder.sv
+    - xheep/cv32e40px/rtl/cv32e40px_controller.sv
+    - xheep/cv32e40px/rtl/cv32e40px_cs_registers.sv
+    - xheep/cv32e40px/rtl/cv32e40px_decoder.sv
+    - xheep/cv32e40px/rtl/cv32e40px_int_controller.sv
+    - xheep/cv32e40px/rtl/cv32e40px_ex_stage.sv
+    - xheep/cv32e40px/rtl/cv32e40px_hwloop_regs.sv
+    - xheep/cv32e40px/rtl/cv32e40px_id_stage.sv
+    - xheep/cv32e40px/rtl/cv32e40px_if_stage.sv
+    - xheep/cv32e40px/rtl/cv32e40px_load_store_unit.sv
+    - xheep/cv32e40px/rtl/cv32e40px_mult.sv
+    - xheep/cv32e40px/rtl/cv32e40px_prefetch_buffer.sv
+    - xheep/cv32e40px/rtl/cv32e40px_prefetch_controller.sv
+    - xheep/cv32e40px/rtl/cv32e40px_obi_interface.sv
+    - xheep/cv32e40px/rtl/cv32e40px_aligner.sv
+    - xheep/cv32e40px/rtl/cv32e40px_sleep_unit.sv
+    - xheep/cv32e40px/rtl/cv32e40px_core.sv
+    - xheep/cv32e40px/rtl/cv32e40px_apu_disp.sv
+    - xheep/cv32e40px/rtl/cv32e40px_x_disp.sv
+    - xheep/cv32e40px/rtl/cv32e40px_fifo.sv
+    - xheep/cv32e40px/rtl/cv32e40px_fp_wrapper.sv
+    - xheep/cv32e40px/rtl/cv32e40px_top.sv
+    file_type: systemVerilogSource
+
+  files_clk_gate:
+    files:
+    - xheep/cv32e40px/bhv/cv32e40px_sim_clock_gate.sv
+    file_type: systemVerilogSource
+
+  ff_regfile:
+    files:
+    - xheep/cv32e40px/rtl/cv32e40px_register_file_ff.sv
+    file_type: systemVerilogSource
+
+targets:
+  default:
+    filesets:
+    - files_rtl
+    - ff_regfile
+    - target_sim? (files_clk_gate)
+    - target_sim_sc? (files_clk_gate)

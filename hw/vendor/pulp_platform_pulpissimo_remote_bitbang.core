@@ -9,11 +9,11 @@ name: pulp-platform.org::pulpissimo_remote_bitbang
 filesets:
   remote_bitbang:
     files:
-    - pulp_platform_pulpissimo/rtl/tb/remote_bitbang/sim_jtag.c:  { file_type: cppSource }
-    - pulp_platform_pulpissimo/rtl/tb/remote_bitbang/sim_jtag.h: { file_type: cppSource, is_include_file: true }
-    - pulp_platform_pulpissimo/rtl/tb/remote_bitbang/remote_bitbang.c: { file_type: cppSource }
-    - pulp_platform_pulpissimo/rtl/tb/remote_bitbang/remote_bitbang.h: { file_type: cppSource, is_include_file: true }
-    - pulp_platform_pulpissimo/rtl/tb/SimJTAG.sv:  { file_type: systemVerilogSource }
+    - pulp_platform/pulpissimo/rtl/tb/remote_bitbang/sim_jtag.c:  { file_type: cppSource }
+    - pulp_platform/pulpissimo/rtl/tb/remote_bitbang/sim_jtag.h: { file_type: cppSource, is_include_file: true }
+    - pulp_platform/pulpissimo/rtl/tb/remote_bitbang/remote_bitbang.c: { file_type: cppSource }
+    - pulp_platform/pulpissimo/rtl/tb/remote_bitbang/remote_bitbang.h: { file_type: cppSource, is_include_file: true }
+    - pulp_platform/pulpissimo/rtl/tb/SimJTAG.sv:  { file_type: systemVerilogSource }
 
 targets:
   default:

@@ -1,0 +1,21 @@
+// Copyright 2020 ETH Zurich and University of Bologna.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+{
+  name: "common_cells",
+  target_dir: "common_cells",
+
+  upstream: {
+    url: "https://github.com/pulp-platform/common_cells.git",
+    rev: "v1.38.0",
+  },
+  
+  patch_dir: "../patches/pulp_platform_common_cells",
+  
+  exclude_from_upstream: [
+    "test",
+    "ci",
+    "formal",
+  ]
+
+}

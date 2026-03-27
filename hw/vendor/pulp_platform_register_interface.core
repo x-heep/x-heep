@@ -9,14 +9,14 @@ name: pulp-platform.org::register_interface
 filesets:
   files_rtl:
     files:
-    - pulp_platform_register_interface/include/register_interface/assign.svh : {is_include_file: true, include_path: pulp_platform_register_interface/include}
-    - pulp_platform_register_interface/include/register_interface/typedef.svh : {is_include_file: true, include_path: pulp_platform_register_interface/include}
-    - pulp_platform_register_interface/src/reg_intf.sv
-    - pulp_platform_register_interface/src/periph_to_reg.sv
-    - pulp_platform_register_interface/src/reg_demux.sv
-    - pulp_platform_register_interface/src/reg_mux.sv
-    - pulp_platform_register_interface/src/reg_to_tlul.sv
-    - pulp_platform_register_interface/src/reg_cdc.sv
+    - pulp_platform/register_interface/include/register_interface/assign.svh : {is_include_file: true, include_path: pulp_platform/register_interface/include}
+    - pulp_platform/register_interface/include/register_interface/typedef.svh : {is_include_file: true, include_path: pulp_platform/register_interface/include}
+    - pulp_platform/register_interface/src/reg_intf.sv
+    - pulp_platform/register_interface/src/periph_to_reg.sv
+    - pulp_platform/register_interface/src/reg_demux.sv
+    - pulp_platform/register_interface/src/reg_mux.sv
+    - pulp_platform/register_interface/src/reg_to_tlul.sv
+    - pulp_platform/register_interface/src/reg_cdc.sv
     file_type: systemVerilogSource
 
 targets:

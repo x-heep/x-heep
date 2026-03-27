@@ -1,0 +1,20 @@
+// Copyright 2020 ETH Zurich and University of Bologna.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+{
+  name: "fpu_ss",
+  target_dir: "fpu_ss",
+
+  upstream: {
+    url: "https://github.com/pulp-platform/fpu_ss.git",
+    rev: "809e9a63e3b627f4908ba4189ed26bbf7209ba25",
+  },
+
+  patch_dir: "../patches/pulp_platform_fpu_ss",
+
+  exclude_from_upstream: [
+    ".gitmodules",
+    "fpnew",
+  ]
+
+}

@@ -4,5 +4,5 @@
 
 `verilator_config
 
-lint_off -rule WIDTH -file "*/pulp_platform_quadrilatero/rtl/*" -match "*"
-lint_off -rule UNUSED -file "*/pulp_platform_quadrilatero/rtl/*" -match "*"
+lint_off -rule WIDTH -file "*/pulp_platform/quadrilatero/rtl/*" -match "*"
+lint_off -rule UNUSED -file "*/pulp_platform/quadrilatero/rtl/*" -match "*"

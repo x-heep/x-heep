@@ -4,5 +4,5 @@
 
 `verilator_config
 
-lint_off -rule WIDTHTRUNC -file "*/pulp_platform_axi/*.sv" -match "*"
-lint_off -rule UNUSEDSIGNAL -file "*/pulp_platform_axi/src/*.sv" -match "*"
+lint_off -rule WIDTHTRUNC -file "*/pulp_platform/axi/*.sv" -match "*"
+lint_off -rule UNUSEDSIGNAL -file "*/pulp_platform/axi/src/*.sv" -match "*"

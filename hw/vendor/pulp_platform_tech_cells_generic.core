@@ -9,11 +9,11 @@ name: pulp-platform.org::tech_cells_generic
 filesets:
   rtl_sim:
     files:
-    - pulp_platform_tech_cells_generic/src/rtl/tc_clk.sv
-    - pulp_platform_tech_cells_generic/src/rtl/tc_sram.sv
-    - pulp_platform_tech_cells_generic/src/tc_pwr.sv
-    - pulp_platform_tech_cells_generic/src/deprecated/cluster_clk_cells.sv
-    - pulp_platform_tech_cells_generic/src/deprecated/pulp_clk_cells.sv
+    - pulp_platform/tech_cells_generic/src/rtl/tc_clk.sv
+    - pulp_platform/tech_cells_generic/src/rtl/tc_sram.sv
+    - pulp_platform/tech_cells_generic/src/tc_pwr.sv
+    - pulp_platform/tech_cells_generic/src/deprecated/cluster_clk_cells.sv
+    - pulp_platform/tech_cells_generic/src/deprecated/pulp_clk_cells.sv
     file_type: systemVerilogSource
 
 targets:

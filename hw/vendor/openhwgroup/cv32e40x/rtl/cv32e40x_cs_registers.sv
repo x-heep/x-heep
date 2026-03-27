@@ -1700,7 +1700,7 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
 
       end
       else begin: hpm_even_no_flop
-        assign hpm_events[hpm_idx] = hpm_events_raw[hpm_idx];
+        always_ff @(posedge clk) hpm_events[hpm_idx] <= hpm_events_raw[hpm_idx];
       end
     end
   endgenerate
@@ -1871,7 +1871,7 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
       if( (cnt_gidx == 1) ||
           (cnt_gidx >= (NUM_MHPMCOUNTERS+3) ) )
         begin : gen_non_implemented
-        assign mhpmcounter_q[cnt_gidx] = 'b0;
+        always_ff @(posedge clk) mhpmcounter_q[cnt_gidx] <= 'b0;
       end
       else begin : gen_implemented
         always_ff @(posedge clk, negedge rst_n)
@@ -1898,11 +1898,11 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
       if( (evt_gidx < 3) ||
           (evt_gidx >= (NUM_MHPMCOUNTERS+3) ) )
         begin : gen_non_implemented
-        assign mhpmevent_q[evt_gidx] = 'b0;
+        always_ff @(posedge clk) mhpmevent_q[evt_gidx] <= 'b0;
       end
       else begin : gen_implemented
         if (NUM_HPM_EVENTS < 32) begin : gen_tie_off
-             assign mhpmevent_q[evt_gidx][31:NUM_HPM_EVENTS] = 'b0;
+            always_ff @(posedge clk) mhpmevent_q[evt_gidx][31:NUM_HPM_EVENTS] <= 'b0;
         end
         always_ff @(posedge clk, negedge rst_n)
             if (!rst_n)

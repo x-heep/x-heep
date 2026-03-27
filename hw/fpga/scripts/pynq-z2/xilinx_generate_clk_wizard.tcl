@@ -6,6 +6,11 @@
 set design_name      xilinx_clk_wizard
 set in_clk_freq_MHz  125
 set out_clk_freq_MHz 15
+if {[info exists ::env(FPGA_CORE_CLK_MHZ)]} {
+  set out_clk_freq_MHz $::env(FPGA_CORE_CLK_MHZ)
+} elseif {[info exists ::env(X_HEEP_FPGA_CORE_CLK_MHZ)]} {
+  set out_clk_freq_MHz $::env(X_HEEP_FPGA_CORE_CLK_MHZ)
+}
 
 
 # Create block design
@@ -22,7 +27,7 @@ set_property -dict [ list \
  CONFIG.CLKIN1_JITTER_PS {80.0} \
  CONFIG.CLKOUT1_JITTER {172.798} \
  CONFIG.CLKOUT1_PHASE_ERROR {96.948} \
- CONFIG.CLKOUT1_REQUESTED_OUT_FREQ {15} \
+ CONFIG.CLKOUT1_REQUESTED_OUT_FREQ $out_clk_freq_MHz \
  CONFIG.MMCM_CLKFBOUT_MULT_F {8.000} \
  CONFIG.MMCM_CLKIN1_PERIOD {8.000} \
  CONFIG.MMCM_CLKOUT0_DIVIDE_F {50.000} \

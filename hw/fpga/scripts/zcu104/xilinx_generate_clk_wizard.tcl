@@ -3,6 +3,13 @@
 # SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 # Define design macros
 
+set out_clk_freq_MHz 15
+if {[info exists ::env(FPGA_CORE_CLK_MHZ)]} {
+  set out_clk_freq_MHz $::env(FPGA_CORE_CLK_MHZ)
+} elseif {[info exists ::env(X_HEEP_FPGA_CORE_CLK_MHZ)]} {
+  set out_clk_freq_MHz $::env(X_HEEP_FPGA_CORE_CLK_MHZ)
+}
+
 set design_name xilinx_clk_wizard
 
 # Create block design
@@ -15,7 +22,7 @@ set_property -dict [list \
   CONFIG.CLKIN1_JITTER_PS {33.330000000000005} \
   CONFIG.CLKOUT1_JITTER {282.792} \
   CONFIG.CLKOUT1_PHASE_ERROR {207.545} \
-  CONFIG.CLKOUT1_REQUESTED_OUT_FREQ {15} \
+  CONFIG.CLKOUT1_REQUESTED_OUT_FREQ $out_clk_freq_MHz \
   CONFIG.CLK_IN1_BOARD_INTERFACE {clk_300mhz} \
   CONFIG.MMCM_CLKFBOUT_MULT_F {32.875} \
   CONFIG.MMCM_CLKIN1_PERIOD {3.333} \

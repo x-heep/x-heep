@@ -6,6 +6,11 @@
 set design_name      xilinx_clk_wizard
 set in_clk_freq_MHz  100
 set out_clk_freq_MHz 15
+if {[info exists ::env(FPGA_CORE_CLK_MHZ)]} {
+  set out_clk_freq_MHz $::env(FPGA_CORE_CLK_MHZ)
+} elseif {[info exists ::env(X_HEEP_FPGA_CORE_CLK_MHZ)]} {
+  set out_clk_freq_MHz $::env(X_HEEP_FPGA_CORE_CLK_MHZ)
+}
 
 
 # Create block design
@@ -21,7 +26,7 @@ set clk_wiz_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:clk_wiz:6.0 clk_wiz_
 set_property -dict [ list \
  CONFIG.CLKOUT1_JITTER {333.843} \
  CONFIG.CLKOUT1_PHASE_ERROR {293.793} \
- CONFIG.CLKOUT1_REQUESTED_OUT_FREQ {15} \
+ CONFIG.CLKOUT1_REQUESTED_OUT_FREQ $out_clk_freq_MHz \
  CONFIG.MMCM_DIVCLK_DIVIDE {5} \
  CONFIG.MMCM_CLKFBOUT_MULT_F {49.875} \
  CONFIG.MMCM_CLKOUT0_DIVIDE_F {66.500} \

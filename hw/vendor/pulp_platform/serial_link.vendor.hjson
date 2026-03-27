@@ -10,7 +10,7 @@
     rev: "v1.1.2",
   },
 
-  patch_dir: "patches/pulp_platform_serial_link",
+  patch_dir: "../patches/pulp_platform_serial_link",
 
   exclude_from_upstream: [
     ".gitignore",

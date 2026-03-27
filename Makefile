@@ -22,10 +22,10 @@ include Makefile.venv
 # FUSESOC and Python values (default)
 ifndef CONDA_DEFAULT_ENV
 $(info USING VENV)
-FUSESOC 	= $(PWD)/$(VENV)/fusesoc
-PYTHON  	= $(PWD)/$(VENV)/python
-RV_PROFILE 	= $(PWD)/$(VENV)/rv_profile
-AREA_PLOT  	= $(PWD)/$(VENV)/area-plot
+FUSESOC 	= $(mkfile_path)/$(VENV)/fusesoc
+PYTHON  	= $(mkfile_path)/$(VENV)/python
+RV_PROFILE 	= $(mkfile_path)/$(VENV)/rv_profile
+AREA_PLOT  	= $(mkfile_path)/$(VENV)/area-plot
 else
 $(info USING MINICONDA $(CONDA_DEFAULT_ENV))
 FUSESOC 	:= $(shell which fusesoc)
@@ -35,9 +35,9 @@ AREA_PLOT   := $(shell which area-plot)
 endif
 
 # RegTool and StructGen path
-REGTOOL 			?= $(PWD)/hw/vendor/pulp_platform/register_interface/vendor/lowrisc_opentitan/util/regtool.py
-PERIPH_STRUCTS_GEN 	?= $(PWD)/util/periph_structs_gen/periph_structs_gen.py
-TEMPLATE_FILE 		?= $(PWD)/util/periph_structs_gen/periph_structs.tpl
+REGTOOL 			?= $(mkfile_path)/hw/vendor/pulp_platform/register_interface/vendor/lowrisc_opentitan/util/regtool.py
+PERIPH_STRUCTS_GEN 	?= $(mkfile_path)/util/periph_structs_gen/periph_structs_gen.py
+TEMPLATE_FILE 		?= $(mkfile_path)/util/periph_structs_gen/periph_structs.tpl
 
 # Build directories
 BUILD_DIR         = build
@@ -147,7 +147,7 @@ mcu-gen:
 	bash -c "cd hw/system/pad_control; source pad_control_gen.sh; cd ../../../"
 	bash -c "cd hw/vendor/xheep/dma; source dma_gen.sh; cd ../../../"
 	bash -c "cd hw/ip/boot_rom; make clean; make all; cd ../../../"
-	$(MAKE) -C hw/vendor/xheep/spi reg SW_DIR=$(PWD)/sw/device/lib/drivers/
+	$(MAKE) -C hw/vendor/xheep/spi reg SW_DIR=$(mkfile_path)/sw/device/lib/drivers/
 	$(MAKE) verible
 
 ## Display mcu_gen.py help

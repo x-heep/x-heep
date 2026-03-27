@@ -98,7 +98,7 @@ module cv32e40x_pma import cv32e40x_pkg::*;
 
   // Tie of atomic attribute if A_EXT=0
   generate
-    if (A_EXT) begin: pma_atomic
+    if (A_EXT != A_NONE) begin: pma_atomic
       assign pma_cfg_atomic = pma_cfg.atomic;
     end
     else begin: pma_no_atomic

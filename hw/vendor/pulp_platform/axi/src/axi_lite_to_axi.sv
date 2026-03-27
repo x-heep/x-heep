@@ -33,7 +33,7 @@ module axi_lite_to_axi #(
   output axi_req_t        mst_req_o,
   input  axi_resp_t       mst_resp_i
 );
-  localparam int unsigned AxiSize = axi_pkg::size_t'($unsigned($clog2(AxiDataWidth/8)));
+  localparam axi_pkg::size_t AxiSize = axi_pkg::size_t'($unsigned($clog2(AxiDataWidth/8)));
 
   // request assign
   assign mst_req_o = '{

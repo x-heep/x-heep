@@ -331,7 +331,7 @@ module axi_isolate_inner #(
     unique case (state_ar_q)
       Normal: begin
         // cut handshake if counter capacity is reached
-        if (pending_ar_q >= NumPending) begin
+        if (pending_ar_q >= cnt_t'(NumPending)) begin
           mst_req_o.ar_valid  = 1'b0;
           slv_resp_o.ar_ready = 1'b0;
           if (isolate_i) begin

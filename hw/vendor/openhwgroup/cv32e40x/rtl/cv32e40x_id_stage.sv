@@ -749,7 +749,9 @@ module cv32e40x_id_stage import cv32e40x_pkg::*;
       // Also attempt to offload any CSR instruction. The validity of such instructions are only
       // checked in the EX stage.
       // Instructions with deassert_we set to 1 from the controller bypass logic will not be attempted offloaded.
-      assign xif_issue_if.issue_valid     = instr_valid && (illegal_insn || csr_en) &&
+      // Only offload instructions if the EX stage is ready not to miss data from xif_issue.issue_resp
+      assign xif_issue_if.issue_valid     = instr_valid && ex_ready_i &&
+                                            (illegal_insn || csr_en) &&
                                             !(xif_accepted_q || xif_rejected_q || ctrl_byp_i.deassert_we);
 
       // Keep xif_offloading_o high after an offloaded instruction was accepted or rejected to get

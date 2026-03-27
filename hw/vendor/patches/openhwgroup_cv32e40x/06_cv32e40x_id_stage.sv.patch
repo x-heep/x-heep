@@ -1,5 +1,5 @@
 diff --git a/rtl/cv32e40x_id_stage.sv b/rtl/cv32e40x_id_stage.sv
-index 1385dfb..d760e55 100644
+index 1385dfb1..11bc4570 100644
 --- a/rtl/cv32e40x_id_stage.sv
 +++ b/rtl/cv32e40x_id_stage.sv
 @@ -749,7 +749,9 @@ module cv32e40x_id_stage import cv32e40x_pkg::*;

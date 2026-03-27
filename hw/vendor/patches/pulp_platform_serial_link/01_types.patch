@@ -1,0 +1,22 @@
+diff --git a/src/serial_link_data_link.sv b/src/serial_link_data_link.sv
+index 2182eed..f7bac63 100644
+--- a/src/serial_link_data_link.sv
++++ b/src/serial_link_data_link.sv
+@@ -150,7 +150,7 @@ import serial_link_pkg::*;
+         recv_reg_in_valid[recv_reg_index_q] = 1'b1;
+         flow_control_fifo_ready_out = 1'b1;
+         // Increment recv reg counter
+-        recv_reg_index_d = (recv_reg_index_q == PayloadSplits - 1)? 0 : recv_reg_index_q + 1;
++        recv_reg_index_d = (recv_reg_index_q == $clog2(PayloadSplits)'(PayloadSplits - 1))? 0 : recv_reg_index_q + 1;
+       end
+ 
+       // Once all Recv Stream Registers are filled -> generate AXI stream request
+@@ -177,7 +177,7 @@ import serial_link_pkg::*;
+       // Raw mode
+       if (cfg_raw_mode_out_en_i & ~raw_mode_fifo_empty) begin
+         data_out_valid_o = cfg_raw_mode_out_ch_mask_i;
+-        data_out_o = {{NumChannels}{raw_mode_fifo_data_out}};
++        data_out_o = {NumChannels{raw_mode_fifo_data_out}};
+         if (data_out_ready_i) begin
+           raw_mode_fifo_pop = 1'b1;
+         end

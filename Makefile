@@ -398,6 +398,10 @@ $(VENDOR_LOCKS): %.lock.hjson: %.vendor.hjson util/vendor.py
 	@echo "### Updating vendored IP '$(notdir $*)'..."
 	python3 util/vendor.py -vU $<
 
+.PHONY: vendor-clean
+vendor-clean:
+	$(RM) $(VENDOR_LOCKS)
+
 ## @section Cleaning commands
 
 ## Remove the sw build folder

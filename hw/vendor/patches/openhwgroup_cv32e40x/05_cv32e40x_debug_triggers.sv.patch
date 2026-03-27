@@ -1,5 +1,5 @@
 diff --git a/rtl/cv32e40x_debug_triggers.sv b/rtl/cv32e40x_debug_triggers.sv
-index 25a084d..3bd8a32 100644
+index 25a084d3..3bd8a324 100644
 --- a/rtl/cv32e40x_debug_triggers.sv
 +++ b/rtl/cv32e40x_debug_triggers.sv
 @@ -108,13 +108,13 @@ import cv32e40x_pkg::*;

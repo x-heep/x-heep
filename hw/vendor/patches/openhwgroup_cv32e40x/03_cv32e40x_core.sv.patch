@@ -1,8 +1,8 @@
 diff --git a/rtl/cv32e40x_core.sv b/rtl/cv32e40x_core.sv
-index faceb96..eddd0ea 100644
+index 5394f143..6a683682 100644
 --- a/rtl/cv32e40x_core.sv
 +++ b/rtl/cv32e40x_core.sv
-@@ -398,7 +398,7 @@ module cv32e40x_core import cv32e40x_pkg::*;
+@@ -400,7 +400,7 @@ module cv32e40x_core import cv32e40x_pkg::*;
    assign dbg_ack   = ctrl_fsm.dbg_ack;
  
    // Gate off the internal debug_request signal if debug support is not configured.

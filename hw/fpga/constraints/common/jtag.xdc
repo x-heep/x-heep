@@ -1,6 +1,6 @@
 ### JTAG Constraints
 
-set xheep_core_clk_period_ns [expr {1000.0 / double($::env(FPGA_CORE_CLK_MHZ))}]
+# xheep_core_clk_period_ns is defined by the auto-generated xheep_core_clk_period.xdc.
 set jtag_clk_period_ns [get_property PERIOD [get_clocks jtag_clk_pin]]
 set jtag_cdc_max_delay_ns [expr {min($xheep_core_clk_period_ns, $jtag_clk_period_ns)}]
 

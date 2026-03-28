@@ -3,6 +3,8 @@
 # SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 # Define design macros
 
+source [file join [file dirname [info script]] .. common xilinx_generate_core_clk_period_xdc.tcl]
+
 set design_name      xilinx_clk_wizard
 set in_clk_freq_MHz  125
 set out_clk_freq_MHz 15
@@ -47,3 +49,5 @@ close_bd_design $design_name
 # create wrapper
 set wrapper_path [ make_wrapper -fileset sources_1 -files [ get_files -norecurse xilinx_clk_wizard.bd ] -top ]
 add_files -norecurse -fileset sources_1 $wrapper_path
+
+xheep_generate_core_clk_period_xdc $out_clk_freq_MHz [info script]

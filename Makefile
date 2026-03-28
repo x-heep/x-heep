@@ -55,8 +55,8 @@ LINKER ?= on_chip
 
 # Target options are 'sim' (default) and FPGA_BOARD (e.g., pynq-z2,nexys-a7-100t,genesys2,aup-zu3,zcu102,zcu104)
 TARGET ?= sim
-CORE_CLK ?= 15
-FPGA_CORE_CLK_MHZ ?= $(CORE_CLK)
+FPGA_CORE_CLK ?= 15
+FPGA_CORE_CLK_MHZ ?= $(FPGA_CORE_CLK)
 FPGA_CORE_CLK_HZ := $(shell awk 'BEGIN { printf "%.0f", ($(FPGA_CORE_CLK_MHZ) * 1000000) }')
 
 # Mcu-gen configuration files
@@ -181,7 +181,7 @@ format-python:
 ## @param COMPILER=gcc(default),clang
 ## @param COMPILER_PREFIX=riscv32-corev-(default),riscv32-unknown-
 ## @param ARCH=rv32imc(default),<any_RISC-V_ISA_string_supported_by_the_CPU>
-## @param CORE_CLK=15(default),<fpga core clock in MHz>
+## @param FPGA_CORE_CLK=15(default),<fpga core clock in MHz>
 app: clean-app
 	@$(MAKE) -C sw PROJECT=$(PROJECT) TARGET=$(TARGET) LINKER=$(LINKER) LINK_FOLDER=$(LINK_FOLDER) COMPILER=$(COMPILER) COMPILER_PREFIX=$(COMPILER_PREFIX) COMPILER_FLAGS="$(COMPILER_FLAGS)" ARCH=$(ARCH) SOURCE=$(SOURCE) CLANG_LINKER_USE_LD=$(CLANG_LINKER_USE_LD) \
 	|| { \
@@ -291,7 +291,7 @@ questasim-run-opt-app: app
 ## Builds (synthesis and implementation) the bitstream for the FPGA version using Vivado
 ## @param FPGA_BOARD=pynq-z2,nexys-a7-100t,genesys2,aup-zu3,zcu102,zcu104
 ## @param FUSESOC_FLAGS=--flag=<flagname>
-## @param CORE_CLK=15(default),<fpga core clock in MHz>
+## @param FPGA_CORE_CLK=15(default),<fpga core clock in MHz>
 vivado-fpga:
 	$(FUSESOC) --cores-root . run --no-export --target=$(FPGA_BOARD) $(FUSESOC_FLAGS) --build openhwgroup.org:systems:core-v-mini-mcu $(FUSESOC_PARAM) 2>&1 | tee buildvivado.log
 

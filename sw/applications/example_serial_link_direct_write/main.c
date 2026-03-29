@@ -83,7 +83,7 @@ int main(int argc, char *argv[]) {
         *SL_EXTERNAL_WRITE = test_data[i];
         rcv_data = *addr_p_fifo; 
         if (rcv_data != test_data[i]) {
-            PRINTF("FIFO ERROR [%d]: got 0x%08x, expected 0x%08x\n", i, rcv_data, test_data[i]);
+            //PRINTF("FIFO ERROR [%d]: got 0x%08x, expected 0x%08x\n", i, rcv_data, test_data[i]);
             errors++;
         }
     }
@@ -98,7 +98,21 @@ int main(int argc, char *argv[]) {
         *(addr_p_direct_send + i) = test_data[i];
         rcv_data = addr_p_direct[i];
         if (rcv_data != test_data[i]) {
-            PRINTF("DIRECT WRITE ERROR [%d]: got 0x%08x, expected 0x%08x\n", i, rcv_data, test_data[i]);
+            //PRINTF("DIRECT WRITE ERROR [%d]: got 0x%08x, expected 0x%08x\n", i, rcv_data, test_data[i]);
+            errors++;
+        }
+    }
+
+    // Test 3: FIFO mode with dma
+    sl_wrapper_set_rx_mode(SL_WRAPPER_RX_MODE_FIFO);
+    uint32_t to_send[NUM_WORDS];
+    for (int i = 0; i < NUM_WORDS; i++) to_send[i] = test_data[i];
+    sl_dma_send(to_send, (uint32_t *)SL_EXTERNAL_WRITE, NUM_WORDS);
+    sl_dma_read(dma_buffer, (uint32_t *)SL_READ, NUM_WORDS);
+
+    for (int i = 0; i < NUM_WORDS; i++) {
+        if (dma_buffer[i] != (uint32_t)test_data[i]) {
+            //PRINTF("ERROR [%d]: got 0x%08x expected 0x%08x\n", i, dma_buffer[i], test_data[i]);
             errors++;
         }
     }

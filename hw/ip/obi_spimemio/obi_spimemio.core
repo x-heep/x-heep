@@ -5,12 +5,13 @@ description: OBI interface for the spimemio core from picosoc
 
 filesets:
   rtl:
+    depend:
+      - yosyshq:picorv32_spimemio:0-r1
     files: 
       - rtl/obi_spimemio_reg_pkg.sv
       - rtl/obi_spimemio_reg_top.sv
       - rtl/picorv32_pkg.sv
       - rtl/obi_to_picorv32.sv
-      - rtl/spimemio_xheep.v
       - rtl/obi_spimemio.sv
     file_type: systemVerilogSource
 

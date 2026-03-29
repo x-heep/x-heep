@@ -13,10 +13,6 @@
 #define SPI_FLASH_START_ADDRESS_20bit (SPI_FLASH_START_ADDRESS >> 12)
 
 #define SEXT_IMM(x) ((x) | (-(((x) >> 11) & 1) << 11))
-#define SPIMEMIO_BOOT_CLKDIV 4
-#define SPIMEMIO_BOOT_CFG ((1 << OBI_SPIMEMIO_CFG_SPIMEM_ENABLE_BIT) | \
-                           (SPIMEMIO_BOOT_CLKDIV << OBI_SPIMEMIO_CFG_SPIMEM_CLKDIV_OFFSET) | \
-                           (8 << OBI_SPIMEMIO_CFG_SPIMEM_DUMMY_OFFSET))
 
        .global entry
 
@@ -47,9 +43,6 @@ _jump_to_flash:
 
 _execute_from_flash:
        lui    a1, SPI_MEMIO_START_ADDRESS_20bit
-       lui    a0, %hi(SPIMEMIO_BOOT_CFG)
-       addi   a0, a0, %lo(SPIMEMIO_BOOT_CFG)
-       sw     a0, OBI_SPIMEMIO_CFG_SPIMEM_REG_OFFSET(a1)
        addi   a0, zero, 1
        sw     a0, OBI_SPIMEMIO_START_SPIMEM_REG_OFFSET(a1)
        lui    a1, FLASH_MEM_START_ADDRESS_20bit

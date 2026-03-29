@@ -11,17 +11,17 @@ filesets:
     depend:
     - pulp-platform.org::fpnew
     files:
-    - pulp_platform_fpu_ss/src/fpu_ss_pkg.sv
-    - pulp_platform_fpu_ss/src/fpu_ss_instr_pkg.sv
-    - pulp_platform_fpu_ss/src/fpu_ss_prd_f_pkg.sv
-    - pulp_platform_fpu_ss/src/fpu_ss_prd_zfinx_pkg.sv
-    - pulp_platform_fpu_ss/src/fpu_ss_compressed_predecoder.sv
-    - pulp_platform_fpu_ss/src/fpu_ss_controller.sv
-    - pulp_platform_fpu_ss/src/fpu_ss_csr.sv
-    - pulp_platform_fpu_ss/src/fpu_ss_decoder.sv
-    - pulp_platform_fpu_ss/src/fpu_ss_predecoder.sv
-    - pulp_platform_fpu_ss/src/fpu_ss_regfile.sv
-    - pulp_platform_fpu_ss/src/fpu_ss.sv
+    - pulp_platform/fpu_ss/src/fpu_ss_pkg.sv
+    - pulp_platform/fpu_ss/src/fpu_ss_instr_pkg.sv
+    - pulp_platform/fpu_ss/src/fpu_ss_prd_f_pkg.sv
+    - pulp_platform/fpu_ss/src/fpu_ss_prd_zfinx_pkg.sv
+    - pulp_platform/fpu_ss/src/fpu_ss_compressed_predecoder.sv
+    - pulp_platform/fpu_ss/src/fpu_ss_controller.sv
+    - pulp_platform/fpu_ss/src/fpu_ss_csr.sv
+    - pulp_platform/fpu_ss/src/fpu_ss_decoder.sv
+    - pulp_platform/fpu_ss/src/fpu_ss_predecoder.sv
+    - pulp_platform/fpu_ss/src/fpu_ss_regfile.sv
+    - pulp_platform/fpu_ss/src/fpu_ss.sv
     file_type: systemVerilogSource
 
 targets:

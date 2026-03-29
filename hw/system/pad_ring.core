@@ -1,0 +1,24 @@
+CAPI=2:
+
+# Copyright 2026 EPFL
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+#
+# Author: David Mallasén
+# Description: Pad ring
+
+name: x-heep:ip:pad-ring
+description: X-HEEP pad ring
+
+filesets:
+  rtl:
+    depend:
+    - x-heep::packages
+    files:
+    - pad_ring.sv
+    file_type: systemVerilogSource
+
+targets:
+  default: &default
+    filesets:
+    - rtl

@@ -10,56 +10,56 @@ description: "OpenHW Group RISC-V Core CV32E40X"
 filesets:
   files_rtl:
     files:
-      - openhwgroup_cv32e40x/rtl/include/cv32e40x_pkg.sv
-      - openhwgroup_cv32e40x/rtl/if_c_obi.sv
-      - openhwgroup_cv32e40x/rtl/if_xif.sv
-      - openhwgroup_cv32e40x/rtl/cv32e40x_if_stage.sv
-      - openhwgroup_cv32e40x/rtl/cv32e40x_csr.sv
-      - openhwgroup_cv32e40x/rtl/cv32e40x_debug_triggers.sv
-      - openhwgroup_cv32e40x/rtl/cv32e40x_cs_registers.sv
-      - openhwgroup_cv32e40x/rtl/cv32e40x_register_file.sv
-      - openhwgroup_cv32e40x/rtl/cv32e40x_register_file_wrapper.sv
-      - openhwgroup_cv32e40x/rtl/cv32e40x_write_buffer.sv
-      - openhwgroup_cv32e40x/rtl/cv32e40x_lsu_response_filter.sv
-      - openhwgroup_cv32e40x/rtl/cv32e40x_load_store_unit.sv
-      - openhwgroup_cv32e40x/rtl/cv32e40x_align_check.sv
-      - openhwgroup_cv32e40x/rtl/cv32e40x_id_stage.sv
-      - openhwgroup_cv32e40x/rtl/cv32e40x_i_decoder.sv
-      - openhwgroup_cv32e40x/rtl/cv32e40x_m_decoder.sv
-      - openhwgroup_cv32e40x/rtl/cv32e40x_a_decoder.sv
-      - openhwgroup_cv32e40x/rtl/cv32e40x_b_decoder.sv
-      - openhwgroup_cv32e40x/rtl/cv32e40x_decoder.sv
-      - openhwgroup_cv32e40x/rtl/cv32e40x_compressed_decoder.sv
-      - openhwgroup_cv32e40x/rtl/cv32e40x_sequencer.sv
-      - openhwgroup_cv32e40x/rtl/cv32e40x_alignment_buffer.sv
-      - openhwgroup_cv32e40x/rtl/cv32e40x_prefetch_unit.sv
-      - openhwgroup_cv32e40x/rtl/cv32e40x_mult.sv
-      - openhwgroup_cv32e40x/rtl/cv32e40x_int_controller.sv
-      - openhwgroup_cv32e40x/rtl/cv32e40x_clic_int_controller.sv
-      - openhwgroup_cv32e40x/rtl/cv32e40x_ex_stage.sv
-      - openhwgroup_cv32e40x/rtl/cv32e40x_wb_stage.sv
-      - openhwgroup_cv32e40x/rtl/cv32e40x_div.sv
-      - openhwgroup_cv32e40x/rtl/cv32e40x_alu.sv
-      - openhwgroup_cv32e40x/rtl/cv32e40x_ff_one.sv
-      - openhwgroup_cv32e40x/rtl/cv32e40x_popcnt.sv
-      - openhwgroup_cv32e40x/rtl/cv32e40x_alu_b_cpop.sv
-      - openhwgroup_cv32e40x/rtl/cv32e40x_controller_fsm.sv
-      - openhwgroup_cv32e40x/rtl/cv32e40x_controller_bypass.sv
-      - openhwgroup_cv32e40x/rtl/cv32e40x_controller.sv
-      - openhwgroup_cv32e40x/rtl/cv32e40x_instr_obi_interface.sv
-      - openhwgroup_cv32e40x/rtl/cv32e40x_data_obi_interface.sv
-      - openhwgroup_cv32e40x/rtl/cv32e40x_prefetcher.sv
-      - openhwgroup_cv32e40x/rtl/cv32e40x_sleep_unit.sv
-      - openhwgroup_cv32e40x/rtl/cv32e40x_core.sv
-      - openhwgroup_cv32e40x/rtl/cv32e40x_mpu.sv
-      - openhwgroup_cv32e40x/rtl/cv32e40x_pma.sv
-      - openhwgroup_cv32e40x/rtl/cv32e40x_pc_target.sv
-      - openhwgroup_cv32e40x/rtl/cv32e40x_wpt.sv
+      - openhwgroup/cv32e40x/rtl/include/cv32e40x_pkg.sv
+      - openhwgroup/cv32e40x/rtl/if_c_obi.sv
+      - openhwgroup/cv32e40x/rtl/if_xif.sv
+      - openhwgroup/cv32e40x/rtl/cv32e40x_if_stage.sv
+      - openhwgroup/cv32e40x/rtl/cv32e40x_csr.sv
+      - openhwgroup/cv32e40x/rtl/cv32e40x_debug_triggers.sv
+      - openhwgroup/cv32e40x/rtl/cv32e40x_cs_registers.sv
+      - openhwgroup/cv32e40x/rtl/cv32e40x_register_file.sv
+      - openhwgroup/cv32e40x/rtl/cv32e40x_register_file_wrapper.sv
+      - openhwgroup/cv32e40x/rtl/cv32e40x_write_buffer.sv
+      - openhwgroup/cv32e40x/rtl/cv32e40x_lsu_response_filter.sv
+      - openhwgroup/cv32e40x/rtl/cv32e40x_load_store_unit.sv
+      - openhwgroup/cv32e40x/rtl/cv32e40x_align_check.sv
+      - openhwgroup/cv32e40x/rtl/cv32e40x_id_stage.sv
+      - openhwgroup/cv32e40x/rtl/cv32e40x_i_decoder.sv
+      - openhwgroup/cv32e40x/rtl/cv32e40x_m_decoder.sv
+      - openhwgroup/cv32e40x/rtl/cv32e40x_a_decoder.sv
+      - openhwgroup/cv32e40x/rtl/cv32e40x_b_decoder.sv
+      - openhwgroup/cv32e40x/rtl/cv32e40x_decoder.sv
+      - openhwgroup/cv32e40x/rtl/cv32e40x_compressed_decoder.sv
+      - openhwgroup/cv32e40x/rtl/cv32e40x_sequencer.sv
+      - openhwgroup/cv32e40x/rtl/cv32e40x_alignment_buffer.sv
+      - openhwgroup/cv32e40x/rtl/cv32e40x_prefetch_unit.sv
+      - openhwgroup/cv32e40x/rtl/cv32e40x_mult.sv
+      - openhwgroup/cv32e40x/rtl/cv32e40x_int_controller.sv
+      - openhwgroup/cv32e40x/rtl/cv32e40x_clic_int_controller.sv
+      - openhwgroup/cv32e40x/rtl/cv32e40x_ex_stage.sv
+      - openhwgroup/cv32e40x/rtl/cv32e40x_wb_stage.sv
+      - openhwgroup/cv32e40x/rtl/cv32e40x_div.sv
+      - openhwgroup/cv32e40x/rtl/cv32e40x_alu.sv
+      - openhwgroup/cv32e40x/rtl/cv32e40x_ff_one.sv
+      - openhwgroup/cv32e40x/rtl/cv32e40x_popcnt.sv
+      - openhwgroup/cv32e40x/rtl/cv32e40x_alu_b_cpop.sv
+      - openhwgroup/cv32e40x/rtl/cv32e40x_controller_fsm.sv
+      - openhwgroup/cv32e40x/rtl/cv32e40x_controller_bypass.sv
+      - openhwgroup/cv32e40x/rtl/cv32e40x_controller.sv
+      - openhwgroup/cv32e40x/rtl/cv32e40x_instr_obi_interface.sv
+      - openhwgroup/cv32e40x/rtl/cv32e40x_data_obi_interface.sv
+      - openhwgroup/cv32e40x/rtl/cv32e40x_prefetcher.sv
+      - openhwgroup/cv32e40x/rtl/cv32e40x_sleep_unit.sv
+      - openhwgroup/cv32e40x/rtl/cv32e40x_core.sv
+      - openhwgroup/cv32e40x/rtl/cv32e40x_mpu.sv
+      - openhwgroup/cv32e40x/rtl/cv32e40x_pma.sv
+      - openhwgroup/cv32e40x/rtl/cv32e40x_pc_target.sv
+      - openhwgroup/cv32e40x/rtl/cv32e40x_wpt.sv
     file_type: systemVerilogSource
 
   files_clk_gate:
     files:
-      - openhwgroup_cv32e40x/bhv/cv32e40x_sim_clock_gate.sv
+      - openhwgroup/cv32e40x/bhv/cv32e40x_sim_clock_gate.sv
     file_type: systemVerilogSource
 
 targets:

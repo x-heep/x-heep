@@ -4,7 +4,7 @@
 
 `verilator_config
 
-lint_off -rule WIDTHCONCAT -file "*/pulp_platform_fpu_ss/src/*" -match "*"
+lint_off -rule WIDTHCONCAT -file "*/pulp_platform/fpu_ss/src/*" -match "*"
 lint_off -rule VARHIDDEN -file "*/src/fpu_ss.sv" -match "Declaration of signal hides declaration in upper scope: 'FPU_FEATURES'*"
 lint_off -rule VARHIDDEN -file "*/src/fpu_ss.sv" -match "Declaration of signal hides declaration in upper scope: 'FPU_IMPLEMENTATION'*"
 lint_off -rule UNUSED -file "*/src/fpu_ss.sv" -match "*"

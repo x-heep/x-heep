@@ -1,0 +1,23 @@
+// Copyright 2020 ETH Zurich and University of Bologna.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+{
+  name: "axi",
+  target_dir: "axi",
+
+  upstream: {
+    url: "https://github.com/pulp-platform/axi.git",
+    rev: "78831b6feba265d5ee2683bbf42b4150f8a35c43",
+  },
+  
+  patch_dir: "../patches/pulp_platform_axi",
+  
+  exclude_from_upstream: [
+    ".ci",
+    ".github",
+    ".gitlab-ci.d",
+    "scripts",
+    "test",
+  ]
+
+}

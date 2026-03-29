@@ -1,0 +1,29 @@
+CAPI=2:
+
+name: "x-heep:ip:spi"
+description: "core-v-mini-mcu spi peripheral"
+
+# Copyright 2026 POLITO
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+filesets:
+  files_rtl:
+    depend:
+      - pulp-platform.org::register_interface
+      - yosyshq:picorv32_spimemio:0-r1
+      - lowrisc:ip:spi_host:1.0
+    files:
+    - rtl/spi_subsystem.sv
+    file_type: systemVerilogSource
+
+  files_verilator_waiver:
+    files:
+      - lint/w25q128jw_controller.vlt
+    file_type: vlt
+
+targets:
+  default:
+    filesets:
+    - files_rtl
+    - tool_verilator ? (files_verilator_waiver)

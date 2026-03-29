@@ -1,0 +1,23 @@
+// Copyright 2020 ETH Zurich and University of Bologna.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+{
+  name: "quadrilatero",
+  target_dir: "quadrilatero",
+
+  upstream: {
+    url: "https://github.com/pulp-platform/quadrilatero.git",
+    rev: "ba58f85a496c0f86009331e97e90b12e7ee63f65",
+  },
+
+  patch_dir: "../patches/pulp_platform_quadrilatero",
+
+  exclude_from_upstream: [
+    ".gitmodules",
+    "rtl/include/cv32e40x_pkg.sv",
+    "rtl/include/if_xif.sv",
+    "rtl/include/obi_pkg.sv",
+    "rtl/quadrilatero_mac_float.sv",
+  ]
+
+}

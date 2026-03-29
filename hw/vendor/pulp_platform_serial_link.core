@@ -7,7 +7,7 @@ filesets:
   includes:
     files:
       #Ugly workaround from https://github.com/fusesoc/fusesoc-cores/blob/master/pulp-platform.org/common_cells-1.16.4.core#L9
-      - pulp_platform_serial_link/src/axis/include/axis : {is_include_file : true}
+      - pulp_platform/serial_link/src/axis/include/axis : {is_include_file : true}
     file_type : systemVerilogSource
 
   rtl:
@@ -17,23 +17,23 @@ filesets:
     - pulp-platform.org::register_interface
     - pulp-platform.org::axi_slice   
     files:
-    - pulp_platform_serial_link/src/regs/serial_link_reg_pkg.sv
-    - pulp_platform_serial_link/src/regs/serial_link_reg_top.sv
-    - pulp_platform_serial_link/src/regs/serial_link_single_channel_reg_pkg.sv
-    - pulp_platform_serial_link/src/regs/serial_link_single_channel_reg_top.sv
-    - pulp_platform_serial_link/src/serial_link_pkg.sv
-    - pulp_platform_serial_link/src/channel_allocator/serial_link_channel_allocator.sv
-    - pulp_platform_serial_link/src/channel_allocator/stream_dechopper.sv
-    - pulp_platform_serial_link/src/channel_allocator/stream_chopper.sv
-    - pulp_platform_serial_link/src/channel_allocator/channel_spread_sfr.sv
-    - pulp_platform_serial_link/src/channel_allocator/channel_despread_sfr.sv
-    - pulp_platform_serial_link/src/serial_link_network.sv
-    - pulp_platform_serial_link/src/serial_link_physical.sv
-    - pulp_platform_serial_link/src/serial_link_data_link.sv
-    - pulp_platform_serial_link/src/serial_link.sv
+    - pulp_platform/serial_link/src/regs/serial_link_reg_pkg.sv
+    - pulp_platform/serial_link/src/regs/serial_link_reg_top.sv
+    - pulp_platform/serial_link/src/regs/serial_link_single_channel_reg_pkg.sv
+    - pulp_platform/serial_link/src/regs/serial_link_single_channel_reg_top.sv
+    - pulp_platform/serial_link/src/serial_link_pkg.sv
+    - pulp_platform/serial_link/src/channel_allocator/serial_link_channel_allocator.sv
+    - pulp_platform/serial_link/src/channel_allocator/stream_dechopper.sv
+    - pulp_platform/serial_link/src/channel_allocator/stream_chopper.sv
+    - pulp_platform/serial_link/src/channel_allocator/channel_spread_sfr.sv
+    - pulp_platform/serial_link/src/channel_allocator/channel_despread_sfr.sv
+    - pulp_platform/serial_link/src/serial_link_network.sv
+    - pulp_platform/serial_link/src/serial_link_physical.sv
+    - pulp_platform/serial_link/src/serial_link_data_link.sv
+    - pulp_platform/serial_link/src/serial_link.sv
     file_type: systemVerilogSource
     include_dirs:
-      - pulp_platform_serial_link/src/axis/include
+      - pulp_platform/serial_link/src/axis/include
 
 targets:
   default:

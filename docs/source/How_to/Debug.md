@@ -38,7 +38,7 @@ You need 3 shells to do this job.
 
 Now we are going to Simulate debugging with core-v-mini-mcu.
 In this setup, OpenOCD communicates with the remote bitbang server by means of DPIs.
-The remote bitbang server is simplemented in the folder ./hw/vendor/pulp_platform_pulpissimo/rtl/tb/remote_bitbang and it will be compiled using fusesoc.
+The remote bitbang server is simplemented in the folder ./hw/vendor/pulp_platform/pulpissimo/rtl/tb/remote_bitbang and it will be compiled using fusesoc.
 
 ### Verilator (C++ only)
 

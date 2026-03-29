@@ -56,7 +56,7 @@ def read_hjson(hjson_file):
     return j_data
 
 
-def write_template(tpl, structs, enums, struct_name):
+def write_template(tpl, structs, enums, struct_name, header_filename):
     """
     Opens a given template and substitutes the structs and enums fields.
     Returns a string with the content of the updated template
@@ -82,6 +82,7 @@ def write_template(tpl, structs, enums, struct_name):
         peripheral_name_upper=upper_case_name,
         date=today,
         start_address_define=start_addr_def,
+        header_filename=header_filename,
     )
 
 
@@ -438,12 +439,18 @@ def main(arg_vect):
         help="name of the file in which to write the final formatted template with the structs "
         "and enums generated",
     )
+    parser.add_argument(
+        "--header_filename",
+        default="core_v_mini_mcu.h",
+        help="name of the file in which register addresses are found, and which should be included on top.",
+    )
 
     args = parser.parse_args(arg_vect)
 
     input_template = args.template_filename
     input_hjson_file = args.hjson_filename
     output_filename = args.output_filename
+    header_filename = args.header_filename
 
     data = read_hjson(input_hjson_file)
 
@@ -460,7 +467,11 @@ def main(arg_vect):
     structs_definitions += "}} {};".format(data["name"])
 
     final_output = write_template(
-        input_template, structs_definitions, enums_definitions, data["name"]
+        input_template,
+        structs_definitions,
+        enums_definitions,
+        data["name"],
+        header_filename,
     )
     write_output(output_filename, final_output)
 

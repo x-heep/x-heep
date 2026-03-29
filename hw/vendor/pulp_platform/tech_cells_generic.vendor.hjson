@@ -1,0 +1,21 @@
+// Copyright 2020 ETH Zurich and University of Bologna.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+{
+  name: "tech_cells_generic",
+  target_dir: "tech_cells_generic",
+
+  upstream: {
+    url: "https://github.com/pulp-platform/tech_cells_generic.git",
+    rev: "fca524a1174f6363ba0e778f37b9f398257d4b8f",
+  },
+
+  patch_dir: "../patches/pulp_platform_tech_cells_generic",
+
+  exclude_from_upstream: [
+    "scripts",
+    "ips_list.yml",
+    "Bender.yml",
+  ]
+
+}

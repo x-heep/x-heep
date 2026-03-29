@@ -1,0 +1,22 @@
+// Copyright 2020 ETH Zurich and University of Bologna.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+{
+  name: "riscv_dbg",
+  target_dir: "riscv_dbg",
+
+  upstream: {
+    url: "https://github.com/pulp-platform/riscv-dbg.git",
+    rev: "618ee6e0e2610ef47e0dcc4df6748af3dffff731",
+  },
+
+  patch_dir: "../patches/pulp_platform_riscv_dbg",
+
+  exclude_from_upstream: [
+    "ci",
+    "tb",
+    "sva",
+    "Bender.yml",
+  ]
+
+}

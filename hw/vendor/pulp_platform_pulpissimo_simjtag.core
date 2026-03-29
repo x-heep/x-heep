@@ -9,7 +9,7 @@ name: pulp-platform.org::pulpissimo_simjtag
 filesets:
   sim_jtag:
     files:
-    - pulp_platform_pulpissimo/rtl/tb/SimJTAG.sv:  { file_type: systemVerilogSource }
+    - pulp_platform/pulpissimo/rtl/tb/SimJTAG.sv:  { file_type: systemVerilogSource }
 
 targets:
   default:

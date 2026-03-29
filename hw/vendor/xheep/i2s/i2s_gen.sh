@@ -14,7 +14,7 @@ HJSON_FILE=$REG_DIR/data/$PERIPHERAL_NAME.hjson
 RTL_DIR=$REG_DIR/rtl
 
 
-REGTOOL=${1:-$ROOT/hw/vendor/pulp_platform_register_interface/vendor/lowrisc_opentitan/util/regtool.py}
+REGTOOL=${1:-$ROOT/hw/vendor/pulp_platform/register_interface/vendor/lowrisc_opentitan/util/regtool.py}
 PERIPH_STRUCTS_GEN=${2:-$ROOT/util/periph_structs_gen/periph_structs_gen.py}
 TEMPLATE_FILE=${3-$ROOT/util/periph_structs_gen/periph_structs.tpl}
 SW_DIR=${4-$ROOT/sw/device/lib/drivers/$PERIPHERAL_NAME}

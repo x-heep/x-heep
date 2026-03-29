@@ -1,4 +1,4 @@
-REGTOOL ?= ../../vendor/pulp_platform_register_interface/vendor/lowrisc_opentitan/util/regtool.py
+REGTOOL ?= ../../vendor/pulp_platform/register_interface/vendor/lowrisc_opentitan/util/regtool.py
 NAME ?= $(notdir $(CURDIR))
 CFG = data/$(NAME).hjson 
 SW = ../../../sw/device/lib/drivers

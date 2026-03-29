@@ -9,6 +9,6 @@
   upstream:
   {
     url: https://github.com/x-heep/xheep_i2s.git
-    rev: e625b63fb799656dbb1db11ab087953f702db9c3
+    rev: b9ea3655da0ac579a3f50affe46d89fdb1d09f5b
   }
 }

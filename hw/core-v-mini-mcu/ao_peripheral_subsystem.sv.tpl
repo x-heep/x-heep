@@ -435,6 +435,8 @@ module ao_peripheral_subsystem
       .reg_rsp_t(reg_pkg::reg_rsp_t),
       .obi_req_t(obi_pkg::obi_req_t),
       .obi_resp_t(obi_pkg::obi_resp_t),
+      .fifo_resp_t(fifo_pkg::fifo_resp_t),
+      .fifo_req_t(fifo_pkg::fifo_req_t),
       .GLOBAL_SLOT_NUM(DMA_GLOBAL_TRIGGER_SLOT_NUM),
       .EXT_SLOT_NUM(DMA_EXT_TRIGGER_SLOT_NUM)
   ) dma_subsystem_i (

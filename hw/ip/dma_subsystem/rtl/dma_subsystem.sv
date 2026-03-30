@@ -10,13 +10,14 @@
  */
 
 module dma_subsystem
-  import fifo_pkg::*;
   import dma_reg_pkg::*;
 #(
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic,
     parameter type obi_req_t = logic,
     parameter type obi_resp_t = logic,
+    parameter type fifo_resp_t = logic,
+    parameter type fifo_req_t = logic,
     parameter int unsigned GLOBAL_SLOT_NUM = 0,
     parameter int unsigned EXT_SLOT_NUM = 0
 ) (
@@ -47,8 +48,8 @@ module dma_subsystem
 
     input dma_reg_pkg::dma_hw2reg_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] external_hw2reg_i,
 
-    output dma_done_intr_o,
-    output dma_window_intr_o,
+    output logic dma_done_intr_o,
+    output logic dma_window_intr_o,
 
     output logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_ready_o,
     output logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_done_o
@@ -57,8 +58,6 @@ module dma_subsystem
   /*_________________________________________________________________________________________________________________________________ */
 
   /* Imports and parameters */
-  import obi_pkg::*;
-  import reg_pkg::*;
   import core_v_mini_mcu_pkg::*;
 
   localparam RVALID_FIFO_DEPTH = 4;
@@ -82,8 +81,8 @@ module dma_subsystem
   logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_window_done;
 
   /* Register interfaces from register demux to DMAs */
-  reg_pkg::reg_req_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] submodules_req;
-  reg_pkg::reg_rsp_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] submodules_rsp;
+  reg_req_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] submodules_req;
+  reg_rsp_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] submodules_rsp;
 
   /*_________________________________________________________________________________________________________________________________ */
 
@@ -93,10 +92,12 @@ module dma_subsystem
   generate
     for (genvar i = 0; i < core_v_mini_mcu_pkg::DMA_CH_NUM; i++) begin : dma_i_gen
       dma #(
-          .reg_req_t(reg_pkg::reg_req_t),
-          .reg_rsp_t(reg_pkg::reg_rsp_t),
-          .obi_req_t(obi_pkg::obi_req_t),
-          .obi_resp_t(obi_pkg::obi_resp_t),
+          .reg_req_t(reg_req_t),
+          .reg_rsp_t(reg_rsp_t),
+          .obi_req_t(obi_req_t),
+          .obi_resp_t(obi_resp_t),
+          .fifo_resp_t(fifo_resp_t),
+          .fifo_req_t(fifo_req_t),
           .SLOT_NUM(GLOBAL_SLOT_NUM + 2),
           .FIFO_DEPTH(core_v_mini_mcu_pkg::DMA_FIFO_DEPTH),
           .RVALID_FIFO_DEPTH(RVALID_FIFO_DEPTH)
@@ -243,8 +244,8 @@ module dma_subsystem
       /* Register demux */
       reg_demux #(
           .NoPorts(core_v_mini_mcu_pkg::DMA_CH_NUM),
-          .req_t  (reg_pkg::reg_req_t),
-          .rsp_t  (reg_pkg::reg_rsp_t)
+          .req_t  (reg_req_t),
+          .rsp_t  (reg_rsp_t)
       ) reg_demux_i (
           .clk_i,
           .rst_ni,

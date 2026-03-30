@@ -9,6 +9,8 @@ description: "OBI fifo for peripheral access."
 
 filesets:
   files_rtl:
+    depend:
+    - x-heep:rtl:structs
     files:
     - obi_fifo.sv
     file_type: systemVerilogSource

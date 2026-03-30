@@ -1,22 +1,24 @@
 CAPI=2:
 
-name: "x-heep::packages"
-description: "toplevel packages of x-heep"
-
-# Copyright 2022 EPFL
+# Copyright 2026 EPFL
 # Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 # SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+#
+# Author: David Mallasén
+# Description: Pad ring
+
+name: x-heep:ip:pad-ring
+description: X-HEEP pad ring
 
 filesets:
-  files_rtl:
+  rtl:
     depend:
-    - x-heep:rtl:structs
+    - x-heep::packages
     files:
-    - power_manager_pkg.sv
-    - core_v_mini_mcu_pkg.sv
+    - pad_ring.sv
     file_type: systemVerilogSource
 
 targets:
-  default:
+  default: &default
     filesets:
-    - files_rtl
+    - rtl

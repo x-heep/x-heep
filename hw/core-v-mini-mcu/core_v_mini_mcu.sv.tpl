@@ -491,16 +491,6 @@ module core_v_mini_mcu
       .dma_done_o
   );
 
-//  ila_design_wrapper ila_i (
-//     .clk_0                        (clk_i),
-//     .ddr_o                        (ddr_o[0]),
-//     .ddr_i                        (ddr_i[0]),
-//     .ddr_rcv_clk_o                (ddr_rcv_clk_o[0]),
-//     .ddr_rcv_clk_i                (ddr_rcv_clk_i[0]),
-//     .serial_link_slave_req_req    (serial_link_slave_req.req),
-//     .serial_link_slave_resp_rvalid(serial_link_slave_resp.rvalid)
-// );
-
   peripheral_subsystem peripheral_subsystem_i (
       .clk_i,
       .rst_ni(peripheral_subsystem_rst_n && debug_reset_n),

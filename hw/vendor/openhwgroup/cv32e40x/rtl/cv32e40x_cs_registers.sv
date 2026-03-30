@@ -93,7 +93,7 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
   // Interrupts
   input  logic [31:0]                   mip_i,
   input  logic                          mnxti_irq_pending_i,
-  input  logic [CLIC_ID_WIDTH-1:0]      mnxti_irq_id_i,
+  input  logic [CLIC_ID_WIDTH-1:0]    mnxti_irq_id_i,
   input  logic [7:0]                    mnxti_irq_level_i,
   output logic                          clic_pa_valid_o,        // CSR read data is an address to a function pointer
   output logic [31:0]                   clic_pa_o,              // Address to CLIC function pointer

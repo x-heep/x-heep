@@ -12,10 +12,10 @@ extern "C" {
 #endif  // __cplusplus
 
 
-#ifndef X_HEEP_FPGA_CORE_CLK_HZ
-#define X_HEEP_FPGA_CORE_CLK_HZ (15*1000*1000)
+#ifndef X_HEEP_FPGA_CORE_CLK
+#define X_HEEP_FPGA_CORE_CLK 15UL
 #endif
-#define REFERENCE_CLOCK_Hz X_HEEP_FPGA_CORE_CLK_HZ
+#define REFERENCE_CLOCK_Hz (X_HEEP_FPGA_CORE_CLK * 1000UL * 1000UL)
 #define UART_BAUDRATE 9600
 // Calculation formula: NCO = 16 * 2^nco_width * baud / fclk.
 // Note that this will be calculated at compile time, so no 64-bit operations will be performed in CPU.

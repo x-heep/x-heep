@@ -6,10 +6,8 @@
 source [file join [file dirname [info script]] .. common xilinx_generate_core_clk_period_xdc.tcl]
 
 set out_clk_freq_MHz 15
-if {[info exists ::env(FPGA_CORE_CLK_MHZ)]} {
-  set out_clk_freq_MHz $::env(FPGA_CORE_CLK_MHZ)
-} elseif {[info exists ::env(X_HEEP_FPGA_CORE_CLK_MHZ)]} {
-  set out_clk_freq_MHz $::env(X_HEEP_FPGA_CORE_CLK_MHZ)
+if {[info exists ::env(FPGA_CORE_CLK)]} {
+  set out_clk_freq_MHz $::env(FPGA_CORE_CLK)
 }
 
 set design_name xilinx_clk_wizard

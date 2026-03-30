@@ -1,19 +1,19 @@
 CAPI=2:
 
-name: "x-heep::packages"
-description: "toplevel packages of x-heep"
+name: "x-heep:rtl:structs"
+description: "structs for x-heep"
 
-# Copyright 2022 EPFL
+# Copyright 2026 EPFL
 # Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 # SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
 filesets:
   files_rtl:
-    depend:
-    - x-heep:rtl:structs
     files:
-    - power_manager_pkg.sv
-    - core_v_mini_mcu_pkg.sv
+    - addr_map_rule_pkg.sv
+    - obi_pkg.sv
+    - reg_pkg.sv
+    - fifo_pkg.sv
     file_type: systemVerilogSource
 
 targets:

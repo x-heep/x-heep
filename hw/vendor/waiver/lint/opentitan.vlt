@@ -1,0 +1,8 @@
+// Copyright 2026 EPFL
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+`verilator_config
+
+lint_off -rule REDEFMACRO -file "*/prim_assert_dummy_macros.svh" -match "*"
+lint_off -rule REDEFMACRO -file "*/prim_assert.sv" -match "*"

@@ -15,11 +15,7 @@
 //    Serial Link TX window (SERIAL_LINK_START_ADDRESS + dest). The wrapper
 //    subtracts AxiAddrOffset so that axi_to_mem writes to dest in the
 //    receiver's memory space (RAM, peripherals, or any valid address).
-//    
-// Typical usage (direct write):
-//   sl_wrapper_set_rx_mode(SL_WRAPPER_RX_MODE_DIRECT_WRITE);
-//   sl_wrapper_direct_write(0x7F00, 0xDEADBEEF);
-//   uint32_t val = sl_wrapper_direct_read(0x7F00);
+
 
 #ifndef SERIAL_LINK_XHEEP_WRAPPER_DRIVER_H
 #define SERIAL_LINK_XHEEP_WRAPPER_DRIVER_H

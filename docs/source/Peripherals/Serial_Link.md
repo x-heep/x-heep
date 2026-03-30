@@ -44,27 +44,29 @@ The serial link wrapper (`serial_link_xheep_wrapper`) extends the base PULP Seri
 
 ## Software Application
 
-A software driver for the wrapper has been implemented in `sw/device/lib/drivers/serial_link/serial_link_xheep_wrapper_driver`. All functions are documented in the corresponding `.h` file.
-
+- A software driver for the wrapper has been implemented in `sw/device/lib/drivers/serial_link/serial_link_xheep_wrapper_driver`. All functions are documented in the corresponding `.h` file.
+- Use `sl_init` to initialize the peripheral and program all required registers before transmitting data.
 
 ### Usage FIFO Mode
-1. Receiver: call `sl_wrapper_set_rx_mode(SL_WRAPPER_RX_MODE_FIFO)`
-2. Receiver: read from `SL_READ` (blocks until data is available)
-3. Sender: call `sl_init`, then write to `SL_WRITE`
-4. Data is transferred over DDR Serial Link and appears in the receiver FIFO
+1. Call `sl_init` to program the serial link registers.
+2. Receiver: call `sl_wrapper_set_rx_mode(SL_WRAPPER_RX_MODE_FIFO)`
+3. Receiver: read from `SL_READ` (blocks until data is available)
+4. Sender: write to `SL_WRITE`
+5. Data is transferred over DDR Serial Link and appears in the receiver FIFO
 
 ### Usage Direct Write Mode
-1. Receiver: call `sl_wrapper_set_rx_mode(SL_WRAPPER_RX_MODE_DIRECT_WRITE)`
-2. Receiver: clear target address, then poll until non-zero
-3. Sender: call `sl_wrapper_direct_write(dest_offset, data)`
-4. Data is transferred over DDR Serial Link and is written directly to `dest_offset` in the receiver RAM
+1. Call `sl_init` to program the serial link registers.
+2. Receiver: call `sl_wrapper_set_rx_mode(SL_WRAPPER_RX_MODE_DIRECT_WRITE)`
+3. Receiver: clear target address, then poll until non-zero
+4. Sender: call `sl_wrapper_direct_write(dest_offset, data)`
+5. Data is transferred over DDR Serial Link and is written directly to `dest_offset` in the receiver RAM
 
 ### Test Applications
 
 | Application | Description |
 |-------------|-------------|
-| `example_serial_link_direct_write` | Functional test of FIFO (with and without DMA) and direct write modes (test harness simulation + FPGA) |
-| `example_serial_link_performance` | Performance evaluation: cycles/word for FIFO and direct write, with bidirectional sync (FPGA)|
+| `example_serial_link_direct_write` | Functional test of FIFO (with and without DMA) and direct write modes (test harness simulation + FPGA) with bidirectional sync (FPGA) |
+| `example_serial_link_performance` | Performance evaluation: cycles/word for FIFO and direct write (FPGA) |
 
 ---
 **Note:** The `SL_READ` address must always be accessed via a `volatile` pointer to prevent compiler optimization of the memory read.

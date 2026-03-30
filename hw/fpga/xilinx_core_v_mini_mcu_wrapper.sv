@@ -132,12 +132,12 @@ module xilinx_core_v_mini_mcu_wrapper
   );
 `elsif FPGA_NEXYS
   xilinx_clk_wizard_wrapper xilinx_clk_wizard_wrapper_i (
-      .clk_100MHz(clk_i),
+      .clk_in1_0 (clk_i),
       .clk_out1_0(clk_gen)
   );
 `else  // FPGA PYNQ-Z2
   xilinx_clk_wizard_wrapper xilinx_clk_wizard_wrapper_i (
-      .clk_125MHz(clk_i),
+      .clk_in1_0 (clk_i),
       .clk_out1_0(clk_gen)
   );
 `endif

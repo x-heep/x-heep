@@ -53,7 +53,7 @@ LINK_FOLDER ?= $(mkfile_path)/sw/linker
 # Linker options are 'on_chip' (default),'flash_load','flash_exec','freertos'
 LINKER ?= on_chip
 
-# Target options are 'sim' (default) and 'pynq-z2' and 'nexys-a7-100t'
+# Target options are 'sim' (default) and FPGA_BOARD (e.g., pynq-z2,nexys-a7-100t,genesys2,aup-zu3,zcu102,zcu104)
 TARGET ?= sim
 
 # Mcu-gen configuration files
@@ -90,6 +90,9 @@ SIMULATOR ?= verilator
 # SIM_ARGS: Additional simulation arguments for run-app-verilator based on input parameters:
 # - MAX_SIM_TIME: Maximum simulation time in clock cycles (unlimited if not provided)
 SIM_ARGS += $(if $(MAX_SIM_TIME),+max_sim_time=$(MAX_SIM_TIME))
+
+# FPGA-only clock selection, used by FPGA app builds and Vivado flows.
+FPGA_CORE_CLK ?= 15
 
 # Testing flags
 # Optional TEST_FLAGS options are '--compile-only'
@@ -178,8 +181,9 @@ format-python:
 ## @param COMPILER=gcc(default),clang
 ## @param COMPILER_PREFIX=riscv32-corev-(default),riscv32-unknown-
 ## @param ARCH=rv32imc(default),<any_RISC-V_ISA_string_supported_by_the_CPU>
+## @param FPGA_CORE_CLK=15(default),<fpga core clock in MHz>
 app: clean-app
-	@$(MAKE) -C sw PROJECT=$(PROJECT) TARGET=$(TARGET) LINKER=$(LINKER) LINK_FOLDER=$(LINK_FOLDER) COMPILER=$(COMPILER) COMPILER_PREFIX=$(COMPILER_PREFIX) COMPILER_FLAGS="$(COMPILER_FLAGS)" ARCH=$(ARCH) SOURCE=$(SOURCE) CLANG_LINKER_USE_LD=$(CLANG_LINKER_USE_LD) \
+	@$(MAKE) -C sw PROJECT=$(PROJECT) TARGET=$(TARGET) LINKER=$(LINKER) LINK_FOLDER=$(LINK_FOLDER) COMPILER=$(COMPILER) COMPILER_PREFIX=$(COMPILER_PREFIX) COMPILER_FLAGS="$(COMPILER_FLAGS)" ARCH=$(ARCH) SOURCE=$(SOURCE) CLANG_LINKER_USE_LD=$(CLANG_LINKER_USE_LD) FPGA_CORE_CLK=$(FPGA_CORE_CLK) \
 	|| { \
 	echo "\033[0;31mHmmm... seems like the compilation failed...\033[0m"; \
 	echo "\033[0;31mIf you do not understand why, it is likely that you either:\033[0m"; \
@@ -287,11 +291,12 @@ questasim-run-opt-app: app
 ## Builds (synthesis and implementation) the bitstream for the FPGA version using Vivado
 ## @param FPGA_BOARD=pynq-z2,nexys-a7-100t,genesys2,aup-zu3,zcu102,zcu104
 ## @param FUSESOC_FLAGS=--flag=<flagname>
+## @param FPGA_CORE_CLK=15(default),<fpga core clock in MHz>
 vivado-fpga:
-	$(FUSESOC) --cores-root . run --no-export --target=$(FPGA_BOARD) $(FUSESOC_FLAGS) --build openhwgroup.org:systems:core-v-mini-mcu $(FUSESOC_PARAM) 2>&1 | tee buildvivado.log
+	FPGA_CORE_CLK=$(FPGA_CORE_CLK) $(FUSESOC) --cores-root . run --no-export --target=$(FPGA_BOARD) $(FUSESOC_FLAGS) --build openhwgroup.org:systems:core-v-mini-mcu $(FUSESOC_PARAM) 2>&1 | tee buildvivado.log
 
 vivado-fpga-nobuild:
-	$(FUSESOC) --cores-root . run --no-export --target=$(FPGA_BOARD) $(FUSESOC_FLAGS) --setup openhwgroup.org:systems:core-v-mini-mcu $(FUSESOC_PARAM) 2>&1 | tee buildvivado.log
+	FPGA_CORE_CLK=$(FPGA_CORE_CLK) $(FUSESOC) --cores-root . run --no-export --target=$(FPGA_BOARD) $(FUSESOC_FLAGS) --setup openhwgroup.org:systems:core-v-mini-mcu $(FUSESOC_PARAM) 2>&1 | tee buildvivado.log
 
 ## Loads the generated bitstream into the FPGA
 ## @param FPGA_BOARD=pynq-z2,nexys-a7-100t,genesys2,aup-zu3,zcu102,zcu104

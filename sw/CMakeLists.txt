@@ -214,6 +214,15 @@ endif()
 #######################################################################
 add_compile_definitions($ENV{CDEFS})
 
+set(FPGA_BOARD_TARGETS aup-zu3 genesys2 nexys-a7-100t pynq-z2 zcu102 zcu104)
+if("${TARGET}" IN_LIST FPGA_BOARD_TARGETS)
+  if(DEFINED FPGA_CORE_CLK AND NOT "${FPGA_CORE_CLK}" STREQUAL "")
+    add_compile_definitions(X_HEEP_FPGA_CORE_CLK=${FPGA_CORE_CLK})
+  elseif(DEFINED ENV{FPGA_CORE_CLK} AND NOT "$ENV{FPGA_CORE_CLK}" STREQUAL "")
+    add_compile_definitions(X_HEEP_FPGA_CORE_CLK=$ENV{FPGA_CORE_CLK})
+  endif()
+endif()
+
 #######################################################################
 #      FIND CRT FILES TO BE INCLUDED
 #######################################################################

@@ -34,6 +34,11 @@ RV_PROFILE  := $(shell which rv_profile)
 AREA_PLOT   := $(shell which area-plot)
 endif
 
+# RegTool and StructGen path
+REGTOOL 			?= $(mkfile_path)/hw/vendor/pulp_platform/register_interface/vendor/lowrisc_opentitan/util/regtool.py
+PERIPH_STRUCTS_GEN 	?= $(mkfile_path)/util/periph_structs_gen/periph_structs_gen.py
+TEMPLATE_FILE 		?= $(mkfile_path)/util/periph_structs_gen/periph_structs.tpl
+
 # Build directories
 BUILD_DIR         = build
 FUSESOC_BUILD_DIR = $(shell find $(BUILD_DIR) -maxdepth 1 -type d -name 'openhwgroup.org_systems_core-v-mini-mcu_*' 2>/dev/null | sort -V | head -n 1)
@@ -57,7 +62,12 @@ PADS_CFG ?= configs/pad_cfg.py
 PYTHON_X_HEEP_CFG ?=
 
 # MCU-Gen template files to generate
-MCU_GEN_TEMPLATES = $(shell find . \( -path './hw/vendor' -o -path './util' -o -path './test' \) -prune -o -name '*.tpl' -print)
+MCU_GEN_TEMPLATES = $(shell find . \
+  \( -path './hw/vendor/*' ! -path './hw/vendor/xheep' ! -path './hw/vendor/xheep/*' -o \
+     -path './util/*' -o \
+     -path './test/*' \) -prune -o \
+  -name '*.tpl' -print)
+  
 # Optionally, additional external template files can be provided to mcu-gen
 EXTERNAL_MCU_GEN_TEMPLATES ?= 
 
@@ -109,6 +119,10 @@ AREA_PLOT_RPT    ?= $(word 1, $(shell [ -d $(BUILD_DIR) ] && find $(BUILD_DIR) -
 AREA_PLOT_OUTDIR ?= $(BUILD_DIR)/area-plot/ # output directory for the area plot
 AREA_PLOT_TOP    ?=# top level module to consider for the area plot (automatically infer)
 
+# Vendored IPs
+VENDOR_FILES	:= $(shell find hw/vendor sw/vendor -maxdepth 2 -type f -name "*.vendor.hjson" -print)
+VENDOR_LOCKS	:= $(subst .vendor.hjson,.lock.hjson,$(VENDOR_FILES))
+
 # Export variables to sub-makefiles
 export
 
@@ -131,8 +145,9 @@ mcu-gen:
 	bash -c "cd hw/ip/power_manager; source power_manager_gen.sh; cd ../../../"
 	bash -c "cd hw/ip/pdm2pcm; source pdm2pcm_gen.sh; cd ../../../"
 	bash -c "cd hw/system/pad_control; source pad_control_gen.sh; cd ../../../"
-	bash -c "cd hw/ip/dma; source dma_gen.sh; cd ../../../"
+	bash -c "cd hw/vendor/xheep/dma; source dma_gen.sh; cd ../../../"
 	bash -c "cd hw/ip/boot_rom; make clean; make all; cd ../../../"
+	$(MAKE) -C hw/vendor/xheep/spi reg SW_DIR=$(mkfile_path)/sw/device/lib/drivers/
 	$(MAKE) verible
 
 ## Display mcu_gen.py help
@@ -143,15 +158,15 @@ mcu-gen-help:
 verible: | .check-verible
 	util/format-verible;
 
-## Runs black formating for python xheep generator files
+## Runs black formating for python files
 format-python:
 	$(PYTHON) -m black util/x_heep_gen
 	$(PYTHON) -m black util/periph_structs_gen
 	$(PYTHON) -m black util/mcu_gen.py
 	$(PYTHON) -m black util/waiver-gen.py
 	$(PYTHON) -m black util/c_gen.py
-	$(PYTHON) -m black configs
 	$(PYTHON) -m black test/test_x_heep_gen
+	$(PYTHON) -m black test/test_apps
 	$(PYTHON) -m black configs
 
 ## @section APP FW Build
@@ -174,7 +189,10 @@ app: clean-app
 	echo "\033[0;31mI would start by checking b) or c) if I were you!\033[0m"; \
 	exit 1; \
 	}
-	@$(PYTHON) scripts/building/mem_usage.py
+	@$(PYTHON) scripts/building/mem_usage.py \
+		--elf $(mkfile_path)/sw/build/main.elf \
+		--ld $(mkfile_path)/sw/build/main.ld \
+		--mcu-pkg $(mkfile_path)/hw/core-v-mini-mcu/include/core_v_mini_mcu_pkg.sv
 
 ## Just list the different application names available
 app-list:
@@ -246,6 +264,24 @@ verilator-run-sc:
 verilator-waves: .check-gtkwave
 	gtkwave $(VERILATOR_DIR)/waveform.fst
 
+## Launches the RTL simulation with the compiled firmware (`app` target) using
+## the Questasim model previously built (`questasim-build` target).
+questasim-run: 
+	$(MAKE) -C $(QUESTASIM_DIR) run PLUSARGS="c firmware=../../../sw/build/main.hex"
+
+## First builds the app and then uses Questasim to simulate the HW model and run the FW
+questasim-run-app: app
+	$(MAKE) -C $(QUESTASIM_DIR) run PLUSARGS="c firmware=../../../sw/build/main.hex"
+
+## Launches the RTL simulation with the compiled firmware (`app` target) using
+## the Questasim model with HDL optimized compilation previously built (`questasim-build-opt` target).
+questasim-run-opt: 
+	$(MAKE) -C $(QUESTASIM_DIR) run RUN_OPT=1 PLUSARGS="c firmware=../../../sw/build/main.hex"
+
+## First builds the app and then uses Questasim to simulate the HW optimized model and run the FW
+questasim-run-opt-app: app
+	$(MAKE) -C $(QUESTASIM_DIR) run RUN_OPT=1 PLUSARGS="c firmware=../../../sw/build/main.hex"
+
 ## @section Vivado
 
 ## Builds (synthesis and implementation) the bitstream for the FPGA version using Vivado
@@ -268,10 +304,10 @@ asic:
 	$(FUSESOC) --cores-root . run --no-export --target=asic_synthesis $(FUSESOC_FLAGS) --setup openhwgroup.org:systems:core-v-mini-mcu $(FUSESOC_PARAM) 2>&1 | tee builddesigncompiler.log
 
 openroad-sky130:
-	git checkout hw/vendor/pulp_platform_common_cells/*
-	sed -i 's/(\*[^\n]*\*)//g' hw/vendor/pulp_platform_common_cells/src/*.sv
+	git checkout hw/vendor/pulp_platform/common_cells/*
+	sed -i 's/(\*[^\n]*\*)//g' hw/vendor/pulp_platform/common_cells/src/*.sv
 	$(FUSESOC) --verbose --cores-root . run --target=asic_yosys_synthesis --flag=use_sky130 openhwgroup.org:systems:core-v-mini-mcu $(FUSESOC_PARAM) 2>&1 | tee buildopenroad.log
-	git checkout hw/vendor/pulp_platform_common_cells/*
+	git checkout hw/vendor/pulp_platform/common_cells/*
 
 ## @section Program, Execute, and Debug w/ EPFL_Programmer
 
@@ -351,6 +387,16 @@ profile:
 .PHONY: area-plot
 area-plot:
 	$(AREA_PLOT) --filename $(AREA_PLOT_RPT) --out-dir $(AREA_PLOT_OUTDIR) --top-module $(AREA_PLOT_TOP)
+
+## @section Vendored IPs
+## Update the vendored IPs based on the .vendor.hjson description files
+.PHONY: vendor-update
+vendor-update: $(VENDOR_LOCKS)
+	python3 util/check-vendor.py
+
+$(VENDOR_LOCKS): %.lock.hjson: %.vendor.hjson util/vendor.py
+	@echo "### Updating vendored IP '$(notdir $*)'..."
+	python3 util/vendor.py -vU $<
 
 ## @section Cleaning commands
 

@@ -1,0 +1,28 @@
+CAPI=2:
+
+name: "x-heep:sim:pad_cells"
+description: "behavioral sim cells"
+
+# Copyright 2026 EPFL
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+
+filesets:
+  files_sim:
+    files:
+    - pad_cell_inout.sv
+    - pad_cell_input.sv
+    - pad_cell_output.sv
+    file_type: systemVerilogSource
+
+  files_verilator_waiver:
+    files:
+    - pad_sim.vlt
+    file_type: vlt
+
+targets:
+  default:
+    filesets:
+    - tool_verilator? (files_verilator_waiver)
+    - files_sim

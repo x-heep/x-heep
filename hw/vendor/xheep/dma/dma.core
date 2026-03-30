@@ -1,0 +1,46 @@
+CAPI=2:
+
+name: "x-heep:ip:dma"
+description: "core-v-mini-mcu dma channel"
+
+# Copyright 2021 OpenHW Group
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+filesets:
+  files_rtl:
+    depend:
+      - pulp-platform.org::common_cells
+    files:
+    - rtl/dma_reg_pkg.sv
+    - rtl/dma_pkg.sv
+    - rtl/dma_reg_top.sv
+    - rtl/dma_units/dma_processing_unit.sv
+    - rtl/dma_units/dma_read_unit.sv
+    - rtl/dma_units/dma_read_addr_unit.sv
+    - rtl/dma_units/dma_write_unit.sv
+    - rtl/dma_units/dma_buffer_unit/dma_buffer_fifos.sv
+    - rtl/dma_units/dma_buffer_unit/dma_buffer_control.sv
+    - rtl/dma_units/dma_buffer_unit/dma_buffer_unit.sv
+    - rtl/dma.sv
+    file_type: systemVerilogSource
+  
+  headers:
+    files:
+    - data/dma_conf.svh: { is_include_file: true }
+    file_type: systemVerilogSource
+
+  files_verilator_waiver:
+    files:
+      - dma.vlt
+    file_type: vlt
+
+
+
+targets:
+  default:
+    filesets: 
+    - files_rtl
+    - headers
+    - tool_verilator ? (files_verilator_waiver)
+

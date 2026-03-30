@@ -1,0 +1,30 @@
+// Copyright 2020 ETH Zurich and University of Bologna.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+{
+  name: "cv32e40p",
+  target_dir: "cv32e40p",
+
+  upstream: {
+    url: "https://github.com/openhwgroup/cv32e40p.git",
+    rev: "a43277c0dc64c02be3f5d713438f315ecffde2b9",
+  },
+
+  patch_dir: "../patches/openhwgroup_cv32e40p",
+
+  exclude_from_upstream: [
+    "ci",
+    ".github",
+    "example_tb",
+    "CONTRIBUTING.md",
+    "Bender.yml",
+    ".gitlab-ci.yml",
+    ".dir-locals.el",
+    "cv32e40p_manifest.flist",
+    "cv32e40p_fpu_manifest.flist",
+    "docs",
+    "rtl/vendor",
+    "scripts",
+  ]
+
+}

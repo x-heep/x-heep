@@ -636,7 +636,6 @@ module peripheral_subsystem
 % if user_peripheral_domain.contains_peripheral('serial_link'):
   serial_link_xheep_wrapper #(
     .MaxClkDiv(32),
-    .AddrWidth(32),
     .DataWidth(32)
   ) serial_link_xheep_wrapper_i (
     .clk_i(clk_i),

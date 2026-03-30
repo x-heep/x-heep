@@ -463,13 +463,14 @@ module ao_peripheral_subsystem
   );
 
 % else:
-  assign dma_read_req_o                                      = '0;
-  assign dma_write_req_o                                     = '0;
-  assign dma_addr_req_o                                      = '0;
-  assign hw_fifo_req_o                                       = '0;
-  assign dma_done_intr_o                                     = '0;
-  assign dma_window_intr_o                                   = '0;
-  assign dma_done_o                                          = '0;
+  assign dma_read_req_o     = '0;
+  assign dma_write_req_o    = '0;
+  assign dma_addr_req_o     = '0;
+  assign hw_fifo_req_o      = '0;
+  assign dma_done_intr_o    = '0;
+  assign dma_window_intr_o  = '0;
+  assign dma_done_o         = '0;
+  assign dma_ready          = '0;
 % endif
 
   fast_intr_ctrl #(

@@ -78,15 +78,17 @@ void w25q128jw_controller_enable_interrupt(uint32_t intr_enable);
  * @param dest Pointer to the on-chip SRAM
  * @param src  Pointer to the Flash
  * @param length_bytes Number of bytes to transfer.
+ * @param quad SPI mode (1 for quad SPI, 0 for standard SPI).
  */
-void w25q128jw_controller_read(void* dest, void* src, size_t length_bytes);
+void w25q128jw_controller_read(void* dest, void* src, size_t length_bytes, uint32_t quad);
 
 /**
  * @param dest Pointer to the Flash
  * @param src  Pointer to the on-chip SRAM
  * @param length_bytes Number of bytes to transfer.
+ * @param quad SPI mode (1 for quad SPI, 0 for standard SPI).
  */
-void w25q128jw_controller_write(void* dest, void* src, size_t length_bytes);
+void w25q128jw_controller_write(void* dest, void* src, size_t length_bytes, uint32_t quad);
 
 /**
  * @brief This function sets the DMA_SLOT_WAIT_COUNTER so that the DMA

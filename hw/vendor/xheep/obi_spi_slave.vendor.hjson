@@ -1,0 +1,13 @@
+// Copyright 2020 ETH Zurich and University of Bologna.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+{
+  name: "obi_spi_slave",
+  target_dir: "obi_spi_slave",
+
+  upstream: {
+    url: "https://github.com/x-heep/obi_spi_slave.git",
+    rev: "f08cf8c9fe00316e58ea4674305407f41b076fd5",
+  },
+
+}

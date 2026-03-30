@@ -70,12 +70,6 @@ SECTIONS
     *(.gnu.warning)
   } >ram0
 
-  .power_manager : ALIGN(4096)
-  {
-     PROVIDE(__power_manager_start = .);
-     . += 256;
-  } >ram0
-
   /* not used by RISC-V*/
   .fini           :
   {
@@ -239,6 +233,12 @@ SECTIONS
   } >ram1
   _edata = .; PROVIDE (edata = .);
   . = .;
+
+  .power_manager : ALIGN(4096)
+  {
+     PROVIDE(__power_manager_start = .);
+     . += 256;
+  } >ram1
 
   /* zero initialized sections */
   __bss_start = .;

@@ -40,9 +40,9 @@ The Docker setup has certain limitations. For example, the following are not sup
 
 ### 1. OS requirements
 
-To use `X-HEEP`, first you will need to install some OS dependencies.
+To use `X-HEEP`, first you will need to install some OS dependencies. We recommend Ubuntu 24.04 or Ubuntu 22.04.
 
-The following command `apt` command should install every required package (tested on an Ubuntu 22.04 distribution):
+The following command `apt` command should install every required package:
 ```bash
 sudo apt install autoconf automake autotools-dev curl python3 python3-pip python3-tomli libmpc-dev libmpfr-dev libgmp-dev gawk build-essential bison flex texinfo gperf libtool patchutils bc zlib1g-dev libexpat-dev ninja-build git cmake libglib2.0-dev libslirp-dev help2man perl make g++ libfl2 libfl-dev zlibc zlib1g zlib1g-dev ccache mold libgoogle-perftools-dev numactl libelf-dev
 ```
@@ -150,7 +150,7 @@ If you want to use the GCC linker, you will need to pass to the `make app` targe
 
 ### 4. Install Verilator:
 
-X-HEEP supports Verilator version 5.040, which requires the [following packages](https://verilator.org/guide/latest/install.html) to be installed (Check [OS requirements](#1-os-requirements) for Ubuntu distribution). The [documentation](https://verilator.org/guide/latest/install.html) page contains instructions for other linux distributions. 
+X-HEEP supports Verilator version 5.040, which requires the [following packages](https://verilator.org/guide/latest/install.html) to be installed (Check [OS requirements](#1-os-requirements) for Ubuntu distribution). The [documentation](https://verilator.org/guide/latest/install.html) page contains instructions for other linux distributions. You should use at least g++ 13 when installing verilator to avoid potential issues when running your verilated designs.
 
 ```{warning}
 Backward compatibility with Verilator 4.210 is currently maintained, yet _this is very likely to change_ in future releases, so we strongly suggest against using it. Also, Verilator 4.210 _requires GCC older than 12.0_, so make sure to configure your environment accordingly if you choose to use it anyway.

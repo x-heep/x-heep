@@ -1,0 +1,33 @@
+CAPI=2:
+
+name: "x-heep:ip:i2s"
+description: "core-v-mini-mcu i2s peripheral"
+
+# Copyright 2026 EPFL
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+filesets:
+  files_rtl:
+    depend:
+      - pulp-platform.org::common_cells
+    files:
+    - rtl/i2s_reg_pkg.sv
+    - rtl/i2s_reg_top.sv
+    - rtl/i2s.sv
+    - rtl/i2s_core.sv
+    - rtl/i2s_rx_channel.sv
+    - rtl/i2s_ws_gen.sv
+    - rtl/event_counter.sv
+    file_type: systemVerilogSource
+
+  files_verilator_waiver:
+    files:
+      - i2s.vlt
+    file_type: vlt
+
+targets:
+  default:
+    filesets:
+    - files_rtl
+    - tool_verilator ? (files_verilator_waiver)

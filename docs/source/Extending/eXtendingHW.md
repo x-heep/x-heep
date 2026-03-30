@@ -189,8 +189,8 @@ To add this new top-level module to the simulation/synthesis flow you can extend
             - -pedanticerrors
             - -define MODELSIM
             vsim_options:
-            - -sv_lib ../../../hw/vendor/esl-epfl_x-heep/hw/vendor/lowrisc_opentitan/hw/dv/dpi/uartdpi/uartdpi
-            - -sv_lib ../../../hw/vendor/esl-epfl_x-heep/hw/vendor/pulp_platform_pulpissimo/rtl/tb/remote_bitbang/librbs
+            - -sv_lib ../../../hw/vendor/esl-epfl_x-heep/hw/vendor/lowrisc/opentitan/hw/dv/dpi/uartdpi/uartdpi
+            - -sv_lib ../../../hw/vendor/esl-epfl_x-heep/hw/vendor/pulp_platform/pulpissimo/rtl/tb/remote_bitbang/librbs
 ```
 
 </details><br>

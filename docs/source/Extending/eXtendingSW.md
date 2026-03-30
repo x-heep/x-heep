@@ -86,91 +86,104 @@ The [`util/c_gen.py`](../../../util/c_gen.py) script is a versatile utility for 
 
 The utility can be used in two ways: as a straightforward command-line tool for simple conversions, or as a Python module for more complex and customized header generation.
 
+It can add a zero-filled region as a prefix or a suffix to the binary code. This could be useful to reserve memory space like a stack or runtime parameter for an accelerator.
+
 ### Command-Line Usage
 For quick conversion of a single binary file (e.g., a compiled firmware blob), the command-line interface is ideal.
 ```bash
-python c_gen.py <header_file> <bin_file> [<src_file> ...]
+python util/c_gen.py <header_file> <bin_file> [--prefix-pad <bytes>] [--prefix-pad=<bytes>] [--suffix-pad <bytes>] [--suffix-pad=<bytes>] [--static] [--attribute <attr>] [--attribute=<attr>] [<src_file> ...]
 ```
 
-| Argument          | Description|
-|-------------------|------------|
-| `<header_file>`	| The path and name for the output C header file (e.g., `firmware.h`). |
-| `<bin_file>`	    | The path to the input binary file to be converted (e.g., `firmware.bin`). |
-| `[<src_file> ...]`| (Optional) One or more paths to C source files. The script will parse these files and copy any `#define` directives into the generated header. |
+| Argument/Option | Description |
+|-----------------|-------------|
+| `<header_file>` | Output header path (for example, `sw/external/lib/driver/accel/firmware.h`). |
+| `<bin_file>` | Input binary file to be converted. |
+| `--prefix-pad` | Number of zero bytes prepended before the binary payload. |
+| `--suffix-pad` | Number of zero bytes appended after the binary payload. |
+| `--static` | Emits arrays with `static` storage class. |
+| `--attribute` | Adds a C attribute to generated arrays (repeatable). |
+| `[<src_file> ...]` | Optional C/C++ source files. Every line starting with `#define` is copied into the generated header. |
 
-For example, to convert a compiled peripheral firmware dma_engine.bin into dma_engine.h and include definitions from its source code:
+`--prefix-pad` and `--suffix-pad` accept decimal or base-prefixed values (for example, `32`, `0x20`) and must be non-negative.
+
+Example:
 ```bash
-python c_gen.py sw/external/lib/driver/accel/firmware.h whatever/firmware.bin whatever/main.c
+python c_gen.py sw/external/lib/driver/accel/firmware.h whatever/firmware.bin \
+  --prefix-pad 16 \
+  --suffix-pad 16 \
+  --static \
+  --attribute 'section(".data_interleaved")' \
+  whatever/main.c 
 ```
-This will generate `sw/external/lib/driver/accel/firmware.h` containing the binary data as a `uint32_t` array named `firmware`, along with size macros (e.g, `FIRMWARE_SIZE`) and any macros defined in `whatever/main.c`. The application code can therefore copy this data to the accelerator memory when needed.
+
+This generates a header with:
+- `FIRMWARE_SIZE` accounting for explicit prefix/suffix padding and 32-bit alignment.
+- A `static uint32_t __attribute__((section(".data_interleaved"))) firmware[]` array.
+- Any `#define` directives found in `firmware_defs.c`.
 
 ### Programmatic Usage (as a Python Module)
 For more advanced use cases, you can import the CFileGen class into your Python scripts. This approach is highly recommended for test-bench generation and complex data embedding, as it provides much greater flexibility:
-- __Multiple data sources__: add any number of binaries, matrices, or code arrays to an header file.
-- __NumPy array conversion__: firectly convert NumPy arrays into C arrays, perfect for test vectors and golden models. The script automatically handles signed-to-unsigned conversion and formats values in hexadecimal.
-- __Automatic size macros__: for each array, it automatically generates `_SIZE`, `_ROWS`, and `_COLS` macros.
-- __Custom C attributes__: add GCC/Clang attributes (e.g., `__attribute__((section(".data_interleaved")))`) to place arrays in specific memory sections.
+- __Multiple data sources__: add binaries, input/output matrices, and code arrays into one header.
+- __Binary padding__: `add_binary(name, file, prefix_pad=..., suffix_pad=...)` to reserve bytes around firmware blobs.
+- __Storage class control__: `set_storage_class("static")` (or another class string) for all generated arrays.
+- __Custom attributes__: `add_attribute(...)` to attach GCC/Clang attributes to all arrays.
+- __Macro generation__: use `add_macro`, `add_macro_hex`, `add_macro_raw`, or `add_macros_from_source`.
+- __NumPy conversion__: converts `int8/int16/int32` and `uint8/uint16/uint32` arrays to C arrays with hexadecimal values.
+- __Automatic size macros__: emits `_SIZE`, `_ROWS`, and `_COLS` for input/output matrices.
 
-For example, here's how you could generate a header file containing both a firmware binary and a NumPy array of test vectors for an accelerator:
-
+Example:
 ```python
 import numpy as np
 from c_gen import CFileGen
 
-# 1. Create some test data as a NumPy array
-# This could be input data for a near-memory accelerator test
 test_vectors = np.array([
     [10, -20, 30],
     [40, -50, 60],
-    [70, 80, -90]
+    [70, 80, -90],
 ], dtype=np.int16)
 
-# 2. Instantiate the C code generator
 header_gen = CFileGen()
-
-# 3. Add the firmware binary for the accelerator
-header_gen.add_binary('accelerator_fw', 'build/accelerator.bin')
-
-# 4. Add the NumPy test vectors as an input matrix
-# Let's also place this array in a specific memory section
+header_gen.set_storage_class("static")
 header_gen.add_attribute('section(".data_interleaved")')
-header_gen.add_input_matrix('input_vectors', test_vectors)
-
-# 5. Write the final header file
-header_gen.write_header('generated_tests', 'accelerator_test.h')
-
-print("Generated accelerator_test.h successfully!")
+header_gen.add_macro("accel_test_id", 7, "Regression ID")
+header_gen.add_binary("accelerator_fw", "build/accelerator.bin", prefix_pad=16, suffix_pad=16)
+header_gen.add_input_matrix("input_vectors", test_vectors)
+header_gen.write_header("generated_tests", "accelerator_test.h")
 ```
-This script would produce a file named `generated_tests/accelerator_test.h` with content similar to this:
 
+Excerpt of generated header:
 ```C
 #ifndef ACCELERATOR_TEST_H_
 #define ACCELERATOR_TEST_H_
 
 #include <stdint.h>
 
+// Macros
+// ------
+#define ACCEL_TEST_ID 7 // Regression ID
+
+// Binary size
+// -----------
+#define ACCELERATOR_FW_SIZE 4128
+
 // Input matrix size
 #define INPUT_VECTORS_SIZE 18
 #define INPUT_VECTORS_ROWS 3
 #define INPUT_VECTORS_COLS 3
 
-// Binary size
-// -----------
-#define ACCELERATOR_FW_SIZE 4096 // Example size
-
 // Binary files
 // ------------
-uint32_t accelerator_fw[] = {
-    0xDEADBEEF,
-    // ... firmware data ...
+static uint32_t __attribute__((section(".data_interleaved"))) accelerator_fw[] = {
+    0x00000000,
+    // ...
 };
 
 // Input matrices
 // --------------
-int16_t input_vectors [] __attribute__((section(".data_interleaved"))) = {
-    {0x000a, 0xffec, 0x001e},
-    {0x0028, 0xffce, 0x003c},
-    {0x0046, 0x0050, 0xffa6}
+static int16_t __attribute__((section(".data_interleaved"))) input_vectors [] = {
+    0x000a, 0xffec, 0x001e,
+    0x0028, 0xffce, 0x003c,
+    0x0046, 0x0050, 0xffa6
 };
 
 #endif // ACCELERATOR_TEST_H_

@@ -38,7 +38,7 @@ class Cell:
             are thus a property of the cell (not the pad) and vary from PDK to PDK. These are used
             while instantiating the cell on the RTL).
         :param rtl_wrapper: The name of the RTL wrapper module for this cell. For example
-            "u_pad_cell_digital_core_vdd". The cell (the one that comes from the PDK) is wrapped
+            "pad_cell_digital_core_vdd". The cell (the one that comes from the PDK) is wrapped
             around an RTL module so that we can have a single point where the cell name should be
             consistent with what we include in the cheep.io (i.e. if we claim that we will use
             a cell on the cheep_pads.py, that will be added on the cheep.io, and thus it will be
@@ -93,6 +93,6 @@ iocell_a = Cell(
     name="IOCELL_ANALOG",
     width=20,
     height=32,
-    rtl_wrapper="u_pad_cell_analog",
+    rtl_wrapper="pad_cell_analog",
     connections=["io"],
 )

@@ -49,7 +49,7 @@ xheep.set_cpu(cv32e20(rv32e=True, rv32m="RV32MSlow"))
 The `cv32e20` CPU supports the following optional parameters:
 - `rv32e` (bool): Enable or disable the RV32E extension.
 - `rv32m` (str): Set the RV32M extension configuration. Possible values are defined in the
-  `rv32m_e` enumeral in the `hw/vendor/openhwgroup_cv32e20/rtl/cve2_pkg.sv` file.
+  `rv32m_e` enumeral in the `hw/vendor/openhwgroup/cv32e20/rtl/cve2_pkg.sv` file.
 
 `cv32e20` supports the CORE-V eXtension Interface (CV-X-IF) in case it is set with `xheep.set_xif()` (see [CORE-V eXtension Interface (CV-X-IF) Configuration](./XIFConfiguration)).
 
@@ -93,7 +93,7 @@ The `cv32e40p` CPU supports the following optional parameters:
 - `corev_pulp` (bool): Enable or disable CORE-V PULP-specific extensions.
 - `num_mhpmcounters` (int): Number of machine hardware performance counters (MHPM counters).
 
-The following example sets the default configuration from the rtl found in `hw/vendor/openhwgroup_cv32e40p/rtl/cv32e40p_top.sv`:
+The following example sets the default configuration from the rtl found in `hw/vendor/openhwgroup/cv32e40p/rtl/cv32e40p_top.sv`:
 
 ```python
 from x_heep_gen.cpu.cv32e40p import cv32e40p
@@ -162,7 +162,7 @@ The `cv32e40x` CPU supports the following optional parameters:
 `cv32e40x` supports the CORE-V eXtension Interface (CV-X-IF) in case it is set with `xheep.set_xif()` (see [CORE-V eXtension Interface (CV-X-IF) Configuration](./XIFConfiguration)).
 
 The following example sets the default configuration from the RTL found in
-`hw/vendor/openhwgroup_cv32e40x/rtl/cv32e40x_core.sv`:
+`hw/vendor/openhwgroup/cv32e40x/rtl/cv32e40x_core.sv`:
 
 ```python
 from x_heep_gen.cpu.cv32e40x import cv32e40x

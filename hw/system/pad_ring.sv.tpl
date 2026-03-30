@@ -77,20 +77,14 @@ module pad_ring (
     pad_attributes_i = f"pad_attributes_i[core_v_mini_mcu_pkg::PAD_{pad.name.upper()}]" if attribute_bits != None else "\'0"
 
     # Determine pad type and assign specific attributes
-    if has_inout_pin or (has_input_pin and has_output_pin):
-        pad_type = 'inout'
-    elif has_input_pin:
-        pad_type = 'input'
+    if has_input_pin and not has_output_pin and not has_inout_pin:
         pad_in_i = "1\'b0"
         pad_oe_i = "1\'b0"
-    elif has_output_pin:
-        pad_type = 'output'
+    elif has_output_pin and not has_input_pin and not has_inout_pin:
         pad_oe_i = "1\'b1"
         pad_out_o = ""
-    else:
-        continue
     %>
-    pad_cell_${pad_type} #(
+    ${pad.iocell.rtl_wrapper} #(
         .PADATTR(${num_attribute_bits})
     ) u_pad_${pad.name} (
         .pad_in_i(${pad_in_i}),
@@ -98,7 +92,7 @@ module pad_ring (
         .pad_out_o(${pad_out_o}),
         .pad_io(${pad_io}),
         .pad_attributes_i(${pad_attributes_i})
-    );   
+    );
 % endfor
 
 % if len(analog_signal_pads) > 0:

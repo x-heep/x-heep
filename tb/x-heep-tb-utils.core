@@ -56,7 +56,7 @@ filesets:
 
   systemverilog_only_uart:
     files:
-    - ../hw/vendor/lowrisc_opentitan/hw/dv/dpi/uartdpi/uartdpi.sv
+    - ../hw/vendor/lowrisc/opentitan/hw/dv/dpi/uartdpi/uartdpi.sv
     file_type: systemVerilogSource
 
   remote_bitbang_dpi:

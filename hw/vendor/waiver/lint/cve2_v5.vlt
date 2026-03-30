@@ -1,0 +1,7 @@
+// Copyright 2026 EPFL
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+`verilator_config
+
+lint_off -rule UNUSEDSIGNAL -file "*rtl/cve2_core.sv" -match "Signal is not used: 'rf_ren_c'*"

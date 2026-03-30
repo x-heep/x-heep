@@ -4,12 +4,12 @@
 
 `verilator_config
 
-lint_off -rule WIDTH -file "*/pulp_platform_axi/src/axi_isolate_inner.sv" -match "*"
-lint_off -rule UNUSED -file "*/pulp_platform_axi/src/axi_isolate.sv" -match "*"
-lint_off -rule WIDTH -file "*/pulp_platform_axi/src/axi_pkg.sv" -match "*"
-lint_off -rule CASEINCOMPLETE -file "*/pulp_platform_axi/src/axi_pkg.sv" -match "*"
-lint_off -rule UNOPTFLAT -file "*/pulp_platform_axi/src/axi_isolate_inner.sv" -match "*"
-lint_off -rule ASSIGNDLY -file "*/pulp_platform_axi/src/axi_sim_mem.sv" -match "*"
-lint_off -rule UNSUPPORTED -file "*/pulp_platform_axi/src/axi_test.sv" -match "*"
-lint_off -rule DECLFILENAME -file "*/pulp_platform_axi/src/*.sv" -match "*"
-lint_off -rule WIDTH -file "*/pulp_platform_axi/src/axi_lite_to_axi.sv" -match "*"
+lint_off -rule WIDTH -file "*/pulp_platform/axi/src/axi_isolate_inner.sv" -match "*"
+lint_off -rule UNUSED -file "*/pulp_platform/axi/src/axi_isolate.sv" -match "*"
+lint_off -rule WIDTH -file "*/pulp_platform/axi/src/axi_pkg.sv" -match "*"
+lint_off -rule CASEINCOMPLETE -file "*/pulp_platform/axi/src/axi_pkg.sv" -match "*"
+lint_off -rule UNOPTFLAT -file "*/pulp_platform/axi/src/axi_isolate_inner.sv" -match "*"
+lint_off -rule ASSIGNDLY -file "*/pulp_platform/axi/src/axi_sim_mem.sv" -match "*"
+lint_off -rule UNSUPPORTED -file "*/pulp_platform/axi/src/axi_test.sv" -match "*"
+lint_off -rule DECLFILENAME -file "*/pulp_platform/axi/src/*.sv" -match "*"
+lint_off -rule WIDTH -file "*/pulp_platform/axi/src/axi_lite_to_axi.sv" -match "*"

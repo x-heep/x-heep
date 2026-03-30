@@ -13,24 +13,24 @@ filesets:
     - pulp-platform.org::register_interface
     - pulp-platform.org::tech_cells_generic
     files:
-    - pulp_platform_gpio/src/gpio_reg_pkg.sv
-    - pulp_platform_gpio/src/gpio_reg_top.sv
-    - pulp_platform_gpio/src/gpio.sv
+    - pulp_platform/gpio/src/gpio_reg_pkg.sv
+    - pulp_platform/gpio/src/gpio_reg_top.sv
+    - pulp_platform/gpio/src/gpio.sv
     file_type: systemVerilogSource
 
   no-clock-gate:
     files:
-    - pulp_platform_gpio/src/gpio_input_stage_no_clk_gates.sv
+    - pulp_platform/gpio/src/gpio_input_stage_no_clk_gates.sv
     file_type: systemVerilogSource
 
   clock-gate:
     files:
-    - pulp_platform_gpio/src/gpio_input_stage.sv
+    - pulp_platform/gpio/src/gpio_input_stage.sv
     file_type: systemVerilogSource
 
   testbench:
     files:
-    - pulp_platform_gpio/test/tb_gpio.sv
+    - pulp_platform/gpio/test/tb_gpio.sv
     file_type: systemVerilogSource
 
 targets:

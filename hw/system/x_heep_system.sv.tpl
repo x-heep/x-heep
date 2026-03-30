@@ -299,7 +299,7 @@ analog_signal_pads = [ pad for pad in xheep.get_padring().pad_list if any(isinst
   always_comb
   begin
     % for pin in pad.pins:
-      ${pin.rtl_name()}in_x = 1'b0;
+      ${pin.rtl_name()}in_x = ${"1'b1" if pin.attributes.get("active") == "low" else "1'b0"};
     % endfor
     unique case(pad_muxes[core_v_mini_mcu_pkg::PAD_${pad.name.upper()}])
       % for idx, pin in enumerate(pad.pins):

@@ -21,10 +21,6 @@
 
 
 int32_t errors = 0;
-
-//defined in the testharness_pkg.sv
-#define SIMPLE_ACC_START_ADDRESS EXT_PERIPHERAL_START_ADDRESS + 0x3000;
-
 // Simple accelerator Decoder (address for bytes)
 //0 READ ADDRESS
 #define SIMPLE_ACC_READ_OFFSET 0
@@ -47,7 +43,8 @@ int main(int argc, char *argv[])
     static uint32_t source_data[TEST_DATA_SIZE] __attribute__ ((aligned (4)));
     static uint32_t copied_data[TEST_DATA_SIZE] __attribute__ ((aligned (4)));
     uint32_t threshold_value = 20;
-    volatile static uint32_t *simple_acc = (uint32_t *) SIMPLE_ACC_START_ADDRESS;
+    //defined in the testharness_pkg.sv
+    volatile uint32_t *simple_acc = (uint32_t *)((uint8_t *)EXT_PERIPHERAL_START_ADDRESS + 0x3000);
 
 
     for(int i=0;i<TEST_DATA_SIZE;i++)

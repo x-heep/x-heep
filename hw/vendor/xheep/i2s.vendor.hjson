@@ -1,0 +1,13 @@
+// Copyright 2020 ETH Zurich and University of Bologna.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+{
+  name: "i2s",
+  target_dir: "i2s",
+
+  upstream: {
+    url: "https://github.com/x-heep/xheep_i2s.git",
+    rev: "dc4bd79bd5609bbcdbab8e3809a3d3f7497582da",
+  },
+
+}

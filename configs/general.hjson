@@ -65,7 +65,7 @@
         w25q128jw_controller: {
             offset:  0x00029000
             length:  0x00007000
-            is_included: "no"
+            is_included: "yes"
         }
         dma: {
             offset:  0x00030000

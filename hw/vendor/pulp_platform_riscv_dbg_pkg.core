@@ -9,7 +9,7 @@ name: pulp-platform.org::riscv_dbg_pkg
 filesets:
   rtl-pkg:
     files:
-    - pulp_platform_riscv_dbg/src/dm_pkg.sv
+    - pulp_platform/riscv_dbg/src/dm_pkg.sv
     file_type: systemVerilogSource
 
 targets:

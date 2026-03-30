@@ -50,8 +50,9 @@ set_property -dict {PACKAGE_PIN W16 IOSTANDARD LVCMOS33} [get_ports jtag_tck_i] 
 set_property -dict {PACKAGE_PIN W19 IOSTANDARD LVCMOS33} [get_ports jtag_trst_ni] ; # Pmoda[7]
 
 # I2C
-set_property -dict {PACKAGE_PIN W13 IOSTANDARD LVCMOS33} [get_ports {i2c_scl_io}] ; # Pmodb[7]
-set_property -dict {PACKAGE_PIN T10 IOSTANDARD LVCMOS33} [get_ports {i2c_sda_io}] ; # Pmodb[3]
+set_property -dict {PACKAGE_PIN P15 IOSTANDARD LVCMOS33} [get_ports {i2c_scl_io}] ; # arduino_direct_iic_scl_io
+set_property -dict {PACKAGE_PIN P16 IOSTANDARD LVCMOS33} [get_ports {i2c_sda_io}] ; # arduino_direct_iic_sda_io
+
 
 # SPI SD
 set_property -dict {PACKAGE_PIN F16 IOSTANDARD LVCMOS33} [get_ports spi_csb_o] ; # arduino_direct_spi_ss_io
@@ -92,7 +93,7 @@ set_property -dict {PACKAGE_PIN A20 IOSTANDARD LVCMOS33} [get_ports {pdm2pcm_pdm
 # I2S
 set_property -dict {PACKAGE_PIN B19 IOSTANDARD LVCMOS33} [get_ports {i2s_sck_io}] ; # rpi_gpio_tri_io[8]
 set_property -dict {PACKAGE_PIN B20 IOSTANDARD LVCMOS33} [get_ports {i2s_ws_io}] ; # rpi_gpio_tri_io[4]
-set_property -dict {PACKAGE_PIN P15 IOSTANDARD LVCMOS33} [get_ports {i2s_sd_io}] ; # arduino_direct_iic_scl_io
+set_property -dict {PACKAGE_PIN W9 IOSTANDARD LVCMOS33} [get_ports {i2s_sd_io}] ; # rpi_gpio_tri_io[]
 
 # SPI2
 set_property -dict {PACKAGE_PIN W6 IOSTANDARD LVCMOS33} [get_ports {spi2_csb_o[0]}] ; # rpi_gpio_tri_io[15]
@@ -104,7 +105,6 @@ set_property -dict {PACKAGE_PIN T16 IOSTANDARD LVCMOS33} [get_ports {spi2_sd_io[
 set_property -dict {PACKAGE_PIN R17 IOSTANDARD LVCMOS33} [get_ports {spi2_sd_io[3]}] ; # arduino_gpio_tri_io[11]
 
 set_property -dict {PACKAGE_PIN Y17 IOSTANDARD LVCMOS33} [get_ports {ddr_rcv_clk_i_i}] ; # rpi_gpio_tri_io[17]
-#set_property -dict {PACKAGE_PIN W9 IOSTANDARD LVCMOS33} [get_ports {ddr_rcv_clk_i_i}] ;
 set_property -dict {PACKAGE_PIN F20 IOSTANDARD LVCMOS33} [get_ports {ddr_rcv_clk_o_o}] ; # rpi_gpio_tri_io[11]
 set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets ddr_rcv_clk_i_i_IBUF]
 set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets ddr_rcv_clk_o_o_OBUF]

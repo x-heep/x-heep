@@ -59,6 +59,8 @@ hw/ip/boot_rom/boot_rom.dump
 hw/fpga/sram_wrapper.sv
 hw/fpga/scripts/generate_sram.tcl
 
+hw/vendor/xheep/spi/rtl/spi_subsystem.sv
+
 # Automatically generated C header files, linker scripts, and assembly files
 sw/device/lib/crt/crt0.S
 
@@ -72,6 +74,10 @@ sw/linker/link_flash_load.ld
 sw/device/lib/drivers/soc_ctrl/soc_ctrl_regs.h
 sw/device/lib/drivers/soc_ctrl/soc_ctrl_structs.h
 sw/device/lib/drivers/soc_ctrl/soc_ctrl_regs.md
+
+sw/device/lib/drivers/w25q128jw_controller/w25q128jw_controller_regs.h
+sw/device/lib/drivers/w25q128jw_controller/w25q128jw_controller_structs.h
+sw/device/lib/drivers/w25q128jw_controller/w25q128jw_controller_regs.md
 
 sw/device/lib/drivers/power_manager/power_manager_regs.h
 sw/device/lib/drivers/power_manager/power_manager.h
@@ -99,5 +105,6 @@ flow/OpenROAD-flow-scripts
 .vscode
 .continue
 private/
+.DS_Store
 
 

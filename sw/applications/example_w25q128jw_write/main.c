@@ -81,7 +81,7 @@ __attribute__ ((noinline)) void w25q128jw_controller_run(char use_interrupt, int
     w25q128jw_controller_enable_interrupt(use_interrupt);
 
     //write
-    w25q128jw_controller_write((void*)&flash_ptr[0], (void*) &sram_data[0], (size_t) LENGTH_BYTES);
+    w25q128jw_controller_write((void*)&flash_ptr[0], (void*) &sram_data[0], (size_t) LENGTH_BYTES, 0);
 
     if(use_interrupt) {
         // Wait for interrupt
@@ -273,7 +273,7 @@ int main(void) {
     w25q128jw_controller_clear_done_flag();
     //no need for PLIC or INT enable as done before
 
-    w25q128jw_controller_read((void*) &sram_buffer_read_flash_back[0], (void*) &flash_ptr_test1[0], LENGTH_BYTES);
+    w25q128jw_controller_read((void*) &sram_buffer_read_flash_back[0], (void*) &flash_ptr_test1[0], LENGTH_BYTES, 0);
 
     while(!w25q128jw_controller_is_ready_intr()) {
         asm volatile("wfi");  // Wait For Interrupt - CPU sleeps
@@ -333,7 +333,7 @@ int main(void) {
     w25q128jw_controller_clear_done_flag();
     //no need for PLIC or INT enable as done before
 
-    w25q128jw_controller_read((void*) &sram_buffer_read_flash_back[0], (void*) &flash_ptr_test2[0], LENGTH_BYTES);
+    w25q128jw_controller_read((void*) &sram_buffer_read_flash_back[0], (void*) &flash_ptr_test2[0], LENGTH_BYTES, 0);
 
     while(!w25q128jw_controller_is_ready_intr()) {
         asm volatile("wfi");  // Wait For Interrupt - CPU sleeps

@@ -14,11 +14,9 @@ filesets:
     - openhwgroup.org:ip:cv32e40p
     - openhwgroup.org:ip:cv32e40x
     - openhwgroup:cve2:cve2_top
-    - esl_epfl:ip:cv32e40px
     - pulp-platform.org:ip:gpio
     - pulp-platform.org::common_cells
     - pulp-platform.org::axi:0.39.8
-    - pulp-platform.org::cluster_interconnect
     - pulp-platform.org::riscv_dbg
     - pulp-platform.org::register_interface
     - pulp-platform.org::serial_link
@@ -29,11 +27,14 @@ filesets:
     - lowrisc:ip:spi_host:1.0
     - lowrisc:ip:i2c:0.1
     - yosyshq:picorv32_spimemio:0-r1
+    - x-heep:ip:cv32e40px
     - x-heep:obi_spimemio:0.1.0
     - x-heep:ip:boot_rom
     - x-heep:ip:dma
     - x-heep:ip:dma_subsystem
     - x-heep:ip:i2s
+    - x-heep:ip:spi
+    - x-heep:ip:cluster_interconnect
     - x-heep:ip:power_manager
     - x-heep:ip:fast_intr_ctrl
     - x-heep:ip:obi_fifo
@@ -51,7 +52,6 @@ filesets:
     - hw/core-v-mini-mcu/xbar_varlat_n_to_one.sv
     - hw/core-v-mini-mcu/system_bus.sv
     - hw/core-v-mini-mcu/system_xbar.sv
-    - hw/core-v-mini-mcu/spi_subsystem.sv
     - hw/core-v-mini-mcu/debug_subsystem.sv
     - hw/core-v-mini-mcu/peripheral_subsystem.sv
     - hw/core-v-mini-mcu/ao_peripheral_subsystem.sv
@@ -91,7 +91,6 @@ filesets:
     - hw/ip/soc_ctrl/soc_ctrl.vlt
     - hw/ip/boot_rom/boot_rom.vlt
     - hw/ip/obi_spimemio/obi_spimemio.vlt
-    - hw/ip/w25q128jw_controller/w25q128jw_controller.vlt
     - hw/ip/dma_subsystem/dma_subsystem.vlt
     - hw/ip/pdm2pcm/pdm2pcm.vlt
     - hw/ip_examples/pdm2pcm_dummy/pdm2pcm_dummy.vlt

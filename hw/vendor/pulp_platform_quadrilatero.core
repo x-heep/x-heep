@@ -13,32 +13,32 @@ filesets:
       - pulp-platform.org::fpnew
       - x-heep::packages
     files:
-    - pulp_platform_quadrilatero/rtl/include/xif_pkg.sv
-    - pulp_platform_quadrilatero/rtl/include/quadrilatero_instr_pkg.sv
-    - pulp_platform_quadrilatero/rtl/include/quadrilatero_pkg.sv
-    - pulp_platform_quadrilatero/rtl/quadrilatero.sv
-    - pulp_platform_quadrilatero/rtl/quadrilatero_decoder.sv
-    - pulp_platform_quadrilatero/rtl/quadrilatero_deskewer.sv
-    - pulp_platform_quadrilatero/rtl/quadrilatero_dispatcher.sv
-    - pulp_platform_quadrilatero/rtl/quadrilatero_ff_fs_dr_stage.sv
-    - pulp_platform_quadrilatero/rtl/quadrilatero_fixed_prio_arbiter.sv
-    - pulp_platform_quadrilatero/rtl/quadrilatero_lsu.sv
-    - pulp_platform_quadrilatero/rtl/quadrilatero_mac_int.sv
-    - pulp_platform_quadrilatero/rtl/quadrilatero_mesh.sv
-    - pulp_platform_quadrilatero/rtl/quadrilatero_pe.sv
-    - pulp_platform_quadrilatero/rtl/quadrilatero_perm_unit.sv
-    - pulp_platform_quadrilatero/rtl/quadrilatero_regfile.sv
-    - pulp_platform_quadrilatero/rtl/quadrilatero_register_lsu.sv
-    - pulp_platform_quadrilatero/rtl/quadrilatero_register_lsu_controller.sv
-    - pulp_platform_quadrilatero/rtl/quadrilatero_rf_sequencer.sv
-    - pulp_platform_quadrilatero/rtl/quadrilatero_rr_arbiter.sv
-    - pulp_platform_quadrilatero/rtl/quadrilatero_skewer.sv
-    - pulp_platform_quadrilatero/rtl/quadrilatero_systolic_array.sv
-    - pulp_platform_quadrilatero/rtl/quadrilatero_systolic_array_controller.sv
-    - pulp_platform_quadrilatero/rtl/quadrilatero_to_obi.sv
-    - pulp_platform_quadrilatero/rtl/quadrilatero_wl_stage.sv
-    - pulp_platform_quadrilatero/rtl/quadrilatero_wrapper.sv
-    - pulp_platform_quadrilatero/rtl/quadrilatero_xif_decoder.sv
+    - pulp_platform/quadrilatero/rtl/include/xif_pkg.sv
+    - pulp_platform/quadrilatero/rtl/include/quadrilatero_instr_pkg.sv
+    - pulp_platform/quadrilatero/rtl/include/quadrilatero_pkg.sv
+    - pulp_platform/quadrilatero/rtl/quadrilatero.sv
+    - pulp_platform/quadrilatero/rtl/quadrilatero_decoder.sv
+    - pulp_platform/quadrilatero/rtl/quadrilatero_deskewer.sv
+    - pulp_platform/quadrilatero/rtl/quadrilatero_dispatcher.sv
+    - pulp_platform/quadrilatero/rtl/quadrilatero_ff_fs_dr_stage.sv
+    - pulp_platform/quadrilatero/rtl/quadrilatero_fixed_prio_arbiter.sv
+    - pulp_platform/quadrilatero/rtl/quadrilatero_lsu.sv
+    - pulp_platform/quadrilatero/rtl/quadrilatero_mac_int.sv
+    - pulp_platform/quadrilatero/rtl/quadrilatero_mesh.sv
+    - pulp_platform/quadrilatero/rtl/quadrilatero_pe.sv
+    - pulp_platform/quadrilatero/rtl/quadrilatero_perm_unit.sv
+    - pulp_platform/quadrilatero/rtl/quadrilatero_regfile.sv
+    - pulp_platform/quadrilatero/rtl/quadrilatero_register_lsu.sv
+    - pulp_platform/quadrilatero/rtl/quadrilatero_register_lsu_controller.sv
+    - pulp_platform/quadrilatero/rtl/quadrilatero_rf_sequencer.sv
+    - pulp_platform/quadrilatero/rtl/quadrilatero_rr_arbiter.sv
+    - pulp_platform/quadrilatero/rtl/quadrilatero_skewer.sv
+    - pulp_platform/quadrilatero/rtl/quadrilatero_systolic_array.sv
+    - pulp_platform/quadrilatero/rtl/quadrilatero_systolic_array_controller.sv
+    - pulp_platform/quadrilatero/rtl/quadrilatero_to_obi.sv
+    - pulp_platform/quadrilatero/rtl/quadrilatero_wl_stage.sv
+    - pulp_platform/quadrilatero/rtl/quadrilatero_wrapper.sv
+    - pulp_platform/quadrilatero/rtl/quadrilatero_xif_decoder.sv
     file_type: systemVerilogSource
 
 targets:

@@ -32,26 +32,35 @@
  3) Connect the FPGAs
  3.a) On the top three lines of pins of the diagram below there are the SPI slave pins. Connect the ones from one board 
       to the master ones of the other board. The pins stand for:
-      Syncronization (Sy), SPI clock (Ck), Chip select (Cs), Master-out-Slave-in (Mo), Master-in-Slave-out (Mi).
+      Role (Ro), SPI clock (Ck), Chip select (Cs), Master-out-Slave-in (Mo), Master-in-Slave-out (Mi).
+ 3.b) For flexible roles (decided at run time), connect the master pins of one board to the slave pins of the other and vice versa (8 wires),
+      and connect Ro of both boards together.
+ 3.c) For fixed roles, connect only the master pins of the master board to the slave pins of the slave board (4 wires),
+      leave Ro unconnected on the master board, and connect Ro to ground (GD) on the slave board.
+ 3.d) For self-test (single board acting both as master and slave), connect the master pins on the board to the corresponding slave pins
+      and leave Ro unconnected.
  4) Have fun
  4.a) Reset both boards. 
- 4.b) The one that resets first (master) will light a red LED and start requesting a read from the slave (toggling a green LED). 
+ 4.b) The one that resets first (master) will light a yellow LED and start requesting a read from the slave (toggling between cyan and white).
  4.c) The one that resets the last (slave) will turn the blue LED and go to sleep. 
  4.d) If the transaction is successful, the master will leave the green LED on and the last LED (LD0) will light up.
-      If the transaction fails (common after the first syncronization), the master will leave the red LED on and both LD0 and LD1 will light up. 
+      If the transaction fails (common after the first synchronization), the master will leave the red LED on and both LD0 and LD1 will light up. 
  4.e) You can restart the demo by resetting the master. 
  4.f) You can invert the roles by resetting both and releasing first the former slave.
-____________________________________________________
-         [GD][  ][  ](Sy)(Ck)[  ][  ][  ][  ][Vd]   |
-         [  ][  ][  ][  ][  ][  ](Cs)[  ][  ][  ]   | 
-                                                    |
- [  ][  ][  ][  ](Mo)(Mi)[  ][  ]                   |
-                                                    |
-                            |(Mi)[  ]           ____|
-                    Master->|(Ck)(Mo)           |   
-                            |(Cs)[  ]           | PMODs
-
-To self-test you can connect the Sy to Vd (3V3)
+_____________________________________________________
+              17      13  11   9                     |
+  ...[  ][  ][Vd][  ](Ro)(Ck)[GD][  ][  ][  ][Vd] 1  |    }
+  ...[  ][  ][  ][  ][  ][  ][  ](Cs)[  ][  ][  ] 2  |    }
+                                   8             ____|_   }-- Slave
+             ... AR3 AR2 AR1 AR0                 |    |   }
+ [  ][  ][  ][  ](Mo)(Mi)[  ][  ] J4             |HDMI|   }
+                                                 |____|
+                               SPI               ____|_
+                         {   (Mi)[  ]            |    |
+                Master --{   (Ck)(Mo)            |PMOD|
+                         {   (Cs)[GD]            |  A |
+                                                 |____|
+                                                     |
 
 Disclaimer: 
 The FPGAs can have different bitstreams as long as the pinout remains the same. 
@@ -84,9 +93,9 @@ so the application will fail (you will read from the wrong address).
 #endif
 
 #if TARGET_SIM
-#define SYNC_LOGIC(x) ~x
+#define ROLE_LOGIC(x) (~(x))
 #else
-#define SYNC_LOGIC(x) x
+#define ROLE_LOGIC(x) (x)
 #endif
 
 #define GPIO_LD5_R  11
@@ -94,9 +103,9 @@ so the application will fail (you will read from the wrong address).
 #define GPIO_LD5_G  13
 
 #define DUMMY_CYCLES  32
-#define GPIO_SYNQ 10
+#define GPIO_ROLE 10
 
-#define DATA_LENGTH_B   200
+#define DATA_LENGTH_B   100
 #define DATA_CHUNK_W    1
 #define DATA_CHUNK_B    1
 #define CHUNKS_NW       (DATA_LENGTH_B/(DATA_CHUNK_W*4)) + ((DATA_LENGTH_B%(DATA_CHUNK_W*4))!=0)
@@ -105,13 +114,11 @@ so the application will fail (you will read from the wrong address).
 
 // Buffer from where we will ask the SPI slave to read from. 
 uint8_t buffer_read_from[DATA_LENGTH_B] = {
-    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 
-    31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 
-    61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 
-    91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 
-    121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 
-    151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 
-    181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199, 200
+      1,   2,   3,   4,   5,   6,   7,   8,   9,  10,  11,  12,  13,  14,  15,  16,  17,  18,  19,  20,
+     21,  22,  23,  24,  25,  26,  27,  28,  29,  30,  31,  32,  33,  34,  35,  36,  37,  38,  39,  40,
+     41,  42,  43,  44,  45,  46,  47,  48,  49,  50,  51,  52,  53,  54,  55,  56,  57,  58,  59,  60,
+     61,  62,  63,  64,  65,  66,  67,  68,  69,  70,  71,  72,  73,  74,  75,  76,  77,  78,  79,  80,
+     81,  82,  83,  84,  85,  86,  87,  88,  89,  90,  91,  92,  93,  94,  95,  96,  97,  98,  99, 100
 };
 
 // Buffer where we will copy the data read by the SPI host. 
@@ -125,15 +132,15 @@ void __attribute__((aligned(4), interrupt)) handler_irq_timer(void) {
 
 int main(){
     uint16_t i;
-    uint8_t synq;
+    uint8_t role;
 
-    // Configure a GPIO to use to synq both FPGAs.
+    // Configure a GPIO to use to set the role of both FPGAs.
     // GPIOs by default are set high. 
     // If one of the devices detects it is the master, it 
     // will lower the GPIO. The other, if it finds the 
     // GPIO lowered will know it should be a slave.
     gpio_cfg_t pin_cfg = {
-    .pin = GPIO_SYNQ,
+    .pin = GPIO_ROLE,
     .mode = GpioModeIn,
     .en_input_sampling = true,
     .en_intr = false,
@@ -145,30 +152,33 @@ int main(){
     pin_cfg.mode    = GpioModeOutPushPull;
     pin_cfg.pin     = GPIO_LD5_R;
     gpio_config(pin_cfg);
+    pin_cfg.pin     = GPIO_LD5_G;
+    gpio_config(pin_cfg);
     pin_cfg.pin     = GPIO_LD5_B;
     gpio_config(pin_cfg);
-	pin_cfg.pin     = GPIO_LD5_G;
-    gpio_config(pin_cfg);
-    // Start all LEDs off. 
+
+    // Start color LED off
     gpio_write(GPIO_LD5_R, false);
-    gpio_write(GPIO_LD5_B, false);
     gpio_write(GPIO_LD5_G, false);
+    gpio_write(GPIO_LD5_B, false);
 
-    // Read the synq GPIO to know if you are master
-    gpio_read( GPIO_SYNQ, &synq );
+    // Read the role GPIO to know if you are master
+    gpio_read( GPIO_ROLE, &role );
 
-    if( SYNC_LOGIC(synq) ){ // If synq == 1, you will be master. 
+    if( ROLE_LOGIC(role) ){ // If role == 1, you will be master. 
 
         // Write 0 on that GPIO to notify to the slave that the master
         // has been assigned. 
-        gpio_set_mode( GPIO_SYNQ, GpioModeOutPushPull );
-        gpio_write(GPIO_SYNQ, SYNC_LOGIC(false));
+        gpio_set_mode( GPIO_ROLE, GpioModeOutPushPull );
+        gpio_write(GPIO_ROLE, ROLE_LOGIC(false));
 
         // Declare dominance
         PRINTF("Look at me. I am the captain now.\n\r");
 
-        // Turn on the red LED to identify the master. 
+        // Turn LED yellow to identify the master
         gpio_write(GPIO_LD5_R, true);
+        gpio_write(GPIO_LD5_G, true);
+        gpio_write(GPIO_LD5_B, false);
 
         // Enable the timer interrupts to go to sleep between packets. 
         enable_timer_interrupt();
@@ -177,8 +187,19 @@ int main(){
         timer_wait_us(1000000);
         #endif
 
-        // Initilize the SPI host IP
-        if( spi_host_init(spi_host1, 0)!= SPI_FLAG_SUCCESS) return EXIT_FAILURE;
+        // Turn LED cyan to signal start of transfer
+        gpio_write(GPIO_LD5_R, false);
+        gpio_write(GPIO_LD5_G, true);
+        gpio_write(GPIO_LD5_B, true);
+
+        // Initialize the SPI host IP
+        if( spi_host_init(spi_host1, 0)!= SPI_FLAG_SUCCESS){
+            // Something went wrong!  Turn on the pink beacon of doom and abort.
+            gpio_write(GPIO_LD5_R, true);
+            gpio_write(GPIO_LD5_G, false);
+            gpio_write(GPIO_LD5_B, true);
+            return EXIT_FAILURE;
+        }
 
         // We will request chunks of chunk_w words. 
         // We will repeat the process N times until we have read the entirety of the buffer. 
@@ -193,23 +214,33 @@ int main(){
             #if !TARGET_SIM
             timer_wait_us(250000);
             #endif
-            gpio_toggle(GPIO_LD5_G);
+            gpio_toggle(GPIO_LD5_R); // toggle between cyan and white
         }
 
         // Check if the read values are ok.
         for( i=0; i < chunks_n*chunk_w*4; i++){
             // If any value is not wahat you expected, the two rightmost LEDs of the board will be light up. 
-            if(buffer_read_from[i] != buffer_read_to[i]) return EXIT_FAILURE;
+            if(buffer_read_from[i] != buffer_read_to[i]){
+                // Wrong result!  Turn on the red light of wrongness and abort.
+                gpio_write(GPIO_LD5_R, true);
+                gpio_write(GPIO_LD5_G, false);
+                gpio_write(GPIO_LD5_B, false);
+                return EXIT_FAILURE;
+            }
         }
 
-        // Celebrate in a fairly lame way
+        // Celebrate by going green
         PRINTF("Well done!\n\r");
-        gpio_write(GPIO_LD5_G,  true);
+        gpio_write(GPIO_LD5_R, false);
+        gpio_write(GPIO_LD5_G, true);
+        gpio_write(GPIO_LD5_B, false);
     
     } else { // if instead your role is to be the slave
         // Lament it
         PRINTF("Oh snap, slave again it is...\n\r");
-        // Turn the red LED in disapproval 
+        // Turn the LED blue in disapproval
+        gpio_write(GPIO_LD5_R, false);
+        gpio_write(GPIO_LD5_G, false);
         gpio_write(GPIO_LD5_B, true);
         // Go to sleep, nothing else to be done by the CPU
         wait_for_interrupt();

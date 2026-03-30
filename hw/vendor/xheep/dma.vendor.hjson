@@ -1,0 +1,13 @@
+// Copyright 2020 ETH Zurich and University of Bologna.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+{
+  name: "dma",
+  target_dir: "dma",
+
+  upstream: {
+    url: "https://github.com/x-heep/xheep_dma.git",
+    rev: "0211a4ab65793c130755a47f68c57f693b1e87a8",
+  },
+
+}

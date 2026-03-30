@@ -128,8 +128,9 @@ jobs:
         run: pip install -r util/python-requirements.txt
       - name: Re-vendor and diff
         run: |
-          find hw/vendor sw/vendor -maxdepth 1 -type f -name '*.vendor.hjson' | xargs -n1 util/vendor.py --verbose &&
-          util/git-diff.py --error-msg '::error ::Found differences, please re-vendor.'
+          find hw/vendor sw/vendor -maxdepth 2 -type f -name '*.vendor.hjson' | xargs -n1 util/vendor.py --verbose && \
+          util/git-diff.py --error-msg '::error ::Found differences, please re-vendor.' && \
+          util/check-vendor.py
 
   black-formatter:
     name: Check Python code formatting
@@ -146,5 +147,6 @@ jobs:
             util/waiver-gen.py
             util/c_gen.py
             test/test_x_heep_gen
+            test/test_apps
             configs
           version: "~= 24.8.0"

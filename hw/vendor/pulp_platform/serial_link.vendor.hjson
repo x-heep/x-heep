@@ -1,0 +1,23 @@
+// Copyright 2020 ETH Zurich and University of Bologna.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+{
+  name: "serial_link",
+  target_dir: "serial_link",
+
+  upstream: {
+    url: "https://github.com/pulp-platform/serial_link.git",
+    rev: "v1.1.2",
+  },
+
+  exclude_from_upstream: [
+    ".gitignore",
+    ".github",
+    "test",
+    "doc",
+    "util",
+    ".gitlab-ci.yml",
+    "Bender.yml",
+  ]
+
+}

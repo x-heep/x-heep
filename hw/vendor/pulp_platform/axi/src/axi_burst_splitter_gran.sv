@@ -63,7 +63,7 @@ module axi_burst_splitter_gran #(
   axi_resp_t  slv_resp, act_resp, unsupported_resp;
 
   axi_multicut #(
-    .NoCuts    ( 32'(CutPath)  ),
+    .NoCuts    ( CutPath  ),
     .aw_chan_t ( axi_aw_chan_t ),
     .w_chan_t  ( axi_w_chan_t  ),
     .b_chan_t  ( axi_b_chan_t  ),

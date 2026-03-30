@@ -68,10 +68,9 @@ module axi_rw_join #(
   assign slv_read_resp_o.b_valid   = 1'b0;
 
   // check for AW and W never to be valid
-  `ifndef VERILATOR
   `ASSERT_NEVER(slv_read_req_aw_valid, slv_read_req_i.aw_valid, clk_i, !rst_ni)
   `ASSERT_NEVER(slv_read_req_w_valid,  slv_read_req_i.w_valid,  clk_i, !rst_ni)
-  `endif
+
   //--------------------------------------
   // Write channel data
   //--------------------------------------
@@ -94,9 +93,8 @@ module axi_rw_join #(
   assign slv_write_resp_o.r_valid  = 1'b0;
 
   // check for AR to never be valid
-  `ifndef VERILATOR
   `ASSERT_NEVER(slv_write_req_ar_valid, slv_write_req_i.ar_valid, clk_i, !rst_ni)
-  `endif
+
   // Write AW channel handshake
   assign mst_req_o.aw_valid        = slv_write_req_i.aw_valid;
   assign slv_write_resp_o.aw_ready = mst_resp_i.aw_ready;

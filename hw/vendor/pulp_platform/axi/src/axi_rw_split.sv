@@ -69,9 +69,8 @@ module axi_rw_split #(
   assign mst_read_req_o.b_ready   = 1'b0;
 
   // check for B never to be valid
-  `ifndef VERILATOR
   `ASSERT_NEVER(mst_read_resp_b_valid, mst_read_resp_i.b_valid, clk_i, !rst_ni)
-  `endif
+
 
   //--------------------------------------
   // Write channel data
@@ -95,9 +94,8 @@ module axi_rw_split #(
   assign mst_write_req_o.r_ready  = 1'b0;
 
   // check for R never to be valid
-  `ifndef VERILATOR
   `ASSERT_NEVER(mst_write_resp_r_valid, mst_write_resp_i.r_valid, clk_i, !rst_ni)
-  `endif
+
   // Write AW channel handshake
   assign mst_write_req_o.aw_valid = slv_req_i.aw_valid;
   assign slv_resp_o.aw_ready      = mst_write_resp_i.aw_ready;

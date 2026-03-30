@@ -10,7 +10,7 @@ description: "toplevel packages of x-heep"
 filesets:
   files_rtl:
     depend:
-    - x-heep::structs
+    - x-heep:rtl:structs
     files:
     - power_manager_pkg.sv
     - core_v_mini_mcu_pkg.sv

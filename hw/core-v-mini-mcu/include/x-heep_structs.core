@@ -1,6 +1,6 @@
 CAPI=2:
 
-name: "x-heep::structs"
+name: "x-heep:rtl:structs"
 description: "structs for x-heep"
 
 # Copyright 2026 EPFL

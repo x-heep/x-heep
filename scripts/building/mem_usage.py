@@ -367,7 +367,7 @@ def get_regions(section_headers):
         elif section_name in flash_data_sections:
             region_type = "f"
             name = "FLASH data"
-        elif section_name in code_sections or "X" in section["flags"]:
+        elif section_name in code_sections or "X" in section["flags"] or "W" not in section["flags"]:
             region_type = "C"
             name = "code"
 

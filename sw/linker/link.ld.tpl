@@ -84,11 +84,12 @@ SECTIONS
   .rodata         :
   {
     *(.rodata .rodata.* .gnu.linkonce.r.*)
-  } >ram1
+    *(.srodata.cst16) *(.srodata.cst8) *(.srodata.cst4) *(.srodata.cst2) *(.srodata .srodata.*)
+  } >ram0
   .rodata1        :
   {
     *(.rodata1)
-  } >ram1
+  } >ram0
 
   /* second level sbss and sdata, I don't think we need this */
   /* .sdata2         : {*(.sdata2 .sdata2.* .gnu.linkonce.s2.*)} */
@@ -228,13 +229,12 @@ SECTIONS
   .sdata          :
   {
     __SDATA_BEGIN__ = .;
-    *(.srodata.cst16) *(.srodata.cst8) *(.srodata.cst4) *(.srodata.cst2) *(.srodata .srodata.*)
     *(.sdata .sdata.* .gnu.linkonce.s.*)
   } >ram1
   _edata = .; PROVIDE (edata = .);
   . = .;
 
-  .power_manager : ALIGN(4096)
+  .power_manager : ALIGN_WITH_INPUT
   {
      PROVIDE(__power_manager_start = .);
      . += 256;

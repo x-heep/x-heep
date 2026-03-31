@@ -234,7 +234,7 @@ SECTIONS
   _edata = .; PROVIDE (edata = .);
   . = .;
 
-  .power_manager : ALIGN_WITH_INPUT
+  .power_manager : ALIGN(4096)
   {
      PROVIDE(__power_manager_start = .);
      . += 256;

@@ -234,8 +234,9 @@ SECTIONS
   _edata = .; PROVIDE (edata = .);
   . = .;
 
-  .power_manager : ALIGN(4096)
+  .power_manager :
   {
+     . = ALIGN(4);
      PROVIDE(__power_manager_start = .);
      . += 256;
   } >ram1

@@ -29,7 +29,7 @@ module axi_to_mem_interleaved #(
   /// AXI4+ATOP ID width.
   parameter int unsigned IdWidth    = 0,
   /// Number of banks at output, must evenly divide `DataWidth`.
-  parameter int unsigned NumBanks   = 0,
+  parameter int unsigned NumBanks   = 1,
   /// Depth of memory response buffer. This should be equal to the memory response latency.
   parameter int unsigned BufDepth   = 1,
   /// Hide write requests if the strb == '0

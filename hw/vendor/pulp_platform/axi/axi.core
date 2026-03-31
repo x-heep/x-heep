@@ -71,7 +71,7 @@ filesets:
       - src/axi_to_mem_banked.sv
       - src/axi_to_mem_interleaved.sv
       - src/axi_to_mem_split.sv
-      - src/axi_chan_compare.sv
+      - target_sim ? (src/axi_chan_compare.sv)
       - src/axi_dumper.sv
       # Level 5
       - src/axi_xbar.sv

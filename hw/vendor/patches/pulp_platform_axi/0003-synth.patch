@@ -1,5 +1,5 @@
 diff --git a/axi.core b/axi.core
-index 74f0d09a..327391de 100644
+index 927a9cab..aade35cb 100644
 --- a/axi.core
 +++ b/axi.core
 @@ -71,7 +71,7 @@ filesets:
@@ -9,8 +9,8 @@ index 74f0d09a..327391de 100644
 -      - src/axi_chan_compare.sv
 +      - target_sim ? (src/axi_chan_compare.sv)
        - src/axi_dumper.sv
-       - tool_modelsim ? (src/axi_sim_mem.sv)
-       - tool_modelsim ? (src/axi_test.sv)
+       # Level 5
+       - src/axi_xbar.sv
 diff --git a/src/axi_to_mem_interleaved.sv b/src/axi_to_mem_interleaved.sv
 index 94d2bbef..6e31c975 100644
 --- a/src/axi_to_mem_interleaved.sv

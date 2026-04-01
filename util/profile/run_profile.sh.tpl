@@ -19,7 +19,7 @@ WAVE_FILE=$(find "$ROOT_DIR/build" -name "*.fst" | head -n 1)
 
 # Check if the waveform file was found
 if [ -z "$WAVE_FILE" ]; then
-    echo "ERROR: No waveform file found in $ROOT_DIR/build" > &2
+    echo "ERROR: No waveform file found in $ROOT_DIR/build" >&2
     exit 1
 fi
 

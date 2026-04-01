@@ -19,7 +19,7 @@ set T_FWD_CLK [expr $T_CLK * $FWD_CLK_DIV] ;# Forward clock period
 #set ddr_edge_list [list [expr $FWD_CLK_DIV / 4 * 3] [expr $FWD_CLK_DIV / 4 * 5]]
 set ddr_edge_list [list [expr $T_FWD_CLK / 4 * 3] [expr $T_FWD_CLK / 4 * 5]]
 create_clock -name vir_clk_ddr_in -period $T_FWD_CLK
-create_clock -name clk_ddr_in -period $T_FWD_CLK -waveform $ddr_edge_list [get_ports ddr_rcv_clk_i]
+create_clock -name clk_ddr_in -period $T_FWD_CLK -waveform $ddr_edge_list [get_ports ddr_rcv_clk_i_i]
 
 
 # The data launching clock with 0 degree clock phase
@@ -64,8 +64,8 @@ set_input_delay -add_delay -max -clock_fall -clock [get_clocks vir_clk_ddr_in] [
 set_input_delay -add_delay -min -clock_fall -clock [get_clocks vir_clk_ddr_in] [expr -$MARGIN] [get_ports ddr_i]
 
 # Output delays
-set_output_delay -max -clock [get_clocks clk_ddr_out] [expr $T_FWD_CLK / 4 - $MARGIN] -reference_pin [get_ports ddr_rcv_clk_o] [get_ports ddr_o]
-set_output_delay -add_delay -min -clock [get_clocks clk_ddr_out] [expr $MARGIN - $T_FWD_CLK / 4] -reference_pin [get_ports ddr_rcv_clk_o] [get_ports ddr_o]
-set_output_delay -add_delay -max -clock_fall -clock [get_clocks clk_ddr_out] [expr $T_FWD_CLK / 4 - $MARGIN] -reference_pin [get_ports ddr_rcv_clk_o] [get_ports ddr_o]
-set_output_delay -add_delay -min -clock_fall -clock [get_clocks clk_ddr_out] [expr $MARGIN - $T_FWD_CLK / 4] -reference_pin [get_ports ddr_rcv_clk_o] [get_ports ddr_o]
+set_output_delay -max -clock [get_clocks clk_ddr_out] [expr $T_FWD_CLK / 4 - $MARGIN] -reference_pin [get_ports ddr_rcv_clk_o_o] [get_ports ddr_o]
+set_output_delay -add_delay -min -clock [get_clocks clk_ddr_out] [expr $MARGIN - $T_FWD_CLK / 4] -reference_pin [get_ports ddr_rcv_clk_o_o] [get_ports ddr_o]
+set_output_delay -add_delay -max -clock_fall -clock [get_clocks clk_ddr_out] [expr $T_FWD_CLK / 4 - $MARGIN] -reference_pin [get_ports ddr_rcv_clk_o_o] [get_ports ddr_o]
+set_output_delay -add_delay -min -clock_fall -clock [get_clocks clk_ddr_out] [expr $MARGIN - $T_FWD_CLK / 4] -reference_pin [get_ports ddr_rcv_clk_o_o] [get_ports ddr_o]
 % endif

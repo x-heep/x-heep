@@ -36,7 +36,7 @@ module serial_link_xheep_wrapper
 
 
     input logic [serial_link_minimum_axi_pkg::NumChannels-1:0] ddr_rcv_clk_i,
-    output logic [serial_link_minimum_axi_pkg::NumChannels-1:0] ddr_rcv_clk_o,
+    output logic [serial_link_minimum_axi_pkg::NumChannels-1:0] ddr_snd_clk_o,
     input  logic [serial_link_minimum_axi_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_i,
     output logic [serial_link_minimum_axi_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_o
 
@@ -150,7 +150,7 @@ module serial_link_xheep_wrapper
         .cfg_req_i    (cfg_req_i),
         .cfg_rsp_o    (cfg_rsp_o),
         .ddr_rcv_clk_i(ddr_rcv_clk_i),
-        .ddr_rcv_clk_o(ddr_rcv_clk_o),
+        .ddr_rcv_clk_o(ddr_snd_clk_o),
         .ddr_i        (ddr_i),
         .ddr_o        (ddr_o),
         .isolated_i   (2'b0),
@@ -189,7 +189,7 @@ module serial_link_xheep_wrapper
         .cfg_req_i    (cfg_req_i),
         .cfg_rsp_o    (cfg_rsp_o),
         .ddr_rcv_clk_i(ddr_rcv_clk_i),
-        .ddr_rcv_clk_o(ddr_rcv_clk_o),
+        .ddr_rcv_clk_o(ddr_snd_clk_o),
         .ddr_i        (ddr_i),
         .ddr_o        (ddr_o),
         .isolated_i   (2'b0),

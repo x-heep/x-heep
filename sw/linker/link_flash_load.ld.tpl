@@ -158,6 +158,9 @@ SECTIONS {
        PROVIDE(__freertos_irq_stack_top = .);
     } >ram1
 
+    _end_of_ram1_used = .;
+    PROVIDE(__ram1_used_limit_plus_4 = . + 4);
+
   % for i, section in enumerate(xheep.memory_ss().iter_linker_sections()):
   % if not section.name in ["code", "data"]:
     .${section.name} : ALIGN_WITH_INPUT

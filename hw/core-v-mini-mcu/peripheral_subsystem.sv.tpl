@@ -84,13 +84,19 @@ module peripheral_subsystem
     input  logic i2s_sd_i,
     output logic i2s_rx_valid_o,
 
-    % if user_peripheral_domain.contains_peripheral('serial_link'):
-      //Serial Link
-      input  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0]    ddr_rcv_clk_i,  
-      output logic [serial_link_single_channel_reg_pkg::NumChannels-1:0]    ddr_rcv_clk_o,
-      input  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_i,
-      output logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_o,
-    %endif
+    //Serial Link
+    input  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0]    ddr_rcv_clk_i,  
+    output logic [serial_link_single_channel_reg_pkg::NumChannels-1:0]    ddr_snd_clk_o,
+    input  logic ddr_rcv_0_i,
+    input  logic ddr_rcv_1_i,
+    input  logic ddr_rcv_2_i,
+    input  logic ddr_rcv_3_i,
+    output logic ddr_snd_0_o,
+    output logic ddr_snd_1_o,
+    output logic ddr_snd_2_o,
+    output logic ddr_snd_3_o,
+    
+
     // PDM2PCM Interface
     output logic pdm2pcm_clk_o,
     output logic pdm2pcm_clk_en_o,
@@ -634,6 +640,12 @@ module peripheral_subsystem
 % endif
 
 % if user_peripheral_domain.contains_peripheral('serial_link'):
+  // TBD parametrizable to support different number of channels and lanes
+  logic [3:0] ddr_i;
+  logic [3:0] ddr_o;
+  assign ddr_i = {ddr_rcv_3_i, ddr_rcv_2_i, ddr_rcv_1_i, ddr_rcv_0_i};
+  assign {ddr_snd_3_o, ddr_snd_2_o, ddr_snd_1_o, ddr_snd_0_o} = ddr_o;
+
   serial_link_xheep_wrapper #(
     .MaxClkDiv(32),
     .DataWidth(32)
@@ -651,9 +663,13 @@ module peripheral_subsystem
     .cfg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SERIAL_LINK_REG_IDX]),
     .ddr_rcv_clk_i,         
     .ddr_i,                   
-    .ddr_rcv_clk_o,          
+    .ddr_snd_clk_o,          
     .ddr_o                   
   );
+% else:
+    //Serial Link
+    assign ddr_snd_clk_o = '0;
+    assign {ddr_snd_3_o, ddr_snd_2_o, ddr_snd_1_o, ddr_snd_0_o} = '0;
 %endif
 
 % if len(user_peripheral_domain.get_peripherals()) == 0:

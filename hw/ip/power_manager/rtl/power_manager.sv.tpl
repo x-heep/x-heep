@@ -4,6 +4,7 @@
 
 <%
     memory_ss = xheep.memory_ss()
+    external_domains = xheep.get_base_peripheral_domain().get_power_manager().get_external_domains()
 %>
 
 `include "common_cells/assertions.svh"
@@ -188,7 +189,7 @@ module power_manager import power_manager_pkg::*; #(
   logic cpu_powergate_counter_start_reset_deassert, cpu_powergate_counter_expired_reset_deassert;
 
   reg_to_counter #(
-      .DW(32),
+      .DW(16),
       .ExpireValue('0)
   ) reg_to_counter_cpu_reset_assert_i (
       .clk_i,
@@ -202,7 +203,7 @@ module power_manager import power_manager_pkg::*; #(
   );
 
   reg_to_counter #(
-      .DW(32),
+      .DW(16),
       .ExpireValue('0)
   ) reg_to_counter_cpu_reset_deassert_i (
       .clk_i,
@@ -242,7 +243,7 @@ module power_manager import power_manager_pkg::*; #(
   logic cpu_powergate_counter_start_switch_on, cpu_powergate_counter_expired_switch_on;
 
   reg_to_counter #(
-      .DW(32),
+      .DW(16),
       .ExpireValue('0)
   ) reg_to_counter_cpu_powergate_switch_off_i (
       .clk_i,
@@ -256,7 +257,7 @@ module power_manager import power_manager_pkg::*; #(
   );
 
   reg_to_counter #(
-      .DW(32),
+      .DW(16),
       .ExpireValue('0)
   ) reg_to_counter_cpu_powergate_switch_on_i (
       .clk_i,
@@ -296,7 +297,7 @@ module power_manager import power_manager_pkg::*; #(
   logic cpu_powergate_counter_start_iso_on, cpu_powergate_counter_expired_iso_on;
 
   reg_to_counter #(
-      .DW(32),
+      .DW(16),
       .ExpireValue('0)
   ) reg_to_counter_cpu_powergate_iso_off_i (
       .clk_i,
@@ -310,7 +311,7 @@ module power_manager import power_manager_pkg::*; #(
   );
 
   reg_to_counter #(
-      .DW(32),
+      .DW(16),
       .ExpireValue('0)
   ) reg_to_counter_cpu_powergate_iso_on_i (
       .clk_i,

@@ -7,6 +7,7 @@
     base_peripheral_domain = xheep.get_base_peripheral_domain()
     dma = base_peripheral_domain.get_dma()
     memory_ss = xheep.memory_ss()
+    external_domains = base_peripheral_domain.get_power_manager().get_external_domains()
 %>
 
 #ifndef COREV_MINI_MCU_H_

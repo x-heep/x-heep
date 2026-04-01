@@ -1,11 +1,11 @@
 ; cv32e20
-(alias clk TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.cpu_subsystem_i.gen_cv32e20.cv32e20_i.u_cve2_top.u_cve2_core.if_stage_i.clk_i)
-(alias rst_ni TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.cpu_subsystem_i.gen_cv32e20.cv32e20_i.u_cve2_top.u_cve2_core.if_stage_i.rst_ni)
+(alias clk TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.cpu_subsystem_i.cv32e20_i.u_cve2_top.u_cve2_core.if_stage_i.clk_i)
+(alias rst_ni TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.cpu_subsystem_i.cv32e20_i.u_cve2_top.u_cve2_core.if_stage_i.rst_ni)
 
-(alias pc TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.cpu_subsystem_i.gen_cv32e20.cv32e20_i.u_cve2_top.u_cve2_core.if_stage_i.pc_id_o)
-(alias instr TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.cpu_subsystem_i.gen_cv32e20.cv32e20_i.u_cve2_top.u_cve2_core.if_stage_i.instr_rdata_id_o)
-(alias instr_valid TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.cpu_subsystem_i.gen_cv32e20.cv32e20_i.u_cve2_top.u_cve2_core.if_stage_i.instr_valid_id_o)
+(alias pc TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.cpu_subsystem_i.cv32e20_i.u_cve2_top.u_cve2_core.if_stage_i.pc_id_o)
+(alias instr TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.cpu_subsystem_i.cv32e20_i.u_cve2_top.u_cve2_core.if_stage_i.instr_rdata_id_o)
+(alias instr_valid TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.cpu_subsystem_i.cv32e20_i.u_cve2_top.u_cve2_core.if_stage_i.instr_valid_id_o)
 
-(alias mcycle TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.cpu_subsystem_i.gen_cv32e20.cv32e20_i.u_cve2_top.u_cve2_core.cs_registers_i.mhpmcounter<0>)
+(alias mcycle TOP.testharness.x_heep_system_i.core_v_mini_mcu_i.cpu_subsystem_i.cv32e20_i.u_cve2_top.u_cve2_core.cs_registers_i.mhpmcounter<0>)
 
 (defmacro fire [] `(&& clk rst_ni instr_valid))

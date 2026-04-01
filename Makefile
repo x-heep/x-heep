@@ -431,7 +431,3 @@ endef
 $(eval $(call CHECK_PROGRAM,gtkwave,gtkwave))
 $(eval $(call CHECK_PROGRAM,verible,verible-verilog-format))
 $(eval $(call CHECK_PROGRAM,verilator,verilator))
-
-PHONY: .print
-.print:
-	@echo "TEMPLATES: $(MCU_GEN_TEMPLATES)"

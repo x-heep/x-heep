@@ -1,4 +1,4 @@
-# Serial Link Peripheral Documentation
+# Serial Link 
 
 ## Overview
 
@@ -9,7 +9,7 @@ The serial link wrapper (`serial_link_xheep_wrapper`) extends the base PULP Seri
 
 
 - **FIFO mode** (default): Incoming data is stored in a memory-mapped FIFO, which the CPU reads via polling or DMA.
-- **Direct write mode**: Incoming AXI transactions are routed through `axi_to_mem` directly into X-HEEP's memory space, bypassing the FIFO entirely.
+- **Direct write mode**: Incoming bus transactions are routed directly into the receiving X-HEEP's memory space, bypassing the FIFO entirely.
 
 
 ## Features
@@ -33,7 +33,7 @@ The serial link wrapper (`serial_link_xheep_wrapper`) extends the base PULP Seri
    - To use the serial link, the memory-mapped **registers must be correctly programmed**.  
    - The initialization function `sl_init` provides the required register setup.
 4. **RX Mode**: Selected at runtime via `sl_wrapper_set_rx_mode()`.
-5. **TX Address Window**: Configured in `configs/general.hjson`:
+5. **TX Address Window**: Configured in `configs/general.hjson` or in `configs/python_unsupported.hjson`:.
 ```
    serial_link: {
        address: 0x50000000
@@ -79,18 +79,7 @@ The serial link wrapper (`serial_link_xheep_wrapper`) extends the base PULP Seri
 
 ### FPGA Pin Mapping (PYNQ-Z2)
 
-| Signal | Package Pin | 
-|--------|-------------|
-| `ddr_i_0` | Y8 | 
-| `ddr_i_1` | W8 | 
-| `ddr_i_2` | Y7 | 
-| `ddr_i_3` | W10 | 
-| `ddr_o_0` | V10 | 
-| `ddr_o_1` | V8 | 
-| `ddr_o_2` | U8 |
-| `ddr_o_3` | V7 | 
-| `ddr_rcv_clk_i` | Y17 |
-| `ddr_rcv_clk_o` | F20 |
+The pin mapping can be found in `hw/fpga/constraints/pynq-z2/pin_assign.xdc`.
 
 For two-board testing, cross-connect outputs of board A to inputs of board B and vice versa. Both clock signals must be connected. Also connect the top-right GND pin of the Raspberry Pi header of board A to the corresponding GND pin on board B. 
 

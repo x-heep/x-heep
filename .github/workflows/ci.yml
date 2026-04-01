@@ -95,7 +95,10 @@ jobs:
           make verilator-build
           make verilator-run-app PROJECT=example_matadd
           make profile
-          ls -l util/profile/flamegraph.svg
+          if [ ! -f "util/profile/flamegraph.svg" ]; then
+            echo "::error::Flamegraph SVG was not generated!"
+            exit 1
+          fi
 
   lint:
     name: Lint Generated Files

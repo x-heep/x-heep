@@ -91,7 +91,7 @@ jobs:
       - name: Run RV Profile test
         shell: bash -le {0}
         run: |
-          make mcu-gen
+          make mcu-gen PYTHON_X_HEEP_CFG=configs/ci.py
           make verilator-build
           make verilator-run-app PROJECT=example_matadd
           make profile

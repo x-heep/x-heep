@@ -15,3 +15,4 @@ lint_off -rule UNUSED -file "*/w25q128jw_controller.sv" -match "Bits of signal a
 lint_off -rule DECLFILENAME -file "*/w25q128jw_controller_reg_top.sv"
 lint_off -rule WIDTH -file "*/w25q128jw_controller_reg_top.sv" -match "Operator ASSIGNW expects *"
 lint_off -rule UNUSED -file "*/w25q128jw_controller.sv" -match "Bits of signal are not used: 'external_spi_host_hw2reg_status_i*"
+lint_off -rule UNUSED -file "*/w25q128jw_controller_reg_top.sv" -match "Parameter is not used: 'AW'*"

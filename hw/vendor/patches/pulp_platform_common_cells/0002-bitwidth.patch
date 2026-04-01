@@ -1,0 +1,83 @@
+diff --git a/src/stream_demux.sv b/src/stream_demux.sv
+index 69ad309..17d9978 100644
+--- a/src/stream_demux.sv
++++ b/src/stream_demux.sv
+@@ -16,7 +16,7 @@ module stream_demux #(
+   /// Number of connected outputs.
+   parameter int unsigned N_OUP     = 32'd1,
+   /// Dependent parameters, DO NOT OVERRIDE!
+-  parameter int unsigned LOG_N_OUP = (N_OUP > 32'd1) ? unsigned'($clog2(N_OUP)) : 1'b1
++  parameter int unsigned LOG_N_OUP = (N_OUP > 32'd1) ? unsigned'($clog2(N_OUP)) : 32'd1
+ ) (
+   input  logic                 inp_valid_i,
+   output logic                 inp_ready_o,
+diff --git a/src/stream_xbar.sv b/src/stream_xbar.sv
+index de52dda..daf994f 100644
+--- a/src/stream_xbar.sv
++++ b/src/stream_xbar.sv
+@@ -27,14 +27,14 @@ module stream_xbar #(
+   /// Adds a spill register stage at each output.
+   parameter bit          OutSpillReg = 1'b0,
+   /// Use external priority for the individual `rr_arb_trees`.
+-  parameter int unsigned ExtPrio     = 1'b0,
++  parameter bit unsigned ExtPrio     = 1'b0,
+   /// Use strict AXI valid ready handshaking.
+   /// To be protocol conform also the parameter `LockIn` has to be set.
+-  parameter int unsigned AxiVldRdy   = 1'b1,
++  parameter bit unsigned AxiVldRdy   = 1'b1,
+   /// Lock in the arbitration decision of the `rr_arb_tree`.
+   /// When this is set, valids have to be asserted until the corresponding transaction is indicated
+   /// by ready.
+-  parameter int unsigned LockIn      = 1'b1,
++  parameter bit unsigned LockIn      = 1'b1,
+   /// If `AxiVldReady` is 1, which bits of the payload to check for stability on valid inputs.
+   /// In some cases, we may want to allow parts of the payload to change depending on the value of
+   /// other parts (e.g. write data in read requests), requiring more nuanced external assertions.
+
+diff --git a/src/cdc_2phase_clearable.sv b/src/cdc_2phase_clearable.sv
+index 23ca090..f9034fe 100644
+--- a/src/cdc_2phase_clearable.sv
++++ b/src/cdc_2phase_clearable.sv
+@@ -54,7 +54,7 @@
+ module cdc_2phase_clearable #(
+   parameter type T = logic,
+   parameter int unsigned SYNC_STAGES = 3,
+-  parameter int CLEAR_ON_ASYNC_RESET = 1
++  parameter bit CLEAR_ON_ASYNC_RESET = 1
+ )(
+   input  logic src_rst_ni,
+   input  logic src_clk_i,
+diff --git a/src/passthrough_stream_fifo.sv b/src/passthrough_stream_fifo.sv
+index d3ea316..f27be61 100644
+--- a/src/passthrough_stream_fifo.sv
++++ b/src/passthrough_stream_fifo.sv
+@@ -77,7 +77,7 @@ module passthrough_stream_fifo #(
+             valid_o = read_ptr_q[PointerWidth-1] == write_ptr_q[PointerWidth-1]
+                 ? read_ptr_q[PointerWidth-2:0] != write_ptr_q[PointerWidth-2:0] : 1'b1;
+             if (ready_i) begin
+-                if (read_ptr_q[PointerWidth-2:0] == (Depth-1)) begin
++                if (read_ptr_q[PointerWidth-2:0] == (PointerWidth-1)'(Depth-1)) begin
+                     // On overflow reset pointer to zero and flip imaginary bit
+                     read_ptr_d[PointerWidth-2:0] = '0;
+                     read_ptr_d[PointerWidth-1]   = !read_ptr_q[PointerWidth-1];
+@@ -96,7 +96,7 @@ module passthrough_stream_fifo #(
+                 load_data = 1'b1;
+                 data_d[write_ptr_q[PointerWidth-2:0]] = data_i;
+ 
+-                if (write_ptr_q[PointerWidth-2:0] == (Depth-1)) begin
++                if (write_ptr_q[PointerWidth-2:0] == (PointerWidth-1)'(Depth-1)) begin
+                     // On overflow reset pointer to zero and flip imaginary bit
+                     write_ptr_d[PointerWidth-2:0] = '0;
+                     write_ptr_d[PointerWidth-1]   = !write_ptr_q[PointerWidth-1];
+diff --git a/src/stream_register.sv b/src/stream_register.sv
+index 247ef34..8492578 100644
+--- a/src/stream_register.sv
++++ b/src/stream_register.sv
+@@ -35,6 +35,6 @@ module stream_register #(
+     assign reg_ena = valid_i & ready_o;
+     // Load-enable FFs with synch clear
+     `FFLARNC(valid_o, valid_i, ready_o, clr_i, 1'b0  , clk_i, rst_ni)
+-    `FFLARNC(data_o,   data_i, reg_ena, clr_i, T'('0), clk_i, rst_ni)
++    `FFLARNC(data_o,   data_i, reg_ena, clr_i, '0, clk_i, rst_ni)
+ 
+ endmodule

@@ -1,0 +1,26 @@
+diff --git a/axi.core b/axi.core
+index 927a9cab..aade35cb 100644
+--- a/axi.core
++++ b/axi.core
+@@ -71,7 +71,7 @@ filesets:
+       - src/axi_to_mem_banked.sv
+       - src/axi_to_mem_interleaved.sv
+       - src/axi_to_mem_split.sv
+-      - src/axi_chan_compare.sv
++      - target_sim ? (src/axi_chan_compare.sv)
+       - src/axi_dumper.sv
+       # Level 5
+       - src/axi_xbar.sv
+diff --git a/src/axi_to_mem_interleaved.sv b/src/axi_to_mem_interleaved.sv
+index 94d2bbef..6e31c975 100644
+--- a/src/axi_to_mem_interleaved.sv
++++ b/src/axi_to_mem_interleaved.sv
+@@ -29,7 +29,7 @@ module axi_to_mem_interleaved #(
+   /// AXI4+ATOP ID width.
+   parameter int unsigned IdWidth    = 0,
+   /// Number of banks at output, must evenly divide `DataWidth`.
+-  parameter int unsigned NumBanks   = 0,
++  parameter int unsigned NumBanks   = 1,
+   /// Depth of memory response buffer. This should be equal to the memory response latency.
+   parameter int unsigned BufDepth   = 1,
+   /// Hide write requests if the strb == '0

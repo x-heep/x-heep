@@ -58,6 +58,8 @@ hw/ip/boot_rom/boot_rom.dump
 
 hw/fpga/sram_wrapper.sv
 hw/fpga/scripts/generate_sram.tcl
+hw/fpga/constraints/pynq-z2/constraints.xdc
+hw/fpga/constraints/pynq-z2/pin_assign.xdc
 
 hw/vendor/xheep/spi/rtl/spi_subsystem.sv
 
@@ -80,7 +82,6 @@ sw/device/lib/drivers/w25q128jw_controller/w25q128jw_controller_structs.h
 sw/device/lib/drivers/w25q128jw_controller/w25q128jw_controller_regs.md
 
 sw/device/lib/drivers/power_manager/power_manager_regs.h
-sw/device/lib/drivers/power_manager/power_manager.h
 sw/device/lib/drivers/power_manager/power_manager_structs.h
 sw/device/lib/drivers/power_manager/power_manager_regs.md
 

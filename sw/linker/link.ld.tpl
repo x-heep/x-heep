@@ -234,11 +234,12 @@ SECTIONS
   _edata = .; PROVIDE (edata = .);
   . = .;
 
-  .power_manager : ALIGN(4096)
-  {
-     PROVIDE(__power_manager_start = .);
-     . += 256;
-  } >ram1
+    .power_manager :
+    {
+        . = ALIGN(4);
+       PROVIDE(__power_manager_start = .);
+       . += 256;
+    } >ram1
 
   /* zero initialized sections */
   __bss_start = .;
@@ -291,6 +292,9 @@ SECTIONS
    PROVIDE(__stack_end = .);
    PROVIDE(__freertos_irq_stack_top = .);
   } >ram1
+
+  _end_of_ram1_used = .;
+  PROVIDE(__ram1_used_limit_plus_4 = . + 4);
 
 % for i, section in enumerate(xheep.memory_ss().iter_linker_sections()):
 % if not section.name in ["code", "data"]:

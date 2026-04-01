@@ -62,7 +62,7 @@ module fpnew_rounding #(
   end
 
   // Perform the rounding, exponent change and overflow to inf happens automagically
-  assign abs_rounded_o = abs_value_i + round_up;
+  assign abs_rounded_o = AbsWidth'(abs_value_i + AbsWidth'(round_up));
 
   // True zero result is a zero result without dirty round/sticky bits
   assign exact_zero_o = (abs_value_i == '0) && (round_sticky_bits_i == '0);

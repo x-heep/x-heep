@@ -580,13 +580,3 @@ targets:
       openroad:
         flow_path: flow/OpenROAD-flow-scripts/flow
         make_target: synth
-
-# Generators
-generators:
-  # Waivers generator for Verilator 5.XXX
-  waiver-v5-gen:
-    interpreter: python
-    command: util/waiver-gen.py
-    cache_type: input
-    file_input_parameters:
-    - waivers_v5 # list of .vlt files only required for Verilator 5.XXX

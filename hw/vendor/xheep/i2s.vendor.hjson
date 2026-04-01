@@ -7,7 +7,7 @@
 
   upstream: {
     url: "https://github.com/x-heep/xheep_i2s.git",
-    rev: "dc4bd79bd5609bbcdbab8e3809a3d3f7497582da",
+    rev: "b9ea3655da0ac579a3f50affe46d89fdb1d09f5b",
   },
 
 }

@@ -8,6 +8,7 @@
 #include "hart.h"
 #include "handler.h"
 #include "core_v_mini_mcu.h"
+#include "core_v_mini_mcu_memory.h"
 #include "rv_timer.h"
 #include "power_manager.h"
 #include "soc_ctrl.h"
@@ -41,7 +42,6 @@
 static rv_timer_t timer_0_1;
 static rv_timer_t timer_2_3;
 static const uint64_t kTickFreqHz = 1000 * 1000; // 1 MHz
-static power_manager_t power_manager;
 
 #ifndef TARGET_IS_FPGA
     #define GPIO_TB_OUT 30
@@ -64,13 +64,15 @@ void gpio_handler_in()
     gpio_intr_flag = 1;
 }
 
+//defined in the linker script
+extern uint32_t __ram1_used_limit_plus_4;
+
 int main(int argc, char *argv[])
 {
 
     // Setup power_manager
-    mmio_region_t power_manager_reg = mmio_region_from_addr(POWER_MANAGER_START_ADDRESS);
-    power_manager.base_addr = power_manager_reg;
     power_manager_counters_t power_manager_counters;
+    power_manager_init();
     //counters
     uint32_t reset_off, reset_on, switch_off, switch_on, iso_off, iso_on;
 
@@ -115,7 +117,7 @@ int main(int argc, char *argv[])
     reset_on = switch_on + 20; //give 20 cycles to emulate the turn on time, this number depends on technology and here it is just a random number
     iso_on = reset_on + 5;
 
-    if (power_gate_counters_init(&power_manager_counters, reset_off, reset_on, switch_off, switch_on, iso_off, iso_on, 0, 0) != kPowerManagerOk_e)
+    if (power_manager_pwr_gate_counters_init(&power_manager_counters, reset_off, reset_on, switch_off, switch_on, iso_off, iso_on, 0, 0) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail. Check the reset and powergate counters value\n\r");
         return EXIT_FAILURE;
@@ -124,11 +126,11 @@ int main(int argc, char *argv[])
     // Power-gate and wake-up due to timer_0
     rv_timer_set_tick_params(&timer_0_1, 0, tick_params);
     rv_timer_irq_enable(&timer_0_1, 0, 0, kRvTimerEnabled);
-    rv_timer_arm(&timer_0_1, 0, 0, 1024);
+    rv_timer_arm(&timer_0_1, 0, 0, 64);
     rv_timer_counter_set_enabled(&timer_0_1, 0, kRvTimerEnabled);
 
     CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-    if (power_gate_core(&power_manager, kTimer_0_pm_e, &power_manager_counters) != kPowerManagerOk_e)
+    if (power_manager_pwr_gate_core(kTimer_0_pm_e, &power_manager_counters) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
         return EXIT_FAILURE;
@@ -138,11 +140,11 @@ int main(int argc, char *argv[])
     // Power-gate and wake-up due to timer_1
     rv_timer_set_tick_params(&timer_0_1, 1, tick_params);
     rv_timer_irq_enable(&timer_0_1, 1, 0, kRvTimerEnabled);
-    rv_timer_arm(&timer_0_1, 1, 0, 1024);
+    rv_timer_arm(&timer_0_1, 1, 0, 64);
     rv_timer_counter_set_enabled(&timer_0_1, 1, kRvTimerEnabled);
 
     CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-    if (power_gate_core(&power_manager, kTimer_1_pm_e, &power_manager_counters) != kPowerManagerOk_e)
+    if (power_manager_pwr_gate_core(kTimer_1_pm_e, &power_manager_counters) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
         return EXIT_FAILURE;
@@ -152,11 +154,11 @@ int main(int argc, char *argv[])
     // Power-gate and wake-up due to timer_2
     rv_timer_set_tick_params(&timer_2_3, 0, tick_params);
     rv_timer_irq_enable(&timer_2_3, 0, 0, kRvTimerEnabled);
-    rv_timer_arm(&timer_2_3, 0, 0, 1024);
+    rv_timer_arm(&timer_2_3, 0, 0, 70);
     rv_timer_counter_set_enabled(&timer_2_3, 0, kRvTimerEnabled);
 
     CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-    if (power_gate_core(&power_manager, kTimer_2_pm_e, &power_manager_counters) != kPowerManagerOk_e)
+    if (power_manager_pwr_gate_core(kTimer_2_pm_e, &power_manager_counters) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
         return EXIT_FAILURE;
@@ -166,11 +168,11 @@ int main(int argc, char *argv[])
     // Power-gate and wake-up due to timer_3
     rv_timer_set_tick_params(&timer_2_3, 1, tick_params);
     rv_timer_irq_enable(&timer_2_3, 1, 0, kRvTimerEnabled);
-    rv_timer_arm(&timer_2_3, 1, 0, 1024);
+    rv_timer_arm(&timer_2_3, 1, 0, 70);
     rv_timer_counter_set_enabled(&timer_2_3, 1, kRvTimerEnabled);
 
     CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-    if (power_gate_core(&power_manager, kTimer_3_pm_e, &power_manager_counters) != kPowerManagerOk_e)
+    if (power_manager_pwr_gate_core(kTimer_3_pm_e, &power_manager_counters) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
         return EXIT_FAILURE;
@@ -233,7 +235,7 @@ int main(int argc, char *argv[])
         CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
         if (dma_is_ready(0) == 0)
         {
-                if (power_gate_core(&power_manager, kDma_pm_e, &power_manager_counters) != kPowerManagerOk_e)
+                if (power_manager_pwr_gate_core(kDma_pm_e, &power_manager_counters) != kPowerManagerOk_e)
                 {
                     PRINTF("Error: power manager fail.\n\r");
                     return EXIT_FAILURE;
@@ -267,7 +269,7 @@ int main(int argc, char *argv[])
     gpio_write(GPIO_TB_OUT, true);
 
     CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-    if (power_gate_core(&power_manager, kPlic_pm_e, &power_manager_counters) != kPowerManagerOk_e)
+    if (power_manager_pwr_gate_core(kPlic_pm_e, &power_manager_counters) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
         return EXIT_FAILURE;
@@ -291,36 +293,36 @@ int main(int argc, char *argv[])
     PRINTF("Testing Peripheral Subsystem...\n\r");
 
     // ------------ clock gating ------------
-    mmio_region_write32(power_manager.base_addr, (ptrdiff_t)(POWER_MANAGER_PERIPH_CLK_GATE_REG_OFFSET), 0x1);
+    power_manager_clk_gate_periph(0x1);
     // Wait some time
     for (int i=0; i<100; i++) asm volatile("nop;");
     // Enabling the peripheral subsystem
-    mmio_region_write32(power_manager.base_addr, (ptrdiff_t)(POWER_MANAGER_PERIPH_CLK_GATE_REG_OFFSET), 0x0);
+    power_manager_clk_gate_periph(0x0);
 
     PRINTF("Peripheral Clock Gating Test Successefull\n\r");
 
     // ------------ power gating ------------
-    if (power_gate_counters_init(&power_manager_counters, 30, 30, 30, 30, 30, 30, 0, 0) != kPowerManagerOk_e)
+    if (power_manager_pwr_gate_counters_init(&power_manager_counters, 30, 30, 30, 30, 30, 30, 0, 0) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail. Check the reset and powergate counters value\n\r");
         return EXIT_FAILURE;
     }
 
     // Power off peripheral_subsystem domain
-    if (power_gate_periph(&power_manager, kOff_e, &power_manager_counters) != kPowerManagerOk_e)
+    if (power_manager_pwr_gate_periph(kOff_e, &power_manager_counters) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
         return EXIT_FAILURE;
     }
 
     // Check that the peripheral_subsystem domain is actually OFF
-    while(!periph_power_domain_is_off(&power_manager));
+    while(!power_manager_periph_domain_is_off());
 
     // Wait some time
     for (int i=0; i<100; i++) asm volatile("nop;");
 
     // Power on peripheral_subsystem domain
-    if (power_gate_periph(&power_manager, kOn_e, &power_manager_counters) != kPowerManagerOk_e)
+    if (power_manager_pwr_gate_periph(kOn_e, &power_manager_counters) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
         return EXIT_FAILURE;
@@ -334,65 +336,78 @@ int main(int argc, char *argv[])
 
     // ------------ clock gating ------------
     // do not clock gate instruction and data memory (usually first 2 banks)
-    for(uint32_t i = 2; i < MEMORY_BANKS; ++i)
-        mmio_region_write32(power_manager.base_addr, (ptrdiff_t)(power_manager_ram_map[i].clk_gate), 0x1);
+    uint32_t end_data_addr = (uint32_t)(&__ram1_used_limit_plus_4);
+    //printf("%x\n", end_data_addr);
+    for(uint32_t i = 0; i < MEMORY_BANKS; ++i) {
+        if (end_data_addr < xheep_memory_regions[i].start) 
+            power_manager_clk_gate_ram_block(0x1, i);
+    }
+
     // Wait some time
     for (int i=0; i<100; i++) asm volatile("nop;");
+
     // Enabling ram-banks
-    for(uint32_t i = 2; i < MEMORY_BANKS; ++i)
-        mmio_region_write32(power_manager.base_addr, (ptrdiff_t)(power_manager_ram_map[i].clk_gate), 0x0);
+    for(uint32_t i = 0; i < MEMORY_BANKS; ++i) {
+        if (end_data_addr < xheep_memory_regions[i].start) 
+            power_manager_clk_gate_ram_block(0x0, i);
+    }
 
     PRINTF("Memory Clock Gating Test Successefull\n\r");
 
     // ------------ power gating ------------
-    if (power_gate_counters_init(&power_manager_counters, 30, 30, 30, 30, 30, 30, 0, 0) != kPowerManagerOk_e)
+    if (power_manager_pwr_gate_counters_init(&power_manager_counters, 30, 30, 30, 30, 30, 30, 0, 0) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail. Check the reset and powergate counters value\n\r");
         return EXIT_FAILURE;
     }
-    // Power off ram block 2 domain
-    if (power_gate_ram_block(&power_manager, 2, kOff_e, &power_manager_counters) != kPowerManagerOk_e)
-    {
-        PRINTF("Error: power manager fail.\n\r");
-        return EXIT_FAILURE;
-    }
-    // Check that the ram block 2 domain is actually OFF
-    while(!ram_block_power_domain_is_off(&power_manager, 2));
+    // Power off one ram block domain
+    for(uint32_t i = 0; i < MEMORY_BANKS; ++i) {
+        if (end_data_addr < xheep_memory_regions[i].start) {
+            if (power_manager_pwr_gate_ram_block(i, kOff_e, &power_manager_counters) != kPowerManagerOk_e)
+            {
+                PRINTF("Error: power manager fail.\n\r");
+                return EXIT_FAILURE;
+            }
+            // Check that the ram block i domain is actually OFF
+            while(!power_manager_ram_block_domain_is_off(i));
 
-    // Wait some time
-    for (int i=0; i<100; i++) asm volatile("nop");
-    // Power on ram block 2 domain
-    if (power_gate_ram_block(&power_manager, 2, kOn_e, &power_manager_counters) != kPowerManagerOk_e)
-    {
-        PRINTF("Error: power manager fail.\n\r");
-        return EXIT_FAILURE;
-    }
+            // Wait some time
+            for (int i=0; i<100; i++) asm volatile("nop");
+            // Power on ram block i domain
+            if (power_manager_pwr_gate_ram_block(i, kOn_e, &power_manager_counters) != kPowerManagerOk_e)
+            {
+                PRINTF("Error: power manager fail.\n\r");
+                return EXIT_FAILURE;
+            }
 
-    PRINTF("Memory Power Gating Test Successefull\n\r");
+            PRINTF("Memory Power Gating Test Successefull\n\r");
 
-    // ------------ set retentive ------------
-    if (power_gate_counters_init(&power_manager_counters, 0, 0, 0, 0, 0, 0, 30, 30) != kPowerManagerOk_e)
-    {
-        PRINTF("Error: power manager fail. Check the reset and powergate counters value\n\r");
-        return EXIT_FAILURE;
-    }
-    // Set retention mode on for ram block 2 domain
-    if (power_gate_ram_block(&power_manager, 2, kRetOn_e, &power_manager_counters) != kPowerManagerOk_e)
-    {
-        PRINTF("Error: power manager fail.\n\r");
-        return EXIT_FAILURE;
-    }
-    // Wait some time
-    for (int i=0; i<100; i++) asm volatile("nop");
-    // Set retention mode off for ram block 2 domain
-    if (power_gate_ram_block(&power_manager, 2, kRetOff_e, &power_manager_counters) != kPowerManagerOk_e)
-    {
-        PRINTF("Error: power manager fail.\n\r");
-        return EXIT_FAILURE;
-    }
+            // ------------ set retentive ------------
+            if (power_manager_pwr_gate_counters_init(&power_manager_counters, 0, 0, 0, 0, 0, 0, 30, 30) != kPowerManagerOk_e)
+            {
+                PRINTF("Error: power manager fail. Check the reset and powergate counters value\n\r");
+                return EXIT_FAILURE;
+            }
+            // Set retention mode on for ram block i domain
+            if (power_manager_pwr_gate_ram_block(i, kRetOn_e, &power_manager_counters) != kPowerManagerOk_e)
+            {
+                PRINTF("Error: power manager fail.\n\r");
+                return EXIT_FAILURE;
+            }
+            // Wait some time
+            for (int i=0; i<100; i++) asm volatile("nop");
+            // Set retention mode off for ram block i domain
+            if (power_manager_pwr_gate_ram_block(i, kRetOff_e, &power_manager_counters) != kPowerManagerOk_e)
+            {
+                PRINTF("Error: power manager fail.\n\r");
+                return EXIT_FAILURE;
+            }
 
-    PRINTF("Memory Set Retentive Test Successefull\n\r");
+            PRINTF("Memory Set Retentive Test Successefull\n\r");
+            break;
 
+        }
+    }
 
 #else
     #pragma message ( "the memory test can only run if MEMORY_BANKS > 2" )
@@ -405,33 +420,33 @@ int main(int argc, char *argv[])
 
     // ------------ clock gating ------------
     for(uint32_t i = 0; i < EXTERNAL_DOMAINS; ++i)
-        mmio_region_write32(power_manager.base_addr, (ptrdiff_t)(power_manager_external_map[i].clk_gate), 0x1);
+       power_manager_clk_gate_external(0x1, i);
     // Wait some time
     for (int i=0; i<100; i++) asm volatile("nop;");
     // Enabling external subsystems
     for(uint32_t i = 0; i < EXTERNAL_DOMAINS; ++i)
-        mmio_region_write32(power_manager.base_addr, (ptrdiff_t)(power_manager_external_map[i].clk_gate), 0x0);
+       power_manager_clk_gate_external(0x0, i);
 
     PRINTF("External Clock Gating Test Successefull\n\r");
 
     // ------------ power gating domain 0 ------------
-    if (power_gate_counters_init(&power_manager_counters, 30, 30, 30, 30, 30, 30, 0, 0) != kPowerManagerOk_e)
+    if (power_manager_pwr_gate_counters_init(&power_manager_counters, 30, 30, 30, 30, 30, 30, 0, 0) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail. Check the reset and powergate counters value\n\r");
         return EXIT_FAILURE;
     }
     // Power off external domain
-    if (power_gate_external(&power_manager, 0, kOff_e, &power_manager_counters) != kPowerManagerOk_e)
+    if (power_manager_pwr_gate_external(0, kOff_e, &power_manager_counters) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
         return EXIT_FAILURE;
     }
     // Check that the external domain is actually OFF
-    while(!external_power_domain_is_off(&power_manager, 0));
+    while(!power_manager_external_domain_is_off(0));
     // Wait some time
     for (int i=0; i<100; i++) asm volatile("nop");
     // Power on external domain
-    if (power_gate_external(&power_manager, 0, kOn_e, &power_manager_counters) != kPowerManagerOk_e)
+    if (power_manager_pwr_gate_external(0, kOn_e, &power_manager_counters) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
         return EXIT_FAILURE;
@@ -440,13 +455,13 @@ int main(int argc, char *argv[])
     PRINTF("External Power Gating Test Successefull\n\r");
 
     // ------------ set retentive domain 0------------
-   if (power_gate_counters_init(&power_manager_counters, 0, 0, 0, 0, 0, 0, 30, 30) != kPowerManagerOk_e)
+   if (power_manager_pwr_gate_counters_init(&power_manager_counters, 0, 0, 0, 0, 0, 0, 30, 30) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail. Check the reset and powergate counters value\n\r");
         return EXIT_FAILURE;
     }
     // Set retention mode on for external domain block 0
-    if (power_gate_external(&power_manager, 0, kRetOn_e, &power_manager_counters) != kPowerManagerOk_e)
+    if (power_manager_pwr_gate_external(0, kRetOn_e, &power_manager_counters) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
         return EXIT_FAILURE;
@@ -454,7 +469,7 @@ int main(int argc, char *argv[])
     // Wait some time
     for (int i=0; i<100; i++) asm volatile("nop");
     // Set retention mode off for external domain block 0
-    if (power_gate_external(&power_manager, 0, kRetOff_e, &power_manager_counters) != kPowerManagerOk_e)
+    if (power_manager_pwr_gate_external(0, kRetOff_e, &power_manager_counters) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
         return EXIT_FAILURE;

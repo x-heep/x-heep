@@ -66,11 +66,18 @@ import serial_link_pkg::*;
   import serial_link_pkg::*;
 
   // Determine the largest sized AXI channel
-  localparam int AxiChannels[5] = {$bits(b_chan_t),
-                          $bits(aw_chan_t),
-                          $bits(w_chan_t),
-                          $bits(ar_chan_t),
-                          $bits(r_chan_t)};
+  localparam int unsigned BChanBits = $bits(b_chan_t);
+  localparam int unsigned AwChanBits = $bits(aw_chan_t);
+  localparam int unsigned WChanBits = $bits(w_chan_t);
+  localparam int unsigned ArChanBits = $bits(ar_chan_t);
+  localparam int unsigned RChanBits = $bits(r_chan_t);
+
+  typedef int AxiChannelArray_t[5];
+  localparam AxiChannelArray_t AxiChannels = '{BChanBits,
+                          AwChanBits,
+                          WChanBits,
+                          ArChanBits,
+                          RChanBits};
   localparam int MaxAxiChannelBits =
   serial_link_pkg::find_max_channel(AxiChannels);
 

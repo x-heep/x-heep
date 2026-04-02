@@ -61,11 +61,7 @@ package core_v_mini_mcu_pkg;
   //must be power of two
   localparam int unsigned MEM_SIZE = 32'h${f'{memory_ss.ram_size_address():08X}'};
 
-  % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
-  localparam SYSTEM_XBAR_NSLAVE = ${memory_ss.ram_numbanks() + 6};
-  % else:
-  localparam SYSTEM_XBAR_NSLAVE = ${memory_ss.ram_numbanks() + 5};
-  % endif
+ localparam SYSTEM_XBAR_NSLAVE = ${memory_ss.ram_numbanks() + 5 + (1 if user_peripheral_domain.contains_peripheral('serial_link_reg') else 0)};
 
   localparam int unsigned LOG_SYSTEM_XBAR_NMASTER = SYSTEM_XBAR_NMASTER > 1 ? $clog2(SYSTEM_XBAR_NMASTER) : 32'd1;
   localparam int unsigned LOG_SYSTEM_XBAR_NSLAVE = SYSTEM_XBAR_NSLAVE > 1 ? $clog2(SYSTEM_XBAR_NSLAVE) : 32'd1;
@@ -128,11 +124,9 @@ package core_v_mini_mcu_pkg;
       '{ idx: DEBUG_IDX, start_addr: DEBUG_START_ADDRESS, end_addr: DEBUG_END_ADDRESS },
       '{ idx: AO_PERIPHERAL_IDX, start_addr: AO_PERIPHERAL_START_ADDRESS, end_addr: AO_PERIPHERAL_END_ADDRESS },
       '{ idx: PERIPHERAL_IDX, start_addr: PERIPHERAL_START_ADDRESS, end_addr: PERIPHERAL_END_ADDRESS },
-       % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
-      '{ idx: FLASH_MEM_IDX, start_addr: FLASH_MEM_START_ADDRESS, end_addr: FLASH_MEM_END_ADDRESS },
-      '{ idx: SERIAL_LINK_IDX, start_addr: SERIAL_LINK_START_ADDRESS, end_addr: SERIAL_LINK_END_ADDRESS }
-      % else:
       '{ idx: FLASH_MEM_IDX, start_addr: FLASH_MEM_START_ADDRESS, end_addr: FLASH_MEM_END_ADDRESS }
+      % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
+      , '{ idx: SERIAL_LINK_IDX, start_addr: SERIAL_LINK_START_ADDRESS, end_addr: SERIAL_LINK_END_ADDRESS }
       % endif
   };
 

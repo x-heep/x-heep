@@ -69,11 +69,18 @@ The serial link wrapper (`serial_link_xheep_wrapper`) extends the base PULP Seri
 | `example_serial_link_performance` | Performance evaluation: cycles/word for FIFO and direct write (FPGA) |
 
 ---
-**Note:** The `SL_READ` address must always be accessed via a `volatile` pointer to prevent compiler optimization of the memory read.
 
-**Note:** In direct write mode, there are no restrictions on the target address. Be careful not to overwrite program data.
+```{note}
+The `SL_READ` address must always be accessed via a `volatile` pointer to prevent compiler optimization of the memory read.
+```
 
-**Note:** For multi-test sequences on FPGA (i.e., switching mid-application between FIFO and direct write modes), use bidirectional synchronization (e.g., the receiver signals readiness to the sender via direct write) to avoid timing-dependent desynchronization between boards (see `example_serial_link_direct_write`). This issue arises because `sl_wrapper_set_rx_mode` must be set to the correct mode before receiving data. If you switch modes mid-application and there is a delay on the RX side, incoming data may be missed.
+```{note}
+In direct write mode, there are no restrictions on the target address. Be careful not to overwrite program data.
+```
+
+```{note}
+For multi-test sequences on FPGA (i.e., switching mid-application between FIFO and direct write modes), use bidirectional synchronization (e.g., the receiver signals readiness to the sender via direct write) to avoid timing-dependent desynchronization between boards (see `example_serial_link_direct_write`). This issue arises because `sl_wrapper_set_rx_mode` must be set to the correct mode before receiving data. If you switch modes mid-application and there is a delay on the RX side, incoming data may be missed.
+```
 
 ## FPGA
 
@@ -145,8 +152,9 @@ picocom -b 9600 -r -l --imap lfcrlf /dev/ttyUSBX  # replace X with correct devic
 
 Reset **Board B (receiver) first**, then reset **Board A (sender)**. The program will run and you should see the outputs.
 
-
-> Always reset the receiver before the sender. The receiver must be waiting for data before the sender starts transmitting.
+```{warning}
+Always reset the receiver before the sender. The receiver must be waiting for data before the sender starts transmitting.
+```
 
 ---
 

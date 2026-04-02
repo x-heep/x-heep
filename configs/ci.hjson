@@ -163,11 +163,6 @@
             length:  0x00010000
             is_included: "yes"
         }
-        serial_link: {
-            offset:  0x00090000
-            length:  0x00010000
-            is_included: "yes"
-        }
         serial_link_reg: {
             offset:  0x000A0000
             length:  0x00010000
@@ -178,11 +173,21 @@
             length:  0x00010000
             is_included: "yes"
         }
+        serial_link_wrapper_reg: {
+            offset:  0x000C0000
+            length:  0x00010000
+            is_included: "yes"
+        }
 
     }
 
     flash_mem: {
         address: 0x40000000
+        length:  0x01000000
+    }
+
+    serial_link: {
+        address: 0x50000000
         length:  0x01000000
     }
 

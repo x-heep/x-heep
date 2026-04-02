@@ -23,6 +23,11 @@
         length:  0x01000000
     }
 
+    serial_link: {
+        address: 0x50000000
+        length:  0x01000000
+    }
+
     ext_slaves: {
         address: 0xF0000000
         length:  0x01000000

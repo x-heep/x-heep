@@ -28,6 +28,8 @@
 #define PRINTF_IN_FPGA  1
 #define PRINTF_IN_SIM   1
 
+#define QUAD_MODE 1
+
 #if TARGET_SIM && PRINTF_IN_SIM
     #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
 #elif PRINTF_IN_FPGA && !TARGET_SIM
@@ -102,10 +104,8 @@ int main(void) {
     int32_t* flash_ptr_test2 = heep_get_flash_address_offset(flash_buffer_test2);
 
 
-    PRINTF("Test w25q128jw Controller write\n");
-
-        /**************************************************************** */
-    PRINTF("Test 4: Hardware Write, standard speed, DMA, interrupt\n");
+    PRINTF("Test w25q128jw Controller write 2 buffers and read them back\n");
+    PRINTF("Hardware Write buffer 1, DMA, interrupt\n");
     // Reset the flash data buffer
     memset(sram_buffer_read_flash_back, 0, LENGTH_BYTES);
 
@@ -127,21 +127,17 @@ int main(void) {
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);   // Global interrupt enable for machine mode (MIE) bit in Machine Status Registers
     CSR_SET_BITS(CSR_REG_MIE, (1 << 11)); // Machine External Interrupt Enable (MEIE) bit in Machine Interrupt Pending Register
 
-    w25q128jw_controller_run(1, 0, flash_ptr_test1);
+    w25q128jw_controller_run(1, QUAD_MODE, flash_ptr_test1);
 
-    PRINTF("TEST 2\n");
+    PRINTF("Hardware Write buffer 2, DMA, interrupt\n");
     for(int i=0;i<NUM_WORDS;i++)
        sram_data[i] = MAGIC_TEST_NUM + (2*i);
-    w25q128jw_controller_run(1, 0, flash_ptr_test2);
+    w25q128jw_controller_run(1, QUAD_MODE, flash_ptr_test2);
     memset(sram_buffer_read_flash_back, 0, LENGTH_BYTES);
-    //change sram_data
     
 
-
-    PRINTF("Test 2: Hardware Read, standard speed, DMA, no interrupt\n");
-    // First, check that the Flash has been programmed/initialized correctly
-    // we read in SW as we assume the SW is the golden model
-    w25q128jw_controller_read((void*) &sram_buffer_read_flash_back[0], (void*) &flash_ptr_test1[0], LENGTH_BYTES,0);
+    PRINTF("Read back buffer 1, hardware, polling\n");
+    w25q128jw_controller_read((void*) &sram_buffer_read_flash_back[0], (void*) &flash_ptr_test1[0], LENGTH_BYTES,QUAD_MODE);
     while(!w25q128jw_controller_is_ready_polling());
 
     for(int i=0;i<NUM_WORDS;i++){
@@ -149,7 +145,21 @@ int main(void) {
         sram_data[i] |= 0xAAAA0000;
     }
     for(int i=0;i<NUM_WORDS;i++) {
-        //in the .h, flash_buffer_test1 contains numbers from 0 to NUM_WORDS in order
+        if(sram_buffer_read_flash_back[i]!=sram_data[i]) {
+            PRINTF("At %d: expected %x, got %x\n", i, sram_data[i], sram_buffer_read_flash_back[i]);
+            error = 1;
+        }
+        
+    }
+
+    PRINTF("Read back buffer 2, hardware, polling\n");
+    w25q128jw_controller_read((void*) &sram_buffer_read_flash_back[0], (void*) &flash_ptr_test2[0], LENGTH_BYTES,QUAD_MODE);
+    while(!w25q128jw_controller_is_ready_polling());
+
+    for(int i=0;i<NUM_WORDS;i++){
+        sram_data[i] = MAGIC_TEST_NUM + (2*i);
+    }
+    for(int i=0;i<NUM_WORDS;i++) {
         if(sram_buffer_read_flash_back[i]!=sram_data[i]) {
             PRINTF("At %d: expected %x, got %x\n", i, sram_data[i], sram_buffer_read_flash_back[i]);
             error = 1;

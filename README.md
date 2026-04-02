@@ -1,3 +1,9 @@
+This branch is meant to be used as a submodule in the [`esp-heep` branch of ESP](https://github.com/FrancescoPoluzzi/esp/tree/esp-heep), where it is integrated as a programmable accelerator tile in the ESP system.
+
+For documentation on how to build, integrate, and use this X-HEEP tile inside ESP, see [`accelerators/rtl/xheep_rtl/xheep_rtl.md`](https://github.com/FrancescoPoluzzi/esp/blob/esp-heep/accelerators/rtl/xheep_rtl/xheep_rtl.md).
+
+# 
+
 <br />
 <p align="center"><img src="docs/source/images/x-heep-outline.png" width="500"></p>
 

@@ -474,6 +474,22 @@ int main(void) {
         }
     }
 
+    PRINTF("Test 11: Software Read, standard speed, DMA, no interrupt\n");
+    //change sram_data
+    for(int i=0;i<NUM_WORDS;i++)
+       sram_data[i] = MAGIC_TEST_NUM + i;
+
+    // First, check that the Flash has been programmed/initialized correctly
+    // we read in SW as we assume the SW is the golden model
+    w25q128jw_read_standard_dma((uint32_t)flash_ptr_test1, sram_buffer_read_flash_back, LENGTH_BYTES, 0, 0);
+    for(int i=0;i<NUM_WORDS;i++) {
+        //in the .h, flash_buffer_test1 contains numbers from 0 to NUM_WORDS in order
+        if(sram_buffer_read_flash_back[i]!=sram_data[i]) {
+            PRINTF("At %d: expected %x, got %x\n", i, sram_data[i], sram_buffer_read_flash_back[i]);
+            return 11;
+        }
+    }
+
     PRINTF("All tests passed!\n");
     return EXIT_SUCCESS;
 }

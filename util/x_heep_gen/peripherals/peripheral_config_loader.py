@@ -32,7 +32,7 @@ from .user_peripherals import (
     UART,
     SerialLinkReg,
     SerialLinkReceiverFifo,
-    SerialLinkWrapperReg, 
+    SerialLinkWrapperReg,
 )
 
 

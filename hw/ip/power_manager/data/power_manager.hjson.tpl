@@ -4,6 +4,7 @@
 
 <%
     memory_ss = xheep.memory_ss()
+    external_domains = xheep.get_base_peripheral_domain().get_power_manager().get_external_domains()
 %>
 
 { name: "power_manager",
@@ -89,7 +90,7 @@
       swaccess: "rw",
       hwaccess: "hrw",
       fields: [
-        { bits: "31:0", name: "CPU_RESET_ASSERT_COUNTER", desc: "CPU counter before resetting" }
+        { bits: "15:0", name: "CPU_RESET_ASSERT_COUNTER", desc: "CPU counter before resetting" }
       ]
     }
 
@@ -99,7 +100,7 @@
       swaccess: "rw",
       hwaccess: "hrw",
       fields: [
-        { bits: "31:0", name: "CPU_RESET_DEASSERT_COUNTER", desc: "CPU counter before unresetting" }
+        { bits: "15:0", name: "CPU_RESET_DEASSERT_COUNTER", desc: "CPU counter before unresetting" }
       ]
     }
 
@@ -109,7 +110,7 @@
       swaccess: "rw",
       hwaccess: "hrw",
       fields: [
-        { bits: "31:0", name: "CPU_SWITCH_OFF_COUNTER", desc: "CPU counter before switching off" }
+        { bits: "15:0", name: "CPU_SWITCH_OFF_COUNTER", desc: "CPU counter before switching off" }
       ]
     }
 
@@ -119,7 +120,7 @@
       swaccess: "rw",
       hwaccess: "hrw",
       fields: [
-        { bits: "31:0", name: "CPU_SWITCH_ON_COUNTER", desc: "CPU counter before switching on" }
+        { bits: "15:0", name: "CPU_SWITCH_ON_COUNTER", desc: "CPU counter before switching on" }
       ]
     }
 
@@ -139,7 +140,7 @@
       swaccess: "rw",
       hwaccess: "hrw",
       fields: [
-        { bits: "31:0", name: "CPU_ISO_OFF_COUNTER", desc: "CPU counter before setting off isolation" }
+        { bits: "15:0", name: "CPU_ISO_OFF_COUNTER", desc: "CPU counter before setting off isolation" }
       ]
     }
 
@@ -149,7 +150,7 @@
       swaccess: "rw",
       hwaccess: "hrw",
       fields: [
-        { bits: "31:0", name: "CPU_ISO_ON_COUNTER", desc: "CPU counter before setting on isolation" }
+        { bits: "15:0", name: "CPU_ISO_ON_COUNTER", desc: "CPU counter before setting on isolation" }
       ]
     }
 

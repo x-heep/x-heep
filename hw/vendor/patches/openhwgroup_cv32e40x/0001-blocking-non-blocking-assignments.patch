@@ -1,18 +1,8 @@
-From 18d13b3e724424863ec43e38bb5089713dced6b1 Mon Sep 17 00:00:00 2001
-From: David Mallasen <dmallase@ucm.es>
-Date: Wed, 8 Feb 2023 10:27:08 +0100
-Subject: [PATCH] Patch blocking and non-blocking assignments to the same
- variable
-
----
- rtl/cv32e40x_cs_registers.sv | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
-
 diff --git a/rtl/cv32e40x_cs_registers.sv b/rtl/cv32e40x_cs_registers.sv
-index 1b4bda93..76dc89ba 100644
+index 6fe90077..2c1dcd3d 100644
 --- a/rtl/cv32e40x_cs_registers.sv
 +++ b/rtl/cv32e40x_cs_registers.sv
-@@ -1669,7 +1669,7 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
+@@ -1696,7 +1696,7 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
  
        end
        else begin: hpm_even_no_flop
@@ -21,7 +11,7 @@ index 1b4bda93..76dc89ba 100644
        end
      end
    endgenerate
-@@ -1840,7 +1840,7 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
+@@ -1867,7 +1867,7 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
        if( (cnt_gidx == 1) ||
            (cnt_gidx >= (NUM_MHPMCOUNTERS+3) ) )
          begin : gen_non_implemented
@@ -30,7 +20,7 @@ index 1b4bda93..76dc89ba 100644
        end
        else begin : gen_implemented
          always_ff @(posedge clk, negedge rst_n)
-@@ -1867,11 +1867,11 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
+@@ -1894,11 +1894,11 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
        if( (evt_gidx < 3) ||
            (evt_gidx >= (NUM_MHPMCOUNTERS+3) ) )
          begin : gen_non_implemented
@@ -44,6 +34,3 @@ index 1b4bda93..76dc89ba 100644
          end
          always_ff @(posedge clk, negedge rst_n)
              if (!rst_n)
--- 
-2.34.1
-

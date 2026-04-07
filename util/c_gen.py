@@ -30,10 +30,15 @@ class CFileGen:
         self.macros_hex = []
         self.macros_raw = []
         self.attributes = []
+        self.storage_class = ""
 
     # Add a new binary file
-    def add_binary(self, name: str, file: str) -> None:
-        self.binaries.append((name, file))
+    def add_binary(
+        self, name: str, file: str, prefix_pad: int = 0, suffix_pad: int = 0
+    ) -> None:
+        if prefix_pad < 0 or suffix_pad < 0:
+            raise ValueError("prefix_pad and suffix_pad must be non-negative")
+        self.binaries.append((name, file, prefix_pad, suffix_pad))
 
     # Add a new list of commands
     def add_code(self, name: str, matrix: np.ndarray) -> None:
@@ -68,6 +73,20 @@ class CFileGen:
     def add_attribute(self, value: str) -> None:
         self.attributes.append(value)
 
+    def set_storage_class(self, value: str) -> None:
+        self.storage_class = value.strip()
+
+    def format_array_decl(self, base_type: str, name: str) -> str:
+        parts = []
+        if self.storage_class:
+            parts.append(self.storage_class)
+        parts.append(base_type)
+        declaration = " ".join(parts)
+        if len(self.attributes) > 0:
+            declaration += f" __attribute__(({','.join(self.attributes)}))"
+        declaration += f" {name}"
+        return declaration
+
     # Convert signed dtype to unsigned dtype
     def signed2unsigned(self, dtype: np.dtype) -> np.dtype:
         return {
@@ -88,10 +107,17 @@ class CFileGen:
         }[str(dtype)]
 
     # Format binary file content as C array
-    def format_binary(self, name: str, file: str) -> str:
+    def format_binary(
+        self, name: str, file: str, prefix_pad: int = 0, suffix_pad: int = 0
+    ) -> str:
         # Read binary file
         with open(file, "rb") as f:
             content = f.read()
+
+        if prefix_pad > 0:
+            content = (b"\x00" * prefix_pad) + content
+        if suffix_pad > 0:
+            content += b"\x00" * suffix_pad
 
         # Pad data to 4-byte alignment (possibly zero padding)
         data_len = len(content) // 4
@@ -100,7 +126,8 @@ class CFileGen:
             content += b"\x00" * (4 - (len(content) % 4))
 
         # Write C data content
-        array_contents = f"uint32_t {name}[] = {{\n"
+        declaration = self.format_array_decl("uint32_t", f"{name}[]")
+        array_contents = f"{declaration} = {{\n"
         for i in range(data_len):
             element = int.from_bytes(content[i * 4 : (i + 1) * 4], byteorder="little")
             array_contents += f"    0x{element:08X}"
@@ -138,10 +165,8 @@ class CFileGen:
             rows.append(hex_values)
 
         # Format the matrix
-        matrix_contents = f"{array_ctype} {name} [] "
-        if len(self.attributes) > 0:
-            matrix_contents += f"__attribute__(({','.join(self.attributes)})) "
-        matrix_contents += "= {\n"
+        declaration = self.format_array_decl(array_ctype, f"{name} []")
+        matrix_contents = f"{declaration} = {{\n"
         if len(rows) > 1:
             matrix_contents += ",\n".join([f"    {', '.join(row)}" for row in rows])
         else:
@@ -152,10 +177,8 @@ class CFileGen:
 
     def format_code(self, code: str, name: str) -> str:
         # Format the array
-        code_contents = f"uint32_t {name}[] "
-        if len(self.attributes) > 0:
-            code_contents += f"__attribute__(({','.join(self.attributes)})) "
-        code_contents += "= {"
+        declaration = self.format_array_decl("uint32_t", f"{name}[]")
+        code_contents = f"{declaration} = {{"
         for i, insn in enumerate(code):
             if i % 8 == 0:
                 code_contents += "\n    "
@@ -198,8 +221,8 @@ class CFileGen:
         if len(self.binaries) > 0:
             header_contents += "// Binary size\n"
             header_contents += "// -----------\n"
-            for name, file in self.binaries:
-                file_size = os.path.getsize(file)
+            for name, file, prefix_pad, suffix_pad in self.binaries:
+                file_size = os.path.getsize(file) + prefix_pad + suffix_pad
                 if file_size % 4 != 0:
                     file_size += 4 - (file_size % 4)
                 header_contents += f"#define {name.upper()}_SIZE {file_size}\n"
@@ -227,8 +250,10 @@ class CFileGen:
         if len(self.binaries) > 0:
             header_contents += "// Binary files\n"
             header_contents += "// ------------\n"
-            for name, file in self.binaries:
-                header_contents += self.format_binary(name, file)
+            for name, file, prefix_pad, suffix_pad in self.binaries:
+                header_contents += self.format_binary(
+                    name, file, prefix_pad, suffix_pad
+                )
             header_contents += "\n"
 
         # Write code arrays
@@ -284,13 +309,81 @@ class CFileGen:
 if __name__ == "__main__":
     # Check the number of arguments
     if len(sys.argv) < 3:
-        print("Usage: python c_gen.py <header_file> <bin_file> [<src_file> ...]")
+        print(
+            "Usage: python c_gen.py <header_file> <bin_file> [--prefix-pad <bytes>] [--prefix-pad=<bytes>] [--suffix-pad <bytes>] [--suffix-pad=<bytes>] [--static] [--attribute <attr>] [--attribute=<attr>] [<src_file> ...]"
+        )
         sys.exit(1)
 
-    # Parse arguments
+    # Parse required arguments
     header_file = sys.argv[1]
     bin_file = sys.argv[2]
-    src_files = sys.argv[3:] if len(sys.argv) > 3 else []
+    prefix_pad = 0
+    attributes = []
+    storage_class = ""
+    src_files = []
+    suffix_pad = 0
+
+    # Parse optional arguments
+    remaining_args = sys.argv[3:]
+    i = 0
+    while i < len(remaining_args):
+        arg = remaining_args[i]
+        if arg.startswith("--prefix-pad="):
+            value = arg.split("=", 1)[1]
+            try:
+                prefix_pad = int(value, 0)
+            except ValueError:
+                print(f"Invalid value for --prefix-pad: '{value}'")
+                sys.exit(1)
+        elif arg == "--prefix-pad":
+            if i + 1 >= len(remaining_args):
+                print("Missing value for --prefix-pad")
+                sys.exit(1)
+            value = remaining_args[i + 1]
+            try:
+                prefix_pad = int(value, 0)
+            except ValueError:
+                print(f"Invalid value for --prefix-pad: '{value}'")
+                sys.exit(1)
+            i += 1
+        elif arg.startswith("--attribute="):
+            attributes.append(arg.split("=", 1)[1])
+        elif arg == "--attribute":
+            if i + 1 >= len(remaining_args):
+                print("Missing value for --attribute")
+                sys.exit(1)
+            attributes.append(remaining_args[i + 1])
+            i += 1
+        elif arg.startswith("--suffix-pad="):
+            value = arg.split("=", 1)[1]
+            try:
+                suffix_pad = int(value, 0)
+            except ValueError:
+                print(f"Invalid value for --suffix-pad: '{value}'")
+                sys.exit(1)
+        elif arg == "--suffix-pad":
+            if i + 1 >= len(remaining_args):
+                print("Missing value for --suffix-pad")
+                sys.exit(1)
+            value = remaining_args[i + 1]
+            try:
+                suffix_pad = int(value, 0)
+            except ValueError:
+                print(f"Invalid value for --suffix-pad: '{value}'")
+                sys.exit(1)
+            i += 1
+        elif arg == "--static":
+            storage_class = "static"
+        else:
+            src_files.append(arg)
+        i += 1
+
+    if prefix_pad < 0:
+        print("Value for --prefix-pad must be non-negative")
+        sys.exit(1)
+    if suffix_pad < 0:
+        print("Value for --suffix-pad must be non-negative")
+        sys.exit(1)
 
     # Determine kernel name
     header_name = os.path.splitext(os.path.basename(header_file))[0]
@@ -299,7 +392,11 @@ if __name__ == "__main__":
 
     # Generate C header from input binary file
     header_gen = CFileGen()
-    header_gen.add_binary(header_name, bin_file)
+    if storage_class:
+        header_gen.set_storage_class(storage_class)
+    for attribute in attributes:
+        header_gen.add_attribute(attribute)
+    header_gen.add_binary(header_name, bin_file, prefix_pad, suffix_pad)
 
     # Extract #define's from source file (e.g., the file that the firmware was compiled from)
     for src_file in src_files:

@@ -422,14 +422,14 @@ module axi_demux_simple #(
         // AW channel
         mst_reqs_o[i].aw       = slv_req_i.aw;
         mst_reqs_o[i].aw_valid = 1'b0;
-        if (aw_valid && (slv_aw_select_i == i)) begin
+        if (aw_valid && (slv_aw_select_i == select_t'(i))) begin
           mst_reqs_o[i].aw_valid = 1'b1;
         end
 
         //  W channel
         mst_reqs_o[i].w       = slv_req_i.w;
         mst_reqs_o[i].w_valid = 1'b0;
-        if (w_select_valid && (w_select == i)) begin
+        if (w_select_valid && (w_select == select_t'(i))) begin
           mst_reqs_o[i].w_valid = slv_req_i.w_valid;
           slv_resp_o.w_ready           = mst_resps_i[i].w_ready;
           w_cnt_down            = slv_req_i.w_valid & mst_resps_i[i].w_ready & slv_req_i.w.last;
@@ -441,7 +441,7 @@ module axi_demux_simple #(
         // AR channel
         mst_reqs_o[i].ar       = slv_req_i.ar;
         mst_reqs_o[i].ar_valid = 1'b0;
-        if (ar_valid && (slv_ar_select_i == i)) begin
+        if (ar_valid && (slv_ar_select_i == select_t'(i))) begin
           mst_reqs_o[i].ar_valid = 1'b1;
         end
 

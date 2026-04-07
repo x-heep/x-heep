@@ -289,6 +289,13 @@ class Mapping1:
             # Check that the paths aren't evil ('../../../foo' or '/etc/passwd'
             # are *not* ok!)
             val = os.path.normpath(val)
+            if val.startswith("/") or val.startswith(".."):
+                raise JsonError(
+                    path,
+                    "Mapping entry {} has a bad path for {!r} "
+                    "(must be a relative path that doesn't "
+                    "escape the directory)".format(idx + 1, name),
+                )
 
             return Path(val)
 

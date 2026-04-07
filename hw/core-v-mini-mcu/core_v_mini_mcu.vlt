@@ -58,6 +58,3 @@ lint_off -rule UNDRIVEN -file "*/core_v_mini_mcu.sv" -match "Signal is not drive
 lint_off -rule UNDRIVEN -file "*/core_v_mini_mcu.sv" -match "Signal is not driven: 'ddr_o*"
 lint_off -rule UNDRIVEN -file "*/core_v_mini_mcu.sv" -match "Signal is not driven: 'ddr_rcv_clk*"
 
-// new common cells redefine these macros - as they aren't used - just ignore
-lint_off -rule REDEFMACRO -file "*/prim_assert_dummy_macros.svh" -match "*"
-lint_off -rule REDEFMACRO -file "*/prim_assert.sv" -match "*"

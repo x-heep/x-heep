@@ -87,14 +87,21 @@ module peripheral_subsystem
     % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
       //Serial Link
       input  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0]    ddr_rcv_clk_i,  
-      output logic [serial_link_single_channel_reg_pkg::NumChannels-1:0]    ddr_rcv_clk_o,
-      input  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_i,
-      output logic [serial_link_single_channel_reg_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_o,
+      output logic [serial_link_single_channel_reg_pkg::NumChannels-1:0]    ddr_snd_clk_o,
+      input  logic ddr_rcv_0_i,
+      input  logic ddr_rcv_1_i,
+      input  logic ddr_rcv_2_i,
+      input  logic ddr_rcv_3_i,
+      output logic ddr_snd_0_o,
+      output logic ddr_snd_1_o,
+      output logic ddr_snd_2_o,
+      output logic ddr_snd_3_o,
       output obi_pkg::obi_req_t  serial_link_direct_write_req_o,
       input  obi_pkg::obi_resp_t serial_link_direct_write_resp_i,
       input  obi_pkg::obi_req_t  serial_link_slave_req_i,
       output obi_pkg::obi_resp_t serial_link_slave_resp_o,
     %endif
+
     // PDM2PCM Interface
     output logic pdm2pcm_clk_o,
     output logic pdm2pcm_clk_en_o,
@@ -637,7 +644,15 @@ module peripheral_subsystem
 
 % endif
 
+
 % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
+
+  // TBD parametrizable to support different number of channels and lanes
+  logic [3:0] ddr_i;
+  logic [3:0] ddr_o;
+  assign ddr_i = {ddr_rcv_3_i, ddr_rcv_2_i, ddr_rcv_1_i, ddr_rcv_0_i};
+  assign {ddr_snd_3_o, ddr_snd_2_o, ddr_snd_1_o, ddr_snd_0_o} = ddr_o;
+
   serial_link_xheep_wrapper #(
     .MaxClkDiv(32),
     .AddrWidth(32),
@@ -661,9 +676,13 @@ module peripheral_subsystem
     .direct_write_resp_i(serial_link_direct_write_resp_i),
     .ddr_rcv_clk_i,         
     .ddr_i,                   
-    .ddr_rcv_clk_o,          
+    .ddr_snd_clk_o,          
     .ddr_o                   
   );
+% else:
+    //Serial Link
+    assign ddr_snd_clk_o = '0;
+    assign {ddr_snd_3_o, ddr_snd_2_o, ddr_snd_1_o, ddr_snd_0_o} = '0;
 %endif
 
 % if len(user_peripheral_domain.get_peripherals()) == 0:

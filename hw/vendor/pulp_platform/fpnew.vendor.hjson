@@ -10,6 +10,8 @@
     rev: "79e453139072df42c9ec8f697132ba485d74e23d",
   },
 
+  patch_dir: "../patches/pulp_platform_fpnew"
+
   exclude_from_upstream: [
     ".gitignore",
     ".gitmodules",

@@ -120,7 +120,7 @@ module axi_atop_filter #(
 
       W_FEEDTHROUGH: begin
         // Feed AW channel through if the maximum number of outstanding bursts is not reached.
-        if (complete_w_without_aw_downstream || (w_cnt_q.cnt < AxiMaxWriteTxns)) begin
+        if (complete_w_without_aw_downstream || (32'(w_cnt_q.cnt) < AxiMaxWriteTxns)) begin
           mst_req_o.aw_valid  = slv_req_i.aw_valid;
           slv_resp_o.aw_ready = mst_resp_i.aw_ready;
         end

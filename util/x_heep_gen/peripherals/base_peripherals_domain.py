@@ -119,6 +119,19 @@ class BasePeripheralDomain(PeripheralDomain):
         """
         return self.get_all_dmas()[0]
 
+    def get_power_manager(self):
+        """
+        Get the Power_manager peripheral.
+
+        :return: The Power_manager peripheral.
+        :rtype: Power_manager
+        """
+        for p in self._peripherals:
+            if isinstance(p, Power_manager):
+                return p
+
+        raise ValueError("No Power_manager peripheral found")
+
     def validate(self):
         """
         Validate the base peripheral domain. Checks if all base peripherals are added, if they don't

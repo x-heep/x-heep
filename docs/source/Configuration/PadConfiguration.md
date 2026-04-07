@@ -250,7 +250,7 @@ You can add customs cells that you need on your cheep according to the propertie
 # Update a cell defined in pin.py
 cell.iocell_a.update( dimension=Dimension(width=60, height=65), name="PADIOA" )
 # Create custom cells as defined by the PDK
-iocell_dVdd = Cell( width=65, height=65, name="PADVDDIO",   rtl_wrapper="u_pad_cell_digital_core_vdd",  connections=["vdd"] )
+iocell_dVdd = Cell( width=65, height=65, name="PADVDDIO",   rtl_wrapper="pad_cell_digital_core_vdd",  connections=["vdd"] )
 ```
 
 For new cells, remember to also create an RTL wrapper and name them consistently (check those in [hw/simulation](https://github.com/x-heep/x-heep/tree/main/hw/simulation)).

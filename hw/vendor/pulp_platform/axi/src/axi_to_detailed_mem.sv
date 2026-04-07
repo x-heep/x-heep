@@ -851,7 +851,7 @@ module mem_stream_to_banks_detailed #(
 
     // Can issue another request if the counter is not at its limit or a response is delivered in
     // the current cycle.
-    assign cnt_req_ready = (cnt_q < MaxTrans) | (rvalid_o & rready_i);
+    assign cnt_req_ready = (cnt_q < cnt_t'(MaxTrans)) | (rvalid_o & rready_i);
 
     // Control request and memory request interface handshakes.
     assign gnt_o = mem_req_ready & cnt_req_ready;

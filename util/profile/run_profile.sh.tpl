@@ -12,10 +12,16 @@ if [ -z "$RV_PROFILE" ]; then
 fi
 
 # Get the upper root directory
-ROOT_DIR=$(git rev-parse --show-toplevel)
+ROOT_DIR=$(git rev-parse --show-toplevel 2>/dev/null || realpath "$(dirname "$0")/../..")
 
 # Get the waveform file
-WAVE_FILE=$(find $ROOT_DIR/build -name "*.fst")
+WAVE_FILE=$(find "$ROOT_DIR/build" -name "*.fst" | head -n 1)
+
+# Check if the waveform file was found
+if [ -z "$WAVE_FILE" ]; then
+    echo "ERROR: No waveform file found in $ROOT_DIR/build" >&2
+    exit 1
+fi
 
 # Profile report directory
 PROFILE_REPORT_DIR=$ROOT_DIR/util/profile

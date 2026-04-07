@@ -26,8 +26,6 @@ filesets:
     - pad_cell_input_xilinx.sv
     - pad_cell_output_xilinx.sv
     - pad_cell_inout_xilinx.sv
-    - pad_cell_bypass_input_xilinx.sv
-    - pad_cell_bypass_output_xilinx.sv
     file_type: systemVerilogSource
 
   ip-fpga-pynq-z2:

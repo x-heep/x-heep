@@ -97,7 +97,7 @@ package fpnew_pkg;
         // pragma translate_on
         // just return any integer to avoid any latches
         // hopefully this error is caught by simulation
-        return INT8;
+        return 8;
       end
     endcase
   endfunction
@@ -302,7 +302,7 @@ package fpnew_pkg;
   // -------------------------------------------
   // Returns the width of a FP format
   function automatic int unsigned fp_width(fp_format_e fmt);
-    return FP_ENCODINGS[fmt].exp_bits + FP_ENCODINGS[fmt].man_bits + 1;
+    return FP_ENCODINGS[int'(fmt)].exp_bits + FP_ENCODINGS[int'(fmt)].man_bits + 1;
   endfunction
 
   // Returns the widest FP format present
@@ -325,24 +325,24 @@ package fpnew_pkg;
 
   // Returns the number of expoent bits for a format
   function automatic int unsigned exp_bits(fp_format_e fmt);
-    return FP_ENCODINGS[fmt].exp_bits;
+    return FP_ENCODINGS[int'(fmt)].exp_bits;
   endfunction
 
   // Returns the number of mantissa bits for a format
   function automatic int unsigned man_bits(fp_format_e fmt);
-    return FP_ENCODINGS[fmt].man_bits;
+    return FP_ENCODINGS[int'(fmt)].man_bits;
   endfunction
 
   // Returns the bias value for a given format (as per IEEE 754-2008)
   function automatic int unsigned bias(fp_format_e fmt);
-    return unsigned'(2**(FP_ENCODINGS[fmt].exp_bits-1)-1); // symmetrical bias
+    return unsigned'(2**(FP_ENCODINGS[int'(fmt)].exp_bits-1)-1); // symmetrical bias
   endfunction
 
   function automatic fp_encoding_t super_format(fmt_logic_t cfg);
     automatic fp_encoding_t res;
     res = '0;
     for (int unsigned fmt = 0; fmt < NUM_FP_FORMATS; fmt++)
-      if (cfg[fmt]) begin // only active format
+      if (cfg[int'(fmt)]) begin // only active format
         res.exp_bits = unsigned'(maximum(res.exp_bits, exp_bits(fp_format_e'(fmt))));
         res.man_bits = unsigned'(maximum(res.man_bits, man_bits(fp_format_e'(fmt))));
       end

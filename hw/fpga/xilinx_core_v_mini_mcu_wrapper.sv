@@ -75,8 +75,8 @@ module xilinx_core_v_mini_mcu_wrapper
     inout logic i2s_ws_io,
     inout logic i2s_sd_io,
 
-    inout wire ddr_rcv_clk_i_i,
-    inout wire ddr_rcv_clk_o_o
+    inout wire ddr_rcv_clk_i,
+    inout wire ddr_snd_clk_o
 );
 
   wire                               clk_gen;
@@ -211,8 +211,8 @@ module xilinx_core_v_mini_mcu_wrapper
       .gpio_11_io(gpio_io[11]),
       .gpio_12_io(gpio_io[12]),
       .gpio_13_io(gpio_io[13]),
-      .ddr_rcv_clk_i_i,
-      .ddr_rcv_clk_o_o,
+      .ddr_rcv_clk_i,
+      .ddr_snd_clk_o,
       .spi_slave_sck_io(spi_slave_sck_io),
       .spi_slave_cs_io(spi_slave_cs_io),
       .spi_slave_miso_io(spi_slave_miso_io),

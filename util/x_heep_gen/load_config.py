@@ -10,6 +10,7 @@ from .cpu.cv32e40px import cv32e40px
 from .cpu.cv32e40x import cv32e40x
 from .memory_ss.memory_ss import MemorySS
 from .memory_ss.linker_section import LinkerSection
+from .memory_ss.linker_subsection import LinkerSubsection
 from .peripherals.peripheral_config_loader import load_peripherals_config
 from .xheep import BusType, XHeep, CvXIf
 
@@ -124,6 +125,14 @@ def load_ram_config(memory_ss: MemorySS, mem: hjson.OrderedDict):
             memory_ss.add_ram_banks_il(
                 int(value["num"]), int(value["size"]), section_name
             )
+
+            if section_name != "":
+                memory_ss.add_linker_section_for_banks(
+                    section_name,
+                    subsections=[LinkerSubsection(f"xheep_{section_name}")],
+                    interleaved=True,
+                    il_group_name=section_name,
+                )
 
         elif t == "continuous":
             banks: List[int] = []

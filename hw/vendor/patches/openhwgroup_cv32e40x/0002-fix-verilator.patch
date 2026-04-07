@@ -1,0 +1,148 @@
+diff --git a/rtl/cv32e40x_alignment_buffer.sv b/rtl/cv32e40x_alignment_buffer.sv
+index 2f252cea..99e89de2 100644
+--- a/rtl/cv32e40x_alignment_buffer.sv
++++ b/rtl/cv32e40x_alignment_buffer.sv
+@@ -147,8 +147,8 @@ module cv32e40x_alignment_buffer import cv32e40x_pkg::*;
+   //////////////////
+   // FIFO signals //
+   //////////////////
+-  inst_resp_t [0:ALBUF_DEPTH-1]  resp_q;
+-  logic [0:ALBUF_DEPTH-1]        valid_n,   valid_int,   valid_q;
++  inst_resp_t [ALBUF_DEPTH-1:0]  resp_q;
++  logic [ALBUF_DEPTH-1:0]        valid_n,   valid_int,   valid_q;
+   inst_resp_t resp_n;
+ 
+   // Read/write pointer for FIFO
+diff --git a/rtl/cv32e40x_core.sv b/rtl/cv32e40x_core.sv
+index 5394f143..6a683682 100644
+--- a/rtl/cv32e40x_core.sv
++++ b/rtl/cv32e40x_core.sv
+@@ -400,7 +400,7 @@ module cv32e40x_core import cv32e40x_pkg::*;
+   assign dbg_ack   = ctrl_fsm.dbg_ack;
+ 
+   // Gate off the internal debug_request signal if debug support is not configured.
+-  assign debug_req_gated = DEBUG ? debug_req_i : 1'b0;
++  assign debug_req_gated = (DEBUG != 0) ? debug_req_i : 1'b0;
+ 
+   //////////////////////////////////////////////////////////////////////////////////////////////
+   //   ____ _            _      __  __                                                   _    //
+diff --git a/rtl/cv32e40x_cs_registers.sv b/rtl/cv32e40x_cs_registers.sv
+index 2c1dcd3d..8e214c7b 100644
+--- a/rtl/cv32e40x_cs_registers.sv
++++ b/rtl/cv32e40x_cs_registers.sv
+@@ -271,7 +271,7 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
+ 
+ 
+   // Performance Counter Signals
+-  logic [31:0] [63:0]           mhpmcounter_q;                                  // Performance counters
++  logic [63:0]                  mhpmcounter_q[31:0];                            // Performance counters
+   logic [31:0] [63:0]           mhpmcounter_n;                                  // Performance counters next value
+   logic [31:0] [63:0]           mhpmcounter_rdata;                              // Performance counters next value
+   logic [31:0] [1:0]            mhpmcounter_we;                                 // Performance counters write enable
+@@ -535,7 +535,7 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
+       end
+ 
+       CSR_DCSR: begin
+-        if (DEBUG) begin
++        if (DEBUG != 0) begin
+           csr_rdata_int = dcsr_rdata;
+           illegal_csr_read = !ctrl_fsm_i.debug_mode;
+         end else begin
+@@ -545,7 +545,7 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
+       end
+ 
+       CSR_DPC: begin
+-        if (DEBUG) begin
++        if (DEBUG != 0) begin
+           csr_rdata_int = dpc_rdata;
+           illegal_csr_read = !ctrl_fsm_i.debug_mode;
+         end else begin
+@@ -555,7 +555,7 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
+       end
+ 
+       CSR_DSCRATCH0: begin
+-        if (DEBUG) begin
++        if (DEBUG != 0) begin
+           csr_rdata_int = dscratch0_rdata;
+           illegal_csr_read = !ctrl_fsm_i.debug_mode;
+         end else begin
+@@ -565,7 +565,7 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
+       end
+ 
+       CSR_DSCRATCH1: begin
+-        if (DEBUG) begin
++        if (DEBUG != 0) begin
+           csr_rdata_int = dscratch1_rdata;
+           illegal_csr_read = !ctrl_fsm_i.debug_mode;
+         end else begin
+@@ -1239,7 +1239,7 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
+   );
+ 
+   generate
+-    if (DEBUG) begin : gen_debug_csr
++    if (DEBUG != 0) begin : gen_debug_csr
+       cv32e40x_csr
+       #(
+         .WIDTH      (32),
+@@ -1533,7 +1533,7 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
+   assign priv_lvl_rdata     = PRIV_LVL_M;
+ 
+   // dcsr_rdata factors in the flop outputs and the nmip bit from the controller
+-  assign dcsr_rdata = DEBUG ? {dcsr_q[31:4], ctrl_fsm_i.pending_nmi, dcsr_q[2:0]} : 32'h0;
++  assign dcsr_rdata = (DEBUG != 0) ? {dcsr_q[31:4], ctrl_fsm_i.pending_nmi, dcsr_q[2:0]} : 32'h0;
+ 
+ 
+   assign mcause_rdata = mcause_q;
+diff --git a/rtl/cv32e40x_debug_triggers.sv b/rtl/cv32e40x_debug_triggers.sv
+index 25a084d3..3bd8a324 100644
+--- a/rtl/cv32e40x_debug_triggers.sv
++++ b/rtl/cv32e40x_debug_triggers.sv
+@@ -108,13 +108,13 @@ import cv32e40x_pkg::*;
+       logic [DBG_NUM_TRIGGERS-1 : 0] tdata2_we_int;
+ 
+       // CSR instance outputs
+-      logic [31:0] tdata1_q[DBG_NUM_TRIGGERS];
+-      logic [31:0] tdata2_q[DBG_NUM_TRIGGERS];
++      logic [31:0] tdata1_q[DBG_NUM_TRIGGERS-1:0];
++      logic [31:0] tdata2_q[DBG_NUM_TRIGGERS-1:0];
+       logic [31:0] tselect_q;
+ 
+       // CSR read data, possibly WARL resolved
+-      logic [31:0] tdata1_rdata[DBG_NUM_TRIGGERS];
+-      logic [31:0] tdata2_rdata[DBG_NUM_TRIGGERS];
++      logic [31:0] tdata1_rdata[DBG_NUM_TRIGGERS-1:0];
++      logic [31:0] tdata2_rdata[DBG_NUM_TRIGGERS-1:0];
+ 
+       // IF, EX and WB stages trigger match
+       logic [DBG_NUM_TRIGGERS-1 : 0] trigger_match_if;
+@@ -127,7 +127,7 @@ import cv32e40x_pkg::*;
+       // LSU address match signals
+       logic [DBG_NUM_TRIGGERS-1 : 0] lsu_addr_match_en;
+       logic [DBG_NUM_TRIGGERS-1 : 0] lsu_addr_match;
+-      logic [3:0]                    lsu_byte_addr_match[DBG_NUM_TRIGGERS];
++      logic [3:0]                    lsu_byte_addr_match[DBG_NUM_TRIGGERS-1:0];
+ 
+       // Enable matching based on privilege level per trigger
+       logic [DBG_NUM_TRIGGERS-1 : 0] priv_lvl_match_en_if;
+@@ -140,7 +140,7 @@ import cv32e40x_pkg::*;
+       logic [31:0] lsu_addr_high;     // The highest accessed address of an LSU transaction
+ 
+       // Exception trigger code match
+-      logic [31:0] exception_match[DBG_NUM_TRIGGERS];
++      logic [31:0] exception_match[DBG_NUM_TRIGGERS-1:0];
+ 
+       // Write data
+       always_comb begin
+diff --git a/rtl/cv32e40x_pma.sv b/rtl/cv32e40x_pma.sv
+index 9e3f6ad2..f63534d9 100644
+--- a/rtl/cv32e40x_pma.sv
++++ b/rtl/cv32e40x_pma.sv
+@@ -98,7 +98,7 @@ module cv32e40x_pma import cv32e40x_pkg::*;
+ 
+   // Tie of atomic attribute if A_EXT=0
+   generate
+-    if (A_EXT) begin: pma_atomic
++    if (A_EXT != A_NONE) begin: pma_atomic
+       assign pma_cfg_atomic = pma_cfg.atomic;
+     end
+     else begin: pma_no_atomic

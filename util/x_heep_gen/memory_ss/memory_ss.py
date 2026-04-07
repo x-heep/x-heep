@@ -3,6 +3,7 @@ from typing import List, Set, Iterable, Generator, Optional, Union
 from .ram_bank import Bank, is_pow2
 from .il_ram_group import ILRamGroup
 from .linker_section import LinkerSection
+from .linker_subsection import LinkerSubsection
 
 
 class MemorySS:
@@ -13,6 +14,7 @@ class MemorySS:
     def __init__(self):
         self._ram_start_address: int = 0
         self._ram_banks: List[Bank] = []
+        self._ram_banks_il: List[Bank] = []
         self._ram_banks_il_idx: List[int] = []
         self._ram_banks_il_groups: List[ILRamGroup] = []
         self._il_banks_present: bool = False
@@ -66,7 +68,7 @@ class MemorySS:
             self._ram_next_idx += 1
 
         if section_name != "":
-            self.add_linker_section_for_banks(banks, section_name)
+            self.add_linker_section_for_banks(section_name, banks)
         # Add all new banks if no error was raised
         self._ram_banks += banks
 
@@ -74,7 +76,7 @@ class MemorySS:
         self,
         num: int,
         bank_size: int,
-        section_name: str = "",
+        group_name: str = "",
         ignore_ignore: bool = False,
     ):
         """
@@ -84,7 +86,7 @@ class MemorySS:
 
         :param int num: number of banks to add
         :param int bank_size: size of the banks in kiB
-        :param str section_name: If not empty adds automatically a linker section for these banks. The names must be unique and not be used by the linker for other purposes.
+        :param str group_name: This defines the name of the interleaved bank group.
         :param bool ignore_ignore: Ignores the fact that an override was set. For internal uses to apply this override.
         :raise TypeError: when arguments are of wrong type
         :raise ValueError: when banks have an incorrect size or their number is not a power of two.
@@ -98,8 +100,8 @@ class MemorySS:
             raise ValueError(
                 f"A power of two is required for the number of banks, got {num}"
             )
-        if not type(section_name) == str:
-            raise TypeError("section_name should be of type str")
+        if not type(group_name) == str:
+            raise TypeError("group_name should be of type str")
 
         first_il = self.ram_numbanks()
 
@@ -118,10 +120,11 @@ class MemorySS:
 
         self._ram_next_addr = banks[-1]._end_address
 
-        if section_name != "":
-            self.add_linker_section_for_banks(banks, section_name)
         # Add all new banks if no error was raised
         self._ram_banks += banks
+
+        # Bank ID, used to generate the index of the bank group
+        bank_id = banks[0].name()
 
         indices = range(first_il, first_il + num)
         self._ram_banks_il_idx += indices
@@ -130,9 +133,12 @@ class MemorySS:
                 banks[0].start_address(),
                 bank_size * num * 1024,
                 len(banks),
-                banks[0].name(),
+                group_name,
+                bank_id,
+                banks,
             )
         )
+
         self._il_banks_present = True
 
     def override_ram_banks(self, numbanks: int):
@@ -163,20 +169,64 @@ class MemorySS:
         self._override_numbanks_il = numbanks_il
         self._ignore_ram_interleaved = True
 
-    def add_linker_section_for_banks(self, banks: "List[Bank]", name: str):
+    def add_linker_section_for_banks(
+        self,
+        name: str,
+        subsections: Optional[List[LinkerSubsection]] = None,
+        banks: "List[Bank]" = None,
+        interleaved: bool = False,
+        il_group_name: Optional[str] = None,
+    ):
         """
         Function to add linker sections coupled to some banks.
         :param List[Bank] banks: list of banks that compose the section, assumed to be continuous in memory
         :param str name: the name of the section.
+        :param Optional[list[LinkerSubsection]] subsections: the list of subsections that should be included in this section.
+        :param bool interleaved: whether the section is for interleaved banks, used to set the name of the section if not provided.
+        :param Optional[str] il_group_name: first bank name of the interleaved bank group to attach the section to.
         :raise ValueError: if the name was allready used for another section or the first and second are not code and data.
         """
         if name in self._used_section_names:
             raise ValueError("linker section names should be unique")
 
         self._used_section_names.add(name)
-        self._linker_sections.append(
-            LinkerSection(name, banks[0].start_address(), banks[-1].end_address())
-        )
+
+        if interleaved:
+            if il_group_name is None:
+                raise ValueError(
+                    "il_group_name is required when adding a linker section for interleaved banks"
+                )
+
+            group = next(
+                (
+                    group
+                    for group in self._ram_banks_il_groups
+                    if group.group_name == il_group_name
+                ),
+                None,
+            )
+            if group is None:
+                raise ValueError(
+                    f"interleaved bank group '{il_group_name}' was not found"
+                )
+
+            self._linker_sections.append(
+                LinkerSection(
+                    name,
+                    group.start,
+                    group.start + group.size,
+                    subsections,
+                )
+            )
+        else:
+            self._linker_sections.append(
+                LinkerSection(
+                    name,
+                    banks[0].start_address(),
+                    banks[-1].end_address(),
+                    subsections,
+                )
+            )
 
     def add_linker_section(self, section: LinkerSection):
         """

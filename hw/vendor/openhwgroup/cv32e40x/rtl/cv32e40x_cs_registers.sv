@@ -271,14 +271,13 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
 
 
   // Performance Counter Signals
-  logic [63:0]                  mhpmcounter_q[32];                              // Performance counters
+  logic [63:0]                  mhpmcounter_q[31:0];                            // Performance counters
   logic [31:0] [63:0]           mhpmcounter_n;                                  // Performance counters next value
   logic [31:0] [63:0]           mhpmcounter_rdata;                              // Performance counters next value
   logic [31:0] [1:0]            mhpmcounter_we;                                 // Performance counters write enable
   logic [31:0] [31:0]           mhpmevent_q, mhpmevent_n, mhpmevent_rdata;      // Event enable
   logic [31:0]                  mcountinhibit_q, mcountinhibit_n, mcountinhibit_rdata; // Performance counter inhibit
-  logic                         hpm_events[NUM_HPM_EVENTS];                     // Events for performance counters
-  logic [NUM_HPM_EVENTS-1:0]    packed_hpm_events;                              // Packed Events for performance counters
+  logic [NUM_HPM_EVENTS-1:0]    hpm_events;                                     // Events for performance counters
   logic [31:0] [63:0]           mhpmcounter_increment;                          // Increment of mhpmcounter_q
   logic [31:0]                  mhpmcounter_write_lower;                        // Write 32 lower bits of mhpmcounter_q
   logic [31:0]                  mhpmcounter_write_upper;                        // Write 32 upper bits mhpmcounter_q
@@ -1683,9 +1682,6 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
   genvar                hpm_idx;
   generate
     for(hpm_idx=0; hpm_idx<16; hpm_idx++) begin
-
-      assign packed_hpm_events[hpm_idx] = hpm_events[hpm_idx];
-
       if(HPM_EVENT_FLOP[hpm_idx]) begin: hpm_event_flop
 
         always_ff @(posedge clk, negedge rst_n) begin
@@ -1811,14 +1807,14 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
                                                         !mhpmcounter_write_upper[wcnt_gidx] &&
                                                         !mcountinhibit_rdata[wcnt_gidx] &&
                                                         !debug_stopcount &&
-                                                        packed_hpm_events[1];
+                                                        hpm_events[1];
       end else if( (wcnt_gidx>2) && (wcnt_gidx<(NUM_MHPMCOUNTERS+3))) begin : gen_mhpmcounter
         // add +1 if any event is enabled and active
         assign mhpmcounter_write_increment[wcnt_gidx] = !mhpmcounter_write_lower[wcnt_gidx] &&
                                                         !mhpmcounter_write_upper[wcnt_gidx] &&
                                                         !mcountinhibit_rdata[wcnt_gidx] &&
                                                         !debug_stopcount &&
-                                                        |(packed_hpm_events & mhpmevent_rdata[wcnt_gidx][NUM_HPM_EVENTS-1:0]);
+                                                        |(hpm_events & mhpmevent_rdata[wcnt_gidx][NUM_HPM_EVENTS-1:0]);
       end else begin : gen_mhpmcounter_not_implemented
         assign mhpmcounter_write_increment[wcnt_gidx] = 1'b0;
       end

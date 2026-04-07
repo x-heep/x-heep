@@ -80,7 +80,7 @@ class Input(PinDigital):
 
     def __init__(self, name, module=None, attributes=None):
         super().__init__(name, module, attributes)
-        self.iocell.rtl_wrapper = "u_pad_cell_input"
+        self.iocell.rtl_wrapper = "pad_cell_input"
 
 
 class Output(PinDigital):
@@ -90,7 +90,7 @@ class Output(PinDigital):
 
     def __init__(self, name, module=None, attributes=None):
         super().__init__(name, module, attributes)
-        self.iocell.rtl_wrapper = "u_pad_cell_output"
+        self.iocell.rtl_wrapper = "pad_cell_output"
 
 
 class Inout(PinDigital):
@@ -100,7 +100,7 @@ class Inout(PinDigital):
 
     def __init__(self, name, module=None, attributes=None):
         super().__init__(name, module, attributes)
-        self.iocell.rtl_wrapper = "u_pad_cell_inout"
+        self.iocell.rtl_wrapper = "pad_cell_inout"
 
 
 class Asignal(Pin):

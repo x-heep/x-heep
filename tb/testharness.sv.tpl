@@ -181,13 +181,6 @@ module testharness #(
   assign gpio[2] = ddr_i_xheep[0][1];
   assign gpio[3] = ddr_i_xheep[0][2];
   assign gpio[6] = ddr_i_xheep[0][3];
-  %else:
-
-  assign ddr_clk_o_xheep = '0;  
-  assign ddr_o_xheep[0] = '0;
-  assign ddr_o_xheep[1] = '0;
-  assign ddr_o_xheep[2] = '0;
-  assign ddr_o_xheep[3] = '0;
   %endif
 
   reg_pkg::reg_req_t [testharness_pkg::EXT_NPERIPHERALS-1:0] ext_periph_slv_req;
@@ -208,6 +201,9 @@ module testharness #(
   logic [EXT_DOMAINS_RND-1:0] external_subsystem_rst_n;
   logic [EXT_DOMAINS_RND-1:0] external_ram_banks_set_retentive_n;
   logic [EXT_DOMAINS_RND-1:0] external_subsystem_clkgate_en_n;
+
+  //simple accelerator external domain
+  logic simple_acc_rst_n, simple_acc_clk;
 
   // CORE-V eXtension Interface (CV-X-IF)
 % if xif != None:
@@ -307,8 +303,8 @@ module testharness #(
       .gpio_11_io(gpio[11]),
       .gpio_12_io(gpio[12]),
       .gpio_13_io(gpio[13]),
-      .ddr_rcv_clk_i_i(ddr_clk_i_xheep[0]),
-      .ddr_rcv_clk_o_o(ddr_clk_o_xheep[0]),
+      .ddr_rcv_clk_i(ddr_clk_i_xheep[0]),
+      .ddr_snd_clk_o(ddr_clk_o_xheep[0]),
       .spi_slave_sck_io(spi_sck),
       .spi_slave_cs_io(spi_csb[0]),
       .spi_slave_miso_io(spi_sd_io[1]),
@@ -557,6 +553,8 @@ module testharness #(
           .reg_rsp_t (reg_pkg::reg_rsp_t),
           .obi_req_t (obi_pkg::obi_req_t),
           .obi_resp_t(obi_pkg::obi_resp_t),
+          .fifo_resp_t(fifo_pkg::fifo_resp_t),
+          .fifo_req_t(fifo_pkg::fifo_req_t),
           .SLOT_NUM  (DMA_TRIGGER_SLOT_NUM)
       ) dma_i (
           .clk_i,
@@ -594,14 +592,27 @@ module testharness #(
           .dlc_dir_o
       );
 
+      if(core_v_mini_mcu_pkg::EXTERNAL_DOMAINS > 0) begin: gen_simple_acc_pd
+        assign simple_acc_rst_n = external_subsystem_rst_n[0];
+        tc_clk_gating clk_gating_simple_acc_i (
+            .clk_i,
+            .en_i(external_subsystem_clkgate_en_n[0]),
+            .test_en_i(1'b0),
+            .clk_o(simple_acc_clk)
+        );
+      end else begin: gen_simple_acc_no_pd
+        assign simple_acc_rst_n = rst_ni;
+        assign simple_acc_clk   = clk_i;
+      end
+
       simple_accelerator #(
           .reg_req_t (reg_pkg::reg_req_t),
           .reg_rsp_t (reg_pkg::reg_rsp_t),
           .obi_req_t (obi_pkg::obi_req_t),
           .obi_resp_t(obi_pkg::obi_resp_t)
       ) simple_accelerator_i (
-          .clk_i,
-          .rst_ni,
+          .clk_i(simple_acc_clk),
+          .rst_ni(simple_acc_rst_n),
           .reg_req_i(ext_periph_slv_req[testharness_pkg::SIMPLE_ACC_IDX]),
           .reg_rsp_o(ext_periph_slv_rsp[testharness_pkg::SIMPLE_ACC_IDX]),
           .acc_read_ch0_req_o(ext_master_req[testharness_pkg::EXT_MASTER2_IDX]),
@@ -787,14 +798,14 @@ module testharness #(
           .DataWidth(32),
           .AxiAddrOffset(testharness_pkg::SL_EXT_START_ADDRESS)
       ) serial_link_xheep_wrapper_i (
-          .clk_i        (clk_i),
-          .rst_ni       (rst_ni),
-          .clk_reg_i    (clk_i),
-          .rst_reg_ni   (rst_ni),
-          .testmode_i   ('0),
-          .writer_req_i    (ext_slave_req[testharness_pkg::SL_EXT_IDX]),
-          .writer_rsp_i    (ext_slave_resp[testharness_pkg::SL_EXT_IDX]),
-          .reader_req_i (),
+          .clk_i,
+          .rst_ni,
+          .clk_reg_i     (clk_i),
+          .rst_reg_ni    (rst_ni),
+          .testmode_i    ('0),
+          .writer_req_i  (ext_slave_req[testharness_pkg::SL_EXT_IDX]),
+          .writer_rsp_i  (ext_slave_resp[testharness_pkg::SL_EXT_IDX]),
+          .reader_req_i  ('0),
           .reader_resp_o(),
           .cfg_req_i    (ext_periph_slv_req[testharness_pkg::SL_REG_IDX]),
           .cfg_rsp_o    (ext_periph_slv_rsp[testharness_pkg::SL_REG_IDX]),
@@ -803,10 +814,16 @@ module testharness #(
           .direct_write_req_o(/* unused */),
           .direct_write_resp_i('0),
           .ddr_i        (ddr_o_xheep),
-          .ddr_rcv_clk_i(ddr_clk_o_xheep),
-          .ddr_rcv_clk_o(ddr_clk_i_xheep),
+          .ddr_rcv_clk_i (ddr_clk_o_xheep),
+          .ddr_snd_clk_o (ddr_clk_i_xheep),
           .ddr_o        (ddr_i_xheep)
       );
+    %else:
+    assign ddr_clk_i_xheep='0;
+    assign gpio[1] = '0;
+    assign gpio[2] = '0;
+    assign gpio[3] = '0;
+    assign gpio[6] = '0;
     %endif
 
     end else begin : gen_DONT_USE_EXTERNAL_DEVICE_EXAMPLE

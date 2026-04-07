@@ -1,0 +1,26 @@
+CAPI=2:
+
+name: "x-heep:sim:sram_wrapper"
+description: "behavioral sim cells"
+
+# Copyright 2026 EPFL
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+
+filesets:
+  files_sim:
+    files:
+    - sram_wrapper.sv
+    file_type: systemVerilogSource
+
+  files_verilator_waiver:
+    files:
+    - sram_sim.vlt
+    file_type: vlt
+
+targets:
+  default:
+    filesets:
+    - tool_verilator? (files_verilator_waiver)
+    - files_sim

@@ -1,4 +1,5 @@
-from typing import Optional
+from typing import List, Optional
+from .linker_subsection import LinkerSubsection
 
 
 class LinkerSection:
@@ -23,10 +24,25 @@ class LinkerSection:
     end: Optional[int]
     """The end address"""
 
-    def __init__(self, name: str, start: int, end: Optional[int]):
+    subsections: List[LinkerSubsection]
+    """The list of subsections that should be included in this section"""
+
+    def __init__(
+        self,
+        name: str,
+        start: int,
+        end: Optional[int],
+        subsections: Optional[List[LinkerSubsection]] = None,
+    ):
         self.name = name
         self.start = start
         self.end = end
+        # Default to a single input section with the same name as the region.
+        self.subsections = (
+            [LinkerSubsection(name, [name])]
+            if subsections is None
+            else list(subsections)
+        )
 
         self.check()
 
@@ -50,6 +66,12 @@ class LinkerSection:
             raise TypeError("start should be of type int")
         if type(self.end) is not int and self.end is not None:
             raise TypeError("end should be of type int")
+        if type(self.subsections) is not list:
+            raise TypeError("subsections should be of type list")
+        if not all(
+            type(subsection) is LinkerSubsection for subsection in self.subsections
+        ):
+            raise TypeError("subsections should contain only LinkerSubsection objects")
 
         if self.name == "":
             raise ValueError("name should not be empty")

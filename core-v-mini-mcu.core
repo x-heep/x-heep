@@ -4,7 +4,7 @@ CAPI=2:
 # Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 # SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
-name: openhwgroup.org:systems:core-v-mini-mcu:1.0.4
+name: openhwgroup.org:systems:core-v-mini-mcu:1.0.5
 description: CORE-V MINI-MCU Top.
 
 filesets:
@@ -60,22 +60,16 @@ filesets:
   rtl-simulation:
     depend:
     - pulp-platform.org::tech_cells_generic
-    files:
-    - hw/simulation/sram_wrapper.sv
-    - hw/simulation/pad_cell_bypass_input.sv
-    - hw/simulation/pad_cell_bypass_output.sv
-    - hw/simulation/pad_cell_inout.sv
-    - hw/simulation/pad_cell_input.sv
-    - hw/simulation/pad_cell_output.sv
-    file_type: systemVerilogSource
+    - x-heep:sim:sram_wrapper
+    - x-heep:sim:pad_cells
 
   x_heep_system:
     depend:
     - x-heep::packages
     - x-heep:ip:pad_control
+    - x-heep:ip:pad-ring
     files:
     - hw/system/x_heep_system.sv
-    - hw/system/pad_ring.sv
     file_type: systemVerilogSource
 
   tb-utils:
@@ -98,7 +92,6 @@ filesets:
     - hw/ip/fast_intr_ctrl/fast_intr_ctrl.vlt
     - hw/system/pad_control/pad_control.vlt
     - hw/system/x_heep_system.vlt
-    - hw/simulation/simulation.vlt
     - hw/ip/serial_link_xheep_wrapper/serial_link_xheep_wrapper.vlt
     file_type: vlt
 
@@ -116,11 +109,11 @@ filesets:
   rtl-sky130:
     files:
     - hw/asic/sky130/sram_wrapper.sv
-    - hw/vendor/openhwgroup_cv32e20/bhv/cve2_sim_clock_gate.sv #as for now use the simulation clk gating
-    - hw/vendor/openhwgroup_cv32e40p/bhv/cv32e40p_sim_clock_gate.sv
-    - hw/vendor/pulp_platform_tech_cells_generic/src/deprecated/pulp_clk_cells.sv #as for now use the simulation clk cells
-    - hw/vendor/pulp_platform_tech_cells_generic/src/deprecated/cluster_clk_cells.sv #as for now use the simulation clk cells
-    - hw/vendor/pulp_platform_tech_cells_generic/src/rtl/tc_clk.sv #as for now use the simulation clk cells
+    - hw/vendor/openhwgroup/cv32e20/bhv/cve2_sim_clock_gate.sv #as for now use the simulation clk gating
+    - hw/vendor/openhwgroup/cv32e40p/bhv/cv32e40p_sim_clock_gate.sv
+    - hw/vendor/pulp_platform/tech_cells_generic/src/deprecated/pulp_clk_cells.sv #as for now use the simulation clk cells
+    - hw/vendor/pulp_platform/tech_cells_generic/src/deprecated/cluster_clk_cells.sv #as for now use the simulation clk cells
+    - hw/vendor/pulp_platform/tech_cells_generic/src/rtl/tc_clk.sv #as for now use the simulation clk cells
     file_type: systemVerilogSource
 
   lib-sky130:
@@ -145,8 +138,8 @@ filesets:
 
   cfile_uartdpi:
     files:
-    - ./hw/vendor/lowrisc_opentitan/hw/dv/dpi/uartdpi/uartdpi.c
-    - ./hw/vendor/lowrisc_opentitan/hw/dv/dpi/uartdpi/uartdpi.h: { is_include_file: true }
+    - ./hw/vendor/lowrisc/opentitan/hw/dv/dpi/uartdpi/uartdpi.c
+    - ./hw/vendor/lowrisc/opentitan/hw/dv/dpi/uartdpi/uartdpi.h: { is_include_file: true }
     file_type: cSource
 
   pre_patch_modelsim_Makefile:
@@ -299,9 +292,7 @@ targets:
   default: &default_target
     filesets:
     - files_rtl_generic
-    - target_sim ? (rtl-simulation)
     - target_sim ? (tool_verilator? (files_verilator_waiver))
-    - target_sim_sc ? (rtl-simulation)
     - target_sim_sc ? (tool_verilator? (files_verilator_waiver))
     toplevel: [core_v_mini_mcu]
 
@@ -310,6 +301,7 @@ targets:
     default_tool: modelsim
     filesets_append:
     - tb-utils
+    - rtl-simulation
     - tool_modelsim? (pre_build_remote_bitbang)
     - tool_modelsim? (pre_build_uartdpi)
     - tool_modelsim? (pre_patch_modelsim_Makefile)
@@ -356,8 +348,8 @@ targets:
         - -pedanticerrors
         - -define MODELSIM
         vsim_options:
-        - -sv_lib ../../../hw/vendor/lowrisc_opentitan/hw/dv/dpi/uartdpi/uartdpi
-        - -sv_lib ../../../hw/vendor/pulp_platform_pulpissimo/rtl/tb/remote_bitbang/librbs
+        - -sv_lib ../../../hw/vendor/lowrisc/opentitan/hw/dv/dpi/uartdpi/uartdpi
+        - -sv_lib ../../../hw/vendor/pulp_platform/pulpissimo/rtl/tb/remote_bitbang/librbs
         - -voptargs=+acc=npr
       vcs:
         vcs_options:
@@ -379,8 +371,8 @@ targets:
       xcelium:
         xrun_options:
         - -vtimescale 1ns/10ps
-        - -sv_lib ../../../hw/vendor/lowrisc_opentitan/hw/dv/dpi/uartdpi/uartdpi.so
-        - -sv_lib ../../../hw/vendor/pulp_platform_pulpissimo/rtl/tb/remote_bitbang/librbs.so
+        - -sv_lib ../../../hw/vendor/lowrisc/opentitan/hw/dv/dpi/uartdpi/uartdpi.so
+        - -sv_lib ../../../hw/vendor/pulp_platform/pulpissimo/rtl/tb/remote_bitbang/librbs.so
         - -define XCELIUM
       verilator:
         mode: cc
@@ -404,6 +396,7 @@ targets:
     default_tool: verilator
     filesets_append:
     - tb-utils
+    - rtl-simulation
     - tool_verilator? (tb-sc-verilator)
     - "!integrated_heep? (x_heep_system)"
     toplevel:
@@ -587,13 +580,3 @@ targets:
       openroad:
         flow_path: flow/OpenROAD-flow-scripts/flow
         make_target: synth
-
-# Generators
-generators:
-  # Waivers generator for Verilator 5.XXX
-  waiver-v5-gen:
-    interpreter: python
-    command: util/waiver-gen.py
-    cache_type: input
-    file_input_parameters:
-    - waivers_v5 # list of .vlt files only required for Verilator 5.XXX

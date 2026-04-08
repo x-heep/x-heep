@@ -46,7 +46,9 @@ module serial_link_xheep_wrapper
     input logic [serial_link_minimum_axi_pkg::NumChannels-1:0] ddr_rcv_clk_i,
     output logic [serial_link_minimum_axi_pkg::NumChannels-1:0] ddr_snd_clk_o,
     input  logic [serial_link_minimum_axi_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_i,
-    output logic [serial_link_minimum_axi_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_o
+    output logic [serial_link_minimum_axi_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_o,
+
+    output logic intr_event_o
 
 );
 
@@ -191,7 +193,8 @@ module serial_link_xheep_wrapper
       .reader_we_i     (reader_req_i.we),
       .reader_rdata_o  (reader_resp_o.rdata),
       .writer_axi_req_i(fifo_axi_req),
-      .writer_axi_rsp_o(fifo_axi_rsp)
+      .writer_axi_rsp_o(fifo_axi_rsp),
+      .intr_event_o    (intr_event_o)
   );
 
   tc_clk_mux2 i_tc_reset_mux (

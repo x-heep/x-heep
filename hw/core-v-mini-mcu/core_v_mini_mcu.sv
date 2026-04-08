@@ -470,6 +470,8 @@ module core_v_mini_mcu
   // I2s
   logic i2s_rx_valid;
 
+  logic serial_link_fifo_not_empty;
+
   assign intr = {irq_fast, 4'b0, irq_external, 3'b0, rv_timer_intr[0], 3'b0, irq_software, 3'b0};
 
   assign fast_intr = {
@@ -656,6 +658,7 @@ module core_v_mini_mcu
       .spi_rx_valid_i(spi_rx_valid),
       .spi_tx_ready_i(spi_tx_ready),
       .i2s_rx_valid_i(i2s_rx_valid),
+      .serial_link_fifo_not_empty_i(serial_link_fifo_not_empty),
       .ext_peripheral_slave_req_o,
       .ext_peripheral_slave_resp_i,
       .ext_dma_slot_tx_i,
@@ -730,6 +733,7 @@ module core_v_mini_mcu
       .serial_link_direct_write_resp_i(serial_link_direct_write_resp),
       .serial_link_slave_req_i(serial_link_slave_req),
       .serial_link_slave_resp_o(serial_link_slave_resp),
+      .serial_link_fifo_not_empty_o(serial_link_fifo_not_empty),
       .uart_rx_i,
       .uart_tx_o
   );

@@ -100,6 +100,7 @@ module peripheral_subsystem
       input  obi_pkg::obi_resp_t serial_link_direct_write_resp_i,
       input  obi_pkg::obi_req_t  serial_link_slave_req_i,
       output obi_pkg::obi_resp_t serial_link_slave_resp_o,
+      output logic serial_link_fifo_not_empty_o,
     %endif
 
     // PDM2PCM Interface
@@ -677,7 +678,8 @@ module peripheral_subsystem
     .ddr_rcv_clk_i,         
     .ddr_i,                   
     .ddr_snd_clk_o,          
-    .ddr_o                   
+    .ddr_o,
+    .intr_event_o(serial_link_fifo_not_empty_o)   
   );
 % else:
     //Serial Link

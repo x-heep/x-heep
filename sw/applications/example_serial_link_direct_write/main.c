@@ -20,6 +20,8 @@
 #include "serial_link_xheep_wrapper_driver.h"
 #include "core_v_mini_mcu.h"
 #include "csr.h"
+#include "dma.h"
+#include "hart.h"
 #include "pad_control.h"
 #include "pad_control_regs.h"
 #include "example_serial_link_direct_write.h"

@@ -21,7 +21,8 @@ The serial link wrapper (`serial_link_xheep_wrapper`) extends the base PULP Seri
 - **Configurable payload**: The data to be transmitted, referred to as the payload, is declared in the `ip/serial_link/minimal_pkg.sv` package.  
   - This ensures that the vendored serial link files remain untouched.
   - Other configurable parameters are also declared in the same package.
-- **DMA support**: Both send and receive paths support DMA transfers via `sl_dma_send` and `sl_dma_read`.
+- **DMA support**: Both send and receive paths support DMA transfers via `sl_dma_send`, `sl_dma_read`, and `sl_wrapper_dma_read_launch`.
+- **HW-triggered DMA**: The FIFO not-empty signal is wired to DMA global trigger slot 5 (`DMA_TRIG_SLOT_SL_FIFO_RX`), enabling fully autonomous DMA transfers without CPU involvement per word.
 
 ## Configuration
 
@@ -50,9 +51,19 @@ The serial link wrapper (`serial_link_xheep_wrapper`) extends the base PULP Seri
 ### Usage FIFO Mode
 1. Call `sl_init` to program the serial link registers.
 2. Receiver: call `sl_wrapper_set_rx_mode(SL_WRAPPER_RX_MODE_FIFO)`
+
+#### With CPU polling : 
 3. Receiver: read from `SL_READ` (blocks until data is available)
-4. Sender: write to `SL_WRITE`
+4. Sender: write to `SL_WRITE`or use `sl_dma_send`
 5. Data is transferred over DDR Serial Link and appears in the receiver FIFO
+
+#### With HW-Triggered DMA : 
+3. Receiver: call `sl_wrapper_dma_read_launch(dst, count)`, returns immediately
+4. Receiver: CPU is free to do useful work while polling `sl_wrapper_dma_intr_flag`
+5. Sender: write data to `SL_WRITE` or use `sl_dma_send`
+6. Data is transferred over DDR Serial Link and appears in the receiver FIFO
+7. FIFO not-empty signal triggers DMA autonomously, word by word
+7. DMA done fast interrupt fires when all `count` words are transferred -> `sl_wrapper_dma_intr_flag` set
 
 ### Usage Direct Write Mode
 1. Call `sl_init` to program the serial link registers.
@@ -80,6 +91,11 @@ In direct write mode, there are no restrictions on the target address. Be carefu
 
 ```{note}
 For multi-test sequences on FPGA (i.e., switching mid-application between FIFO and direct write modes), use bidirectional synchronization (e.g., the receiver signals readiness to the sender via direct write) to avoid timing-dependent desynchronization between boards (see `example_serial_link_direct_write`). This issue arises because `sl_wrapper_set_rx_mode` must be set to the correct mode before receiving data. If you switch modes mid-application and there is a delay on the RX side, incoming data may be missed.
+```
+
+
+```{note}
+The HW-triggered DMA (`sl_wrapper_dma_read_launch`) fires a single DMA done interrupt only after all requested words have been transferred, not one interrupt per word. 
 ```
 
 ## FPGA

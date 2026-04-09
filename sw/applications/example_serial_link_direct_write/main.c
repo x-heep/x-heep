@@ -125,8 +125,6 @@ int main(int argc, char *argv[]) {
             PRINTF("FIFO OK [%d]: 0x%08x\n", i, rcv_data);
         }
     }
-
-    sl_wrapper_direct_write(SYNC_ADDR, READY);
 #endif
 
     // Test 2: Direct write mode
@@ -146,6 +144,7 @@ int main(int argc, char *argv[]) {
         dw_cycles[s] = cycles_end - cycles_start;
     }
 #else
+    sl_wrapper_direct_write(SYNC_ADDR, READY);
     PRINTF("--- Test 2: Direct write mode ---\n");
     for (int i = 0; i < NUM_WORDS; i++) {
         volatile uint32_t *target = (volatile uint32_t *)(DIRECT_WRITE_TARGET_ADDR + i * 4);
@@ -159,8 +158,6 @@ int main(int argc, char *argv[]) {
             PRINTF("DIRECT WRITE OK [%d]: 0x%08x\n", i, rcv_data);
         }
     }
-
-    sl_wrapper_direct_write(SYNC_ADDR, READY);
 #endif
 
 #if PERF_EVAL
@@ -173,17 +170,30 @@ int main(int argc, char *argv[]) {
                n, fifo_cycles[s], fifo_cycles[s] / n, dw_cycles[s], dw_cycles[s] / n);
     }
 #else
-    // Test 3: FIFO mode with DMA
-    PRINTF("--- Test 3: FIFO mode with DMA ---\n");
+    // Test 3: FIFO mode with HW-triggered DMA
+    PRINTF("--- Test 3: FIFO mode with HW-triggered DMA ---\n");
     sl_wrapper_set_rx_mode(SL_WRAPPER_RX_MODE_FIFO);
-    for (int i = 0; i < NUM_WORDS; i++) dma_buffer[i] = 0;
-    sl_dma_read(dma_buffer, (uint32_t *)SL_READ, NUM_WORDS);
+
+    sl_wrapper_direct_write(SYNC_ADDR, READY);
+
+    dma_config_flags_t res = sl_wrapper_dma_read_launch(dma_buffer, NUM_WORDS);
+    if (res != DMA_CONFIG_OK) {
+        PRINTF("DMA launch failed: %d\n", res);
+        return EXIT_FAILURE;
+    }
+
+    while (!sl_wrapper_dma_intr_flag) {
+        wait_for_interrupt();
+    }
+    sl_wrapper_dma_intr_flag = 0;
+
     for (int i = 0; i < NUM_WORDS; i++) {
         if (dma_buffer[i] != (uint32_t)test_data[i]) {
-            PRINTF("FIFO WITH DMA ERROR [%d]: got 0x%08x, expected 0x%08x\n", i, dma_buffer[i], test_data[i]);
+            PRINTF("FIFO HW-DMA ERROR [%d]: got 0x%08x, expected 0x%08x\n",
+                i, dma_buffer[i], test_data[i]);
             errors++;
         } else {
-            PRINTF("FIFO WITH DMA OK [%d]: 0x%08x\n", i, dma_buffer[i]);
+            PRINTF("FIFO HW-DMA OK [%d]: 0x%08x\n", i, dma_buffer[i]);
         }
     }
 #endif
@@ -258,7 +268,7 @@ int main(int argc, char *argv[]) {
     }
 #else
     // Test 3: FIFO mode with DMA
-    PRINTF("--- Test 3: FIFO mode with DMA ---\n");
+    PRINTF("--- Test 3: FIFO mode with HW-triggered DMA ---\n");
     sl_dma_send((uint32_t *)test_data, (uint32_t *)SL_WRITE, NUM_WORDS);
     for (int i = 0; i < NUM_WORDS; i++)
         PRINTF("FIFO with DMA sent [%d]: 0x%08x\n", i, test_data[i]);
@@ -286,6 +296,8 @@ int main(int argc, char *argv[]) {
 // #include "serial_link_xheep_wrapper_driver.h"
 // #include "core_v_mini_mcu.h"
 // #include "csr.h"
+// #include "dma.h"
+// #include "hart.h"
 // #include "pad_control.h"
 // #include "pad_control_regs.h"
 
@@ -421,11 +433,12 @@ int main(int argc, char *argv[]) {
 //         }
 //     }
 
-//     sl_wrapper_direct_write(SYNC_ADDR, READY);
-
 //     // Test 2: Direct write mode
 //     PRINTF("--- Test 2: Direct write mode ---\n");
 //     sl_wrapper_set_rx_mode(SL_WRAPPER_RX_MODE_DIRECT_WRITE);
+
+//     sl_wrapper_direct_write(SYNC_ADDR, READY);
+
 //     for (int i = 0; i < NUM_WORDS; i++) {
 //         volatile uint32_t *target = (volatile uint32_t *)(DIRECT_WRITE_TARGET_ADDR + i * 4);
 //         *target = 0; // clear before waiting
@@ -439,22 +452,31 @@ int main(int argc, char *argv[]) {
 //         }
 //     }
 
+//     // Test 3: FIFO mode with HW-triggered DMA
+//     PRINTF("--- Test 3: FIFO mode with HW-triggered DMA ---\n");
+//     sl_wrapper_set_rx_mode(SL_WRAPPER_RX_MODE_FIFO);
+
 //     sl_wrapper_direct_write(SYNC_ADDR, READY);
 
-//     // Test 3: FIFO mode with dma
-//     PRINTF("--- Test 3: FIFO mode with dma---\n");
-//     sl_wrapper_set_rx_mode(SL_WRAPPER_RX_MODE_FIFO);
-     
-//     for (int i = 0; i < NUM_WORDS; i++) dma_buffer[i] = 0;
+//     dma_config_flags_t res = sl_wrapper_dma_read_launch(dma_buffer, NUM_WORDS);
+//     if (res != DMA_CONFIG_OK) {
+//         PRINTF("DMA launch failed: %d\n", res);
+//         return EXIT_FAILURE;
+//     }
 
-//     sl_dma_read(dma_buffer, (uint32_t *)SL_READ, NUM_WORDS);
+//     while (!sl_wrapper_dma_intr_flag) {
+//         wait_for_interrupt();
+//     }
+//     sl_wrapper_dma_intr_flag = 0;
+//       PRINTF("DMA complete!\n");
 
 //     for (int i = 0; i < NUM_WORDS; i++) {
-//         if (dma_buffer[i] != (uint32_t)test_data[i]){
-//             PRINTF("FIFO WITH DMA ERROR [%d]: got 0x%08x, expected 0x%08x\n", i, dma_buffer[i], test_data[i]);
+//         if (dma_buffer[i] != (uint32_t)test_data[i]) {
+//             PRINTF("FIFO HW-DMA ERROR [%d]: got 0x%08x, expected 0x%08x\n",
+//                 i, dma_buffer[i], test_data[i]);
 //             errors++;
 //         } else {
-//             PRINTF("FIFO WITH DMA OK [%d]: 0x%08x\n", i, dma_buffer[i]);
+//             PRINTF("FIFO HW-DMA OK [%d]: 0x%08x\n", i, dma_buffer[i]);
 //         }
 //     }
 

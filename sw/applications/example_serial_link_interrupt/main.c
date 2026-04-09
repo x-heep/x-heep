@@ -12,8 +12,6 @@
 #include "hart.h"
 #include "handler.h"
 #include "core_v_mini_mcu.h"
-#include "rv_plic.h"
-#include "rv_plic_regs.h"
 #include "dma.h"
 #include "serial_link_single_channel_regs.h"
 #include "serial_link_regs.h"
@@ -47,23 +45,11 @@ const int32_t test_data[NUM_WORDS] = {0x11111111, 0x22222222, 0x33333333, 0x4444
 // DMA destination buffer
 static uint32_t dma_buffer[NUM_WORDS] __attribute__((aligned(4))) = {0};
 
-// // Flags
-// volatile uint8_t sl_fifo_intr_flag = 0;
-// volatile uint8_t dma_done_flag = 0;
+volatile int8_t dma_intr_flag = 0;
 
-// // Serial Link FIFO interrupt handler 
-// void handler_irq_serial_link_fifo(uint32_t id) {
-//     PRINTF("handler called!\n");
-//     // Disable interrupt to prevent re-triggering while DMA runs
-//     plic_irq_set_enabled(SERIAL_LINK_FIFO_INTR_EVENT, kPlicToggleDisabled);
-//     // sl_dma_read(dma_buffer, (uint32_t *)SL_READ, NUM_WORDS);
-//     sl_fifo_intr_flag = 1;
-// }
-
-// // DMA done interrupt handler (overrides weak definition)
-// void dma_intr_handler_trans_done(uint8_t channel) {
-//     dma_done_flag = 1;
-// }
+void dma_intr_handler_trans_done(uint8_t channel) {
+    dma_intr_flag = 1;
+}
 
 int main(int argc, char *argv[]) {
 
@@ -132,7 +118,7 @@ int main(int argc, char *argv[]) {
         .dst        = &tgt_dst,
         .size_d1_du = NUM_WORDS,
         .dim        = DMA_DIM_CONF_1D,
-        .end        = DMA_TRANS_END_INTR_WAIT,
+        .end        = DMA_TRANS_END_INTR,
         .channel    = 0,
     };
 
@@ -157,13 +143,16 @@ int main(int argc, char *argv[]) {
 
     PRINTF("DMA armed, waiting for Serial Link FIFO data...\n");
 
-    // DMA now waits for HW trigger (FIFO not-empty).
-    // dma_launch enters WFI, CPU wakes only on DMA done interrupt.
     res = dma_launch(&trans);
     if (res != DMA_CONFIG_OK) {
         PRINTF("DMA launch failed: %d\n", res);
         return EXIT_FAILURE;
     }
+
+    while (!dma_intr_flag) {
+        wait_for_interrupt();
+    }
+    dma_intr_flag = 0;
 
     PRINTF("DMA complete! Verifying data...\n");
 

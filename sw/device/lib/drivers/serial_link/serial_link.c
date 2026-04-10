@@ -184,3 +184,86 @@ void __attribute__ ((optimize("00"))) sl_dma_read( uint32_t *dst_d, uint32_t *ds
             CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
         }
 }
+
+#define SL_RAW_REG(offset) \
+    ((volatile uint32_t *)(SERIAL_LINK_REG_START_ADDRESS + (offset)))
+
+void __attribute__((optimize("O0"))) sl_raw_mode_enable(uint8_t ch_sel, uint8_t ch_mask) {
+    volatile uint32_t *ctrl = (volatile uint32_t *)CTRL_REG_ADDR;
+
+    // Re-assert AXI isolation, raw mode and AXI are mutually exclusive
+    *ctrl |= (1u << SERIAL_LINK_SINGLE_CHANNEL_CTRL_AXI_IN_ISOLATE_BIT);
+    *ctrl |= (1u << SERIAL_LINK_SINGLE_CHANNEL_CTRL_AXI_OUT_ISOLATE_BIT);
+
+    // Clear TX FIFO before enabling
+    *SL_RAW_REG(SERIAL_LINK_SINGLE_CHANNEL_RAW_MODE_OUT_DATA_FIFO_CTRL_REG_OFFSET)
+        = (1u << SERIAL_LINK_SINGLE_CHANNEL_RAW_MODE_OUT_DATA_FIFO_CTRL_CLEAR_BIT);
+
+    // Configure RX channel select
+    *SL_RAW_REG(SERIAL_LINK_SINGLE_CHANNEL_RAW_MODE_IN_CH_SEL_REG_OFFSET) = ch_sel;
+
+    // Configure TX channel mask
+    *SL_RAW_REG(SERIAL_LINK_SINGLE_CHANNEL_RAW_MODE_OUT_CH_MASK_REG_OFFSET) = ch_mask;
+
+    // Enable raw mode
+    *SL_RAW_REG(SERIAL_LINK_SINGLE_CHANNEL_RAW_MODE_EN_REG_OFFSET) = 1u;
+
+    // Enable TX output, must be held high while sending
+    *SL_RAW_REG(SERIAL_LINK_SINGLE_CHANNEL_RAW_MODE_OUT_EN_REG_OFFSET) = 1u;
+}
+
+void __attribute__((optimize("O0"))) sl_raw_mode_disable(void) {
+    // Disable TX output first, then raw mode
+    *SL_RAW_REG(SERIAL_LINK_SINGLE_CHANNEL_RAW_MODE_OUT_EN_REG_OFFSET) = 0u;
+    *SL_RAW_REG(SERIAL_LINK_SINGLE_CHANNEL_RAW_MODE_EN_REG_OFFSET) = 0u;
+
+    // De-assert AXI isolation to restore normal AXI operation
+    volatile uint32_t *ctrl = (volatile uint32_t *)CTRL_REG_ADDR;
+    *ctrl &= ~(1u << SERIAL_LINK_SINGLE_CHANNEL_CTRL_AXI_IN_ISOLATE_BIT);
+    *ctrl &= ~(1u << SERIAL_LINK_SINGLE_CHANNEL_CTRL_AXI_OUT_ISOLATE_BIT);
+}
+
+void __attribute__((optimize("O0"))) sl_raw_mode_send_word(uint8_t data) {
+    // Wait until TX FIFO has space
+    while (*SL_RAW_REG(SERIAL_LINK_SINGLE_CHANNEL_RAW_MODE_OUT_DATA_FIFO_CTRL_REG_OFFSET)
+           & (1u << SERIAL_LINK_SINGLE_CHANNEL_RAW_MODE_OUT_DATA_FIFO_CTRL_IS_FULL_BIT));
+
+    *SL_RAW_REG(SERIAL_LINK_SINGLE_CHANNEL_RAW_MODE_OUT_DATA_FIFO_REG_OFFSET) = data;
+}
+
+void __attribute__((optimize("O0"))) sl_raw_mode_send(uint8_t *data, uint32_t count) {
+    for (uint32_t i = 0; i < count; i++) {
+        sl_raw_mode_send_word(data[i]);
+    }
+}
+
+uint8_t __attribute__((optimize("O0"))) sl_raw_mode_recv_word(void) {
+    // Wait until data is valid on the selected channel
+    while (!(*SL_RAW_REG(SERIAL_LINK_SINGLE_CHANNEL_RAW_MODE_IN_DATA_VALID_REG_OFFSET)));
+
+    // Reading IN_DATA automatically pops the entry (hwre: true in hjson)
+    return (uint8_t)(*SL_RAW_REG(SERIAL_LINK_SINGLE_CHANNEL_RAW_MODE_IN_DATA_REG_OFFSET)
+            & SERIAL_LINK_SINGLE_CHANNEL_RAW_MODE_IN_DATA_RAW_MODE_IN_DATA_MASK);
+}
+
+void __attribute__((optimize("O0"))) sl_raw_mode_recv(uint8_t *dst, uint32_t count) {
+    for (uint32_t i = 0; i < count; i++) {
+        dst[i] = sl_raw_mode_recv_word();
+    }
+}
+
+uint8_t __attribute__((optimize("O0"))) sl_raw_mode_tx_full(void) {
+    return (*SL_RAW_REG(SERIAL_LINK_SINGLE_CHANNEL_RAW_MODE_OUT_DATA_FIFO_CTRL_REG_OFFSET)
+            >> SERIAL_LINK_SINGLE_CHANNEL_RAW_MODE_OUT_DATA_FIFO_CTRL_IS_FULL_BIT) & 1u;
+}
+
+uint8_t __attribute__((optimize("O0"))) sl_raw_mode_tx_fill_state(void) {
+    return (*SL_RAW_REG(SERIAL_LINK_SINGLE_CHANNEL_RAW_MODE_OUT_DATA_FIFO_CTRL_REG_OFFSET)
+            >> SERIAL_LINK_SINGLE_CHANNEL_RAW_MODE_OUT_DATA_FIFO_CTRL_FILL_STATE_OFFSET)
+           & SERIAL_LINK_SINGLE_CHANNEL_RAW_MODE_OUT_DATA_FIFO_CTRL_FILL_STATE_MASK;
+}
+
+void __attribute__((optimize("O0"))) sl_raw_mode_tx_clear(void) {
+    *SL_RAW_REG(SERIAL_LINK_SINGLE_CHANNEL_RAW_MODE_OUT_DATA_FIFO_CTRL_REG_OFFSET)
+        = (1u << SERIAL_LINK_SINGLE_CHANNEL_RAW_MODE_OUT_DATA_FIFO_CTRL_CLEAR_BIT);
+}

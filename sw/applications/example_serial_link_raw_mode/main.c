@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 //
 // Description: Test application for Serial Link Raw Mode.
-//              Demonstrates no-protocol 16-bit word transfers over the
+//              Demonstrates no-protocol 8-bit word transfers over the
 //              DDR physical layer, bypassing AXI framing entirely.
 //              Also verifies AXI mode is correctly restored after raw mode.
 

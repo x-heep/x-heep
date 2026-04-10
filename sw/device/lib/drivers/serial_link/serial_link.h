@@ -54,22 +54,6 @@ void reg_config(volatile uint32_t * addr);
 void reg_config_multi(void);
 
 /**
- * @brief Enable RAW mode for single-channel Serial Link.
- *
- * RAW mode allows direct access to the SL input/output data paths,
- * bypassing higher-level protocol layers.
- *
- * This function:
- *  - Enables RAW mode
- *  - Selects the input channel
- *  - Enables output channel masking
- *  - Enables RAW-mode FIFOs and data paths
- *
- * RAW mode usage and limitations are documented in the official SL repository.
- */
-void raw_mode_en(void);
-
-/**
  * @brief Disable AXI isolation for the Serial Link IP.
  *
  * When AXI isolation is enabled, the SL is disconnected from the AXI fabric.
@@ -142,6 +126,8 @@ void wait_for_interrupt(void);
  *
  * Must be called after sl_init(). Call sl_raw_mode_disable() to return
  * to normal AXI operation.
+ * 
+ * RAW mode usage and limitations are documented in the official SL repository.
  *
  * @param ch_sel   RX channel to listen on. Always 0 for this single-channel
  *                 config (1 channel of 4 lanes). Parameter kept for

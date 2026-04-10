@@ -11,6 +11,7 @@ The serial link wrapper (`serial_link_xheep_wrapper`) extends the base PULP Seri
 - **FIFO mode** (default): Incoming data is stored in a memory-mapped FIFO, which the CPU reads via polling or DMA.
 - **Direct write mode**: Incoming bus transactions are routed directly into the receiving X-HEEP's memory space, bypassing the FIFO entirely.
 
+The base PULP Serial Link IP also provides a **Raw mode** which bypasses the AXI data link layer entirely, allowing direct 8-bit transfers over the DDR physical layer with no protocol overhead.
 
 ## Features
 
@@ -23,6 +24,7 @@ The serial link wrapper (`serial_link_xheep_wrapper`) extends the base PULP Seri
   - Other configurable parameters are also declared in the same package.
 - **DMA support**: Both send and receive paths support DMA transfers via `sl_dma_send`, `sl_dma_read`, and `sl_wrapper_dma_read_launch`.
 - **HW-triggered DMA**: The FIFO not-empty signal is wired to DMA global trigger slot 5 (`DMA_TRIG_SLOT_SL_FIFO_RX`), enabling fully autonomous DMA transfers without CPU involvement per word.
+- **Raw mode**: Bypasses the AXI data link layer entirely. Data is transferred as raw 8-bit words directly over the DDR physical layer with no framing, no credits, and no flow control. 
 
 ## Configuration
 
@@ -46,6 +48,7 @@ The serial link wrapper (`serial_link_xheep_wrapper`) extends the base PULP Seri
 ## Software Application
 
 - A software driver for the wrapper has been implemented in `sw/device/lib/drivers/serial_link/serial_link_xheep_wrapper_driver`. All functions are documented in the corresponding `.h` file.
+- Raw mode functions are implemented in `sw/device/lib/drivers/serial_link/serial_link`. All functions are documented in the corresponding `.h` file.
 - Use `sl_init` to initialize the peripheral and program all required registers before transmitting data.
 
 ### Usage FIFO Mode
@@ -72,12 +75,20 @@ The serial link wrapper (`serial_link_xheep_wrapper`) extends the base PULP Seri
 4. Sender: call `sl_wrapper_direct_write(dest_offset, data)`
 5. Data is transferred over DDR Serial Link and is written directly to `dest_offset` in the receiver RAM
 
+### Usage Raw Mode
+1. Call `sl_init` to program the serial link registers.
+2. Both boards: call `sl_raw_mode_enable(0, 0x1)` :  re-asserts AXI isolation, clears TX FIFO, configures channel 0.
+3. Sender: call `sl_raw_mode_send(data, count)` : blocks per word until TX FIFO has space.
+4. Receiver: call `sl_raw_mode_recv(dst, count)` : blocks per word until `RAW_MODE_IN_DATA_VALID` is set.
+5. Both boards: call `sl_raw_mode_disable()` to restore normal AXI operation.
+
 ### Test Applications
 
 | Application | Description |
 |-------------|-------------|
 | `example_serial_link_direct_write` | Functional test of FIFO (with and without DMA) and direct write modes (test harness simulation + FPGA) with bidirectional sync (FPGA) |
 | `example_serial_link_performance` | Performance evaluation: cycles/word for FIFO and direct write (FPGA) |
+| `example_serial_link_raw_mode` | Functional test of raw mode 8-bit transfers and AXI restore after raw mode (FPGA only) |
 
 ---
 
@@ -93,9 +104,21 @@ In direct write mode, there are no restrictions on the target address. Be carefu
 For multi-test sequences on FPGA (i.e., switching mid-application between FIFO and direct write modes), use bidirectional synchronization (e.g., the receiver signals readiness to the sender via direct write) to avoid timing-dependent desynchronization between boards (see `example_serial_link_direct_write`). This issue arises because `sl_wrapper_set_rx_mode` must be set to the correct mode before receiving data. If you switch modes mid-application and there is a delay on the RX side, incoming data may be missed.
 ```
 
-
 ```{note}
 The HW-triggered DMA (`sl_wrapper_dma_read_launch`) fires a single DMA done interrupt only after all requested words have been transferred, not one interrupt per word. 
+```
+
+```{note}
+Raw mode data width is 8 bits (2 × NumLanes = 2 × 4) for this configuration.
+The register file exposes 16-bit fields (generated with default NumLanes=8) but
+only the lower 8 bits are connected to hardware. Upper 8 bits are ignored on TX
+and always zero on RX.
+```
+
+```{warning}
+Raw mode and AXI mode are mutually exclusive. `sl_raw_mode_enable()` automatically
+re-asserts AXI isolation before switching modes. Always call `sl_raw_mode_disable()`
+when done to restore AXI operation.
 ```
 
 ## FPGA

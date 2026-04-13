@@ -124,6 +124,12 @@ extern "C" {
 % if not user_peripheral_domain.contains_peripheral('serial_link_reg'):
 #define SERIAL_LINK_REG_START_ADDRESS 0
 % endif
+% if not user_peripheral_domain.contains_peripheral('serial_link_receiver_fifo'):
+#define SERIAL_LINK_RECEIVER_FIFO_START_ADDRESS 0 
+% endif
+% if not user_peripheral_domain.contains_peripheral('serial_link_wrapper_mux'):
+#define SERIAL_LINK_WRAPPER_REG_START_ADDRESS 0  
+% endif
 // End of the section
 
 #define EXT_SLAVE_START_ADDRESS 0x${ext_slave_start_address}
@@ -134,11 +140,9 @@ extern "C" {
 #define FLASH_MEM_SIZE 0x${flash_mem_size_address}
 #define FLASH_MEM_END_ADDRESS (FLASH_MEM_START_ADDRESS + FLASH_MEM_SIZE)
 
-% if user_peripheral_domain.contains_peripheral('serial_link_reg'):
 #define SERIAL_LINK_START_ADDRESS 0x${serial_link_start_address}
 #define SERIAL_LINK_SIZE 0x${serial_link_size_address}
 #define SERIAL_LINK_END_ADDRESS (SERIAL_LINK_START_ADDRESS + SERIAL_LINK_SIZE)
-%endif
 
 #define QTY_INTR ${len(interrupts)}
 % for key, value in interrupts.items():

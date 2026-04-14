@@ -40,7 +40,7 @@ class BasePeripheralDomain(PeripheralDomain):
         Fast_intr_ctrl(),
         Ext_peripheral(),
         # Pad_control(),
-        GPIO_ao(),
+        # GPIO_ao(),
     ]
 
     def __init__(self, start_address: int = 0x20000000, length: int = 0x00100000):

@@ -26,8 +26,8 @@ MEMORY
 }
 
 /*
- * This linker script try to put data in ram1 and code
- * in ram0.
+ * This linker script tries to put writable data in ram1 and executable /
+ * read-only sections in ram0.
 */
 
 SECTIONS
@@ -83,12 +83,8 @@ SECTIONS
   /* read-only sections */
   .rodata         :
   {
-    *(.rodata .rodata.* .gnu.linkonce.r.*)
+    *(.rodata .rodata* .gnu.linkonce.r.*)
     *(.srodata.cst16) *(.srodata.cst8) *(.srodata.cst4) *(.srodata.cst2) *(.srodata .srodata.*)
-  } >ram0
-  .rodata1        :
-  {
-    *(.rodata1)
   } >ram0
 
   /* second level sbss and sdata, I don't think we need this */

@@ -479,12 +479,11 @@ class Desc:
                 "and mapping at the same time (see issue #2317).",
             )
 
-        # If a patch_dir is defined and there is no mapping, we will look in
-        # that directory for patches and apply them in (the only) directory
-        # that we copy stuff into.
+        # If a patch_dir is defined, we will look in that directory for patches
+        # and apply them in the directory where we cloned the repository.
         #
-        # If there is a mapping check that there is a patch_dir if and only if
-        # least one mapping entry uses it.
+        # If there is a mapping check that there is a patch_dir if at leat one
+        # mapping entry uses it.
         if self.mapping is not None:
             if self.patch_dir is None:
                 if self.mapping.has_patch_dir():

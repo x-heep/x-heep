@@ -1,19 +1,13 @@
 // Copyright 2026 EPFL
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
-//
-// Description: Serial Link test application.
-//   - Default (PERF_EVAL=0): functional test of FIFO, direct write, and DMA modes.
-//   - With PERF_EVAL=1:     performance evaluation measuring sender/receiver-side
-//                           cycles for 1, 4, 8, 16, 32 words in FIFO and direct
-//                           write modes.
-//
-// Compile-time flags:
-//   FPGA_RECEIVE  1 = receiver board, 0 = sender board  (FPGA only)
-//   PERF_EVAL     1 = performance evaluation mode, 0 = functional test (default)
+// Description: Example application to test the Serial Link direct write mode.
+//              Tests both FIFO mode and direct write mode. 
 //
 // Note : for TARGET_SIM you need at least 3 ram_banks 
 
+#include <stdio.h>
+#include <stdlib.h>
 #include "serial_link_single_channel_regs.h"
 #include "serial_link_regs.h"
 #include "serial_link.h"
@@ -28,23 +22,25 @@
 
 int main(int argc, char *argv[]) {
 
+    // PAD MUX configuration
     pad_control_t pad_control;
     pad_control.base_addr = mmio_region_from_addr((uintptr_t)PAD_CONTROL_START_ADDRESS);
-    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_1_REG_OFFSET),  1);
-    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_2_REG_OFFSET),  1);
-    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_3_REG_OFFSET),  1);
-    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_6_REG_OFFSET),  1);
-    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_7_REG_OFFSET),  1);
-    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_8_REG_OFFSET),  1);
-    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_9_REG_OFFSET),  1);
+    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_1_REG_OFFSET), 1);
+    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_2_REG_OFFSET), 1);
+    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_3_REG_OFFSET), 1);
+    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_6_REG_OFFSET), 1);
+    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_7_REG_OFFSET), 1);
+    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_8_REG_OFFSET), 1);
+    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_9_REG_OFFSET), 1);
     pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_10_REG_OFFSET), 1);
 
     sl_init((volatile uint32_t *)CTRL_REG_ADDR, (int32_t *)CTRL_REG_ADDR);
-
+    
 #if TARGET_SIM
     // =========================================================================
-    // SIMULATION: single-board loopback functional test
+    // SIMULATION: single board loopback test
     // =========================================================================
+    
     sl_init((volatile uint32_t *)SL_EXTERNAL_CTRL_REG_ADDR,
             (int32_t *)SL_EXTERNAL_CTRL_REG_ADDR);
 
@@ -54,37 +50,53 @@ int main(int argc, char *argv[]) {
     PRINTF("=== Serial Link MUX Mode Test (SIM) ===\n");
 
     // Test 1: FIFO mode
+    volatile int32_t *addr_p_fifo   = SL_READ;
     sl_wrapper_set_rx_mode(SL_WRAPPER_RX_MODE_FIFO);
-    volatile int32_t *addr_p_fifo = SL_READ;
     for (int i = 0; i < NUM_WORDS; i++) {
         *SL_EXTERNAL_WRITE = test_data[i];
-        rcv_data = *addr_p_fifo;
-        if (rcv_data != test_data[i]) errors++;
+        rcv_data = *addr_p_fifo; 
+        if (rcv_data != test_data[i]) {
+            //PRINTF("FIFO ERROR [%d]: got 0x%08x, expected 0x%08x\n", i, rcv_data, test_data[i]);
+            errors++;
+        }
     }
 
     // Test 2: Direct write mode
     sl_wrapper_set_rx_mode(SL_WRAPPER_RX_MODE_DIRECT_WRITE);
-    volatile int32_t *addr_p_direct      = (volatile int32_t *)DIRECT_WRITE_TARGET_ADDR;
+    volatile int32_t *addr_p_direct = (volatile int32_t *)DIRECT_WRITE_TARGET_ADDR;
     volatile int32_t *addr_p_direct_send = SL_EXTERNAL_DIRECT_WRITE;
     for (int i = 0; i < NUM_WORDS; i++) addr_p_direct[i] = 0;
+
     for (int i = 0; i < NUM_WORDS; i++) {
         *(addr_p_direct_send + i) = test_data[i];
         rcv_data = addr_p_direct[i];
-        if (rcv_data != test_data[i]) errors++;
+        if (rcv_data != test_data[i]) {
+            //PRINTF("DIRECT WRITE ERROR [%d]: got 0x%08x, expected 0x%08x\n", i, rcv_data, test_data[i]);
+            errors++;
+        }
     }
 
-    // Test 3: FIFO mode with DMA
+    // Test 3: FIFO mode with dma
     sl_wrapper_set_rx_mode(SL_WRAPPER_RX_MODE_FIFO);
     uint32_t to_send[NUM_WORDS];
     for (int i = 0; i < NUM_WORDS; i++) to_send[i] = test_data[i];
     sl_dma_send(to_send, (uint32_t *)SL_EXTERNAL_WRITE, NUM_WORDS);
     sl_dma_read(dma_buffer, (uint32_t *)SL_READ, NUM_WORDS);
+
     for (int i = 0; i < NUM_WORDS; i++) {
-        if (dma_buffer[i] != (uint32_t)test_data[i]) errors++;
+        if (dma_buffer[i] != (uint32_t)test_data[i]) {
+            //PRINTF("ERROR [%d]: got 0x%08x expected 0x%08x\n", i, dma_buffer[i], test_data[i]);
+            errors++;
+        }
     }
 
-    if (errors == 0) { PRINTF("\nDONE - All tests passed\n"); return EXIT_SUCCESS; }
-    else             { PRINTF("\nFAILED - %d errors\n", errors); return EXIT_FAILURE; }
+    if (errors == 0) {
+        PRINTF("\nDONE - All tests passed\n");
+        return EXIT_SUCCESS;
+    } else {
+        PRINTF("\nFAILED - %d errors\n", errors);
+        return EXIT_FAILURE;
+    }
 
 #elif FPGA_RECEIVE
     // =========================================================================
@@ -92,32 +104,12 @@ int main(int argc, char *argv[]) {
     // =========================================================================
     int errors = 0;
     int32_t rcv_data;
-#if PERF_EVAL
-    uint32_t cycles_start, cycles_end;
-    uint32_t fifo_cycles[NUM_SIZES];
-    uint32_t dw_cycles[NUM_SIZES];
-    PRINTF("=== Serial Link Performance Evaluation (FPGA RECEIVE) ===\n");
-#else
+
     PRINTF("=== Serial Link MUX Mode Test (FPGA RECEIVE) ===\n");
-#endif
 
     // Test 1: FIFO mode
-    sl_wrapper_set_rx_mode(SL_WRAPPER_RX_MODE_FIFO);
-#if PERF_EVAL
-    for (int s = 0; s < NUM_SIZES; s++) {
-        int n = test_sizes[s];
-        volatile int32_t *addr_p_fifo = SL_READ;
-        rcv_data = *addr_p_fifo;  // warmup: discard dummy sent by sender
-        CSR_READ(CSR_REG_MCYCLE, &cycles_start);
-        for (int i = 0; i < n; i++) {
-            rcv_data = *addr_p_fifo;
-            if (rcv_data != test_data[i]) errors++;
-        }
-        CSR_READ(CSR_REG_MCYCLE, &cycles_end);
-        fifo_cycles[s] = cycles_end - cycles_start;
-    }
-#else
     PRINTF("--- Test 1: FIFO mode ---\n");
+    sl_wrapper_set_rx_mode(SL_WRAPPER_RX_MODE_FIFO);
     for (int i = 0; i < NUM_WORDS; i++) {
         rcv_data = *SL_READ;
         if (rcv_data != test_data[i]) {
@@ -127,31 +119,17 @@ int main(int argc, char *argv[]) {
             PRINTF("FIFO OK [%d]: 0x%08x\n", i, rcv_data);
         }
     }
-#endif
 
     // Test 2: Direct write mode
-    sl_wrapper_set_rx_mode(SL_WRAPPER_RX_MODE_DIRECT_WRITE);
-#if PERF_EVAL
-    for (int s = 0; s < NUM_SIZES; s++) {
-        int n = test_sizes[s];
-        for (int i = 0; i < n; i++)
-            *(volatile uint32_t *)(DIRECT_WRITE_TARGET_ADDR + i * 4) = 0;
-        CSR_READ(CSR_REG_MCYCLE, &cycles_start);
-        for (int i = 0; i < n; i++) {
-            volatile uint32_t *target = (volatile uint32_t *)(DIRECT_WRITE_TARGET_ADDR + i * 4);
-            while (*target == 0);
-            if ((int32_t)*target != test_data[i]) errors++;
-        }
-        CSR_READ(CSR_REG_MCYCLE, &cycles_end);
-        dw_cycles[s] = cycles_end - cycles_start;
-    }
-#else
-    sl_wrapper_direct_write(SYNC_ADDR, READY);
     PRINTF("--- Test 2: Direct write mode ---\n");
+    sl_wrapper_set_rx_mode(SL_WRAPPER_RX_MODE_DIRECT_WRITE);
+
+    sl_wrapper_direct_write(SYNC_ADDR, READY);
+
     for (int i = 0; i < NUM_WORDS; i++) {
         volatile uint32_t *target = (volatile uint32_t *)(DIRECT_WRITE_TARGET_ADDR + i * 4);
-        *target = 0;
-        while (*target == 0);
+        *target = 0; // clear before waiting
+        while(*target == 0); // poll until data arrives
         rcv_data = (int32_t)*target;
         if (rcv_data != test_data[i]) {
             PRINTF("DIRECT WRITE ERROR [%d]: got 0x%08x, expected 0x%08x\n", i, rcv_data, test_data[i]);
@@ -160,18 +138,7 @@ int main(int argc, char *argv[]) {
             PRINTF("DIRECT WRITE OK [%d]: 0x%08x\n", i, rcv_data);
         }
     }
-#endif
 
-#if PERF_EVAL
-    PRINTF("\n=== Receiver Cycle Counts ===\n");
-    PRINTF("Words | FIFO cycles | FIFO cyc/word | DW cycles | DW cyc/word\n");
-    PRINTF("------|-------------|---------------|-----------|------------\n");
-    for (int s = 0; s < NUM_SIZES; s++) {
-        int n = test_sizes[s];
-        PRINTF("%5d | %11u | %13u | %9u | %11u\n",
-               n, fifo_cycles[s], fifo_cycles[s] / n, dw_cycles[s], dw_cycles[s] / n);
-    }
-#else
     // Test 3: FIFO mode with HW-triggered DMA
     PRINTF("--- Test 3: FIFO mode with HW-triggered DMA ---\n");
     sl_wrapper_set_rx_mode(SL_WRAPPER_RX_MODE_FIFO);
@@ -188,6 +155,7 @@ int main(int argc, char *argv[]) {
         wait_for_interrupt();
     }
     sl_wrapper_dma_intr_flag = 0;
+      PRINTF("DMA complete!\n");
 
     for (int i = 0; i < NUM_WORDS; i++) {
         if (dma_buffer[i] != (uint32_t)test_data[i]) {
@@ -198,336 +166,53 @@ int main(int argc, char *argv[]) {
             PRINTF("FIFO HW-DMA OK [%d]: 0x%08x\n", i, dma_buffer[i]);
         }
     }
-#endif
 
-    if (errors == 0) { PRINTF("\nDONE - All tests passed\n"); return EXIT_SUCCESS; }
-    else             { PRINTF("\nFAILED - %d errors\n", errors); return EXIT_FAILURE; }
+    if (errors == 0) {
+        PRINTF("\nDONE - All tests passed\n");
+        return EXIT_SUCCESS;
+    } else {
+        PRINTF("\nFAILED - %d errors\n", errors);
+        return EXIT_FAILURE;
+    }
 
 #else
     // =========================================================================
     // FPGA SENDER
     // =========================================================================
-#if PERF_EVAL
-    uint32_t cycles_start, cycles_end;
-    uint32_t fifo_cycles[NUM_SIZES];
-    uint32_t dw_cycles[NUM_SIZES];
-    PRINTF("=== Serial Link Performance Evaluation (FPGA SEND) ===\n");
-#else
+    PRINTF("=== Serial Link MUX Mode Test (FPGA SEND) ===\n");
+
     sl_wrapper_set_rx_mode(SL_WRAPPER_RX_MODE_DIRECT_WRITE);
     volatile uint32_t *ready = (volatile uint32_t *)SYNC_ADDR;
-    PRINTF("=== Serial Link MUX Mode Test (FPGA SEND) ===\n");
-#endif
 
     // Test 1: FIFO mode
-#if PERF_EVAL
-    for (int s = 0; s < NUM_SIZES; s++) {
-        int n = test_sizes[s];
-        *SL_WRITE = 0xDEADBEEF;  // dummy word, receiver discards it
-        CSR_READ(CSR_REG_MCYCLE, &cycles_start);
-        for (int i = 0; i < n; i++) *SL_WRITE = test_data[i];
-        CSR_READ(CSR_REG_MCYCLE, &cycles_end);
-        fifo_cycles[s] = cycles_end - cycles_start;
-    }
-#else
     PRINTF("--- Test 1: FIFO mode ---\n");
     for (int i = 0; i < NUM_WORDS; i++) {
         *SL_WRITE = test_data[i];
         PRINTF("FIFO sent [%d]: 0x%08x\n", i, test_data[i]);
     }
 
-    while (*ready != READY);
-    *ready = 0;
-#endif
+    while(*ready != READY);
+    *ready = 0; // clear for next sync
 
     // Test 2: Direct write mode
-#if PERF_EVAL
-    for (int s = 0; s < NUM_SIZES; s++) {
-        int n = test_sizes[s];
-        CSR_READ(CSR_REG_MCYCLE, &cycles_start);
-        for (int i = 0; i < n; i++)
-            sl_wrapper_direct_write(DIRECT_WRITE_TARGET_ADDR + i * 4, (uint32_t)test_data[i]);
-        CSR_READ(CSR_REG_MCYCLE, &cycles_end);
-        dw_cycles[s] = cycles_end - cycles_start;
-    }
-#else
     PRINTF("--- Test 2: Direct write mode ---\n");
     for (int i = 0; i < NUM_WORDS; i++) {
         sl_wrapper_direct_write(DIRECT_WRITE_TARGET_ADDR + i * 4, (uint32_t)test_data[i]);
         PRINTF("Direct write sent [%d]: 0x%08x\n", i, test_data[i]);
     }
 
-    while (*ready != READY);
-    *ready = 0;
-#endif
+    while(*ready != READY);
+    *ready = 0; 
 
-#if PERF_EVAL
-    PRINTF("Words | FIFO cycles | FIFO cyc/word | DW cycles | DW cyc/word\n");
-    PRINTF("------|-------------|---------------|-----------|------------\n");
-    for (int s = 0; s < NUM_SIZES; s++) {
-        int n = test_sizes[s];
-        PRINTF("%5d | %11u | %13u | %9u | %11u\n",
-               n, fifo_cycles[s], fifo_cycles[s] / n, dw_cycles[s], dw_cycles[s] / n);
-    }
-#else
-    // Test 3: FIFO mode with DMA
-    PRINTF("--- Test 3: FIFO mode with HW-triggered DMA ---\n");
+    // Test 3: FIFO mode with dma  
+    PRINTF("--- Test 3: FIFO mode with dma---\n");
     sl_dma_send((uint32_t *)test_data, (uint32_t *)SL_WRITE, NUM_WORDS);
-    for (int i = 0; i < NUM_WORDS; i++)
-        PRINTF("FIFO with DMA sent [%d]: 0x%08x\n", i, test_data[i]);
-#endif
+    for (int i = 0; i < NUM_WORDS; i++) {
+        PRINTF("FIFO with dma sent [%d]: 0x%08x\n", i, test_data[i]);
+    }
 
     PRINTF("\nDONE\n");
     return EXIT_SUCCESS;
-
-#endif  // TARGET_SIM / FPGA_RECEIVE / FPGA_SENDER
+#endif
 }
-
-// // Copyright 2026 EPFL
-// // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
-// // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
-// // Description: Example application to test the Serial Link direct write mode.
-// //              Tests both FIFO mode and direct write mode. 
-// //
-// // Note : for TARGET_SIM you need at least 3 ram_banks 
-
-// #include <stdio.h>
-// #include <stdlib.h>
-// #include "serial_link_single_channel_regs.h"
-// #include "serial_link_regs.h"
-// #include "serial_link.h"
-// #include "serial_link_xheep_wrapper_driver.h"
-// #include "core_v_mini_mcu.h"
-// #include "csr.h"
-// #include "dma.h"
-// #include "hart.h"
-// #include "pad_control.h"
-// #include "pad_control_regs.h"
-
-// // 1 = receiver board, 0 = sender board (FPGA only)
-// #define FPGA_RECEIVE 1
-
-// /* By default, printfs are activated for FPGA and disabled for simulation. */
-// #define PRINTF_IN_FPGA  1
-// #define PRINTF_IN_SIM   1
-
-// #if TARGET_SIM && PRINTF_IN_SIM
-//     #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
-// #elif PRINTF_IN_FPGA && !TARGET_SIM
-//     #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
-// #else
-//     #define PRINTF(...)
-// #endif
-
-// #define DIRECT_WRITE_TARGET_ADDR    0x0000F800
-// #define SYNC_ADDR                   0x00007F00
-// #define READY                       0x00000001
-
-// #define NUM_WORDS                   4
-// const int32_t test_data[NUM_WORDS] = {0x11111111, 0x22222222, 0x33333333, 0x44444444};
-
-// static uint32_t dma_buffer[NUM_WORDS] __attribute__((aligned(4))) = {0};
-
-// // Simulation only
-// #if TARGET_SIM
-//     #define EXT_SLAVE_LENGTH            0x400
-//     #define SL_EXTERNAL_WRITE           (volatile int32_t *)(EXT_SLAVE_START_ADDRESS + EXT_SLAVE_LENGTH)
-//     #define SL_EXTERNAL_CTRL_REG_ADDR   (int32_t *)(EXT_PERIPHERAL_START_ADDRESS + 0x06000 + SERIAL_LINK_SINGLE_CHANNEL_CTRL_REG_OFFSET)
-//     #define SL_EXTERNAL_DIRECT_WRITE    (int32_t *)(EXT_SLAVE_START_ADDRESS + EXT_SLAVE_LENGTH + DIRECT_WRITE_TARGET_ADDR)
-// #endif
-
-// int main(int argc, char *argv[]) {
-
-//     // PAD MUX configuration
-//     pad_control_t pad_control;
-//     pad_control.base_addr = mmio_region_from_addr((uintptr_t)PAD_CONTROL_START_ADDRESS);
-//     pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_1_REG_OFFSET), 1);
-//     pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_2_REG_OFFSET), 1);
-//     pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_3_REG_OFFSET), 1);
-//     pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_6_REG_OFFSET), 1);
-//     pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_7_REG_OFFSET), 1);
-//     pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_8_REG_OFFSET), 1);
-//     pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_9_REG_OFFSET), 1);
-//     pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_10_REG_OFFSET), 1);
-
-//     sl_init((volatile uint32_t *)CTRL_REG_ADDR, (int32_t *)CTRL_REG_ADDR);
-    
-// #if TARGET_SIM
-//     // =========================================================================
-//     // SIMULATION: single board loopback test
-//     // =========================================================================
-    
-//     sl_init((volatile uint32_t *)SL_EXTERNAL_CTRL_REG_ADDR,
-//             (int32_t *)SL_EXTERNAL_CTRL_REG_ADDR);
-
-//     int errors = 0;
-//     int32_t rcv_data;
-
-//     PRINTF("=== Serial Link MUX Mode Test (SIM) ===\n");
-
-//     // Test 1: FIFO mode
-//     volatile int32_t *addr_p_fifo   = SL_READ;
-//     sl_wrapper_set_rx_mode(SL_WRAPPER_RX_MODE_FIFO);
-//     for (int i = 0; i < NUM_WORDS; i++) {
-//         *SL_EXTERNAL_WRITE = test_data[i];
-//         rcv_data = *addr_p_fifo; 
-//         if (rcv_data != test_data[i]) {
-//             //PRINTF("FIFO ERROR [%d]: got 0x%08x, expected 0x%08x\n", i, rcv_data, test_data[i]);
-//             errors++;
-//         }
-//     }
-
-//     // Test 2: Direct write mode
-//     sl_wrapper_set_rx_mode(SL_WRAPPER_RX_MODE_DIRECT_WRITE);
-//     volatile int32_t *addr_p_direct = (volatile int32_t *)DIRECT_WRITE_TARGET_ADDR;
-//     volatile int32_t *addr_p_direct_send = SL_EXTERNAL_DIRECT_WRITE;
-//     for (int i = 0; i < NUM_WORDS; i++) addr_p_direct[i] = 0;
-
-//     for (int i = 0; i < NUM_WORDS; i++) {
-//         *(addr_p_direct_send + i) = test_data[i];
-//         rcv_data = addr_p_direct[i];
-//         if (rcv_data != test_data[i]) {
-//             //PRINTF("DIRECT WRITE ERROR [%d]: got 0x%08x, expected 0x%08x\n", i, rcv_data, test_data[i]);
-//             errors++;
-//         }
-//     }
-
-//     // Test 3: FIFO mode with dma
-//     sl_wrapper_set_rx_mode(SL_WRAPPER_RX_MODE_FIFO);
-//     uint32_t to_send[NUM_WORDS];
-//     for (int i = 0; i < NUM_WORDS; i++) to_send[i] = test_data[i];
-//     sl_dma_send(to_send, (uint32_t *)SL_EXTERNAL_WRITE, NUM_WORDS);
-//     sl_dma_read(dma_buffer, (uint32_t *)SL_READ, NUM_WORDS);
-
-//     for (int i = 0; i < NUM_WORDS; i++) {
-//         if (dma_buffer[i] != (uint32_t)test_data[i]) {
-//             //PRINTF("ERROR [%d]: got 0x%08x expected 0x%08x\n", i, dma_buffer[i], test_data[i]);
-//             errors++;
-//         }
-//     }
-
-//     if (errors == 0) {
-//         PRINTF("\nDONE - All tests passed\n");
-//         return EXIT_SUCCESS;
-//     } else {
-//         PRINTF("\nFAILED - %d errors\n", errors);
-//         return EXIT_FAILURE;
-//     }
-
-// #elif FPGA_RECEIVE
-//     // =========================================================================
-//     // FPGA RECEIVER
-//     // =========================================================================
-//     int errors = 0;
-//     int32_t rcv_data;
-
-//     PRINTF("=== Serial Link MUX Mode Test (FPGA RECEIVE) ===\n");
-
-//     // Test 1: FIFO mode
-//     PRINTF("--- Test 1: FIFO mode ---\n");
-//     sl_wrapper_set_rx_mode(SL_WRAPPER_RX_MODE_FIFO);
-//     for (int i = 0; i < NUM_WORDS; i++) {
-//         rcv_data = *SL_READ;
-//         if (rcv_data != test_data[i]) {
-//             PRINTF("FIFO ERROR [%d]: got 0x%08x, expected 0x%08x\n", i, rcv_data, test_data[i]);
-//             errors++;
-//         } else {
-//             PRINTF("FIFO OK [%d]: 0x%08x\n", i, rcv_data);
-//         }
-//     }
-
-//     // Test 2: Direct write mode
-//     PRINTF("--- Test 2: Direct write mode ---\n");
-//     sl_wrapper_set_rx_mode(SL_WRAPPER_RX_MODE_DIRECT_WRITE);
-
-//     sl_wrapper_direct_write(SYNC_ADDR, READY);
-
-//     for (int i = 0; i < NUM_WORDS; i++) {
-//         volatile uint32_t *target = (volatile uint32_t *)(DIRECT_WRITE_TARGET_ADDR + i * 4);
-//         *target = 0; // clear before waiting
-//         while(*target == 0); // poll until data arrives
-//         rcv_data = (int32_t)*target;
-//         if (rcv_data != test_data[i]) {
-//             PRINTF("DIRECT WRITE ERROR [%d]: got 0x%08x, expected 0x%08x\n", i, rcv_data, test_data[i]);
-//             errors++;
-//         } else {
-//             PRINTF("DIRECT WRITE OK [%d]: 0x%08x\n", i, rcv_data);
-//         }
-//     }
-
-//     // Test 3: FIFO mode with HW-triggered DMA
-//     PRINTF("--- Test 3: FIFO mode with HW-triggered DMA ---\n");
-//     sl_wrapper_set_rx_mode(SL_WRAPPER_RX_MODE_FIFO);
-
-//     sl_wrapper_direct_write(SYNC_ADDR, READY);
-
-//     dma_config_flags_t res = sl_wrapper_dma_read_launch(dma_buffer, NUM_WORDS);
-//     if (res != DMA_CONFIG_OK) {
-//         PRINTF("DMA launch failed: %d\n", res);
-//         return EXIT_FAILURE;
-//     }
-
-//     while (!sl_wrapper_dma_intr_flag) {
-//         wait_for_interrupt();
-//     }
-//     sl_wrapper_dma_intr_flag = 0;
-//       PRINTF("DMA complete!\n");
-
-//     for (int i = 0; i < NUM_WORDS; i++) {
-//         if (dma_buffer[i] != (uint32_t)test_data[i]) {
-//             PRINTF("FIFO HW-DMA ERROR [%d]: got 0x%08x, expected 0x%08x\n",
-//                 i, dma_buffer[i], test_data[i]);
-//             errors++;
-//         } else {
-//             PRINTF("FIFO HW-DMA OK [%d]: 0x%08x\n", i, dma_buffer[i]);
-//         }
-//     }
-
-//     if (errors == 0) {
-//         PRINTF("\nDONE - All tests passed\n");
-//         return EXIT_SUCCESS;
-//     } else {
-//         PRINTF("\nFAILED - %d errors\n", errors);
-//         return EXIT_FAILURE;
-//     }
-
-// #else
-//     // =========================================================================
-//     // FPGA SENDER
-//     // =========================================================================
-//     PRINTF("=== Serial Link MUX Mode Test (FPGA SEND) ===\n");
-
-//     sl_wrapper_set_rx_mode(SL_WRAPPER_RX_MODE_DIRECT_WRITE);
-//     volatile uint32_t *ready = (volatile uint32_t *)SYNC_ADDR;
-
-//     // Test 1: FIFO mode
-//     PRINTF("--- Test 1: FIFO mode ---\n");
-//     for (int i = 0; i < NUM_WORDS; i++) {
-//         *SL_WRITE = test_data[i];
-//         PRINTF("FIFO sent [%d]: 0x%08x\n", i, test_data[i]);
-//     }
-
-//     while(*ready != READY);
-//     *ready = 0; // clear for next sync
-
-//     // Test 2: Direct write mode
-//     PRINTF("--- Test 2: Direct write mode ---\n");
-//     for (int i = 0; i < NUM_WORDS; i++) {
-//         sl_wrapper_direct_write(DIRECT_WRITE_TARGET_ADDR + i * 4, (uint32_t)test_data[i]);
-//         PRINTF("Direct write sent [%d]: 0x%08x\n", i, test_data[i]);
-//     }
-
-//     while(*ready != READY);
-//     *ready = 0; 
-
-//     // Test 3: FIFO mode with dma  
-//     PRINTF("--- Test 3: FIFO mode with dma---\n");
-//     sl_dma_send((uint32_t *)test_data, (uint32_t *)SL_WRITE, NUM_WORDS);
-//     for (int i = 0; i < NUM_WORDS; i++) {
-//         PRINTF("FIFO with dma sent [%d]: 0x%08x\n", i, test_data[i]);
-//     }
-
-//     PRINTF("\nDONE\n");
-//     return EXIT_SUCCESS;
-// #endif
-// }
 

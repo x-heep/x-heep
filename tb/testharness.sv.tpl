@@ -771,7 +771,7 @@ module testharness #(
             .xif_mem_if             (ext_if),
             .xif_mem_result_if      (ext_if),
             .xif_result_if          (ext_if),
-            // OBI signals 
+            // OBI signals
             .quadrilatero_ch0_req_o (ext_master_req[testharness_pkg::EXT_MASTER4_IDX]),
             .quadrilatero_ch0_resp_i(ext_master_resp[testharness_pkg::EXT_MASTER4_IDX]),
             .quadrilatero_ch1_req_o (ext_master_req[testharness_pkg::EXT_MASTER5_IDX]),

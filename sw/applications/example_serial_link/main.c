@@ -17,7 +17,7 @@
 
 /* By default, printfs are activated for FPGA and disabled for simulation. */
 #define PRINTF_IN_FPGA  1
-#define PRINTF_IN_SIM   1
+#define PRINTF_IN_SIM   0
 
 // simulation only -> Testharness last slave address on the external bus (size of the Slow memory in testharness pkg))
 #if TARGET_SIM 

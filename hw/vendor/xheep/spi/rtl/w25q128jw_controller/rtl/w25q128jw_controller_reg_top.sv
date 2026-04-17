@@ -8,44 +8,44 @@
 `include "common_cells/assertions.svh"
 
 module w25q128jw_controller_reg_top #(
-    parameter type reg_req_t = logic,
-    parameter type reg_rsp_t = logic,
-    parameter int AW = 6
+  parameter type reg_req_t = logic,
+  parameter type reg_rsp_t = logic,
+  parameter int AW = 6
 ) (
-    input logic clk_i,
-    input logic rst_ni,
-    input reg_req_t reg_req_i,
-    output reg_rsp_t reg_rsp_o,
-    // To HW
-    output w25q128jw_controller_reg_pkg::w25q128jw_controller_reg2hw_t reg2hw,  // Write
-    input w25q128jw_controller_reg_pkg::w25q128jw_controller_hw2reg_t hw2reg,  // Read
+  input logic clk_i,
+  input logic rst_ni,
+  input  reg_req_t reg_req_i,
+  output reg_rsp_t reg_rsp_o,
+  // To HW
+  output w25q128jw_controller_reg_pkg::w25q128jw_controller_reg2hw_t reg2hw, // Write
+  input  w25q128jw_controller_reg_pkg::w25q128jw_controller_hw2reg_t hw2reg, // Read
 
 
-    // Config
-    input devmode_i  // If 1, explicit error return for unmapped register access
+  // Config
+  input devmode_i // If 1, explicit error return for unmapped register access
 );
 
-  import w25q128jw_controller_reg_pkg::*;
+  import w25q128jw_controller_reg_pkg::* ;
 
   localparam int DW = 32;
-  localparam int DBW = DW / 8;  // Byte Width
+  localparam int DBW = DW/8;                    // Byte Width
 
   // register signals
-  logic               reg_we;
-  logic               reg_re;
-  logic [BlockAw-1:0] reg_addr;
-  logic [     DW-1:0] reg_wdata;
-  logic [    DBW-1:0] reg_be;
-  logic [     DW-1:0] reg_rdata;
-  logic               reg_error;
+  logic           reg_we;
+  logic           reg_re;
+  logic [BlockAw-1:0]  reg_addr;
+  logic [DW-1:0]  reg_wdata;
+  logic [DBW-1:0] reg_be;
+  logic [DW-1:0]  reg_rdata;
+  logic           reg_error;
 
-  logic addrmiss, wr_err;
+  logic          addrmiss, wr_err;
 
   logic [DW-1:0] reg_rdata_next;
 
   // Below register interface can be changed
-  reg_req_t reg_intf_req;
-  reg_rsp_t reg_intf_rsp;
+  reg_req_t  reg_intf_req;
+  reg_rsp_t  reg_intf_rsp;
 
 
   assign reg_intf_req = reg_req_i;
@@ -61,7 +61,7 @@ module w25q128jw_controller_reg_top #(
   assign reg_intf_rsp.error = reg_error;
   assign reg_intf_rsp.ready = 1'b1;
 
-  assign reg_rdata = reg_rdata_next;
+  assign reg_rdata = reg_rdata_next ;
   assign reg_error = (devmode_i & addrmiss) | wr_err;
 
 
@@ -107,295 +107,295 @@ module w25q128jw_controller_reg_top #(
 
   //   F[start]: 0:0
   prim_subreg #(
-      .DW      (1),
-      .SWACCESS("RW"),
-      .RESVAL  (1'h0)
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h0)
   ) u_control_start (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
 
-      // from register interface
-      .we(control_start_we),
-      .wd(control_start_wd),
+    // from register interface
+    .we     (control_start_we),
+    .wd     (control_start_wd),
 
-      // from internal hardware
-      .de(hw2reg.control.start.de),
-      .d (hw2reg.control.start.d),
+    // from internal hardware
+    .de     (hw2reg.control.start.de),
+    .d      (hw2reg.control.start.d ),
 
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.control.start.q),
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.control.start.q ),
 
-      // to register interface (read)
-      .qs(control_start_qs)
+    // to register interface (read)
+    .qs     (control_start_qs)
   );
 
 
   //   F[rnw]: 1:1
   prim_subreg #(
-      .DW      (1),
-      .SWACCESS("RW"),
-      .RESVAL  (1'h0)
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h0)
   ) u_control_rnw (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
 
-      // from register interface
-      .we(control_rnw_we),
-      .wd(control_rnw_wd),
+    // from register interface
+    .we     (control_rnw_we),
+    .wd     (control_rnw_wd),
 
-      // from internal hardware
-      .de(hw2reg.control.rnw.de),
-      .d (hw2reg.control.rnw.d),
+    // from internal hardware
+    .de     (hw2reg.control.rnw.de),
+    .d      (hw2reg.control.rnw.d ),
 
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.control.rnw.q),
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.control.rnw.q ),
 
-      // to register interface (read)
-      .qs(control_rnw_qs)
+    // to register interface (read)
+    .qs     (control_rnw_qs)
   );
 
 
   //   F[quad]: 2:2
   prim_subreg #(
-      .DW      (1),
-      .SWACCESS("RW"),
-      .RESVAL  (1'h0)
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h0)
   ) u_control_quad (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
 
-      // from register interface
-      .we(control_quad_we),
-      .wd(control_quad_wd),
+    // from register interface
+    .we     (control_quad_we),
+    .wd     (control_quad_wd),
 
-      // from internal hardware
-      .de(hw2reg.control.quad.de),
-      .d (hw2reg.control.quad.d),
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
 
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.control.quad.q),
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.control.quad.q ),
 
-      // to register interface (read)
-      .qs(control_quad_qs)
+    // to register interface (read)
+    .qs     (control_quad_qs)
   );
 
 
   // R[status]: V(False)
 
   prim_subreg #(
-      .DW      (1),
-      .SWACCESS("RW"),
-      .RESVAL  (1'h0)
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h0)
   ) u_status (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
 
-      // from register interface
-      .we(status_we),
-      .wd(status_wd),
+    // from register interface
+    .we     (status_we),
+    .wd     (status_wd),
 
-      // from internal hardware
-      .de(hw2reg.status.de),
-      .d (hw2reg.status.d),
+    // from internal hardware
+    .de     (hw2reg.status.de),
+    .d      (hw2reg.status.d ),
 
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.status.q),
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.status.q ),
 
-      // to register interface (read)
-      .qs(status_qs)
+    // to register interface (read)
+    .qs     (status_qs)
   );
 
 
   // R[f_address]: V(False)
 
   prim_subreg #(
-      .DW      (32),
-      .SWACCESS("RW"),
-      .RESVAL  (32'h0)
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
   ) u_f_address (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
 
-      // from register interface
-      .we(f_address_we),
-      .wd(f_address_wd),
+    // from register interface
+    .we     (f_address_we),
+    .wd     (f_address_wd),
 
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
 
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.f_address.q),
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.f_address.q ),
 
-      // to register interface (read)
-      .qs(f_address_qs)
+    // to register interface (read)
+    .qs     (f_address_qs)
   );
 
 
   // R[s_address]: V(False)
 
   prim_subreg #(
-      .DW      (32),
-      .SWACCESS("RW"),
-      .RESVAL  (32'h0)
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
   ) u_s_address (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
 
-      // from register interface
-      .we(s_address_we),
-      .wd(s_address_wd),
+    // from register interface
+    .we     (s_address_we),
+    .wd     (s_address_wd),
 
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
 
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.s_address.q),
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.s_address.q ),
 
-      // to register interface (read)
-      .qs(s_address_qs)
+    // to register interface (read)
+    .qs     (s_address_qs)
   );
 
 
   // R[md_address]: V(False)
 
   prim_subreg #(
-      .DW      (32),
-      .SWACCESS("RW"),
-      .RESVAL  (32'h0)
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
   ) u_md_address (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
 
-      // from register interface
-      .we(md_address_we),
-      .wd(md_address_wd),
+    // from register interface
+    .we     (md_address_we),
+    .wd     (md_address_wd),
 
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
 
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.md_address.q),
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.md_address.q ),
 
-      // to register interface (read)
-      .qs(md_address_qs)
+    // to register interface (read)
+    .qs     (md_address_qs)
   );
 
 
   // R[length]: V(False)
 
   prim_subreg #(
-      .DW      (32),
-      .SWACCESS("RW"),
-      .RESVAL  (32'h0)
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
   ) u_length (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
 
-      // from register interface
-      .we(length_we),
-      .wd(length_wd),
+    // from register interface
+    .we     (length_we),
+    .wd     (length_wd),
 
-      // from internal hardware
-      .de(hw2reg.length.de),
-      .d (hw2reg.length.d),
+    // from internal hardware
+    .de     (hw2reg.length.de),
+    .d      (hw2reg.length.d ),
 
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.length.q),
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.length.q ),
 
-      // to register interface (read)
-      .qs(length_qs)
+    // to register interface (read)
+    .qs     (length_qs)
   );
 
 
   // R[intr_status]: V(False)
 
   prim_subreg #(
-      .DW      (1),
-      .SWACCESS("RW"),
-      .RESVAL  (1'h0)
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h0)
   ) u_intr_status (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
 
-      // from register interface
-      .we(intr_status_we),
-      .wd(intr_status_wd),
+    // from register interface
+    .we     (intr_status_we),
+    .wd     (intr_status_wd),
 
-      // from internal hardware
-      .de(hw2reg.intr_status.de),
-      .d (hw2reg.intr_status.d),
+    // from internal hardware
+    .de     (hw2reg.intr_status.de),
+    .d      (hw2reg.intr_status.d ),
 
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.intr_status.q),
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.intr_status.q ),
 
-      // to register interface (read)
-      .qs(intr_status_qs)
+    // to register interface (read)
+    .qs     (intr_status_qs)
   );
 
 
   // R[intr_enable]: V(False)
 
   prim_subreg #(
-      .DW      (1),
-      .SWACCESS("RW"),
-      .RESVAL  (1'h0)
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h0)
   ) u_intr_enable (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
 
-      // from register interface
-      .we(intr_enable_we),
-      .wd(intr_enable_wd),
+    // from register interface
+    .we     (intr_enable_we),
+    .wd     (intr_enable_wd),
 
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
 
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.intr_enable.q),
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.intr_enable.q ),
 
-      // to register interface (read)
-      .qs(intr_enable_qs)
+    // to register interface (read)
+    .qs     (intr_enable_qs)
   );
 
 
   // R[dma_slot_wait_counter]: V(False)
 
   prim_subreg #(
-      .DW      (8),
-      .SWACCESS("RW"),
-      .RESVAL  (8'h0)
+    .DW      (8),
+    .SWACCESS("RW"),
+    .RESVAL  (8'h0)
   ) u_dma_slot_wait_counter (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
 
-      // from register interface
-      .we(dma_slot_wait_counter_we),
-      .wd(dma_slot_wait_counter_wd),
+    // from register interface
+    .we     (dma_slot_wait_counter_we),
+    .wd     (dma_slot_wait_counter_wd),
 
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
 
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.dma_slot_wait_counter.q),
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.dma_slot_wait_counter.q ),
 
-      // to register interface (read)
-      .qs(dma_slot_wait_counter_qs)
+    // to register interface (read)
+    .qs     (dma_slot_wait_counter_qs)
   );
 
 
@@ -415,7 +415,7 @@ module w25q128jw_controller_reg_top #(
     addr_hit[8] = (reg_addr == W25Q128JW_CONTROLLER_DMA_SLOT_WAIT_COUNTER_OFFSET);
   end
 
-  assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0;
+  assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0 ;
 
   // Check sub-word write is permitted
   always_comb begin
@@ -526,23 +526,24 @@ module w25q128jw_controller_reg_top #(
 
 endmodule
 
-module w25q128jw_controller_reg_top_intf #(
-    parameter  int AW = 6,
-    localparam int DW = 32
+module w25q128jw_controller_reg_top_intf
+#(
+  parameter int AW = 6,
+  localparam int DW = 32
 ) (
-    input logic clk_i,
-    input logic rst_ni,
-    REG_BUS.in regbus_slave,
-    // To HW
-    output w25q128jw_controller_reg_pkg::w25q128jw_controller_reg2hw_t reg2hw,  // Write
-    input w25q128jw_controller_reg_pkg::w25q128jw_controller_hw2reg_t hw2reg,  // Read
-    // Config
-    input devmode_i  // If 1, explicit error return for unmapped register access
+  input logic clk_i,
+  input logic rst_ni,
+  REG_BUS.in  regbus_slave,
+  // To HW
+  output w25q128jw_controller_reg_pkg::w25q128jw_controller_reg2hw_t reg2hw, // Write
+  input  w25q128jw_controller_reg_pkg::w25q128jw_controller_hw2reg_t hw2reg, // Read
+  // Config
+  input devmode_i // If 1, explicit error return for unmapped register access
 );
-  localparam int unsigned STRB_WIDTH = DW / 8;
+ localparam int unsigned STRB_WIDTH = DW/8;
 
-  `include "register_interface/typedef.svh"
-  `include "register_interface/assign.svh"
+`include "register_interface/typedef.svh"
+`include "register_interface/assign.svh"
 
   // Define structs for reg_bus
   typedef logic [AW-1:0] addr_t;
@@ -552,27 +553,27 @@ module w25q128jw_controller_reg_top_intf #(
 
   reg_bus_req_t s_reg_req;
   reg_bus_rsp_t s_reg_rsp;
-
+  
   // Assign SV interface to structs
   `REG_BUS_ASSIGN_TO_REQ(s_reg_req, regbus_slave)
   `REG_BUS_ASSIGN_FROM_RSP(regbus_slave, s_reg_rsp)
 
-
+  
 
   w25q128jw_controller_reg_top #(
-      .reg_req_t(reg_bus_req_t),
-      .reg_rsp_t(reg_bus_rsp_t),
-      .AW(AW)
+    .reg_req_t(reg_bus_req_t),
+    .reg_rsp_t(reg_bus_rsp_t),
+    .AW(AW)
   ) i_regs (
-      .clk_i,
-      .rst_ni,
-      .reg_req_i(s_reg_req),
-      .reg_rsp_o(s_reg_rsp),
-      .reg2hw,  // Write
-      .hw2reg,  // Read
-      .devmode_i
+    .clk_i,
+    .rst_ni,
+    .reg_req_i(s_reg_req),
+    .reg_rsp_o(s_reg_rsp),
+    .reg2hw, // Write
+    .hw2reg, // Read
+    .devmode_i
   );
-
+  
 endmodule
 
 

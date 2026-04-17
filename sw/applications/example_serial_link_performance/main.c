@@ -14,35 +14,11 @@
 #include "csr.h"
 #include "pad_control.h"
 #include "pad_control_regs.h"
+#include "example_serial_link_performance.h"
 
-// 1 = receiver board, 0 = sender board 
-#define FPGA_RECEIVE 1
-
-#define PRINTF_IN_FPGA  1
-
-#if PRINTF_IN_FPGA && !TARGET_SIM
-    #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
-#else
-    #define PRINTF(...)
+#if TARGET_SIM
+#error "example_serial_link_performance is FPGA only and cannot be built for simulation."
 #endif
-
-#define DIRECT_WRITE_TARGET_ADDR    0x0000F800
-#define MAX_WORDS                   32
-
-const int32_t test_data[MAX_WORDS] = {
-    0x11111111, 0x22222222, 0x33333333, 0x44444444,
-    0x55555555, 0x66666666, 0x77777777, 0x88888888,
-    0x99999999, 0xAAAAAAAA, 0xBBBBBBBB, 0xCCCCCCCC,
-    0xDDDDDDDD, 0xEEEEEEEE, 0xFFFFFFFF, 0x12345678,
-    0x11111111, 0x22222222, 0x33333333, 0x44444444,
-    0x55555555, 0x66666666, 0x77777777, 0x88888888,
-    0x99999999, 0xAAAAAAAA, 0xBBBBBBBB, 0xCCCCCCCC,
-    0xDDDDDDDD, 0xEEEEEEEE, 0xFFFFFFFF, 0x12345678
-};
-
-// Word counts to test
-const int test_sizes[] = {1, 4, 8, 16, 32};
-#define NUM_SIZES 5
 
 int main(int argc, char *argv[]) {
 

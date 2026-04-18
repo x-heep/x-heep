@@ -21,8 +21,11 @@
 #include "pad_control_regs.h"
 
 #define PRINTF_IN_FPGA  1
+#define PRINTF_IN_SIM   1
 
-#if PRINTF_IN_FPGA
+#if TARGET_SIM && PRINTF_IN_SIM
+    #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#elif PRINTF_IN_FPGA && !TARGET_SIM
     #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
 #else
     #define PRINTF(...)
@@ -37,6 +40,13 @@ const int32_t test_data[NUM_WORDS] = {0x11111111, 0x22222222, 0x33333333, 0x4444
 
 // DMA destination buffer
 static uint32_t dma_buffer[NUM_WORDS] __attribute__((aligned(4))) = {0};
+
+// Simulation only
+#if TARGET_SIM
+    #define EXT_SLAVE_LENGTH            0x400
+    #define SL_EXTERNAL_WRITE           (volatile int32_t *)(EXT_SLAVE_START_ADDRESS + EXT_SLAVE_LENGTH)
+    #define SL_EXTERNAL_CTRL_REG_ADDR   (int32_t *)(EXT_PERIPHERAL_START_ADDRESS + 0x06000 + SERIAL_LINK_SINGLE_CHANNEL_CTRL_REG_OFFSET)
+#endif
 
 int main(int argc, char *argv[]) {
 
@@ -53,8 +63,53 @@ int main(int argc, char *argv[]) {
     pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_10_REG_OFFSET), 1);
 
     sl_init((volatile uint32_t *)CTRL_REG_ADDR, (int32_t *)CTRL_REG_ADDR);
+#if TARGET_SIM
+    // =========================================================================
+    // SIMULATION: single board loopback test
+    // =========================================================================
+    PRINTF("=== Serial Link FIFO Interrupt Test (SIM) ===\n");
 
-#if FPGA_RECEIVE
+    sl_init((volatile uint32_t *)SL_EXTERNAL_CTRL_REG_ADDR,
+            (int32_t *)SL_EXTERNAL_CTRL_REG_ADDR);
+
+    sl_wrapper_set_rx_mode(SL_WRAPPER_RX_MODE_FIFO);
+    dma_config_flags_t res = sl_wrapper_dma_read_launch(dma_buffer, NUM_WORDS);
+    if (res != DMA_CONFIG_OK) {
+        PRINTF("DMA launch failed: %d\n", res);
+        return EXIT_FAILURE;
+    }
+
+    for (int i = 0; i < NUM_WORDS; i++) {
+        *SL_EXTERNAL_WRITE = test_data[i];
+    }
+
+    PRINTF("Waiting for DMA completion...\n");
+    while (!sl_wrapper_dma_intr_flag) {
+        wait_for_interrupt();
+    }
+    sl_wrapper_dma_intr_flag = 0;
+
+    PRINTF("DMA complete! Verifying...\n");
+    int errors = 0;
+    for (int i = 0; i < NUM_WORDS; i++) {
+        if (dma_buffer[i] != (uint32_t)test_data[i]) {
+            PRINTF("ERROR [%d]: got 0x%08x expected 0x%08x\n",
+                   i, dma_buffer[i], (uint32_t)test_data[i]);
+            errors++;
+        } else {
+            PRINTF("OK [%d]: 0x%08x\n", i, dma_buffer[i]);
+        }
+    }
+
+    if (errors == 0) {
+        PRINTF("DONE - All tests passed\n");
+        return EXIT_SUCCESS;
+    } else {
+        PRINTF("FAILED - %d errors\n", errors);
+        return EXIT_FAILURE;
+    }
+
+#elif FPGA_RECEIVE
     // =========================================================================
     // FPGA RECEIVER
     // =========================================================================

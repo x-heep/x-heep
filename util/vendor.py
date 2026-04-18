@@ -243,11 +243,14 @@ class Upstream:
         self.only_subdir = get_field(
             path, where, data, "only_subdir", str, optional=True
         )
+        self.recurse = get_field(path, where, data, "recurse", bool, optional=True)
 
     def as_dict(self):
         data = {"url": self.url, "rev": self.rev}
         if self.only_subdir is not None:
             data["only_subdir"] = self.only_subdir
+        if self.recurse is not None:
+            data["recurse"] = self.recurse
         return data
 
 
@@ -796,7 +799,7 @@ def process_vendor(desc, args):
     with tempfile.TemporaryDirectory() as clone_dir:
         # clone upstream repository
         upstream_new_rev = clone_git_repo(
-            desc.upstream.url, clone_dir, rev=desc.upstream.rev, recursive=True
+            desc.upstream.url, clone_dir, rev=desc.upstream.rev, recursive=desc.upstream.recurse
         )
 
         if not update:

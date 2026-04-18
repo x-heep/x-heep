@@ -127,7 +127,7 @@ extern "C" {
 % if not user_peripheral_domain.contains_peripheral('serial_link_receiver_fifo'):
 #define SERIAL_LINK_RECEIVER_FIFO_START_ADDRESS 0 
 % endif
-% if not user_peripheral_domain.contains_peripheral('serial_link_wrapper_mux'):
+% if not user_peripheral_domain.contains_peripheral('serial_link_wrapper_reg'):
 #define SERIAL_LINK_WRAPPER_REG_START_ADDRESS 0  
 % endif
 // End of the section

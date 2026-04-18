@@ -553,7 +553,7 @@ class Desc:
                 desc = Desc(path, project_data, desc_overrides)
                 # Multi-entry files share a single lock file.
                 desc.use_named_lock_entry = True
-                desc._lock_file_override = path.with_name("vendor.lock.hjson")
+                desc._lock_file_override = path.with_name(vendor_name + ".lock.hjson")
                 descs.append(desc)
 
             if module_filter and not descs:
@@ -681,6 +681,7 @@ def clone_git_repo(repo_url, clone_dir, rev='master', recursive=False):
     cmd = ['git', 'clone', '--no-single-branch']
 
     if recursive:
+        log.info('Cloning recursively to include submodules')
         cmd.append('--recursive')
 
     if not verbose:

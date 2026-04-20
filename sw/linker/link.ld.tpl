@@ -26,8 +26,8 @@ MEMORY
 }
 
 /*
- * This linker script try to put data in ram1 and code
- * in ram0.
+ * This linker script tries to put writable data in ram1 and executable /
+ * read-only sections in ram0.
 */
 
 SECTIONS
@@ -83,12 +83,9 @@ SECTIONS
   /* read-only sections */
   .rodata         :
   {
-    *(.rodata .rodata.* .gnu.linkonce.r.*)
-  } >ram1
-  .rodata1        :
-  {
-    *(.rodata1)
-  } >ram1
+    *(.rodata .rodata* .gnu.linkonce.r.*)
+    *(.srodata.cst16) *(.srodata.cst8) *(.srodata.cst4) *(.srodata.cst2) *(.srodata .srodata.*)
+  } >ram0
 
   /* second level sbss and sdata, I don't think we need this */
   /* .sdata2         : {*(.sdata2 .sdata2.* .gnu.linkonce.s2.*)} */
@@ -228,18 +225,17 @@ SECTIONS
   .sdata          :
   {
     __SDATA_BEGIN__ = .;
-    *(.srodata.cst16) *(.srodata.cst8) *(.srodata.cst4) *(.srodata.cst2) *(.srodata .srodata.*)
     *(.sdata .sdata.* .gnu.linkonce.s.*)
   } >ram1
   _edata = .; PROVIDE (edata = .);
   . = .;
 
-    .power_manager :
-    {
-        . = ALIGN(4);
-       PROVIDE(__power_manager_start = .);
-       . += 256;
-    } >ram1
+  .power_manager :
+  {
+     . = ALIGN(4);
+     PROVIDE(__power_manager_start = .);
+     . += 256;
+  } >ram1
 
   /* zero initialized sections */
   __bss_start = .;

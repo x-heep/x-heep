@@ -367,6 +367,9 @@ def get_regions(section_headers):
         elif section_name in flash_data_sections:
             region_type = "f"
             name = "FLASH data"
+        elif "W" not in section["flags"] and "X" not in section["flags"]:
+            region_type = "R"
+            name = "rodata"
         elif section_name in code_sections or "X" in section["flags"]:
             region_type = "C"
             name = "code"
@@ -557,13 +560,64 @@ def interval_overlap(start_a, end_a, start_b, end_b):
     return max(0, min(end_a, end_b) - max(start_a, start_b))
 
 
+def summarize_memory_bank(name, section, regions):
+    section_start = section["origin"]
+    section_end = section_start + section["length"]
+    bank_regions = []
+    symbol_labels = {"C": "Code", "R": "ROData", "d": "Data", "i": "IL data"}
+    symbol_order = ("C", "R", "d", "i")
+
+    for region in regions:
+        overlap_start = max(region["start_add"], section_start)
+        overlap_end = min(region["end_add"], section_end)
+        if overlap_start >= overlap_end or region["name"] == "FLASH data":
+            continue
+        bank_regions.append(
+            {
+                "name": region["name"],
+                "symbol": region["symbol"],
+                "start_add": overlap_start,
+                "end_add": overlap_end,
+                "size_B": overlap_end - overlap_start,
+            }
+        )
+
+    merged_intervals = []
+    for region in sorted(bank_regions, key=lambda item: item["start_add"]):
+        if not merged_intervals or region["start_add"] > merged_intervals[-1][1]:
+            merged_intervals.append([region["start_add"], region["end_add"]])
+        else:
+            merged_intervals[-1][1] = max(merged_intervals[-1][1], region["end_add"])
+
+    symbols = sorted(
+        {region["symbol"] for region in bank_regions},
+        key=lambda symbol: symbol_order.index(symbol) if symbol in symbol_order else len(symbol_order),
+    )
+
+    return {
+        "name": name,
+        "origin": section_start,
+        "end": section_end,
+        "length": section["length"],
+        "used": sum(region["size_B"] for region in bank_regions),
+        "required": sum(interval_end - interval_start for interval_start, interval_end in merged_intervals),
+        "contents": ", ".join(f"{symbol_labels[symbol]} ({symbol})" for symbol in symbols) if symbols else "-",
+    }
+
+
 def print_summary_and_bank_usage(memory_sections, regions, program_headers, banks):
     summaries = {
         "Code": summarize_region(memory_sections, regions, "code", ("ram0", "FLASH0", "FLASH")),
+        "ROData": summarize_region(memory_sections, regions, "rodata", ("ram0", "FLASH0", "FLASH")),
         "Data": summarize_region(memory_sections, regions, "data", ("ram1", "RAM")),
         "ILdata": summarize_region(memory_sections, regions, "IL data", ()),
     }
     flash_summary = summarize_flash_image(memory_sections, program_headers)
+    ram_bank_summaries = [
+        summarize_memory_bank(name, section, regions)
+        for name, section in sorted(memory_sections.items(), key=lambda item: item[1]["origin"])
+        if not is_flash_section(name)
+    ]
 
     continuous_sizes_kB = [int(bank["size"] / 1024) for bank in banks if bank["type"] == "Cont"]
     interleaved_sizes_kB = [int(bank["size"] / 1024) for bank in banks if bank["type"] == "IntL"]
@@ -584,17 +638,12 @@ def print_summary_and_bank_usage(memory_sections, regions, program_headers, bank
         and any(re.fullmatch(r"FLASH\d+", name) for name in memory_sections)
     )
 
-    print(f"{'Region':<8} {'Mem':<9} {'Start':>8} {'End':>8} {'Sz(kB)':>8} {'Usd(kB)':>8} {'Req(kB)':>8} {'Utilz(%)':>9}")
-    for label in ("Code", "Data", "ILdata"):
-        summary = summaries[label]
-        if summary is None:
-            continue
-        if label == "Code" and flash_code:
-            continue
+    print(f"{'Bank':<8} {'Start':>8} {'End':>8} {'Sz(kB)':>8} {'Usd(kB)':>8} {'Req(kB)':>8} {'Utilz(%)':>9}    Contents")
+    for summary in ram_bank_summaries:
         utilization = 0.0 if summary["length"] == 0 else 100 * summary["required"] / summary["length"]
         print(
-            f"{label + ':':<8} {summary['mem']:<9} {summary['origin']/1024:8.1f} {summary['end']/1024:8.1f} "
-            f"{summary['length']/1024:8.1f} {summary['used']/1024:8.1f} {summary['required']/1024:8.1f} {utilization:9.1f}"
+            f"{summary['name'] + ':':<8} {summary['origin']/1024:8.1f} {summary['end']/1024:8.1f} "
+            f"{summary['length']/1024:8.1f} {summary['used']/1024:8.1f} {summary['required']/1024:8.1f} {utilization:9.1f}    {summary['contents']}"
         )
 
     if summaries["Code"] is not None:

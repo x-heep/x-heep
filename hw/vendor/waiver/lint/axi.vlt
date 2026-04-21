@@ -13,3 +13,6 @@ lint_off -rule ASSIGNDLY -file "*/pulp_platform/axi/src/axi_sim_mem.sv" -match "
 lint_off -rule UNSUPPORTED -file "*/pulp_platform/axi/src/axi_test.sv" -match "*"
 lint_off -rule DECLFILENAME -file "*/pulp_platform/axi/src/*.sv" -match "*"
 lint_off -rule WIDTH -file "*/pulp_platform/axi/src/axi_lite_to_axi.sv" -match "*"
+
+// Intended only for the serial_link x_heep wrapper / i_obi2axi integration path. Resolved in V5. Linked with Lines 21-28 in common_cells.vlt
+lint_off -rule UNUSED -file "*pulp_platform/axi/src/axi_lite_from_mem.sv" -match "*Bits of signal are not used: 'mem_addr_i'[31:1]*"

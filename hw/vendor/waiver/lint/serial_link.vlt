@@ -34,6 +34,4 @@ lint_off -rule UNOPTFLAT -file "*/pulp_platform/serial_link/src/serial_link.sv" 
 lint_off -rule WIDTHEXPAND -file "*/axi_to_detailed_mem.sv" -match "Operator ADD expects 32 bits on the RHS, but RHS's SEL generates 7 bits."
 lint_off -rule WIDTHEXPAND -file "*/axi_to_detailed_mem.sv" -match "Operator ADD expects 32 bits on the RHS, but RHS's FUNCREF 'num_bytes' generates 16 bits."
 lint_off -rule UNOPTFLAT -file "*/axi_to_detailed_mem.sv" -match "Signal unoptimizable: Circular combinational logic: *meta_sel_d*"
-lint_off -rule UNOPTFLAT -file "*/axi_to_detailed_mem.sv" -match "Signal unoptimizable: Circular combinational logic: *arb_valid*"
-lint_off -rule UNOPTFLAT -file "*/axi_to_detailed_mem.sv" -match "Signal unoptimizable: Circular combinational logic: *cnt_req_ready*"
-lint_off -rule UNOPTFLAT -file "*/axi_to_detailed_mem.sv" -match "Signal unoptimizable: Circular combinational logic: *sel_buf_valid*"
+

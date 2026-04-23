@@ -294,8 +294,10 @@ module core_v_mini_mcu
   // I2s
   logic i2s_rx_valid;
 
-  logic serial_link_fifo_not_empty;
-
+  % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
+    logic serial_link_fifo_not_empty;    
+  % endif
+ 
   assign intr = {
     irq_fast, 4'b0, irq_external, 3'b0, rv_timer_intr[0], 3'b0, irq_software, 3'b0
   };

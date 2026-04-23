@@ -654,6 +654,9 @@ module peripheral_subsystem
   assign ddr_i = {ddr_rcv_3_i, ddr_rcv_2_i, ddr_rcv_1_i, ddr_rcv_0_i};
   assign {ddr_snd_3_o, ddr_snd_2_o, ddr_snd_1_o, ddr_snd_0_o} = ddr_o;
 
+  logic serial_link_direct_write_intr_event;  
+  assign intr_vector[${interrupts["serial_link_direct_write_intr_event"]}] = serial_link_direct_write_intr_event; 
+
   serial_link_xheep_wrapper #(
     .MaxClkDiv(32),
     .AddrWidth(32),
@@ -679,7 +682,8 @@ module peripheral_subsystem
     .ddr_i,                   
     .ddr_snd_clk_o,          
     .ddr_o,
-    .intr_event_o(serial_link_fifo_not_empty_o)   
+    .intr_event_o(serial_link_fifo_not_empty_o),
+    .direct_write_intr_o(serial_link_direct_write_intr_event)   
   );
 % else:
     //Serial Link

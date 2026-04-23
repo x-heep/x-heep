@@ -24,6 +24,7 @@
 #include "core_v_mini_mcu.h"
 #include "dma.h"
 #include "csr.h"
+#include "rv_plic.h"
 #include "serial_link.h"
 #include "serial_link_xheep_wrapper_regs.h"
 
@@ -79,6 +80,9 @@ typedef enum {
  *   sl_wrapper_dma_intr_flag = 0;
  */
 extern volatile int8_t sl_wrapper_dma_intr_flag;
+
+// Flag set by handler when direct write transfer completes
+extern volatile int8_t sl_wrapper_direct_write_intr_flag;
 
 // ============================================================================
 // API
@@ -153,5 +157,19 @@ void sl_wrapper_direct_write_multiple(uint32_t dest, const uint32_t *data, uint3
  * @return DMA_CONFIG_OK on success, error flag otherwise
  */
 dma_config_flags_t sl_wrapper_dma_read_launch(uint32_t *dst, uint32_t count);
+
+/**
+ * @brief Arm the direct write interrupt for an incoming transfer of `count` words.
+ * Call after sl_wrapper_set_rx_mode(SL_WRAPPER_RX_MODE_DIRECT_WRITE) and
+ * before signalling the sender. Fires once when `count` words hit RAM.
+ * @param count  Number of words to expect (must match sender's NUM_WORDS)
+ */
+void sl_wrapper_direct_write_arm(uint32_t count);
+
+/**
+ * @brief Default weak IRQ handler for Serial Link direct write done interrupt.
+ * Override in your application to handle the interrupt.
+ */
+void handler_irq_sl_direct_write(uint32_t id);
 
 #endif // SERIAL_LINK_XHEEP_WRAPPER_DRIVER_H

@@ -5,7 +5,7 @@
 **                                                                         **
 ** project  : x-heep                                                       **
 ** filename : serial_link_xheep_wrapper_structs.h                                 **
-** date     : 28/02/2026                                                      **
+** date     : 19/04/2026                                                      **
 **                                                                         **
 *****************************************************************************
 **                                                                         **
@@ -16,7 +16,7 @@
 
 /**
 * @file   serial_link_xheep_wrapper_structs.h
-* @date   28/02/2026
+* @date   19/04/2026
 * @brief  Contains structs for every register
 *
 * This file contains the structs of the registes of the peripheral.
@@ -56,6 +56,8 @@
 typedef struct {
 
   uint32_t RX_MODE;                               /*!< Receiver mode configuration*/
+
+  uint32_t DIRECT_WRITE_WORD_COUNT;               /*!< Expected word count for direct write transfer. Set before arming. Interrupt fires when this many words have been committed to RAM. Write 0 to disable.*/
 
 } serial_link_xheep_wrapper;
 

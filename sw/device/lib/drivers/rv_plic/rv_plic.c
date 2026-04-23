@@ -53,7 +53,7 @@ extern "C" {
 #include "dma.h"
 #include "spi_host.h"
 #include "w25q128jw_controller.h"
-#include "serial_link_xheep_wrapper_driver.h"
+#include "serial_link_sdk.h"
 
 /****************************************************************************/
 /**                                                                        **/

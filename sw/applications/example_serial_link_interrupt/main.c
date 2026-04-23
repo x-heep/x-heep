@@ -2,8 +2,11 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 // Description: Example application to test the Serial Link FIFO and Direct Write interrupt.
-//              When data arrives in the Serial Link FIFO, an interrupt fires
-//              and directly triggers a DMA transfer from the FIFO to RAM.
+//              In FIFO mode, when the Serial Link FIFO is not empty, the DMA transfers 
+//              data from the FIFO to RAM. Once the expected number of words has been 
+//              received, the DMA generates an interrupt to notify the CPU.
+//              In Direct Write mode, incoming writes trigger a PLIC interrupt
+//              once the expected number of words has been received.
 //              The CPU is free to do other work while waiting for data.
 
 #include <stdio.h>
@@ -17,6 +20,7 @@
 #include "serial_link_regs.h"
 #include "serial_link.h"
 #include "serial_link_xheep_wrapper_driver.h"
+#include "serial_link_sdk.h"
 #include "pad_control.h"
 #include "pad_control_regs.h"
 #include "rv_plic.h"
@@ -25,7 +29,7 @@
 #define FPGA_RECEIVE 1
 
 #define PRINTF_IN_FPGA  1
-#define PRINTF_IN_SIM   0
+#define PRINTF_IN_SIM   1
 
 #if TARGET_SIM && PRINTF_IN_SIM
     #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
@@ -77,7 +81,6 @@ int main(int argc, char *argv[]) {
     // =========================================================================
     // SIMULATION: single board loopback test
     // =========================================================================
-    PRINTF("=== Serial Link FIFO Interrupt Test (SIM) ===\n");
 
     sl_init((volatile uint32_t *)SL_EXTERNAL_CTRL_REG_ADDR,
             (int32_t *)SL_EXTERNAL_CTRL_REG_ADDR);
@@ -85,7 +88,7 @@ int main(int argc, char *argv[]) {
     sl_wrapper_set_rx_mode(SL_WRAPPER_RX_MODE_FIFO);
     dma_config_flags_t res = sl_wrapper_dma_read_launch(dma_buffer, NUM_WORDS);
     if (res != DMA_CONFIG_OK) {
-        PRINTF("DMA launch failed: %d\n", res);
+        //PRINTF("DMA launch failed: %d\n", res);
         return EXIT_FAILURE;
     }
 
@@ -93,25 +96,17 @@ int main(int argc, char *argv[]) {
         *SL_EXTERNAL_WRITE = test_data[i];
     }
 
-    PRINTF("Waiting for DMA completion...\n");
     while (!sl_wrapper_dma_intr_flag) {
         wait_for_interrupt();
     }
     sl_wrapper_dma_intr_flag = 0;
 
-    PRINTF("DMA complete! Verifying...\n");
     int errors = 0;
     for (int i = 0; i < NUM_WORDS; i++) {
         if (dma_buffer[i] != (uint32_t)test_data[i]) {
-            PRINTF("ERROR [%d]: got 0x%08x expected 0x%08x\n",
-                   i, dma_buffer[i], (uint32_t)test_data[i]);
             errors++;
-        } else {
-            PRINTF("OK [%d]: 0x%08x\n", i, dma_buffer[i]);
-        }
+        } 
     }
-
-     PRINTF("--- Test 2: Direct write interrupt ---\n");
 
     for (int i = 0; i < NUM_WORDS; i++)
         ((volatile uint32_t *)DIRECT_WRITE_TARGET_ADDR)[i] = 0;
@@ -132,19 +127,16 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < NUM_WORDS; i++) {
         int32_t rcv = ((volatile int32_t *)DIRECT_WRITE_TARGET_ADDR)[i];
         if (rcv != test_data[i]) {
-            PRINTF("DIRECT WRITE ERROR [%d]: got 0x%08x expected 0x%08x\n",
-                   i, rcv, test_data[i]);
             errors++;
-        } else {
-            PRINTF("DIRECT WRITE OK [%d]: 0x%08x\n", i, rcv);
-        }
+        } 
     }
 
     if (errors == 0) {
         PRINTF("DONE - All tests passed\n");
         return EXIT_SUCCESS;
     } else {
-        PRINTF("FAILED - %d errors\n", errors);
+        PRINTF("FAILED\n");
+        //PRINTF("FAILED - %d errors\n", errors);
         return EXIT_FAILURE;
     }
 

@@ -4,11 +4,14 @@
  * SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
  *  
  * Info: XHEEP wrapper for pulp-platform/serial_link.
-  On the sending side, it translates OBI transactions to AXI requests. 
-  On the receiving side, write requests are not propagated as 
-  AXI master operations but stored in a memory-mapped FIFO, 
-  which can be accessed via DMA in tests. 
-  Master functionality on the receiving side is not implemented.
+ * On the sending side, it translates OBI transactions to AXI requests.
+ * On the receiving side, two RX modes are selectable via the RX_MODE
+ * software register:
+ *   - FIFO mode (rx_mode=0, default): incoming AXI write transactions
+ *     are stored in a memory-mapped FIFO, readable via DMA or polling.
+ *   - Direct write mode (rx_mode=1): incoming AXI write transactions
+ *     are routed through axi_to_mem directly to into the receiving 
+ *     X-HEEP’s memory space. 
  */
 
 module serial_link_xheep_wrapper

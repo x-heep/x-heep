@@ -23,6 +23,7 @@ The serial link wrapper (`serial_link_xheep_wrapper`) extends the base PULP Seri
   - Other configurable parameters are also declared in the same package.
 - **DMA support**: Both send and receive paths support DMA transfers via `sl_dma_send`, `sl_dma_read`, and `sl_wrapper_dma_read_launch`.
 - **HW-triggered DMA**: The FIFO not-empty signal is wired to DMA global trigger slot 5 (`DMA_TRIG_SLOT_SL_FIFO_RX`), enabling fully autonomous DMA transfers without CPU involvement per word.
+- **Direct write interrupt**: In direct write mode, a PLIC interrupt (IRQ ID `SERIAL_LINK_DIRECT_WRITE_ID`) fires when a configurable number of words have been committed to memory, eliminating the need to poll the target address.
 
 ## Configuration
 
@@ -34,18 +35,21 @@ The serial link wrapper (`serial_link_xheep_wrapper`) extends the base PULP Seri
    - To use the serial link, the memory-mapped **registers must be correctly programmed**.  
    - The initialization function `sl_init` provides the required register setup.
 4. **RX Mode**: Selected at runtime via `sl_wrapper_set_rx_mode()`.
-5. **TX Address Window**: Configured in `configs/general.hjson` or in `configs/python_unsupported.hjson`:.
+5. **Direct Write Word Count**: The number of words after which the direct write interrupt fires is configured via `sl_wrapper_direct_write_arm(count)`.
+6. **TX Address Window**: Configured in `configs/general.hjson` or in `configs/python_unsupported.hjson`:.
 ```
    serial_link: {
        address: 0x50000000
        length:  0x01000000
    }
 ```
-6. **PAD MUX**: On FPGA, DDR pins are muxed with GPIO. The pad mux must be configured in software before use
+7. **PAD MUX**: On FPGA, DDR pins are muxed with GPIO. The pad mux must be configured in software before use
 
 ## Software Application
 
+- A software driver for the serial link has been implemented in `sw/device/lib/drivers/serial_link/serial_link`. All functions are documented in the corresponding `.h` file.
 - A software driver for the wrapper has been implemented in `sw/device/lib/drivers/serial_link/serial_link_xheep_wrapper_driver`. All functions are documented in the corresponding `.h` file.
+- A software sdk has been implemented in `sw/device/lib/sdk/serial_link/serial_link_sdk`. All functions are documented in the corresponding `.h` file.
 - Use `sl_init` to initialize the peripheral and program all required registers before transmitting data.
 
 ### Usage FIFO Mode
@@ -68,9 +72,18 @@ The serial link wrapper (`serial_link_xheep_wrapper`) extends the base PULP Seri
 ### Usage Direct Write Mode
 1. Call `sl_init` to program the serial link registers.
 2. Receiver: call `sl_wrapper_set_rx_mode(SL_WRAPPER_RX_MODE_DIRECT_WRITE)`
+
+#### With CPU polling:
 3. Receiver: clear target address, then poll until non-zero
 4. Sender: call `sl_wrapper_direct_write(dest_offset, data)`
 5. Data is transferred over DDR Serial Link and is written directly to `dest_offset` in the receiver RAM
+
+#### With PLIC interrupt:
+3. Receiver: call `sl_wrapper_direct_write_arm(count)` to arm the interrupt for `count` words
+4. Receiver: Provide a `handler_irq_sl_direct_write` override
+5. Sender: call `sl_wrapper_direct_write(dest_offset, data)` for each word
+6. Data is transferred over DDR Serial Link and written directly to `dest_offset` in the receiver RAM
+7. PLIC interrupt fires after `count` words have been committed to memory
 
 ### Test Applications
 
@@ -78,6 +91,7 @@ The serial link wrapper (`serial_link_xheep_wrapper`) extends the base PULP Seri
 |-------------|-------------|
 | `example_serial_link_direct_write` | Functional test of FIFO (with and without DMA) and direct write modes (test harness simulation + FPGA) with bidirectional sync (FPGA) |
 | `example_serial_link_performance` | Performance evaluation: cycles/word for FIFO and direct write (FPGA) |
+| `example_serial_link_interrupt` | Functional test of FIFO mode with HW-triggered DMA interrupt and direct write mode with PLIC interrupt (test harness simulation + FPGA) with bidirectional sync (FPGA) |
 
 ---
 
@@ -92,7 +106,6 @@ In direct write mode, there are no restrictions on the target address. Be carefu
 ```{note}
 For multi-test sequences on FPGA (i.e., switching mid-application between FIFO and direct write modes), use bidirectional synchronization (e.g., the receiver signals readiness to the sender via direct write) to avoid timing-dependent desynchronization between boards (see `example_serial_link_direct_write`). This issue arises because `sl_wrapper_set_rx_mode` must be set to the correct mode before receiving data. If you switch modes mid-application and there is a delay on the RX side, incoming data may be missed.
 ```
-
 
 ```{note}
 The HW-triggered DMA (`sl_wrapper_dma_read_launch`) fires a single DMA done interrupt only after all requested words have been transferred, not one interrupt per word. 

@@ -11,7 +11,9 @@
  *     are stored in a memory-mapped FIFO, readable via DMA or polling.
  *   - Direct write mode (rx_mode=1): incoming AXI write transactions
  *     are routed through axi_to_mem directly to into the receiving 
- *     X-HEEP’s memory space. 
+ *     X-HEEP’s memory space. An interrupt is fired via PLIC when 
+ *     the expected word count (DIRECT_WRITE_WORD_COUNT) has been 
+ *     committed.
  */
 
 module serial_link_xheep_wrapper

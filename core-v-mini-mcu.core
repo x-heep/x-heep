@@ -241,8 +241,10 @@ parameters:
     datatype: bool
     paramtype: vlogdefine
     default: false
-  # Make the parameter known to FuseSoC to enable overrides from the
-  # command line. If not overwritten, use the generic technology library.
+  NO_DDR_CLK_PORTS:
+    datatype: bool
+    paramtype: vlogdefine
+    default: false
   PRIM_DEFAULT_IMPL:
     datatype: str
     paramtype: vlogdefine
@@ -441,6 +443,7 @@ targets:
     - REMOVE_OBI_FIFO
     - FPGA_SYNTHESIS=true
     - FPGA_NEXYS=true
+    - NO_DDR_CLK_PORTS=true
     tools:
       vivado:
         part: xc7a100tcsg324-1
@@ -478,6 +481,7 @@ targets:
     - REMOVE_OBI_FIFO
     - FPGA_SYNTHESIS=true
     - FPGA_ZCU104=true
+    - NO_DDR_CLK_PORTS=true
     tools:
       vivado:
         part: xczu7ev-ffvc1156-2-e
@@ -497,6 +501,7 @@ targets:
     - REMOVE_OBI_FIFO
     - FPGA_SYNTHESIS=true
     - FPGA_ZCU102=true
+    - NO_DDR_CLK_PORTS=true
     tools:
       vivado:
         part: xczu9eg-ffvb1156-2-e
@@ -516,6 +521,7 @@ targets:
     - REMOVE_OBI_FIFO
     - FPGA_SYNTHESIS=true
     - FPGA_AUP_ZU3=true
+    - NO_DDR_CLK_PORTS=true
     tools:
       vivado:
         part: xczu3eg-sfvc784-2-e
@@ -535,6 +541,7 @@ targets:
     - REMOVE_OBI_FIFO
     - FPGA_SYNTHESIS=true
     - FPGA_GENESYS2=true
+    - NO_DDR_CLK_PORTS=true
     tools:
       vivado:
         part: xc7k325tffg900-2

@@ -73,12 +73,18 @@ SECTIONS {
         __text_start = .; /* define a global symbol at data end; used by startup code in order to initialise the .data section in RAM */
         *(.text)           /* .text sections (code) */
         *(.text*)          /* .text* sections (code) */
+       . = ALIGN(4);
+    } >ram0 AT >FLASH0
+    
+    /* Read-only data lives on the code side as a separate output section. */
+    .rodata : ALIGN_WITH_INPUT
+    {
         *(.rodata)         /* .rodata sections (constants, strings, etc.) */
         *(.rodata*)        /* .rodata* sections (constants, strings, etc.) */
         *(.srodata)        /* .rodata sections (constants, strings, etc.) */
         *(.srodata*)       /* .rodata* sections (constants, strings, etc.) */
         . = ALIGN(4);
-        _etext = .;        /* define a global symbol at end of code */
+        _etext = .;        /* define a global symbol at end of code-side content */
     } >ram0 AT >FLASH0
 
     /* This is the initialized data section

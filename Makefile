@@ -149,6 +149,7 @@ mcu-gen:
 	bash -c "cd hw/ip/boot_rom; make clean; make all; cd ../../../"
 	$(MAKE) -C hw/vendor/xheep/spi reg SW_DIR=$(mkfile_path)/sw/device/lib/drivers/
 	$(MAKE) verible
+	$(MAKE) format-python
 
 ## Display mcu_gen.py help
 mcu-gen-help:

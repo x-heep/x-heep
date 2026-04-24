@@ -811,7 +811,7 @@ def process_vendor(desc, args):
                 log.fatal("Re-cloned revision: %s", upstream_new_rev)
                 raise SystemExit(1)
 
-        clone_subdir = Path(clone_dir)
+        clone_subdir = Path(clone_dir).resolve()
         if desc.upstream.only_subdir is not None:
             clone_subdir = clone_subdir / desc.upstream.only_subdir
             if not clone_subdir.is_dir():

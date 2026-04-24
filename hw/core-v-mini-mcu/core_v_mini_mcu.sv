@@ -298,9 +298,6 @@ module core_v_mini_mcu
     output logic [EXT_DOMAINS_RND-1:0] external_subsystem_clkgate_en_no,
 
     output logic [31:0] exit_value_o,
-    //Serial Link
-    output obi_pkg::obi_req_t serial_link_direct_write_req_o,
-    input obi_pkg::obi_resp_t serial_link_direct_write_resp_i,
 
     // External SPC interface
     input  logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_tx_i,
@@ -340,9 +337,6 @@ module core_v_mini_mcu
   obi_req_t [1:0] dma_addr_req;
   obi_resp_t [1:0] dma_addr_resp;
 
-  obi_pkg::obi_resp_t serial_link_direct_write_resp;
-  obi_req_t serial_link_slave_req;
-  obi_resp_t serial_link_slave_resp;
 
   // ram signals
   obi_req_t [core_v_mini_mcu_pkg::NUM_BANKS-1:0] ram_slave_req;
@@ -437,12 +431,6 @@ module core_v_mini_mcu
   assign memory_subsystem_banks_powergate_iso_n[1] = memory_subsystem_pwr_ctrl_out[1].isogate_en_n;
   assign memory_subsystem_banks_set_retentive_n[1] = memory_subsystem_pwr_ctrl_out[1].retentive_en_n;
   assign memory_subsystem_clkgate_en_n[1] = memory_subsystem_pwr_ctrl_out[1].clkgate_en_n;
-  assign memory_subsystem_banks_powergate_switch_n[2] = memory_subsystem_pwr_ctrl_out[2].pwrgate_en_n;
-  assign memory_subsystem_pwr_ctrl_in[2].pwrgate_ack_n = memory_subsystem_banks_powergate_switch_ack_n[2];
-  //isogate exposed outside for UPF sim flow and switch cells
-  assign memory_subsystem_banks_powergate_iso_n[2] = memory_subsystem_pwr_ctrl_out[2].isogate_en_n;
-  assign memory_subsystem_banks_set_retentive_n[2] = memory_subsystem_pwr_ctrl_out[2].retentive_en_n;
-  assign memory_subsystem_clkgate_en_n[2] = memory_subsystem_pwr_ctrl_out[2].clkgate_en_n;
 
   for (genvar i = 0; i < EXT_DOMAINS_RND; i = i + 1) begin : gen_external_subsystem_pwr_gating
     assign external_subsystem_powergate_switch_no[i]        = external_subsystem_pwr_ctrl_out[i].pwrgate_en_n;
@@ -476,7 +464,6 @@ module core_v_mini_mcu
   // I2s
   logic i2s_rx_valid;
 
-  logic serial_link_fifo_not_empty;
 
   assign intr = {irq_fast, 4'b0, irq_external, 3'b0, rv_timer_intr[0], 3'b0, irq_software, 3'b0};
 
@@ -560,10 +547,6 @@ module core_v_mini_mcu
       .dma_write_resp_o(dma_write_resp),
       .dma_addr_req_i(dma_addr_req),
       .dma_addr_resp_o(dma_addr_resp),
-      .serial_link_direct_write_req_i(serial_link_direct_write_req_o),
-      .serial_link_direct_write_resp_o(serial_link_direct_write_resp),
-      .serial_link_slave_req_o(serial_link_slave_req),
-      .serial_link_slave_resp_i(serial_link_slave_resp),
       .ext_xbar_master_req_i(ext_xbar_master_req_i),
       .ext_xbar_master_resp_o(ext_xbar_master_resp_o),
       .ram_req_o(ram_slave_req),
@@ -664,7 +647,6 @@ module core_v_mini_mcu
       .spi_rx_valid_i(spi_rx_valid),
       .spi_tx_ready_i(spi_tx_ready),
       .i2s_rx_valid_i(i2s_rx_valid),
-      .serial_link_fifo_not_empty_i(serial_link_fifo_not_empty),
       .ext_peripheral_slave_req_o,
       .ext_peripheral_slave_resp_i,
       .ext_dma_slot_tx_i,
@@ -735,11 +717,6 @@ module core_v_mini_mcu
       .ddr_snd_1_o,
       .ddr_snd_2_o,
       .ddr_snd_3_o,
-      .serial_link_direct_write_req_o,
-      .serial_link_direct_write_resp_i(serial_link_direct_write_resp),
-      .serial_link_slave_req_i(serial_link_slave_req),
-      .serial_link_slave_resp_o(serial_link_slave_resp),
-      .serial_link_fifo_not_empty_o(serial_link_fifo_not_empty),
       .uart_rx_i,
       .uart_tx_o
   );

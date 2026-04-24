@@ -4,6 +4,7 @@
 
 <%
   base_peripheral_domain = xheep.get_base_peripheral_domain()
+  user_peripheral_domain = xheep.get_user_peripheral_domain()
 %>
 
 
@@ -107,7 +108,10 @@ module ao_peripheral_subsystem
     input logic i2s_rx_valid_i,
 
     // Serial link fifo 
-    input logic serial_link_fifo_not_empty_i,
+    % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
+    input logic serial_link_fifo_not_empty_i,  
+    % endif
+    
 
     // EXTERNAL PERIPH
     output reg_req_t ext_peripheral_slave_req_o,
@@ -187,7 +191,12 @@ module ao_peripheral_subsystem
   assign dma_global_trigger_slots[2] = spi_flash_rx_valid;
   assign dma_global_trigger_slots[3] = spi_flash_tx_ready;
   assign dma_global_trigger_slots[4] = i2s_rx_valid_i;
-  assign dma_global_trigger_slots[5] = serial_link_fifo_not_empty_i;
+  % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
+  assign dma_global_trigger_slots[5] = serial_link_fifo_not_empty_i; 
+  % else:
+  assign dma_global_trigger_slots[5] = '0;
+  % endif
+  
 
   generate
     for (genvar i = 0; i < core_v_mini_mcu_pkg::DMA_CH_NUM; i++) begin : dma_trigger_slots_gen

@@ -1,11 +1,21 @@
 // Copyright 2026 EPFL
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
-//
-// File: serial_link_sdk.h
-// Author: Thomas Tran 
-// Date: 24/04/2026
-// Description: Serial Link utility functions
+
+/*
+ * ============================================================================
+ * Serial Link SDK
+ * ============================================================================
+ *
+ * Higher-level helpers built on top of the Serial Link driver and wrapper
+ * driver.
+ *
+ * Responsibilities:
+ *  - CPU-driven and DMA-driven data transfers
+ *  - HW-triggered DMA receive from the Serial Link FIFO
+ *  - Direct write interrupt arming and handling
+ * ============================================================================
+ */
 
 #ifndef SERIAL_LINK_SDK_H
 #define SERIAL_LINK_SDK_H
@@ -77,7 +87,6 @@ void sl_cpu_read(uint32_t *dst_d, uint32_t *dst, uint32_t large);
  */
 void sl_dma_send(uint32_t *src_d, uint32_t *src, uint32_t large);
 void sl_dma_read(uint32_t *dst_d, uint32_t *dst, uint32_t large);
-void wait_for_interrupt(void);
 
 // ============================================================================
 // HW-triggered DMA receive (FIFO mode)
@@ -89,8 +98,6 @@ void wait_for_interrupt(void);
  * Returns immediately. The DMA is triggered autonomously by the FIFO
  * not-empty signal (DMA_TRIG_SLOT_SL_FIFO_RX = slot 5), with no CPU
  * involvement per word. Monitor sl_wrapper_dma_intr_flag for completion.
- *
- * Automatically switches to SL_WRAPPER_RX_MODE_FIFO if not already set.
  *
  * @param dst    Destination buffer in RAM (must be 4-byte aligned)
  * @param count  Number of 32-bit words to transfer
@@ -114,8 +121,10 @@ dma_config_flags_t sl_wrapper_dma_read_launch(uint32_t *dst, uint32_t count);
 void sl_wrapper_direct_write_arm(uint32_t count);
 
 /**
- * @brief Default weak IRQ handler for Serial Link direct write done interrupt.
- * Override in your application to handle the interrupt.
+ * @brief Weak IRQ handler for the Serial Link direct write done interrupt.
+ *
+ * Sets sl_wrapper_direct_write_intr_flag and disables the interrupt.
+ * Override in your application if additional handling is needed.
  */
 void handler_irq_sl_direct_write(uint32_t id);
 

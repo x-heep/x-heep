@@ -3,8 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 // Description: Example application to test the Serial Link direct write mode.
 //              Tests both FIFO mode and direct write mode. 
-//
-// Note : for TARGET_SIM you need at least 3 ram_banks 
+
 
 #include <stdio.h>
 #include <stdlib.h>

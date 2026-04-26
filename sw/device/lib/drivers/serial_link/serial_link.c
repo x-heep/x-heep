@@ -9,39 +9,20 @@
  * Serial Link (SL) driver – single-channel adaptation
  * ============================================================================
  *
- * This file provides low-level bring-up and data transfer routines for the
+ * This file provides low-level bring-up routines for the
  * Serial Link IP, adapted specifically for SINGLE-CHANNEL configurations.
  *
  * Core responsibilities:
+ *  - Board-level pad mux configuration 
  *  - Wake up the Serial Link by programming configuration registers
  *  - De-assert AXI isolation to enable data transfers
- *  - Provide CPU-based and DMA-based data transmission helpers
  *
  * IMPORTANT:
- *  - INIT() must be called before any SL_CPU_TRANS or SL_DMA_TRANS
- *  - SIM_INIT() must be used only in simulation environments
+ *  - sl_init() must be called before any sl_cpu_trans or sl_dma_trans
  *  - Register configuration differs for single vs multi-channel designs
  *
  * AXI isolation and RAW mode behavior are documented in:
  * https://github.com/pulp-platform/serial_link
- */
-
-
-/* ----------------------------------------------------------------------------
- * Initialization functions
- * ----------------------------------------------------------------------------
- */
-
-/**
- * @brief Initialize Serial Link for SIMULATION.
- *
- * This function performs the full Serial Link bring-up sequence for simulation:
- *  1) Programs the SL configuration registers
- *  2) De-asserts AXI isolation on the SL IP
- *  3) Programs the SL instance located in the simulation testharness
- *
- * SIM_INIT must NOT be used on real hardware or FPGA, as it accesses
- * testharness-only address space.
  */
 
 void sl_pad_mux_init(void) {

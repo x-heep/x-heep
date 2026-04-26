@@ -47,17 +47,17 @@ The serial link wrapper (`serial_link_xheep_wrapper`) extends the base PULP Seri
 
 ## Software Application
 
-- A software driver for the serial link has been implemented in `sw/device/lib/drivers/serial_link/serial_link`. All functions are documented in the corresponding `.h` file.
-- A software driver for the wrapper has been implemented in `sw/device/lib/drivers/serial_link/serial_link_xheep_wrapper_driver`. All functions are documented in the corresponding `.h` file.
-- A software sdk has been implemented in `sw/device/lib/sdk/serial_link/serial_link_sdk`. All functions are documented in the corresponding `.h` file.
-- Use `sl_init` to initialize the peripheral and program all required registers before transmitting data.
+- A software driver for the Serial Link is available in `sw/device/lib/drivers/serial_link/serial_link`. It handles register configuration, clock/reset sequencing, and AXI isolation. All functions are documented in the corresponding `.h` file.
+- A sofware driver for the Serial Link wrapper is available in `sw/device/lib/drivers/serial_link/serial_link_xheep_wrapper_driver`. It handles RX mode selection, direct write, and wrapper register access. All functions are documented in the corresponding `.h` file.
+- A sofware SDK is available in `sw/device/lib/runtime/serial_link_sdk`. It provides CPU and DMA data transfers, HW-triggered DMA receive, and direct write interrupt arming. All functions are documented in the corresponding `.h` file.
+- Call `sl_pad_mux_init()` then `sl_init()` to configure the DDR pins and bring up the Serial Link before transmitting data.
 
 ### Usage FIFO Mode
 1. Call `sl_init` to program the serial link registers.
 2. Receiver: call `sl_wrapper_set_rx_mode(SL_WRAPPER_RX_MODE_FIFO)`
 
 #### With CPU polling : 
-3. Receiver: read from `SL_READ` (blocks until data is available)
+3. Receiver: read from `SL_READ` (blocks until data is available) or use `sl_dma_read`
 4. Sender: write to `SL_WRITE`or use `sl_dma_send`
 5. Data is transferred over DDR Serial Link and appears in the receiver FIFO
 

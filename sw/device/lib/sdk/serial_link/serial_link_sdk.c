@@ -1,3 +1,10 @@
+// Copyright 2026 EPFL
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+//
+// SDK implementation for serial_link_xheep_wrapper.
+// See serial_link_xheep_wrapper_sdk.h for full documentation.
+
 #include "serial_link_sdk.h"
 
 volatile int8_t sl_wrapper_dma_intr_flag = 0;
@@ -41,6 +48,8 @@ void __attribute__ ((optimize("00"))) sl_cpu_read(uint32_t *dst_d, uint32_t *dst
         *(dst_d + i) = *dst;
     }
 }
+
+void wait_for_interrupt(void);
 
 void __attribute__ ((optimize("00"))) sl_dma_send(uint32_t *src_d, uint32_t *src,uint32_t large){
     volatile static dma_config_flags_t res;
@@ -124,10 +133,6 @@ dma_config_flags_t sl_wrapper_dma_read_launch(uint32_t *dst, uint32_t count) {
         return DMA_CONFIG_TRANS_OVERRIDE;
     }
 
-    if (sl_wrapper_get_rx_mode() != SL_WRAPPER_RX_MODE_FIFO) {
-        sl_wrapper_set_rx_mode(SL_WRAPPER_RX_MODE_FIFO);
-    }
-
     sl_dma_tgt_dst.ptr      = (uint8_t *)dst;
     sl_dma_trans.size_d1_du = count;
 
@@ -174,5 +179,6 @@ void sl_wrapper_direct_write_arm(uint32_t count) {
 }
 
 __attribute__((weak, optimize("O0"))) void handler_irq_sl_direct_write(uint32_t id) {
-    // Default empty handler - override in application
+    sl_wrapper_direct_write_intr_flag = 1;
+    plic_irq_set_enabled(SERIAL_LINK_DIRECT_WRITE_ID, kPlicToggleDisabled);
 }

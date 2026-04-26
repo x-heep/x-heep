@@ -68,8 +68,8 @@ void __attribute__ ((optimize("00"))) axi_isolate(int32_t * addr){
     *addr_p_reg_ISOLATE_OUT &= ~(1<<9); // axi_out_isolate
 }
 
-    #define SL_RAW_REG(offset) \
-    ((volatile uint32_t *)(SERIAL_LINK_REG_START_ADDRESS + (offset)))
+#define SL_RAW_REG(offset) \
+((volatile uint32_t *)(SERIAL_LINK_REG_START_ADDRESS + (offset)))
 
 void __attribute__((optimize("O0"))) sl_raw_mode_enable(uint8_t ch_sel, uint8_t ch_mask) {
     volatile uint32_t *ctrl = (volatile uint32_t *)CTRL_REG_ADDR;

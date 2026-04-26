@@ -45,7 +45,7 @@ The base PULP Serial Link IP also provides a **Raw mode** which bypasses the AXI
        length:  0x01000000
    }
 ```
-7. **PAD MUX**: On FPGA, DDR pins are muxed with GPIO. The pad mux must be configured in software before use
+7. **PAD MUX**: On FPGA, DDR pins are muxed with GPIO. The pad mux must be configured in software before use (this is done automatically in `sl_init`, or you can call `sl_pad_mux_init`)
 
 ## Software Application
 

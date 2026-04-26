@@ -84,18 +84,18 @@ module peripheral_subsystem
     input  logic i2s_sd_i,
     output logic i2s_rx_valid_o,
 
+    //Serial Link
+    input  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0]    ddr_rcv_clk_i,  
+    output logic [serial_link_single_channel_reg_pkg::NumChannels-1:0]    ddr_snd_clk_o,
+    input  logic ddr_rcv_0_i,
+    input  logic ddr_rcv_1_i,
+    input  logic ddr_rcv_2_i,
+    input  logic ddr_rcv_3_i,
+    output logic ddr_snd_0_o,
+    output logic ddr_snd_1_o,
+    output logic ddr_snd_2_o,
+    output logic ddr_snd_3_o,
     % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
-      //Serial Link
-      input  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0]    ddr_rcv_clk_i,  
-      output logic [serial_link_single_channel_reg_pkg::NumChannels-1:0]    ddr_snd_clk_o,
-      input  logic ddr_rcv_0_i,
-      input  logic ddr_rcv_1_i,
-      input  logic ddr_rcv_2_i,
-      input  logic ddr_rcv_3_i,
-      output logic ddr_snd_0_o,
-      output logic ddr_snd_1_o,
-      output logic ddr_snd_2_o,
-      output logic ddr_snd_3_o,
       output obi_pkg::obi_req_t  serial_link_direct_write_req_o,
       input  obi_pkg::obi_resp_t serial_link_direct_write_resp_i,
       input  obi_pkg::obi_req_t  serial_link_slave_req_i,
@@ -654,6 +654,9 @@ module peripheral_subsystem
   assign ddr_i = {ddr_rcv_3_i, ddr_rcv_2_i, ddr_rcv_1_i, ddr_rcv_0_i};
   assign {ddr_snd_3_o, ddr_snd_2_o, ddr_snd_1_o, ddr_snd_0_o} = ddr_o;
 
+  logic serial_link_direct_write_intr_event;  
+  assign intr_vector[${interrupts["serial_link_direct_write_intr_event"]}] = serial_link_direct_write_intr_event; 
+
   serial_link_xheep_wrapper #(
     .MaxClkDiv(32),
     .AddrWidth(32),
@@ -679,7 +682,8 @@ module peripheral_subsystem
     .ddr_i,                   
     .ddr_snd_clk_o,          
     .ddr_o,
-    .intr_event_o(serial_link_fifo_not_empty_o)   
+    .intr_event_o(serial_link_fifo_not_empty_o),
+    .direct_write_intr_o(serial_link_direct_write_intr_event)   
   );
 % else:
     //Serial Link

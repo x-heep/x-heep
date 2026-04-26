@@ -161,17 +161,17 @@
         serial_link_reg: {
             offset:  0x000A0000
             length:  0x00010000
-            is_included: "yes"
+            is_included: "no"
         }
         serial_link_receiver_fifo: {
             offset:  0x000B0000
             length:  0x00010000
-            is_included: "yes"
+            is_included: "no"
         }
         serial_link_wrapper_mux: {
             offset:  0x000C0000
             length:  0x00010000
-            is_included: "yes"
+            is_included: "no"
         }
     }
 
@@ -246,6 +246,7 @@
             spi2_intr_event:         49
             i2s_intr_event:          50
             w25q128jw_controller_intr_event:        51
+            serial_link_direct_write_intr_event:    52
         }
     }
 }

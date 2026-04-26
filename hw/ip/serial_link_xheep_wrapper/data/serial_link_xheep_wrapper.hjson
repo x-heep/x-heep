@@ -24,6 +24,16 @@
         { bits: "0", name: "DIRECT_WRITE_EN", desc: "Receiver mode select. 0 = FIFO mode (default), 1 = direct write mode (incoming data written directly to memory via OBI master)." resval: 0 }
       ]
     }
+    { name:     "DIRECT_WRITE_WORD_COUNT"
+      desc:     "Expected word count for direct write transfer. Set before arming. Interrupt fires when this many words have been committed to RAM. Write 0 to disable."
+      swaccess: "rw"
+      hwaccess: "hro"
+      fields: [
+        { bits: "15:0", name: "COUNT",
+          desc: "Expected word count (max 65535)",
+          resval: 0 }
+      ]
+    }
 
   ]
 }

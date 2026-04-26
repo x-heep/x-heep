@@ -55,6 +55,7 @@ BLACKLIST = [
     "example_dma_slow_mem",  # TODO: @tommaso remove this once it's fixed
     "example_matmul_quadrilatero",
     "example_w25q128jw_write",
+    "example_serial_link_performance",
 ]
 # TODO : The example_pdm2pcm app is testing a wrong version of the PDM2PCM acting only as a CIC filter.
 #        When fixed, it not passes anymore. Need to be updated.

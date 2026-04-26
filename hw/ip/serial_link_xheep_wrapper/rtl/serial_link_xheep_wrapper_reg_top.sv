@@ -10,7 +10,7 @@
 module serial_link_xheep_wrapper_reg_top #(
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic,
-    parameter int AW = 2
+    parameter int AW = 3
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -70,6 +70,9 @@ module serial_link_xheep_wrapper_reg_top #(
   logic rx_mode_qs;
   logic rx_mode_wd;
   logic rx_mode_we;
+  logic [15:0] direct_write_word_count_qs;
+  logic [15:0] direct_write_word_count_wd;
+  logic direct_write_word_count_we;
 
   // Register instances
   // R[rx_mode]: V(False)
@@ -99,23 +102,56 @@ module serial_link_xheep_wrapper_reg_top #(
   );
 
 
+  // R[direct_write_word_count]: V(False)
+
+  prim_subreg #(
+      .DW      (16),
+      .SWACCESS("RW"),
+      .RESVAL  (16'h0)
+  ) u_direct_write_word_count (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(direct_write_word_count_we),
+      .wd(direct_write_word_count_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.direct_write_word_count.q),
+
+      // to register interface (read)
+      .qs(direct_write_word_count_qs)
+  );
 
 
-  logic [0:0] addr_hit;
+
+
+  logic [1:0] addr_hit;
   always_comb begin
     addr_hit = '0;
     addr_hit[0] = (reg_addr == SERIAL_LINK_XHEEP_WRAPPER_RX_MODE_OFFSET);
+    addr_hit[1] = (reg_addr == SERIAL_LINK_XHEEP_WRAPPER_DIRECT_WRITE_WORD_COUNT_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0;
 
   // Check sub-word write is permitted
   always_comb begin
-    wr_err = (reg_we & ((addr_hit[0] & (|(SERIAL_LINK_XHEEP_WRAPPER_PERMIT[0] & ~reg_be)))));
+    wr_err = (reg_we &
+              ((addr_hit[0] & (|(SERIAL_LINK_XHEEP_WRAPPER_PERMIT[0] & ~reg_be))) |
+               (addr_hit[1] & (|(SERIAL_LINK_XHEEP_WRAPPER_PERMIT[1] & ~reg_be)))));
   end
 
   assign rx_mode_we = addr_hit[0] & reg_we & !reg_error;
   assign rx_mode_wd = reg_wdata[0];
+
+  assign direct_write_word_count_we = addr_hit[1] & reg_we & !reg_error;
+  assign direct_write_word_count_wd = reg_wdata[15:0];
 
   // Read data return
   always_comb begin
@@ -123,6 +159,10 @@ module serial_link_xheep_wrapper_reg_top #(
     unique case (1'b1)
       addr_hit[0]: begin
         reg_rdata_next[0] = rx_mode_qs;
+      end
+
+      addr_hit[1]: begin
+        reg_rdata_next[15:0] = direct_write_word_count_qs;
       end
 
       default: begin
@@ -146,7 +186,7 @@ module serial_link_xheep_wrapper_reg_top #(
 endmodule
 
 module serial_link_xheep_wrapper_reg_top_intf #(
-    parameter  int AW = 2,
+    parameter  int AW = 3,
     localparam int DW = 32
 ) (
     input logic clk_i,

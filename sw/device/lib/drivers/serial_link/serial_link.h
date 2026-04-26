@@ -15,7 +15,8 @@
 #include "dma.h"
 #include "dma_regs.h"
 #include "fast_intr_ctrl.h"
-
+#include "pad_control.h"
+#include "pad_control_regs.h"
 
 
 
@@ -63,6 +64,14 @@ void reg_config_multi(void);
 void axi_isolate(int32_t * addr);
 
 /**
+ * @brief Configure the pad mux for the Serial Link DDR pins.
+ *
+ * Muxes GPIOs 1, 2, 3, 6, 7, 8, 9, 10 to the Serial Link DDR function.
+ * Called in sl_init(). 
+ */
+void sl_pad_mux_init(void);
+
+/**
  * @brief Initialize Serial Link for FPGA / silicon.
  *
  * This function wakes up the Serial Link IP by:
@@ -73,35 +82,6 @@ void axi_isolate(int32_t * addr);
  * This is the minimal initialization required before using the SL.
  */
 void sl_init(volatile uint32_t * addr_reg, int32_t * addr_isolate);
-
-/**
- * @brief Transmit data using CPU-driven transfers.
- *
- * This function performs a simple, blocking data transfer:
- *  - Writes data from src_d into the SL transmit register (src)
- *  - Reads data from the SL receive register (dst) into dst_d
- *
- * The parameter "large" must not exceed the SL FIFO depth
- * (default FIFO size is 8 entries).
- */
-void sl_cpu_send(uint32_t *src_d, uint32_t *src, uint32_t large);
-void sl_cpu_read(uint32_t *dst_d, uint32_t *dst, uint32_t large);
-
-/**
- * @brief Transmit data using the DMA engine.
- *
- * This function performs a two-phase DMA transfer:
- *  1) Memory → SL transmit register
- *  2) SL receive register → Memory
- *
- * DMA is preferred for large transfers or when CPU load must be minimized.
- *
- * The parameter "large" must be less than or equal to the SL FIFO size.
- * See example_serial_link_simulation_dma for usage patterns.
- */
-void sl_dma_send(uint32_t *src_d, uint32_t *src, uint32_t large);
-void sl_dma_read(uint32_t *dst_d, uint32_t *dst, uint32_t large);
-void wait_for_interrupt(void);
 
 // ============================================================================
 // Raw Mode API

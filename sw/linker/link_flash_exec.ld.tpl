@@ -40,18 +40,24 @@ SECTIONS {
 	KEEP (*(.text.start))
     } >FLASH
 
-    /* The program code and other data goes into FLASH */
+    /* The program code goes into FLASH */
     .text :
     {
         . = ALIGN(4);
         *(.text)           /* .text sections (code) */
         *(.text*)          /* .text* sections (code) */
+        . = ALIGN(4);
+    } >FLASH
+
+    /* Read-only data lives in FLASH as a separate output section. */
+    .rodata :
+    {
         *(.rodata)         /* .rodata sections (constants, strings, etc.) */
         *(.rodata*)        /* .rodata* sections (constants, strings, etc.) */
         *(.srodata)        /* .rodata sections (constants, strings, etc.) */
         *(.srodata*)       /* .rodata* sections (constants, strings, etc.) */
         . = ALIGN(4);
-        _etext = .;        /* define a global symbol at end of code */
+        _etext = .;        /* define a global symbol at end of code-side content */
     } >FLASH
 
     /* This is the initialized data section

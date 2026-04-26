@@ -7,7 +7,7 @@
 package serial_link_xheep_wrapper_reg_pkg;
 
   // Address widths within the block
-  parameter int BlockAw = 2;
+  parameter int BlockAw = 3;
 
   ////////////////////////////
   // Typedefs for registers //
@@ -15,20 +15,30 @@ package serial_link_xheep_wrapper_reg_pkg;
 
   typedef struct packed {logic q;} serial_link_xheep_wrapper_reg2hw_rx_mode_reg_t;
 
+  typedef struct packed {
+    logic [15:0] q;
+  } serial_link_xheep_wrapper_reg2hw_direct_write_word_count_reg_t;
+
   // Register -> HW type
   typedef struct packed {
-    serial_link_xheep_wrapper_reg2hw_rx_mode_reg_t rx_mode;  // [0:0]
+    serial_link_xheep_wrapper_reg2hw_rx_mode_reg_t rx_mode;  // [16:16]
+    serial_link_xheep_wrapper_reg2hw_direct_write_word_count_reg_t direct_write_word_count; // [15:0]
   } serial_link_xheep_wrapper_reg2hw_t;
 
   // Register offsets
-  parameter logic [BlockAw-1:0] SERIAL_LINK_XHEEP_WRAPPER_RX_MODE_OFFSET = 2'h0;
+  parameter logic [BlockAw-1:0] SERIAL_LINK_XHEEP_WRAPPER_RX_MODE_OFFSET = 3'h0;
+  parameter logic [BlockAw-1:0] SERIAL_LINK_XHEEP_WRAPPER_DIRECT_WRITE_WORD_COUNT_OFFSET = 3'h4;
 
   // Register index
-  typedef enum int {SERIAL_LINK_XHEEP_WRAPPER_RX_MODE} serial_link_xheep_wrapper_id_e;
+  typedef enum int {
+    SERIAL_LINK_XHEEP_WRAPPER_RX_MODE,
+    SERIAL_LINK_XHEEP_WRAPPER_DIRECT_WRITE_WORD_COUNT
+  } serial_link_xheep_wrapper_id_e;
 
   // Register width information to check illegal writes
-  parameter logic [3:0] SERIAL_LINK_XHEEP_WRAPPER_PERMIT[1] = '{
-      4'b0001  // index[0] SERIAL_LINK_XHEEP_WRAPPER_RX_MODE
+  parameter logic [3:0] SERIAL_LINK_XHEEP_WRAPPER_PERMIT[2] = '{
+      4'b0001,  // index[0] SERIAL_LINK_XHEEP_WRAPPER_RX_MODE
+      4'b0011  // index[1] SERIAL_LINK_XHEEP_WRAPPER_DIRECT_WRITE_WORD_COUNT
   };
 
 endpackage

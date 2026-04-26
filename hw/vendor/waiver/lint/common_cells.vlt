@@ -17,3 +17,13 @@ lint_off -rule WIDTH -file "*/src/clk_int_div.sv"
 lint_off -rule WIDTH -file "*/src/cdc_fifo_2phase.sv"
 lint_off -rule UNOPTFLAT -file "*src/fifo_v3.sv" -match "Signal unoptimizable: Feedback to clock or circular*"
 lint_off -rule WIDTH -file "*/src/clk_int_div_static.sv"
+
+// Error is due to fifo_v3 dtype mismatch: phy_data_chan_t is defined as
+// phy_data_t [NumChannels-1:0]. When NumChannels=1, it becomes an unpacked
+// array (phy_data_t [0:0]) instead of a packed type, causing incompatibility.
+lint_off -rule UNSUPPORTED -file "*/pulp_platform/common_cells/src/fifo_v3.sv" -match "Unsupported: static cast to 'phy_data_t[0:0]' from 'logic'"
+
+// Intended only for the serial_link integration path.
+// In Verilator 4.220, matching on the hierarchy text ("In instance ... serial_link_xheep_wrapper_i... serial_link_data_link.i_flow_control_fifo.fifo_i, the problem comes from the V4.220 not being able to correctly parse dtype for logic, which happens in channel allocation for a single channel")
+lint_off -rule WIDTH  -file "*pulp_platform/common_cells/src/fifo_v3.sv"   -match "*Operator ASSIGNDLY expects 448 bits on the Assign RHS, but Assign RHS's REPLICATE generates 56 bits*"
+

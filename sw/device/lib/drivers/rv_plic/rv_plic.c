@@ -53,6 +53,7 @@ extern "C" {
 #include "dma.h"
 #include "spi_host.h"
 #include "w25q128jw_controller.h"
+#include "serial_link_sdk.h"
 
 /****************************************************************************/
 /**                                                                        **/
@@ -410,6 +411,10 @@ void plic_reset_handlers_list(void)
     else if (i == W25Q128JW_CONTROLLER_ID)
     {
       handlers[i] = &handler_irq_w25q128jw_controller;
+    }
+    else if (i == SERIAL_LINK_DIRECT_WRITE_ID)  
+    {
+    handlers[i] = &handler_irq_sl_direct_write;
     }
     else
     {

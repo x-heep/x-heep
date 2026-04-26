@@ -294,8 +294,10 @@ module core_v_mini_mcu
   // I2s
   logic i2s_rx_valid;
 
-  logic serial_link_fifo_not_empty;
-
+  % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
+    logic serial_link_fifo_not_empty;    
+  % endif
+ 
   assign intr = {
     irq_fast, 4'b0, irq_external, 3'b0, rv_timer_intr[0], 3'b0, irq_software, 3'b0
   };
@@ -547,17 +549,17 @@ module core_v_mini_mcu
       .i2s_sd_oe_o(i2s_sd_oe_o),
       .i2s_sd_i(i2s_sd_i),
       .i2s_rx_valid_o(i2s_rx_valid),
+      .ddr_rcv_clk_i,  
+      .ddr_snd_clk_o,
+      .ddr_rcv_0_i,
+      .ddr_rcv_1_i,
+      .ddr_rcv_2_i,
+      .ddr_rcv_3_i,
+      .ddr_snd_0_o,
+      .ddr_snd_1_o,
+      .ddr_snd_2_o,
+      .ddr_snd_3_o,
       % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
-        .ddr_rcv_clk_i,  
-        .ddr_snd_clk_o,
-        .ddr_rcv_0_i,
-        .ddr_rcv_1_i,
-        .ddr_rcv_2_i,
-        .ddr_rcv_3_i,
-        .ddr_snd_0_o,
-        .ddr_snd_1_o,
-        .ddr_snd_2_o,
-        .ddr_snd_3_o,
         .serial_link_direct_write_req_o,
         .serial_link_direct_write_resp_i(serial_link_direct_write_resp),
         .serial_link_slave_req_i(serial_link_slave_req),

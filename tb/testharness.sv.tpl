@@ -771,7 +771,7 @@ module testharness #(
             .xif_mem_if             (ext_if),
             .xif_mem_result_if      (ext_if),
             .xif_result_if          (ext_if),
-            // OBI signals 
+            // OBI signals
             .quadrilatero_ch0_req_o (ext_master_req[testharness_pkg::EXT_MASTER4_IDX]),
             .quadrilatero_ch0_resp_i(ext_master_resp[testharness_pkg::EXT_MASTER4_IDX]),
             .quadrilatero_ch1_req_o (ext_master_req[testharness_pkg::EXT_MASTER5_IDX]),
@@ -817,7 +817,8 @@ module testharness #(
           .ddr_rcv_clk_i (ddr_clk_o_xheep),
           .ddr_snd_clk_o (ddr_clk_i_xheep),
           .ddr_o        (ddr_i_xheep), 
-          .intr_event_o()
+          .intr_event_o(),
+          .direct_write_intr_o()
       );
     %else:
     assign ddr_clk_i_xheep='0;

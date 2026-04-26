@@ -123,15 +123,11 @@ The HW-triggered DMA (`sl_wrapper_dma_read_launch`) fires a single DMA done inte
 
 ```{note}
 Raw mode data width is 8 bits (2 × NumLanes = 2 × 4) for this configuration.
-The register file exposes 16-bit fields (generated with default NumLanes=8) but
-only the lower 8 bits are connected to hardware. Upper 8 bits are ignored on TX
-and always zero on RX.
+The register file exposes 16-bit fields (generated with default NumLanes=8) but only the lower 8 bits are connected to hardware. Upper 8 bits are ignored on TX and always zero on RX.
 ```
 
 ```{warning}
-Raw mode and AXI mode are mutually exclusive. `sl_raw_mode_enable()` automatically
-re-asserts AXI isolation before switching modes. Always call `sl_raw_mode_disable()`
-when done to restore AXI operation.
+Raw mode and AXI mode are mutually exclusive. `sl_raw_mode_enable()` automatically re-asserts AXI isolation before switching modes. Always call `sl_raw_mode_disable()` when done to restore AXI operation.
 ```
 
 ## FPGA

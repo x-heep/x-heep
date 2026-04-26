@@ -238,7 +238,8 @@
             intr_ack_stop:           47
             intr_host_timeout:       48
             spi2_intr_event:         49
-            i2s_intr_event:          50
+            i2s_intr_event:          50 
+            serial_link_direct_write_intr_event:    52
         }
     }
 }

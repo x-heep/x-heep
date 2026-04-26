@@ -49,7 +49,7 @@ The serial link wrapper (`serial_link_xheep_wrapper`) extends the base PULP Seri
 
 - A software driver for the Serial Link is available in `sw/device/lib/drivers/serial_link/serial_link`. It handles register configuration, clock/reset sequencing, and AXI isolation. All functions are documented in the corresponding `.h` file.
 - A sofware driver for the Serial Link wrapper is available in `sw/device/lib/drivers/serial_link/serial_link_xheep_wrapper_driver`. It handles RX mode selection, direct write, and wrapper register access. All functions are documented in the corresponding `.h` file.
-- A sofware SDK is available in `sw/device/lib/runtime/serial_link_sdk`. It provides CPU and DMA data transfers, HW-triggered DMA receive, and direct write interrupt arming. All functions are documented in the corresponding `.h` file.
+- A sofware SDK is available in `sw/device/lib/sdk/serial_link/serial_link_sdk`. It provides CPU and DMA data transfers, HW-triggered DMA receive, and direct write interrupt arming. All functions are documented in the corresponding `.h` file.
 - Call `sl_pad_mux_init()` then `sl_init()` to configure the DDR pins and bring up the Serial Link before transmitting data.
 
 ### Usage FIFO Mode

@@ -20,7 +20,7 @@ module serial_link_xheep_wrapper
   import axi_pkg::*;
   import serial_link_xheep_wrapper_reg_pkg::*;
 #(
-    parameter int MaxClkDiv = 32,
+    parameter int MaxClkDiv = 1024,
     parameter int AddrWidth = 32,
     parameter int DataWidth = 32,
     parameter logic [31:0] AxiAddrOffset = 32'h0

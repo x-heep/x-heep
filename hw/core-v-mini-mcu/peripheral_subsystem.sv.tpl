@@ -654,7 +654,7 @@ module peripheral_subsystem
   assign {ddr_snd_3_o, ddr_snd_2_o, ddr_snd_1_o, ddr_snd_0_o} = ddr_o;
 
   serial_link_xheep_wrapper #(
-    .MaxClkDiv(32),
+    .MaxClkDiv(1024),
     .AddrWidth(32),
     .DataWidth(32),
     .AxiAddrOffset(core_v_mini_mcu_pkg::SERIAL_LINK_START_ADDRESS)

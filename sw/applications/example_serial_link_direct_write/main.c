@@ -56,6 +56,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
+
     // Test 2: Direct write mode
     sl_wrapper_set_rx_mode(SL_WRAPPER_RX_MODE_DIRECT_WRITE);
     volatile int32_t *addr_p_direct = (volatile int32_t *)DIRECT_WRITE_TARGET_ADDR;

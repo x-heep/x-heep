@@ -518,7 +518,7 @@ module testharness #(
           .rst_ni,
           .req_i(slow_ram_slave_req[SLOW_MEMORY0_IDX].req),
           .we_i(slow_ram_slave_req[SLOW_MEMORY0_IDX].we),
-          .addr_i(slow_ram_slave_req[SLOW_MEMORY0_IDX].addr[15:2]),
+          .addr_i(slow_ram_slave_req[SLOW_MEMORY0_IDX].addr[14:2]),  // was [15:2]
           .wdata_i(slow_ram_slave_req[SLOW_MEMORY0_IDX].wdata),
           .be_i(slow_ram_slave_req[SLOW_MEMORY0_IDX].be),
           // output ports
@@ -535,7 +535,7 @@ module testharness #(
           .rst_ni,
           .req_i(slow_ram_slave_req[SLOW_MEMORY1_IDX].req),
           .we_i(slow_ram_slave_req[SLOW_MEMORY1_IDX].we),
-          .addr_i(slow_ram_slave_req[SLOW_MEMORY1_IDX].addr[15:2]),
+          .addr_i(slow_ram_slave_req[SLOW_MEMORY1_IDX].addr[14:2]),  // was [15:2]
           .wdata_i(slow_ram_slave_req[SLOW_MEMORY1_IDX].wdata),
           .be_i(slow_ram_slave_req[SLOW_MEMORY1_IDX].be),
           // output ports
@@ -793,7 +793,7 @@ module testharness #(
 
       % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
       serial_link_xheep_wrapper #(
-          .MaxClkDiv(32),
+          .MaxClkDiv(1024),
           .AddrWidth(32),
           .DataWidth(32),
           .AxiAddrOffset(testharness_pkg::SL_EXT_START_ADDRESS)

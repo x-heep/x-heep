@@ -91,6 +91,15 @@ module ext_bus #(
     end
   endgenerate
 
+  //assign master_req[core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER-1] = '0;
+  generate
+    if (core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER - 1 > 
+      core_v_mini_mcu_pkg::DMA_ADDR_P0_IDX + 
+      (core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS - 1) * 3) begin : gen_tie_unused_master
+      assign master_req[core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER-1] = '0;
+    end
+  endgenerate
+
   generate
     for (genvar i = 0; i < EXT_XBAR_NMASTER; i++) begin : gen_ext_master_req_map
       assign master_req[SYSTEM_XBAR_NMASTER+i] = demux_xbar_req[i][DEMUX_XBAR_EXT_SLAVE_IDX];

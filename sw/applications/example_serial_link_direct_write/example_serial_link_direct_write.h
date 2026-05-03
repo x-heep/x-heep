@@ -39,7 +39,7 @@ static uint32_t dma_buffer[NUM_WORDS] __attribute__((aligned(4))) = {0};
 
 // Simulation only
 #if TARGET_SIM
-    #define EXT_SLAVE_LENGTH            0x400
+    #define EXT_SLAVE_LENGTH   0x400   
     #define SL_EXTERNAL_WRITE           (volatile int32_t *)(EXT_SLAVE_START_ADDRESS + EXT_SLAVE_LENGTH)
     #define SL_EXTERNAL_CTRL_REG_ADDR   (int32_t *)(EXT_PERIPHERAL_START_ADDRESS + 0x06000 + SERIAL_LINK_SINGLE_CHANNEL_CTRL_REG_OFFSET)
     #define SL_EXTERNAL_DIRECT_WRITE    (int32_t *)(EXT_SLAVE_START_ADDRESS + EXT_SLAVE_LENGTH + DIRECT_WRITE_TARGET_ADDR)

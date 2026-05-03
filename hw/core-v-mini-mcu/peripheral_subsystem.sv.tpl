@@ -658,7 +658,7 @@ module peripheral_subsystem
   assign intr_vector[${interrupts["serial_link_direct_write_intr_event"]}] = serial_link_direct_write_intr_event; 
 
   serial_link_xheep_wrapper #(
-    .MaxClkDiv(32),
+    .MaxClkDiv(1024),
     .AddrWidth(32),
     .DataWidth(32),
     .AxiAddrOffset(core_v_mini_mcu_pkg::SERIAL_LINK_START_ADDRESS)

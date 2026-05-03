@@ -91,7 +91,6 @@ module ext_bus #(
     end
   endgenerate
 
-  //assign master_req[core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER-1] = '0;
   generate
     if (core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER - 1 > 
       core_v_mini_mcu_pkg::DMA_ADDR_P0_IDX + 

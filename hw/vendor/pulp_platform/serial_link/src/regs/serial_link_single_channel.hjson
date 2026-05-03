@@ -26,9 +26,9 @@
       local: "true"
     },
     { name: "NumBits",
-      desc: "Number of bits transfered in one clock cycle (2 * NumLanes)",
+      desc: "Number of bits transfered in one clock cycle (2 * NumLanes). Set to 8 for NumLanes=4.",
       type: "int",
-      default: "16",
+      default: "8",   // was 16, changed to match NumLanes=4 in minimal_pkg.sv
       local: "true"
     },
     { name: "Log2MaxClkDiv",

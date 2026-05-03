@@ -95,8 +95,6 @@ void sl_init(volatile uint32_t * addr_reg, int32_t * addr_isolate);
  * overhead (no framing, no credits, no flow control).
  *
  * Note: data width is 8 bits (2 * NumLanes = 2 * 4) for this config.
- * The register file exposes 16-bit fields but only the lower 8 bits
- * are connected to hardware.
  *
  * This function:
  *  - Re-asserts AXI isolation (raw mode and AXI are mutually exclusive)

@@ -87,8 +87,8 @@ module serial_link_xheep_wrapper
       // Slave AXI LITE port
       .slv_req_lite_i(axi_lite_req),
       .slv_resp_lite_o(axi_lite_rsp),
-      .slv_aw_cache_i(),
-      .slv_ar_cache_i(),
+      .slv_aw_cache_i('0),
+      .slv_ar_cache_i('0),
       .mst_req_o(axi_in_req),
       .mst_resp_i(axi_in_rsp)
   );

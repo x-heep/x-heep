@@ -106,9 +106,9 @@ set_property -dict {PACKAGE_PIN V18 IOSTANDARD LVCMOS33} [get_ports {spi2_sd_io[
 set_property -dict {PACKAGE_PIN T16 IOSTANDARD LVCMOS33} [get_ports {spi2_sd_io[2]}] ; # arduino_gpio_tri_io[10]
 set_property -dict {PACKAGE_PIN R17 IOSTANDARD LVCMOS33} [get_ports {spi2_sd_io[3]}] ; # arduino_gpio_tri_io[11]
 
-set_property -dict {PACKAGE_PIN Y17 IOSTANDARD LVCMOS33} [get_ports {ddr_rcv_clk_i_i}] ; # rpi_gpio_tri_io[17]
-set_property -dict {PACKAGE_PIN F20 IOSTANDARD LVCMOS33} [get_ports {ddr_rcv_clk_o_o}] ; # rpi_gpio_tri_io[11]
+set_property -dict {PACKAGE_PIN Y17 IOSTANDARD LVCMOS33} [get_ports {ddr_rcv_clk_i}] ; # rpi_gpio_tri_io[17]
+set_property -dict {PACKAGE_PIN F20 IOSTANDARD LVCMOS33} [get_ports {ddr_snd_clk_o}] ; # rpi_gpio_tri_io[11]
 % if user_peripheral_domain.contains_peripheral('serial_link'):
-set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets ddr_rcv_clk_i_i_IBUF]
-set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets ddr_rcv_clk_o_o_OBUF]
+set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets ddr_rcv_clk_i_IBUF]
+set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets ddr_snd_clk_o_OBUF]
 %endif

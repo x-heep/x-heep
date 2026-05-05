@@ -23,9 +23,18 @@ module xilinx_core_v_mini_mcu_wrapper
 `elsif FPGA_GENESYS2
     inout logic clk_200mhz_n,
     inout logic clk_200mhz_p,
+`elsif FPGA_NEXYS
+    inout logic clk_i,
 `else
     inout logic clk_i,
 `endif
+
+`ifndef NO_DDR_CLK_PORTS
+    // Serial Link DDR clock ports for PYNQ Z2 board (set in .core file)
+    input  wire ddr_rcv_clk_i,
+    output wire ddr_snd_clk_o,
+`endif
+
     inout logic rst_i,
 
     output logic rst_led_o,
@@ -73,10 +82,8 @@ module xilinx_core_v_mini_mcu_wrapper
 
     inout logic i2s_sck_io,
     inout logic i2s_ws_io,
-    inout logic i2s_sd_io,
+    inout logic i2s_sd_io
 
-    inout wire ddr_rcv_clk_i_i,
-    inout wire ddr_rcv_clk_o_o
 );
 
   wire                               clk_gen;
@@ -211,8 +218,13 @@ module xilinx_core_v_mini_mcu_wrapper
       .gpio_11_io(gpio_io[11]),
       .gpio_12_io(gpio_io[12]),
       .gpio_13_io(gpio_io[13]),
-      .ddr_rcv_clk_i_i,
-      .ddr_rcv_clk_o_o,
+`ifndef NO_DDR_CLK_PORTS
+      .ddr_rcv_clk_i,
+      .ddr_snd_clk_o,
+`else
+      .ddr_rcv_clk_i(1'b0),
+      .ddr_snd_clk_o(),
+`endif
       .spi_slave_sck_io(spi_slave_sck_io),
       .spi_slave_cs_io(spi_slave_cs_io),
       .spi_slave_miso_io(spi_slave_miso_io),

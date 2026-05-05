@@ -14,9 +14,9 @@
 
   exclude_from_upstream: [
     "ci",
-    "tb",
     "sva",
     "Bender.yml",
+    "tb/.clang-format",
+    "tb/unused",
   ]
-
 }

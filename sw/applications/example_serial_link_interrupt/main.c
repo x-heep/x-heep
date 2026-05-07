@@ -26,6 +26,10 @@
 #include "rv_plic.h"
 #include "example_serial_link_interrupt.h"
 
+void dma_intr_handler_trans_done(uint8_t channel) {
+    sl_wrapper_dma_intr_flag = 1;
+}
+
 void handler_irq_sl_direct_write(uint32_t id) {
     sl_wrapper_direct_write_intr_flag = 1;
     plic_irq_set_enabled(SERIAL_LINK_DIRECT_WRITE_ID, kPlicToggleDisabled);

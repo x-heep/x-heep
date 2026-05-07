@@ -8,6 +8,8 @@ name: pulp-platform.org::register_interface
 
 filesets:
   files_rtl:
+    depend:
+    - pulp-platform.org::axi:0.39.8
     files:
     - pulp_platform/register_interface/include/register_interface/assign.svh : {is_include_file: true, include_path: pulp_platform/register_interface/include}
     - pulp_platform/register_interface/include/register_interface/typedef.svh : {is_include_file: true, include_path: pulp_platform/register_interface/include}

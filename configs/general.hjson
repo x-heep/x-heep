@@ -156,7 +156,7 @@
         uart: {
             offset:  0x00080000
             length:  0x00010000
-            is_included: "no"
+            is_included: "yes"
         }
         serial_link_reg: {
             offset:  0x000A0000

@@ -93,7 +93,6 @@ module ext_bus #(
     end
   endgenerate
 
-  assign master_req[core_v_mini_mcu_pkg::SL_DIRECT_WRITE_MASTER_IDX] = '0;
 
   generate
     for (genvar i = 0; i < EXT_XBAR_NMASTER; i++) begin : gen_ext_master_req_map

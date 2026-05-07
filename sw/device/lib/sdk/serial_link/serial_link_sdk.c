@@ -10,10 +10,6 @@
 volatile int8_t sl_wrapper_dma_intr_flag = 0;
 volatile int8_t sl_wrapper_direct_write_intr_flag = 0;
 
-void dma_intr_handler_trans_done(uint8_t channel) {
-    sl_wrapper_dma_intr_flag = 1;
-}
-
 static dma_target_t sl_dma_tgt_src = {
     .ptr       = (uint8_t *)SL_READ,
     .inc_d1_du = 0,

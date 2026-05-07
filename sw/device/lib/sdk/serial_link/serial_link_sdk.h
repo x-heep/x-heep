@@ -34,8 +34,8 @@
 // ============================================================================
 
 /**
- * Set by dma_intr_handler_trans_done() when the DMA transfer launched by
- * sl_wrapper_dma_read_launch() completes. Poll to detect completion:
+ * Can be set by dma_intr_handler_trans_done() when the DMA transfer launched 
+ * by sl_wrapper_dma_read_launch() completes. Poll to detect completion:
  *
  *   sl_wrapper_dma_read_launch(buf, N);
  *   while (!sl_wrapper_dma_intr_flag) { do_useful_work(); }

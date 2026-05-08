@@ -18,6 +18,7 @@ filesets:
     - pulp_platform/register_interface/src/reg_demux.sv
     - pulp_platform/register_interface/src/reg_err_slv.sv
     - pulp_platform/register_interface/src/reg_filter_empty_writes.sv
+    - pulp_platform/register_interface/src/reg_intf.sv
     - pulp_platform/register_interface/src/reg_mux.sv
     - pulp_platform/register_interface/src/reg_to_apb.sv
     - pulp_platform/register_interface/src/reg_to_mem.sv

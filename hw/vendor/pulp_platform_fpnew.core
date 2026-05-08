@@ -16,6 +16,7 @@ filesets:
     - pulp_platform/fpnew/src/fpnew_cast_multi.sv
     - pulp_platform/fpnew/src/fpnew_classifier.sv
     - pulp_platform/fpnew/src/fpnew_divsqrt_multi.sv
+    - pulp_platform/fpnew/src/fpnew_fma.sv
     - pulp_platform/fpnew/src/fpnew_fma_multi.sv
     - pulp_platform/fpnew/src/fpnew_noncomp.sv
     - pulp_platform/fpnew/src/fpnew_opgroup_block.sv

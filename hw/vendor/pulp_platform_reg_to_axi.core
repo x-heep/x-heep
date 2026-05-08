@@ -10,7 +10,7 @@ CAPI=2:
 # CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-# File: pulp_platform_reg_axi_bridges.core
+# File: pulp_platform_reg_to_axi.core
 # Author(s):
 #   Michele Caon <michele.caon@epfl.ch>
 # Date: 08/05/2026
@@ -22,7 +22,7 @@ CAPI=2:
 #       projects using only the Register Interface are not forced to depend on
 #       AXI as well.
 
-name: pulp-platform.org::reg_axi_bridges
+name: pulp-platform.org::reg_to_axi
 desc: "Registere Interface to AXI bridges"
 
 filesets:

@@ -83,7 +83,9 @@ def generate_xheep(args):
             raise SystemExit(sys.exc_info()[1])
 
     # Load pads HJSON configuration file
-    pad_ring = x_heep_gen.load_config.load_pad_cfg(pathlib.PurePath(str(args.pads_cfg)))
+    pad_ring = x_heep_gen.load_config.load_pad_cfg(
+        pathlib.PurePath(str(args.pads_cfg)), xheep
+    )
     if pad_ring is None:
         exit(f"Error loading pads configuration file: {args.pads_cfg}")
     xheep.set_padring(pad_ring)

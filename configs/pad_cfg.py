@@ -5,12 +5,13 @@
 # Author(s): Juan Sapriza, David Mallasen
 # Description: Pad configuration for X-HEEP
 
+from x_heep_gen.xheep import XHeep
 from x_heep_gen.pads.pad_ring import PadRing
 from x_heep_gen.pads.floorplan import Side
 from x_heep_gen.pads.pin import Input, Output, Inout
 
 
-def config() -> PadRing:
+def config(xheep: XHeep) -> PadRing:
     """
     Build and return the PadRing for the design, including pin definitions and pad mapping.
     For detailed documentation and usage instructions, please refer to docs/source/Configuration/PadConfiguration.md

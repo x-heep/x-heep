@@ -1,0 +1,21 @@
+{ name: "spi_subsystem"
+  clock_primary: "clk_i"
+  bus_interfaces: [
+    { protocol: "reg_iface", direction: "device" }
+  ]
+  regwidth: "32"
+
+  registers: [
+    { name: "CONTROL"
+      desc: "Control register"
+      swaccess: "rw"
+      hwaccess: "hrw"
+      fields: [
+        { bits: "0", name: "USE_AXI", desc: "selects between the two flash controllers, as flash master and interrupt source", resval: "0x0" }
+        { bits: "1", name: "A2F_CTR_POWERON_EN", desc: "enables the power-on sfm in axi_to_flash_controller", resval: "0x0" }
+        { bits: "2", name: "A2F_CTR_QUADSPI_EN", desc: "enables quad spi", resval: "0x0" }
+        
+      ]
+    }
+  ]
+}

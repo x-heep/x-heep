@@ -1,0 +1,13 @@
+diff --git a/axi.core b/axi.core
+index 3b4cc5bd..927a9cab 100644
+--- a/axi.core
++++ b/axi.core
+@@ -73,8 +73,6 @@ filesets:
+       - src/axi_to_mem_split.sv
+       - src/axi_chan_compare.sv
+       - src/axi_dumper.sv
+-      - src/axi_sim_mem.sv
+-      - src/axi_test.sv
+       # Level 5
+       - src/axi_xbar.sv
+       # Level 6

@@ -8,7 +8,7 @@
 {
   upstream:
   {
-    url: https://github.com/alebaroc/xheep_spi.git
-    rev: 19975596685544026868f6336a03462750ed91d1
+    url: https://github.com/pulp-platform/axi.git
+    rev: 78831b6feba265d5ee2683bbf42b4150f8a35c43
   }
 }

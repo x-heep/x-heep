@@ -1,0 +1,22 @@
+diff --git a/hw/lint/common.core b/hw/lint/common.core
+index 13ce1eead..2dc5eb6c5 100644
+--- a/hw/lint/common.core
++++ b/hw/lint/common.core
+@@ -19,9 +19,6 @@ filesets:
+     files:
+       - tools/veriblelint/rules.vbl: {file_type: veribleLintRules}
+ 
+-  files_check_tool_requirements:
+-    depend:
+-     - lowrisc:tool:check_tool_requirements
+ 
+ targets:
+   default: &default_target
+@@ -29,7 +26,6 @@ targets:
+       - tool_verilator   ? (files_verilator)
+       - tool_ascentlint  ? (files_ascentlint)
+       - tool_veriblelint ? (files_veriblelint)
+-      - files_check_tool_requirements
+     tools:
+       ascentlint:
+         ascentlint_options:

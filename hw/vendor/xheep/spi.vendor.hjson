@@ -6,8 +6,8 @@
   target_dir: "spi",
 
   upstream: {
-    url: "https://github.com/x-heep/xheep_spi.git",
-    rev: "d5b4401ab8b5e85d51af5fb9e9f69fb5dbe86519",
+    url: "https://github.com/alebaroc/xheep_spi.git",
+    rev: "first_impl",
   },
 
   exclude_from_upstream: [
@@ -15,9 +15,11 @@
     "sw",
     "util",
     "vendor/pulp_platform_register_interface",
-    "vendor/pulp_platform_register_interface.vendor.hjson",
-    "vendor/pulp_platform_register_interface.lock.hjson",
     "vendor/pulp_platform_register_interface.core",
+    "vendor/lowrisc_opentitan",
+    "vendor/pulp_platform_axi",
+    "vendor/pulp_platform_common_cells",
+    "vendor/axi"
   ],
 
 }

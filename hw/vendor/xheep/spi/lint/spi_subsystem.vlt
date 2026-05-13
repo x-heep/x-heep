@@ -1,0 +1,170 @@
+`verilator_config
+
+// ============================================================================================
+//                                   pulp_platform_axi
+// ============================================================================================
+
+lint_off -rule PINMISSING -file "*src/axi_cdc_src.sv*" -match "*Cell has missing pin: 'src_req_i'*"
+lint_off -rule PINMISSING -file "*src/axi_cdc_src.sv*" -match "*Cell has missing pin: 'src_resp_o'*"
+lint_off -rule WIDTH -file "*src/axi_pkg.sv*" -match "*Operator CASE expects*"
+lint_off -rule WIDTH -file "*src/axi_pkg.sv*" -match "*Operator ADD expects*"
+lint_off -rule WIDTH -file "*src/axi_pkg.sv*" -match "*Operator DIV expects*"
+lint_off -rule WIDTH -file "*src/axi_pkg.sv*" -match "*Operator ASSIGN expects*"
+lint_off -rule WIDTH -file "*src/axi_pkg.sv*" -match "*Operator SUB expects*"
+lint_off -rule WIDTH -file "*src/reg_mux.sv*" -match "*Operator ASSIGNW expects*"
+lint_off -rule CASEINCOMPLETE -file "*src/axi_pkg*" -match "*Case values incompletely covered*"
+lint_off -rule SYMRSVDWORD -file "*rtl/spi_device_reg_pkg*" -match "*Symbol matches C++ common word: 'abort'*"
+
+
+// ============================================================================================
+//                                      sram_wrapper
+// ============================================================================================
+
+// parameter int unsigned NumWords = 13'h400
+lint_off -rule WIDTH -file "*tb/sram_wrapper*" -match "*Operator VAR 'NumWords' expects 32 bits on the Initial value, but Initial value's CONST '13'h400' generates 13 bits*"
+
+
+// ============================================================================================
+//                                      tc_sram
+// ============================================================================================
+
+lint_off -rule WIDTH -file "*tb/tc_sram.sv*" -match "*Operator ASSIGN expects*"
+lint_off -rule WIDTH -file "*tb/tc_sram.sv*" -match "*Operator CASE expects*"
+lint_off -rule UNSIGNED -file "*tb/tc_sram.sv*" -match "*Comparison is constant due to unsigned arithmetic*"
+
+
+// ============================================================================================
+//                                      spi_host
+// ============================================================================================
+
+lint_off -rule WIDTH -file "*rtl/spi_host_window.sv*" -match "*Operator ASSIGNW expects*"
+lint_off -rule WIDTH -file "*rtl/spi_host_reg_top.sv*" -match "*Operator ASSIGNW expects*"
+
+
+// ============================================================================================
+//                                axi_to_flash_controller
+// ============================================================================================
+
+// beat_number_d = ar_len + 1;
+lint_off -rule WIDTH -file "*rtl/axi_to_flash_controller*" -match "*Operator ASSIGN expects 5 bits on the Assign RHS, but Assign RHS's ADD generates 32 or 8 bits*"
+
+// logic [AddrWidth-1:0] alligned_beat_addr = (first_beat_addr_q / beat_size_q) * beat_size_q;
+// lint_off -rule WIDTH -file "*rtl/axi_to_flash_controller*" -match "*Operator DIV expects 64 bits on the RHS, but RHS's VARREF 'beat_size_q' generates 8 bits*"
+
+// lower_byte_lane = first_beat_addr_q - (first_beat_addr_q / DataBytes)*DataBytes;
+lint_off -rule WIDTH -file "*rtl/axi_to_flash_controller*" -match "*Operator ASSIGN expects 32 bits on the Assign RHS, but Assign RHS's SUB generates 64 bits*"
+lint_off -rule WIDTH -file "*rtl/axi_to_flash_controller*" -match "*Operator DIV expects 64 bits on the RHS, but RHS's VARREF 'DataBytes' generates 32 bits*"
+
+// upper_byte_lane = alligned_beat_addr - (first_beat_addr_q / DataBytes)*DataBytes + (beat_size_q - 1);
+lint_off -rule WIDTH -file "*rtl/axi_to_flash_controller*" -match "*Operator SUB expects 64 bits on the LHS, but LHS's VARREF 'beat_size_q' generates 8 bits*"
+lint_off -rule WIDTH -file "*rtl/axi_to_flash_controller*" -match "*Operator ASSIGN expects 32 bits on the Assign RHS, but Assign RHS's ADD generates 64 bits*"
+
+// upper_byte_lane = lower_byte_lane + (beat_size_q - 1);
+lint_off -rule WIDTH -file "*rtl/axi_to_flash_controller*" -match "*Operator SUB expects 32 bits on the LHS, but LHS's VARREF 'beat_size_q' generates 8 bits*"
+
+//if (word_count_d == SE_WSIZE) begin
+lint_off -rule WIDTH -file "*rtl/axi_to_flash_controller*" -match "*Operator EQ expects 13 bits on the LHS, but LHS's VARREF 'word_count_d' generates 11 bits*"
+
+// sect_buffer_addr = '0 + word_count_q;
+lint_off -rule WIDTH -file "*rtl/axi_to_flash_controller*" -match "*Operator ADD expects 64 bits on the RHS, but RHS's VARREF 'word_count_q' generates 11 bits*"
+
+// if (word_count_d == SE_WSIZE) begin
+lint_off -rule WIDTH -file "*rtl/axi_to_flash_controller*" -match "*Operator EQ expects 13 bits on the LHS, but LHS's VARREF 'word_count_d' generates 10 bits*"
+
+// flash_addr_d = beat_addr_d;
+lint_off -rule WIDTH -file "*rtl/axi_to_flash_controller*" -match "*Operator ASSIGN expects 24 bits on the Assign RHS, but Assign RHS's VARREF 'beat_addr_d' generates 64 bits*"
+
+// if (wait_latency_count_d == SectorBufferLatency) begin
+lint_off -rule WIDTH -file "*rtl/axi_to_flash_controller*" -match "*Operator EQ expects 32 bits on the LHS, but LHS's VARREF 'wait_latency_count_d' generates 1 bits*"
+
+// if (word_count_d < SE_WSIZE) begin
+lint_off -rule WIDTH -file "*rtl/axi_to_flash_controller*" -match "*Operator LT expects 13 bits on the LHS, but LHS's VARREF 'word_count_d' generates 11 bits*"
+
+// if (word_count_d <  PAGE_WSIZE) write_state_d = WRITE_PP_PAGE_WRITE_1;
+lint_off -rule WIDTH -file "*rtl/axi_to_flash_controller*" -match "*Operator LT expects 13 bits on the LHS, but LHS's VARREF 'word_count_d' generates 10 bits*"
+
+// if (page_count_q < SE_PSIZE) begin
+lint_off -rule WIDTH -file "*rtl/axi_to_flash_controller*" -match "*Operator LT expects 32 bits on the LHS, but LHS's VARREF 'page_count_q' generates 5 bits*"
+
+// localparam int SE_WSIZE_DW = sizeInBits(32'(SE_WSIZE+1));
+lint_off -rule WIDTH -file "*rtl/axi_to_flash_controller*" -match "*Operator ADD expects 32 bits on the LHS, but LHS's VARREF 'SE_WSIZE' generates 13 bits*"
+
+// localparam int SectorBuffer_AddrWidth = sizeInBits(SE_WSIZE);
+lint_off -rule WIDTH -file "*rtl/axi_to_flash_controller*" -match "*Operator FUNCREF 'sizeInBits' expects 32 bits on the Function Argument, but Function Argument's VARREF 'SE_WSIZE' generates 13 bits*"
+
+// spi_host_reg_req_o.wdata = bitfield_byteswap32(
+lint_off -rule WIDTH -file "*rtl/axi_to_flash_controller*" -match "*Operator FUNCREF 'bitfield_byteswap32' expects 32 bits on the Function Argument, but Function Argument's OR generates 33 bits*"
+
+// flash_is_on_d = (poweron_wait_count_d == actual_poweron_wait_cycles) ? 1'b1 : 1'b0;
+lint_off -rule WIDTH -file "*rtl/axi_to_flash_controller*" -match "*Operator EQ expects 32 bits on the LHS, but LHS's VARREF 'poweron_wait_count_d' generates*"
+
+// rd_queue_buffer_d = spi_host_reg_rsp_i.rdata
+lint_off -rule WIDTH -file "*rtl/axi_to_flash_controller*" -match "*Operator ASSIGN expects 64 bits on the Assign RHS, but Assign RHS's SEL generates 32 bits*"
+
+// beat_addr_d = ((first_beat_addr_q / beat_size_q ) * beat_size_q) + (beat_count_q + 1)*beat_size_q;
+lint_off -rule WIDTH -file "*rtl/axi_to_flash_controller*" -match "*Operator ADD expects 64 bits on the LHS, but LHS's VARREF 'beat_count_q' generates 5 bits*"
+
+// curr_sect_addr = '0 | flash_addr_q
+lint_off -rule WIDTH -file "*rtl/axi_to_flash_controller*" -match "*Operator OR expects 64 bits on the RHS, but RHS's VARREF 'flash_addr_q' generates 24 bits*" 
+
+// if (skip_write_q) page_count_d = SE_PSIZE
+lint_off -rule WIDTH -file "*rtl/axi_to_flash_controller*" -match "*Operator ASSIGN expects 5 bits on the Assign RHS, but Assign RHS's VARREF 'SE_PSIZE' generates 32 bits*"
+
+// logic sector_address_of_beat = (beat_addr_q >> 12) << 12;
+lint_off -rule WIDTH -file "*rtl/axi_to_flash_controller*" -match "*Operator ASSIGN expects 1 bits on the Assign RHS, but Assign RHS's SHIFTL generates 64 bits*"
+
+// lint_off -rule WIDTH -file "*rtl/axi_to_flash_controller*" -match "**"
+
+
+// ============================================================================================
+//                              spi_subsystem_reg_top
+// ============================================================================================
+
+lint_off -rule WIDTH -file "*rtl/spi_subsystem_reg_top*" -match "**"
+
+
+// ============================================================================================
+//                                w25q128jw_controller
+// ============================================================================================
+
+// assign spi_host_reg_req_o.addr = SPI_FLASH_START_ADDRESS + {{(32 - spi_host_reg_pkg::BlockAw){1'b0}}, spi_host_reg_req_offset};
+lint_off -rule WIDTH -file "*ip/w25q128jw_controller/rtl/w25q128jw_controller*" -match "*Operator ADD expects 64 bits on the RHS, but RHS's REPLICATE generates 32 bits*"
+
+
+// ============================================================================================
+//                                       spiflash
+// ============================================================================================
+
+lint_off -rule WIDTH -file "*tb/yosys_spiflash*" -match "*"
+
+
+// ============================================================================================
+//                              pulp_platform_common_cells
+// ============================================================================================
+
+lint_off -rule UNSIGNED -file "*src/rr_arb_tree*" -match "*Comparison is constant due to unsigned arithmetic*"
+
+
+// ============================================================================================
+//                                  spi_subsystem
+// ============================================================================================
+
+// lint_off -rule UNUSED -file "*rtl/spi_subsystem*" -match "**"
+lint_off -rule WIDTH -file "*rtl/spi_subsystem*" -match "*Input port connection 'reg_req_i' expects 70 bits*"
+lint_off -rule WIDTH -file "*rtl/spi_subsystem*" -match "*Input port connection 'spimemio_req_i' expects 70 bits*"
+lint_off -rule WIDTH -file "*rtl/spi_subsystem*" -match "*Output port connection 'spimemio_resp_o' expects 34 bits*"
+
+
+// ============================================================================================
+//                                  obi_spimemio
+// ============================================================================================
+
+
+// ============================================================================================
+//                                      spimemio
+// ============================================================================================
+
+lint_off -rule WIDTH -file "*picosoc/spimemio*" -match "**"
+lint_off -rule CASEOVERLAP -file "*picosoc/spimemio*" -match "**"
+lint_off -rule CASEINCOMPLETE -file "*picosoc/spimemio*" -match "**"
+

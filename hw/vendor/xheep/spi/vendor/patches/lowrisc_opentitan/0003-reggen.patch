@@ -1,0 +1,71 @@
+diff --git a/util/reggen/reg_top.sv.tpl b/util/reggen/reg_top.sv.tpl
+index 8b4e8d3be..27f459024 100644
+--- a/util/reggen/reg_top.sv.tpl
++++ b/util/reggen/reg_top.sv.tpl
+@@ -97,45 +97,17 @@ module ${mod_name} (
+   tlul_pkg::tl_d2h_t tl_reg_d2h;
+ % endif
+ 
+-  // incoming payload check
+-  logic intg_err;
+-  tlul_cmd_intg_chk u_chk (
+-    .tl_i,
+-    .err_o(intg_err)
+-  );
+-
+-  logic intg_err_q;
+-  always_ff @(posedge clk_i or negedge rst_ni) begin
+-    if (!rst_ni) begin
+-      intg_err_q <= '0;
+-    end else if (intg_err) begin
+-      intg_err_q <= 1'b1;
+-    end
+-  end
+-
+-  // integrity error output is permanent and should be used for alert generation
+-  // register errors are transactional
+-  assign intg_err_o = intg_err_q | intg_err;
+-
+-  // outgoing integrity generation
+-  tlul_pkg::tl_d2h_t tl_o_pre;
+-  tlul_rsp_intg_gen #(
+-    .EnableRspIntgGen(1),
+-    .EnableDataIntgGen(${common_data_intg_gen})
+-  ) u_rsp_intg_gen (
+-    .tl_i(tl_o_pre),
+-    .tl_o
+-  );
++  assign intg_err_o = '0;
+ 
+ % if num_dsp == 1:
+   ## Either no windows (and just registers) or no registers and only
+   ## one window.
+   % if num_wins == 0:
+   assign tl_reg_h2d = tl_i;
+-  assign tl_o_pre   = tl_reg_d2h;
++  assign tl_o   = tl_reg_d2h;
+   % else:
+   assign tl_win_o[0] = tl_i;
+-  assign tl_o_pre    = tl_win_i[0];
++  assign tl_o    = tl_win_i[0];
+   % endif
+ % else:
+   tlul_pkg::tl_h2d_t tl_socket_h2d [${num_dsp}];
+@@ -181,7 +153,7 @@ module ${mod_name} (
+     .clk_i,
+     .rst_ni,
+     .tl_h_i (tl_i),
+-    .tl_h_o (tl_o_pre),
++    .tl_h_o (tl_o),
+     .tl_d_o (tl_socket_h2d),
+     .tl_d_i (tl_socket_d2h),
+     .dev_select_i (reg_steer)
+@@ -242,7 +214,7 @@ module ${mod_name} (
+   );
+ 
+   assign reg_rdata = reg_rdata_next ;
+-  assign reg_error = (devmode_i & addrmiss) | wr_err | intg_err;
++  assign reg_error = (devmode_i & addrmiss) | wr_err;
+ 
+   // Define SW related signals
+   // Format: <reg>_<field>_{wd|we|qs}

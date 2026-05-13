@@ -1,0 +1,84 @@
+diff --git a/hw/ip/tlul/rtl/tlul_fifo_async.sv b/hw/ip/tlul/rtl/tlul_fifo_async.sv
+index 9a6bbc35e..b820c8400 100644
+--- a/hw/ip/tlul/rtl/tlul_fifo_async.sv
++++ b/hw/ip/tlul/rtl/tlul_fifo_async.sv
+@@ -24,6 +24,9 @@ module tlul_fifo_async #(
+ 
+   // Put everything on the request side into one FIFO
+   localparam int unsigned REQFIFO_WIDTH = $bits(tlul_pkg::tl_h2d_t)-2;
++  logic [$bits(tlul_pkg::tl_a_op_e)-1:0] reqfifo_tl_d_a_opcode;
++
++  assign tl_d_o.a_opcode = tlul_pkg::tl_a_op_e'(reqfifo_tl_d_a_opcode);
+ 
+   prim_fifo_async #(.Width(REQFIFO_WIDTH), .Depth(ReqDepth)) reqfifo (
+     .clk_wr_i      (clk_h_i),
+@@ -42,7 +45,7 @@ module tlul_fifo_async #(
+                      tl_h_i.a_user   }),
+     .rvalid_o      (tl_d_o.a_valid),
+     .rready_i      (tl_d_i.a_ready),
+-    .rdata_o       ({tl_d_o.a_opcode ,
++    .rdata_o       ({reqfifo_tl_d_a_opcode ,
+                      tl_d_o.a_param  ,
+                      tl_d_o.a_size   ,
+                      tl_d_o.a_source ,
+@@ -57,6 +60,9 @@ module tlul_fifo_async #(
+   // Put everything on the response side into the other FIFO
+ 
+   localparam int unsigned RSPFIFO_WIDTH = $bits(tlul_pkg::tl_d2h_t) -2;
++  logic [$bits(tlul_pkg::tl_d_op_e)-1:0] rspfifo_tl_h_d_opcode;
++
++  assign tl_h_o.d_opcode = tlul_pkg::tl_d_op_e'(rspfifo_tl_h_d_opcode);
+ 
+   prim_fifo_async #(.Width(RSPFIFO_WIDTH), .Depth(RspDepth)) rspfifo (
+     .clk_wr_i      (clk_d_i),
+@@ -75,7 +81,7 @@ module tlul_fifo_async #(
+                      tl_d_i.d_error }),
+     .rvalid_o      (tl_h_o.d_valid),
+     .rready_i      (tl_h_i.d_ready),
+-    .rdata_o       ({tl_h_o.d_opcode,
++    .rdata_o       ({rspfifo_tl_h_d_opcode,
+                      tl_h_o.d_param ,
+                      tl_h_o.d_size  ,
+                      tl_h_o.d_source,
+diff --git a/hw/ip/tlul/rtl/tlul_fifo_sync.sv b/hw/ip/tlul/rtl/tlul_fifo_sync.sv
+index a34835eca..b9e033409 100644
+--- a/hw/ip/tlul/rtl/tlul_fifo_sync.sv
++++ b/hw/ip/tlul/rtl/tlul_fifo_sync.sv
+@@ -28,6 +28,9 @@ module tlul_fifo_sync #(
+ 
+   // Put everything on the request side into one FIFO
+   localparam int unsigned REQFIFO_WIDTH = $bits(tlul_pkg::tl_h2d_t) -2 + SpareReqW;
++  logic [$bits(tlul_pkg::tl_a_op_e)-1:0] reqfifo_tl_d_a_opcode;
++
++  assign tl_d_o.a_opcode = tlul_pkg::tl_a_op_e'(reqfifo_tl_d_a_opcode);
+ 
+   prim_fifo_sync #(.Width(REQFIFO_WIDTH), .Pass(ReqPass), .Depth(ReqDepth)) reqfifo (
+     .clk_i,
+@@ -46,7 +49,7 @@ module tlul_fifo_sync #(
+                      spare_req_i}),
+     .rvalid_o      (tl_d_o.a_valid),
+     .rready_i      (tl_d_i.a_ready),
+-    .rdata_o       ({tl_d_o.a_opcode ,
++    .rdata_o       ({reqfifo_tl_d_a_opcode ,
+                      tl_d_o.a_param  ,
+                      tl_d_o.a_size   ,
+                      tl_d_o.a_source ,
+@@ -61,6 +64,9 @@ module tlul_fifo_sync #(
+   // Put everything on the response side into the other FIFO
+ 
+   localparam int unsigned RSPFIFO_WIDTH = $bits(tlul_pkg::tl_d2h_t) -2 + SpareRspW;
++  logic [$bits(tlul_pkg::tl_d_op_e)-1:0] rspfifo_tl_h_d_opcode;
++
++  assign tl_h_o.d_opcode = tlul_pkg::tl_d_op_e'(rspfifo_tl_h_d_opcode);
+ 
+   prim_fifo_sync #(.Width(RSPFIFO_WIDTH), .Pass(RspPass), .Depth(RspDepth)) rspfifo (
+     .clk_i,
+@@ -80,7 +86,7 @@ module tlul_fifo_sync #(
+                      spare_rsp_i}),
+     .rvalid_o      (tl_h_o.d_valid),
+     .rready_i      (tl_h_i.d_ready),
+-    .rdata_o       ({tl_h_o.d_opcode,
++    .rdata_o       ({rspfifo_tl_h_d_opcode,
+                      tl_h_o.d_param ,
+                      tl_h_o.d_size  ,
+                      tl_h_o.d_source,

@@ -9,7 +9,7 @@ The pad configuration system allows you to define:
 - Pin-to-Pad Mapping: How pins are assigned to physical pads on each side of the chip, including multiplexing (assign multiple pins to the same pad, or a single pin to multiple pads).
 - (Optional) Floorplan: Physical layout of the die and location of the pads.
 
-The configuration is done through a Python `config()` function that returns a `PadRing` object. This approach provides flexibility and programmatic generation of pad configurations. The default pad configuration file can be found in `configs/pad_cfg.py`.
+The configuration is done through a Python `config(xheep: XHeep)` function that accepts an `XHeep` object as its only argument and returns a `PadRing` object. This approach provides flexibility and programmatic generation of pad configurations and allwos the pad generation to depend on the current X-HEEP configuration passed as an argument. The default pad configuration file can be found in [`configs/pad_cfg.py`](https://github.com/x-heep/x-heep/blob/main/configs/pad_cfg.py).
 
 The default call to `mcu-gen` uses the default pad configuration, but you can specify a custom pad configuration file using the `PADS_CFG` variable:
 
@@ -145,7 +145,7 @@ floorplan = FloorplanDimensions(
 Once pins and mapping are defined, create the PadRing:
 
 ```python
-def config() -> PadRing:
+def config(xheep: XHeep) -> PadRing:
     # ... define pins and mapping ...
 
     padring = PadRing(

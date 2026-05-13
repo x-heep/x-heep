@@ -1,6 +1,6 @@
 # Integrate a Peripheral IP
 
-This guide walks through the end-to-end flow to add a new memory-mapped peripheral to X-HEEP. We use the existing [`dlc`](../../../hw/ip_examples/dlc) IP as the blueprint because it exercises the full hardware, software, and tooling stack.
+This guide walks through the end-to-end flow to add a new memory-mapped peripheral to X-HEEP. We use the existing [`dlc`](https://github.com/x-heep/x-heep/tree/main/hw/ip_examples/dlc) IP as the blueprint because it exercises the full hardware, software, and tooling stack.
 
 Set up the X-HEEP environment by following the [Getting Started guide](../GettingStarted/Setup.md).
 
@@ -20,7 +20,7 @@ This is how the folder should look like:
     └── <peripheral>_gen.sh             # helper script running regtool
 ```
 
-#### X-HEEP-compatible module ports
+### X-HEEP-compatible module ports
 
 All X-HEEP peripheral modules require specific ports that allows it to communicate with the rest of the system. 
 
@@ -106,7 +106,7 @@ This is another crucial step in the integration of the peripheral. Please be awa
 As said at the beginning of this guide, these steps are the same for any domain you want to integrate the perihperal in, both `user peripherals` and `base peripherals`.
 
 1. Extend the configuration you built (HJSON or Python) with a new entry in the preferred domain. Example (`configs/general.hjson`):
-   ```hjson
+   ```js
    peripherals: {
        address: 0x30000000
        length:  0x00100000
@@ -119,10 +119,10 @@ As said at the beginning of this guide, these steps are the same for any domain 
        // existing peripherals…
    }
    ```
-2. For Python configs, import a new class in `util/x_heep_gen/peripherals/user_peripherals.py` (or `base_peripherals.py` if mandatory):
+2. For Python configs, import a new class in `util/xheep_gen/peripherals/user_peripherals.py` (or `base_peripherals.py` if mandatory):
    ```python
-   class <peripheral>(UserPeripheral):
-       _name = "<peripheral>"
+   class MyPeripheral(UserPeripheral):
+       _name = "my_peripheral"
    ```
    Instantiate the class in your config script and add it to the user domain before calling `build()`.
 3. If your IP generates an interrupt signal, extend the _interrupt list_ with it.
@@ -131,7 +131,7 @@ As said at the beginning of this guide, these steps are the same for any domain 
 This step is necessary only for `peripheral` domain IPs.
 ```
 
-```hjson
+```js
 interrupts: {
       number: 64 // Do not change this number!
       list: {
@@ -236,22 +236,22 @@ Finally, if you want, in `testharness.sv` you can instantiate an accelerator tha
 After updating all these templates, run `make mcu-gen` to regenerate them!
 ```
 
-## 8. Hook Up FPGA Wrappers
+## 6. Hook Up FPGA Wrappers
 1. Edit the board wrapper templates (e.g. `hw/fpga/xilinx_core_v_mini_mcu_wrapper.sv.tpl`) to expose the new signals and regenerate the concrete `.sv` file.
 2. Update board constraint files or scripts (such as `hw/fpga/scripts/generate_sram.tcl.tpl`) when the IP drives physical I/O.
 3. Re-run `make mcu-gen` to propagate template changes before rebuilding bitstreams.
 
-## 9. Provide Software Accessors
-In order to simplify the user experience, create a driver in `sw/device/lib/drivers/<peripheral>/`. We suggest taking as a reference the structure of [`sw/device/lib/drivers/dlc`](../../../sw/device/lib/drivers/dlc), but feel free to be inspired by any X-HEEP driver module. Typical contents:
+## 7. Provide Software Accessors
+In order to simplify the user experience, create a driver in `sw/device/lib/drivers/<peripheral>/`. We suggest taking as a reference the structure of `sw/device/lib/drivers/dlc`, but feel free to be inspired by any X-HEEP driver module. Typical contents:
    - `<peripheral>.c` / `<peripheral>.h` – MMIO helper functions.
    - `<peripheral>.h` (generated earlier via `regtool`).
    - `<peripheral>_structs.h` – emitted by `util/structs_periph_gen.py` if needed.
 
-## 10. Add Firmware Examples and Tests
+## 8. Add Firmware Examples and Tests
 This is strongly suggested, as it can serve both as a guide for future developers and a debugging tool.
 To do so, write an example application under `sw/applications/example_<name>/` that exercises the new driver.
 
-## 11. (For pull requests) Update Documentation
+## 9. (For pull requests) Update Documentation
 This is __mandatory__ for any new IP that you would like to propose to be included in the official X-HEEP repository. 
 Students, companies and passionate individuals can all contribute to X-HEEP, and we encourage you to do so. 
 However, we need to keep this project maintainable. For this reason, please add a dedicated page in the `Peripherals` folder of the documentation.

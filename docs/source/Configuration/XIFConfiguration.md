@@ -14,7 +14,7 @@ CV32E20 only supports offloading two source operands. If your coprocessor requri
 You can enable the CV-X-IF (disabled by default) and override its parameters (shown below) with the following syntax in your Python configuration file:
 
 ```python
-from x_heep_gen.xif import CvXIf
+from xif import CvXIf
 ...
 xheep.set_xif(CvXIf(
     x_num_rs    = 2,

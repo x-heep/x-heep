@@ -3,16 +3,16 @@ from pathlib import PurePath
 from typing import List, Union
 import hjson
 
-from .cpu.cpu import CPU
-from .cpu.cv32e20 import cv32e20
-from .cpu.cv32e40p import cv32e40p
-from .cpu.cv32e40px import cv32e40px
-from .cpu.cv32e40x import cv32e40x
-from .memory_ss.memory_ss import MemorySS
-from .memory_ss.linker_section import LinkerSection
-from .memory_ss.linker_subsection import LinkerSubsection
-from .peripherals.peripheral_config_loader import load_peripherals_config
-from .xheep import BusType, XHeep, CvXIf, PadRing
+from cpu.cpu import CPU
+from cpu.cv32e20 import cv32e20
+from cpu.cv32e40p import cv32e40p
+from cpu.cv32e40px import cv32e40px
+from cpu.cv32e40x import cv32e40x
+from memory_ss.memory_ss import MemorySS
+from memory_ss.linker_section import LinkerSection
+from memory_ss.linker_subsection import LinkerSubsection
+from peripherals.peripheral_config_loader import load_peripherals_config
+from xheep import BusType, XHeep, CvXIf, PadRing
 
 
 def to_int(input) -> Union[int, None]:

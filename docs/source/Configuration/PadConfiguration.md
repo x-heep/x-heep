@@ -24,7 +24,7 @@ Please refer to the diagram in the [Visualization](#visualization-optional) sect
 Pins represent the signals in your design. Different pin types are available depending on the signal direction and characteristics. The digital pin types include:
 
 ```python
-from x_heep_gen.pads.pin import Input, Output, Inout
+from pads.pin import Input, Output, Inout
 
 # Input pin
 clk_pin = Input("clk")
@@ -87,7 +87,7 @@ for pin in digital_pins:
 The mapping defines which pins are assigned to pads on each side of the chip (selected by their names, that's why you created a dictionary in the previous step 😉):
 
 ```python
-from x_heep_gen.pads.floorplan import Side
+from pads.floorplan import Side
 
 mapping = {
     Side.TOP: [
@@ -166,7 +166,7 @@ def config(xheep: XHeep) -> PadRing:
 For ASIC designs with floorplan dimensions, you can generate visual representations:
 
 ```python
-from x_heep_gen.pads.graphic import generate_floorplan_visuals
+from pads.graphic import generate_floorplan_visuals
 
 # After building the padring
 generate_floorplan_visuals(floorplan, padring, filename_base="my_floorplan")
@@ -181,7 +181,8 @@ This generates:
 ![Pad Dimensions](../images/padring_definitions.png)
 _The base of the image above is an example of the diagram generated. References to the dimensions were added on top._
 
-<a id="x-pert-zone"></a>
+<!-- MyST's cross-reference for the docs -->
+(x-pert-zone)=
 ## 😎 X-pert Zone (mostly for ASIC implementation)
 
 ### Custom Pad Attributes

@@ -100,7 +100,7 @@ sw/device/lib/drivers/dma/dma_regs.md
 flow/OpenROAD-flow-scripts
 
 # Automatically generated docs
-/docs/source/Configuration/x_heep_gen
+/docs/source/Configuration/xheep_gen
 
 # User-dependent configuration files
 .vscode

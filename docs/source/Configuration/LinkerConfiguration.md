@@ -124,16 +124,14 @@ section names at once, use the Python configuration API described below.
 The Python API gives full control over linker sections through `LinkerSection`.
 
 ```{code} python
-from x_heep_gen.memory_ss.linker_section import LinkerSection
-from x_heep_gen.memory_ss.linker_subsection import LinkerSubsection
+from memory_ss.linker_section import LinkerSection
+from memory_ss.linker_subsection import LinkerSubsection
 ```
 
 Without extra arguments, a Python `LinkerSection("foo", ...)` behaves like the HJSON flow and collects the
 input section `.foo`.
 
 There are are two functions to add linker sections:
-
-#### add_linker_section():
 
 ```{code} python
 memory_ss.add_linker_section(LinkerSection("data", 0x0000E800, None))
@@ -145,7 +143,6 @@ The linker section fed to this function can be generated in two ways:
 - `LinkerSection.by_size()`: needs `name`, `start` and `size`
 
 Background checks make sure that there isn't any overlap between sections.
-
 
 ### Grouping multiple input sections inside one linker section
 
@@ -203,9 +200,9 @@ The groups are emitted in the order in which they are listed.
 In this example, we need to have 2 sub-sections in an interleaved memory region, one for our coprocessor code, the other for its data.
 
 ```{code} python
-from x_heep_gen.memory_ss.memory_ss import MemorySS
-from x_heep_gen.memory_ss.linker_section import LinkerSection
-from x_heep_gen.memory_ss.linker_subsection import LinkerSubsection
+from memory_ss.memory_ss import MemorySS
+from memory_ss.linker_section import LinkerSection
+from memory_ss.linker_subsection import LinkerSubsection
 
 memory_ss = MemorySS()
 
@@ -242,7 +239,7 @@ extern uint8_t __coprocessor_end[];
 
 The generated linker section will look like this:
 
-```{code} ld
+```{code} text
   .data_interleaved :
   {
     . = ALIGN(4);

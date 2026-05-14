@@ -56,6 +56,8 @@ BLACKLIST = [
     "example_matmul_quadrilatero",
     "example_w25q128jw_write",
     "example_serial_link_performance",
+    "example_serial_link_simulation_dma",  # Functionality already covered by example_serial_link_direct_write, excluded to avoid redundant testing
+    "example_serial_link",  # Functionality already covered by example_serial_link_direct_write, excluded to avoid redundant testing
 ]
 # TODO : The example_pdm2pcm app is testing a wrong version of the PDM2PCM acting only as a CIC filter.
 #        When fixed, it not passes anymore. Need to be updated.

@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include "serial_link_single_channel_regs.h"
 #include "serial_link_regs.h"
+#include "pad_control.h"
+#include "pad_control_regs.h"
 #include "serial_link.h"
 
 
@@ -41,6 +43,18 @@ static uint32_t copied_data_4B[TEST_DATA_LARGE] __attribute__((aligned(4))) = {0
 
 int main(int argc, char *argv[]){
     
+    // PAD MUX configuration
+    pad_control_t pad_control;
+    pad_control.base_addr = mmio_region_from_addr((uintptr_t)PAD_CONTROL_START_ADDRESS);
+    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_1_REG_OFFSET), 1);
+    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_2_REG_OFFSET), 1);
+    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_3_REG_OFFSET), 1);
+    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_6_REG_OFFSET), 1);
+    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_7_REG_OFFSET), 1);
+    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_8_REG_OFFSET), 1);
+    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_9_REG_OFFSET), 1);
+    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_10_REG_OFFSET), 1);
+
     sl_init((volatile uint32_t *)CTRL_REG_ADDR, (int32_t *)CTRL_REG_ADDR);
     sl_init((volatile uint32_t *)SL_EXTERNAL_CTRL_REG_ADDR, (int32_t *)SL_EXTERNAL_CTRL_REG_ADDR);
     

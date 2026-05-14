@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
 <%!
-    from x_heep_gen.pads.pin import PinDigital
+    from pads.pin import PinDigital
 %>
 <%
     attribute_bits = xheep.get_padring().attributes.get("bits")

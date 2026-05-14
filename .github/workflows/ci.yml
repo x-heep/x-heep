@@ -155,7 +155,7 @@ jobs:
         run: pip install -r util/python-requirements.txt
       - name: Re-vendor and diff
         run: |
-          find hw/vendor sw/vendor -maxdepth 2 -type f -name '*.vendor.hjson' | xargs -n1 util/vendor.py --verbose && \
+          find hw/vendor sw/vendor util -maxdepth 2 -type f -name '*.vendor.hjson' | xargs -n1 util/vendor.py --verbose && \
           util/git-diff.py --error-msg '::error ::Found differences, please re-vendor.' && \
           util/check-vendor.py
 
@@ -168,9 +168,8 @@ jobs:
         with:
           options: "--check --verbose"
           src: >
-            util/x_heep_gen
+            util/xheep_gen
             util/periph_structs_gen
-            util/mcu_gen.py
             util/waiver-gen.py
             util/c_gen.py
             test/test_x_heep_gen

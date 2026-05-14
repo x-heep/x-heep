@@ -243,11 +243,14 @@ class Upstream:
         self.only_subdir = get_field(
             path, where, data, "only_subdir", str, optional=True
         )
+        self.recurse = get_field(path, where, data, "recurse", bool, optional=True)
 
     def as_dict(self):
         data = {"url": self.url, "rev": self.rev}
         if self.only_subdir is not None:
             data["only_subdir"] = self.only_subdir
+        if self.recurse is not None:
+            data["recurse"] = self.recurse
         return data
 
 
@@ -306,9 +309,9 @@ class Mapping1:
         return Mapping1(from_path, to_path, patch_dir)
 
     @staticmethod
-    def make_default(have_patch_dir):
+    def make_default():
         """Make a default mapping1, which copies everything straight through"""
-        return Mapping1(Path("."), Path("."), Path(".") if have_patch_dir else None)
+        return Mapping1(Path("."), Path("."), None)
 
     @staticmethod
     def apply_patch(basedir, patchfile):
@@ -479,17 +482,13 @@ class Desc:
                 "and mapping at the same time (see issue #2317).",
             )
 
-        # If a patch_dir is defined and there is no mapping, we will look in
-        # that directory for patches and apply them in (the only) directory
-        # that we copy stuff into.
+        # If a patch_dir is defined, we will look in that directory for patches
+        # and apply them in the directory where we cloned the repository.
         #
-        # If there is a mapping check that there is a patch_dir if and only if
-        # least one mapping entry uses it.
+        # If there is a mapping check that there is a patch_dir if at leat one
+        # mapping entry uses it.
         if self.mapping is not None:
-            if self.patch_dir is not None:
-                if not self.mapping.has_patch_dir():
-                    raise JsonError(path, "Has patch_dir, but no mapping item uses it.")
-            else:
+            if self.patch_dir is None:
                 if self.mapping.has_patch_dir():
                     raise JsonError(
                         path,
@@ -552,9 +551,8 @@ class Desc:
                 if "target_dir" not in project_data:
                     project_data["target_dir"] = str(Path(vendor_name) / project_name)
                 desc = Desc(path, project_data, desc_overrides)
-                # Multi-entry files share a single lock file.
-                desc.use_named_lock_entry = True
-                desc._lock_file_override = path.with_name("vendor.lock.hjson")
+                desc.use_named_lock_entry = False
+                desc._lock_file_override = path.with_name(project_name + ".lock.hjson")
                 descs.append(desc)
 
             if module_filter and not descs:
@@ -589,7 +587,18 @@ class Desc:
         return self.path.with_name(desc_file_stem + ".lock.hjson")
 
     def import_from_upstream(self, upstream_path):
-        log.info("Copying upstream sources to {}".format(self.target_dir))
+        # Apply global patches
+        if self.patch_dir is not None:
+            log.info('Applying global patches to {}'.format(upstream_path))
+            patches = (self.patch_dir).glob('*.patch')
+            for patch in sorted(patches):
+                log.info("Applying patch {} at {}".format(patch, upstream_path))
+                cmd = ['git', 'apply', '--unsafe-paths', '--directory', str(upstream_path), '-p1', str(patch)]
+                if verbose:
+                    cmd += ['--verbose']
+                subprocess.run(cmd, check=True)
+
+        log.info('Copying {}upstream sources to {}'.format('patched ' if self.patch_dir is not None else '', self.target_dir))
 
         # Remove existing directories before importing them again
         shutil.rmtree(str(self.target_dir), ignore_errors=True)
@@ -597,7 +606,7 @@ class Desc:
         items = (
             self.mapping.items
             if self.mapping is not None
-            else [Mapping1.make_default(self.patch_dir is not None)]
+            else [Mapping1.make_default()]
         )
         for map1 in items:
             map1.import_from_upstream(
@@ -671,6 +680,7 @@ def clone_git_repo(repo_url, clone_dir, rev='master', recursive=False):
     cmd = ['git', 'clone', '--no-single-branch']
 
     if recursive:
+        log.info('Cloning recursively to include submodules')
         cmd.append('--recursive')
 
     if not verbose:
@@ -789,7 +799,7 @@ def process_vendor(desc, args):
     with tempfile.TemporaryDirectory() as clone_dir:
         # clone upstream repository
         upstream_new_rev = clone_git_repo(
-            desc.upstream.url, clone_dir, rev=desc.upstream.rev, recursive=True
+            desc.upstream.url, clone_dir, rev=desc.upstream.rev, recursive=desc.upstream.recurse
         )
 
         if not update:
@@ -801,7 +811,7 @@ def process_vendor(desc, args):
                 log.fatal("Re-cloned revision: %s", upstream_new_rev)
                 raise SystemExit(1)
 
-        clone_subdir = Path(clone_dir)
+        clone_subdir = Path(clone_dir).resolve()
         if desc.upstream.only_subdir is not None:
             clone_subdir = clone_subdir / desc.upstream.only_subdir
             if not clone_subdir.is_dir():

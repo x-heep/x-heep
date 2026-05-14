@@ -6,7 +6,7 @@ These extensions can be also configured using the Python approach of the X-HEEP 
 To add an extension to the X-HEEP system, you can use the `add_extension()` method of the `XHeep` class. For example:
 
 ```python
-from x_heep_gen.xheep import XHeep
+from xheep import XHeep
 
 def config():
     system = XHeep(BusType.NtoM)

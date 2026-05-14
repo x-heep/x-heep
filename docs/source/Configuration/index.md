@@ -12,7 +12,7 @@ make mcu-gen
 
 If you want to modify the default parameters, check the [system configuration guide](./SystemConfiguration). 
 
-In this section you will also find the detailed documentation for configuring the different elements of X-HEEP (e.g. the bus, the memory, the pads...), and the API documentation of the `x_heep_gen` Python project that models and is in charge of generating X-HEEP according to the specified configuration.
+In this section you will also find the detailed documentation for configuring the different elements of X-HEEP (e.g. the bus, the memory, the pads...), and the API documentation of the `xheep_gen` Python [project](https://github.com/x-heep/xheep_gen) that models and is in charge of generating X-HEEP according to the specified configuration.
 
 ```{toctree}
 :maxdepth: 3
@@ -28,4 +28,4 @@ PadConfiguration
 PeripheralConfiguration
 ExtensionConfiguration
 
-x_heep_gen/index
+xheep_gen/index

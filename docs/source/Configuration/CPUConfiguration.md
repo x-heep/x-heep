@@ -28,7 +28,7 @@ You can select the CPU in the Python configuration file used to generate the MCU
 for the default configuration for the cv32e40p CPU:
 
 ```python
-from x_heep_gen.cpu.cpu import CPU
+from cpu.cpu import CPU
 ...
 xheep.set_cpu(CPU("cv32e40p"))
 ```
@@ -39,7 +39,7 @@ the CPU configuration, you can import the specific CPU class and set the desired
 example, with the cv32e20 CPU, to enable the RV32E extension and set the RV32M extension to `RV32MSlow`:
 
 ```python
-from x_heep_gen.cpu.cv32e20 import cv32e20
+from cpu.cv32e20 import cv32e20
 ...
 xheep.set_cpu(cv32e20(rv32e=True, rv32m="RV32MSlow"))
 ```
@@ -56,8 +56,8 @@ The `cv32e20` CPU supports the following optional parameters:
 The following example sets the default configuration from the rtl found in `hw/core-v-mini-mcu/cve2_xif_wrapper.sv`:
 
 ```python
-from x_heep_gen.cpu.cv32e20 import cv32e20
-from x_heep_gen.xif import CvXIf
+from cpu.cv32e20 import cv32e20
+from xif import CvXIf
 ...
 xheep.set_cpu(cv32e20(
     rv32e=False,
@@ -96,7 +96,7 @@ The `cv32e40p` CPU supports the following optional parameters:
 The following example sets the default configuration from the rtl found in `hw/vendor/openhwgroup/cv32e40p/rtl/cv32e40p_top.sv`:
 
 ```python
-from x_heep_gen.cpu.cv32e40p import cv32e40p
+from cpu.cv32e40p import cv32e40p
 ...
 xheep.set_cpu(cv32e40p(
     fpu=False,
@@ -127,7 +127,7 @@ The following example sets the default configuration from the RTL found in
 `hw/vendor/esl_epfl_cv32e40px/rtl/cv32e40px_xif_wrapper.sv`:
 
 ```python
-from x_heep_gen.cpu.cv32e40px import cv32e40px
+from cpu.cv32e40px import cv32e40px
 ...
 xheep.set_cpu(cv32e40px(
     fpu=False,
@@ -165,7 +165,7 @@ The following example sets the default configuration from the RTL found in
 `hw/vendor/openhwgroup/cv32e40x/rtl/cv32e40x_core.sv`:
 
 ```python
-from x_heep_gen.cpu.cv32e40x import cv32e40x
+from cpu.cv32e40x import cv32e40x
 ...
 xheep.set_cpu(cv32e40x(
     num_mhpmcounters=1,

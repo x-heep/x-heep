@@ -7,7 +7,7 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath("../../util"))
+sys.path.insert(0, os.path.abspath("../../util/mcu-gen"))
 
 project = "X-HEEP"
 copyright = "2025, EPFL"
@@ -42,8 +42,8 @@ html_logo = "images/x-heep-outline.png"
 
 epub_show_urls = "footnote"
 
-apidoc_module_dir = os.path.abspath("../../util/x_heep_gen")
-apidoc_output_dir = "Configuration/x_heep_gen"
+apidoc_module_dir = os.path.abspath("../../util/xheep_gen")
+apidoc_output_dir = "Configuration/xheep_gen"
 apidoc_separate_modules = True
 apidoc_toc_file = "index"
 

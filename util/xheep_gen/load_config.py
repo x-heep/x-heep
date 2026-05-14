@@ -3,16 +3,16 @@ from pathlib import PurePath
 from typing import List, Union
 import hjson
 
-from .cpu.cpu import CPU
-from .cpu.cv32e20 import cv32e20
-from .cpu.cv32e40p import cv32e40p
-from .cpu.cv32e40px import cv32e40px
-from .cpu.cv32e40x import cv32e40x
-from .memory_ss.memory_ss import MemorySS
-from .memory_ss.linker_section import LinkerSection
-from .memory_ss.linker_subsection import LinkerSubsection
-from .peripherals.peripheral_config_loader import load_peripherals_config
-from .xheep import BusType, XHeep, CvXIf
+from cpu.cpu import CPU
+from cpu.cv32e20 import cv32e20
+from cpu.cv32e40p import cv32e40p
+from cpu.cv32e40px import cv32e40px
+from cpu.cv32e40x import cv32e40x
+from memory_ss.memory_ss import MemorySS
+from memory_ss.linker_section import LinkerSection
+from memory_ss.linker_subsection import LinkerSubsection
+from peripherals.peripheral_config_loader import load_peripherals_config
+from xheep import BusType, XHeep, CvXIf, PadRing
 
 
 def to_int(input) -> Union[int, None]:
@@ -324,14 +324,15 @@ def load_cfg_file(f: PurePath) -> XHeep:
         raise RuntimeError(f"unsupported file extension {f.suffix}")
 
 
-def load_pad_cfg(pad_cfg_path: PurePath):
+def load_pad_cfg(pad_cfg_path: PurePath, xheep: XHeep) -> PadRing:
     """
     Load pad configuration a Python file and build the PadRing.
 
     Imports the Python module and calls the config() function which must
-    not take any parameters and return a PadRing instance.
+    take an XHeep object as a parameter and return a PadRing instance.
 
     :param PurePath pad_cfg_path: Path to .py configuration file
+    :param XHeep xheep: the XHeep object representing the system configuration
     :return: Built PadRing object ready for template generation
     """
     if not isinstance(pad_cfg_path, PurePath):
@@ -343,4 +344,4 @@ def load_pad_cfg(pad_cfg_path: PurePath):
     spec = importlib.util.spec_from_file_location("configs._config", pad_cfg_path)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
-    return mod.config()
+    return mod.config(xheep)

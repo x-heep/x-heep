@@ -9,7 +9,7 @@ The pad configuration system allows you to define:
 - Pin-to-Pad Mapping: How pins are assigned to physical pads on each side of the chip, including multiplexing (assign multiple pins to the same pad, or a single pin to multiple pads).
 - (Optional) Floorplan: Physical layout of the die and location of the pads.
 
-The configuration is done through a Python `config()` function that returns a `PadRing` object. This approach provides flexibility and programmatic generation of pad configurations. The default pad configuration file can be found in `configs/pad_cfg.py`.
+The configuration is done through a Python `config(xheep: XHeep)` function that accepts an `XHeep` object as its only argument and returns a `PadRing` object. This approach provides flexibility and programmatic generation of pad configurations and allwos the pad generation to depend on the current X-HEEP configuration passed as an argument. The default pad configuration file can be found in [`configs/pad_cfg.py`](https://github.com/x-heep/x-heep/blob/main/configs/pad_cfg.py).
 
 The default call to `mcu-gen` uses the default pad configuration, but you can specify a custom pad configuration file using the `PADS_CFG` variable:
 
@@ -24,7 +24,7 @@ Please refer to the diagram in the [Visualization](#visualization-optional) sect
 Pins represent the signals in your design. Different pin types are available depending on the signal direction and characteristics. The digital pin types include:
 
 ```python
-from x_heep_gen.pads.pin import Input, Output, Inout
+from pads.pin import Input, Output, Inout
 
 # Input pin
 clk_pin = Input("clk")
@@ -87,7 +87,7 @@ for pin in digital_pins:
 The mapping defines which pins are assigned to pads on each side of the chip (selected by their names, that's why you created a dictionary in the previous step 😉):
 
 ```python
-from x_heep_gen.pads.floorplan import Side
+from pads.floorplan import Side
 
 mapping = {
     Side.TOP: [
@@ -145,7 +145,7 @@ floorplan = FloorplanDimensions(
 Once pins and mapping are defined, create the PadRing:
 
 ```python
-def config() -> PadRing:
+def config(xheep: XHeep) -> PadRing:
     # ... define pins and mapping ...
 
     padring = PadRing(
@@ -166,7 +166,7 @@ def config() -> PadRing:
 For ASIC designs with floorplan dimensions, you can generate visual representations:
 
 ```python
-from x_heep_gen.pads.graphic import generate_floorplan_visuals
+from pads.graphic import generate_floorplan_visuals
 
 # After building the padring
 generate_floorplan_visuals(floorplan, padring, filename_base="my_floorplan")
@@ -181,7 +181,8 @@ This generates:
 ![Pad Dimensions](../images/padring_definitions.png)
 _The base of the image above is an example of the diagram generated. References to the dimensions were added on top._
 
-<a id="x-pert-zone"></a>
+<!-- MyST's cross-reference for the docs -->
+(x-pert-zone)=
 ## 😎 X-pert Zone (mostly for ASIC implementation)
 
 ### Custom Pad Attributes

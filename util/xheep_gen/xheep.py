@@ -1,13 +1,13 @@
 import sys
 from copy import deepcopy
-from .bus_type import BusType
-from .memory_ss.memory_ss import MemorySS
-from .cpu.cpu import CPU
-from .cv_x_if import CvXIf
-from .peripherals.abstractions import PeripheralDomain
-from .peripherals.base_peripherals_domain import BasePeripheralDomain
-from .peripherals.user_peripherals_domain import UserPeripheralDomain
-from .pads.pad_ring import PadRing
+from bus_type import BusType
+from memory_ss.memory_ss import MemorySS
+from cpu.cpu import CPU
+from cv_x_if import CvXIf
+from peripherals.abstractions import PeripheralDomain
+from peripherals.base_peripherals_domain import BasePeripheralDomain
+from peripherals.user_peripherals_domain import UserPeripheralDomain
+from pads.pad_ring import PadRing
 
 
 class XHeep:

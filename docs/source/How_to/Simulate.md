@@ -1,6 +1,6 @@
 # Simulate
 
-This project supports simulation with Verilator, Synopsys VCS, Siemens Questasim and Cadence Xcelium.
+This project supports simulation with Verilator, Synopsys VCS, Siemens Questasim, Cadence Xcelium and AMD Xilinx simulator.
 We use [FuseSoC](https://github.com/olofk/fusesoc) for all the EDA tools we use. The `fusesoc` commands are used in the targets in the Makefile.
 Below the different EDA examples commands.
 
@@ -196,6 +196,28 @@ and type to run your compiled software:
 make run PLUSARGS="c firmware=../../../sw/build/main.hex"
 ```
 
+## Simulating with Xilinx simulator
+
+To simulate your application with Xilinx simulator, first set up the Vivado environment by running `source <vivado-installation-path>/settings64.sh`, then compile the HDL:
+
+```bash
+make xsim-build SIM_ARGS="--testplusarg firmware=../../../sw/build/main.hex"
+```
+
+and type to run your compiled software:
+
+```bash
+make xsim-run
+```
+
+To show the waveforms of your application type:
+
+```bash
+make xsim-waves
+```
+
+This will open a Vivado instance in a `wiev only mode` in which is possible to wiev the waveforms of your last simulation.
+
 ## Simulation parameters
 
 You may pass additional simulation parameters to the generated simulation executable, in the form of *plusargs*: `+<parameter>=<value>`.
@@ -225,6 +247,23 @@ You may pass additional simulation parameters to the generated simulation execut
   (Note that there's no space between the number and the unit, and that fractional values are not supported.)
 
   If you're launching the Verilator simulation via `make`, you may pass this parameter via the `MAX_SIM_TIME=` command-line argument, e.g. `make verilator-run MAX_SIM_TIME=750us`.
+
+- `+verbose`:
+  Increases the simulation debug verbosity, printing additional runtime information to help with troubleshooting.
+
+### Xilinx simulator
+
+When using the Xilinx simulator, plusargs (e.g. `firmware`, `verbose`, etc.) must be passed through `xsim_options`.
+With the Xilinx simulator, they are incorporated into the generated run script during the build phase.
+
+Plusarguments should be provided when invoking `make xsim-build`.
+
+Furthermore, Xilinx simulator requires plusargs to be specified using `--testplusarg`, and the argument itself (e.g. `--testplusarg firmware=...`, `--testplusarg verbose`), rather than using `+`.
+
+```bash
+make xsim-build SIM_ARGS="--testplusarg firmware=../../../sw/build/main.hex --testplusarg verbose"
+
+```
 
 ## Simulating the UART DPI
 

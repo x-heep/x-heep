@@ -136,6 +136,11 @@ filesets:
     - scripts/sim/compile_uart_dpi.sh
     file_type: user
 
+  xsim_pre_build_uartdpi:
+    files:
+    - scripts/sim/xsim/compile_uart_dpi.sh
+    file_type: user
+
   cfile_uartdpi:
     files:
     - ./hw/vendor/lowrisc/opentitan/hw/dv/dpi/uartdpi/uartdpi.c
@@ -170,6 +175,13 @@ filesets:
     - tb/XHEEP_CmdLineOptions.cpp
     - tb/tb_sc_top.cpp
     file_type: cppSource
+
+  tb-xsim:
+    files:
+    - tb/tb_top.sv
+    - hw/vendor/lowrisc_opentitan/hw/dv/dpi/uartdpi/uartdpi.sv
+    - hw/vendor/pulp_platform_pulpissimo/rtl/tb/SimJTAG.sv
+    file_type: systemVerilogSource
 
   openroad_base_files:
     files:
@@ -275,6 +287,10 @@ scripts:
     cmd:
     - sh
     - ../../../scripts/sim/compile_uart_dpi.sh
+  xsim_pre_build_uartdpi:
+    cmd:
+    - sh
+    - ../../../scripts/sim/xsim/compile_uart_dpi.sh
   pre_patch_modelsim_Makefile:
     cmd:
     - python
@@ -311,16 +327,20 @@ targets:
     - tool_vcs? (pre_build_remote_bitbang)
     - tool_xcelium? (pre_build_remote_bitbang)
     - tool_xcelium? (pre_build_uartdpi)
+    - tool_xsim? (pre_build_remote_bitbang)
+    - tool_xsim? (xsim_pre_build_uartdpi)
     - tool_verilator? (tb-verilator)
     - tool_modelsim? (tb-sv)
     - tool_vcs? (tb-sv)
     - tool_xcelium? (tb-sv)
+    - tool_xsim? (tb-xsim)
     - "!integrated_heep? (x_heep_system)"
     toplevel:
     - tool_modelsim? (tb_top)
     - tool_vcs? (tb_top)
     - tool_xcelium? (tb_top)
     - tool_verilator? (testharness)
+    - tool_xsim? (tb_top)
     hooks:
       pre_build:
         - tool_modelsim? (pre_build_uartdpi)
@@ -329,6 +349,8 @@ targets:
         - ams_sim? (pre_patch_vcs_ams_Makefile)
         - tool_xcelium? (pre_build_uartdpi)
         - tool_xcelium? (pre_build_remote_bitbang)
+        - tool_xsim? (xsim_pre_build_uartdpi)
+        - tool_xsim? (pre_build_remote_bitbang)
       pre_run:
         - remove_uart_log
       post_run:
@@ -355,21 +377,21 @@ targets:
         - -voptargs=+acc=npr
       vcs:
         vcs_options:
-         - -override_timescale=1ns/1ps
-         - -assert disable_cover
-         - -assert svaext
-         - -debug_access+all+dmptf
-         - -fgp
-         - -full64
-         - -kdb
-         - -notice
-         - -ntb_opts error
-         - -race=all
-         - -xlrm uniq_prior_final
-         - -CFLAGS "-std=c++14 -pthread"
-         - -LDFLAGS "-pthread -lutil"
-         - +lint=TFIPC-L
-         - -V
+          - -override_timescale=1ns/1ps
+          - -assert disable_cover
+          - -assert svaext
+          - -debug_access+all+dmptf
+          - -fgp
+          - -full64
+          - -kdb
+          - -notice
+          - -ntb_opts error
+          - -race=all
+          - -xlrm uniq_prior_final
+          - -CFLAGS "-std=c++14 -pthread"
+          - -LDFLAGS "-pthread -lutil"
+          - +lint=TFIPC-L
+          - -V
       xcelium:
         xrun_options:
         - -vtimescale 1ns/10ps
@@ -392,6 +414,18 @@ targets:
           - '-CFLAGS "-Wall -fpermissive"'
           - '-LDFLAGS "-pthread -lutil -lelf"'
           - "-Wall"
+      xsim:
+        xelab_options:
+          - -relax
+          - -debug all
+          - -timescale 1ns/1ps
+          - -override_timeunit
+          - -sv_lib ../../../hw/vendor/lowrisc_opentitan/hw/dv/dpi/uartdpi/uartdpi.so
+          - -sv_lib ../../../hw/vendor/pulp_platform_pulpissimo/rtl/tb/remote_bitbang/librbs.so
+        xsim_options:
+          - -wdb waveform.wdb
+          - -tclbatch
+          - ../../../scripts/sim/xsim/log_waves.tcl # necessary to log waves
 
   sim_sc:
     <<: *default_target

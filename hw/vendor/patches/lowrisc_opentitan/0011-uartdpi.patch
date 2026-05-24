@@ -21,10 +21,44 @@ index 29d50a5a28..2149fb1155 100644
 +#endif
  #endif  // OPENTITAN_HW_DV_DPI_UARTDPI_UARTDPI_H_
 diff --git a/hw/dv/dpi/uartdpi/uartdpi.sv b/hw/dv/dpi/uartdpi/uartdpi.sv
-index 97fae47674..2be4df54ff 100644
+index 97fae47674..6a3be68197 100644
 --- a/hw/dv/dpi/uartdpi/uartdpi.sv
 +++ b/hw/dv/dpi/uartdpi/uartdpi.sv
-@@ -82,11 +82,16 @@ module uartdpi #(
+@@ -9,7 +9,7 @@ module uartdpi #(
+ )(
+   input  logic clk_i,
+   input  logic rst_ni,
+-
++  input  logic active,
+   output logic tx_o,
+   input  logic rx_i
+ );
+@@ -35,11 +35,22 @@ module uartdpi #(
+     void uartdpi_write(input chandle ctx, int data);
+ 
+   chandle ctx;
++
+   string log_file_path = DEFAULT_LOG_FILE;
++  function automatic void initialize();
++    string plusarg_name = {"UARTDPI_LOG_", NAME};
++    if (!$value$plusargs({plusarg_name, "=%s"}, log_file_path)) begin
++      $display($sformatf("No %s plusarg found.", plusarg_name));
++    end
++    ctx = uartdpi_create(NAME, log_file_path);
++  endfunction
+ 
+   initial begin
+-    $value$plusargs({"UARTDPI_LOG_", NAME, "=%s"}, log_file_path);
+-    ctx = uartdpi_create(NAME, log_file_path);
++    if (active) initialize();
++  end
++
++  always @(posedge active) begin
++    if (ctx == null) initialize();
+   end
+ 
+   final begin
+@@ -82,11 +93,18 @@ module uartdpi #(
      end
    end
  
@@ -32,10 +66,12 @@ index 97fae47674..2be4df54ff 100644
 +`ifndef VCS
 +`ifndef MODELSIM
 +`ifndef XCELIUM
++`ifndef XILINX_SIMULATOR
    initial begin
      // Prevent falling edges of rx_i before reset causing spurious characters
      seen_reset = 0;
    end
++`endif
 +`endif
 +`endif
 +`endif

@@ -439,6 +439,7 @@ module testharness #(
   ) i_uart0 (
       .clk_i,
       .rst_ni,
+      .active(1'b1),
       .tx_o(uart_rx),
       .rx_i(uart_tx)
   );

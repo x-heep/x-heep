@@ -30,7 +30,7 @@ COMPILER_PATH = [os.environ.get("RISCV_XHEEP") for _ in COMPILERS]
 COMPILER_PREFIXES = ["riscv32-unknown-" for _ in COMPILERS]
 
 # Available simulators
-SIMULATORS = ["verilator"]
+SIMULATORS = ["xsim"]
 
 # Pattern to look for when simulating an app to see if the app finished
 # correctly or not

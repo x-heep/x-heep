@@ -21,7 +21,7 @@ The SPI slave IP has a limited number of commands it can receive. All these comm
 ### Set Wrap-Length
 The number of 32-bit words to be read/written is called "wrap length". 
 
-The IP has two registers to store the wrap length L, namely `REG_1` and `REG_2` that will store the 8-LSB and 8-MSB respectively. To write these registers send a word intructing to write on these registers using commands `0x20` and `0x30`. 
+The IP has two registers to store the wrap length L, namely `REG_1` and `REG_2` that will store the 8-LSB and 8-MSB respectively. To write these registers send a word instructing to write on these registers using commands `0x20` and `0x30`. 
 
 | 31:24 | 23:16 | 15:8 | 7:0 |
 |----------|----------|----------|----------|
@@ -32,7 +32,7 @@ The IP has two registers to store the wrap length L, namely `REG_1` and `REG_2` 
 
 When the SPI salve is commanded to read from memory, before transmitting the data it will wait for a certain number of periods of the SCK. This amount is configurable, and needs to be matched by the SPI master (who also controls the SCK). 
 
-This amount is stored in the `REG_0` of the SPI slave IP and is set by seding a 2-byte command: 
+This amount is stored in the `REG_0` of the SPI slave IP and is set by sending a 2-byte command: 
 
 | 15:8 | 7:0 |
 |----------|----------|

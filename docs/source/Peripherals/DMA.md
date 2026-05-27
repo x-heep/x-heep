@@ -112,11 +112,11 @@ It is possible to specify the size of the DMA FIFOs in `mcu_cfg.hjson`, by modif
 
 ## Advanced Data Processing
 
-The DMA can perform complex tasks such as *2D* transactions and it can apply **zero padding** and perform **transpositions** on-the-fly, reducing the overhead of matrix operations. However, as alwyas, performance costs area occupation. If needed, the zero padding feature can be disabled by modifying the `mcu_cgf.hjson` parameter `zero_padding_en: "yes"` to `zero_padding_en: "no"`. This will eliminate entirely the **processing unit**, which takes care of the zero padding feature. However, the 2D transactions feature will still be present, as it is managed by the **read unit** and **write unit**.
+The DMA can perform complex tasks such as *2D* transactions and it can apply **zero padding** and perform **transpositions** on-the-fly, reducing the overhead of matrix operations. However, as always, performance costs area occupation. If needed, the zero padding feature can be disabled by modifying the `mcu_cfg.hjson` parameter `zero_padding_en: "yes"` to `zero_padding_en: "no"`. This will eliminate entirely the **processing unit**, which takes care of the zero padding feature. However, the 2D transactions feature will still be present, as it is managed by the **read unit** and **write unit**.
 
 ### Triggers
 
-In the case of memory-peripheral operations, it is common for the peripheral to have a reaction time that cannot match the system clock. For example, the SPI trasmits data with a period of circa 30 clock cycles. 
+In the case of memory-peripheral operations, it is common for the peripheral to have a reaction time that cannot match the system clock. For example, the SPI transmits data with a period of circa 30 clock cycles. 
 
 This difference in response times creates the need for a **communication channel** between DMA subsystem and peripheral allowing the DMA operations to be suspended according to the peripheral state. These signals are called __triggers__. 
 
@@ -151,7 +151,7 @@ A block diagram showing this DMA interface along with an external accelerator is
 ## Registers description
 
 This section will describe every register of a DMA channel and their function.
-The complete addres of a DMA channel register is the following:
+The complete address of a DMA channel register is the following:
 
 <p style="text-align: center;"><code>DMA_START_ADDRESS + DMA_CH_SIZE * channel + REGISTER_OFFSET</code></p>
 
@@ -782,7 +782,7 @@ Here is a brief overview of the examples:
 
 The complete code for these examples can be found in `sw/applications/example_dma`, `sw/applications/example_dma_2d`, `sw/applications/example_dma_multichannel`, `sw/applications/example_dma_sdk` and `sw/applications/example_dma_subaddressing`. These applications offer both verification and performance estimation modes, enabling users to verify the DMA and measure the application's execution time.
 
-The user is strongly incouraged to look at these applications, as well as any other application that employs the DMA, to gain insight in practical examples of the use of this peripheral. Some aspects or specific usecases might in fact not be present in this guide and could be found in the applications.
+The user is strongly encouraged to look at these applications, as well as any other application that employs the DMA, to gain insight in practical examples of the use of this peripheral. Some aspects or specific usecases might in fact not be present in this guide and could be found in the applications.
 
 > :warning: If you have any relevant questions about the DMA or other topics, feel free to open a _question_ on our GitHub repository page!
 
@@ -887,7 +887,7 @@ typedef enum
     DMA_CONFIG_INCOMPATIBLE     = 0x0040, /*!< Different arguments result in
     incompatible requests. */
     DMA_CONFIG_WINDOW_SIZE      = 0x0080, /*!< A small window size might result
-    in loss of syncronism. If the processing of the window takes longer than the
+    in loss of synchronism. If the processing of the window takes longer than the
     time it takes to the DMA to finish the next window, the application will not
     be able to cope. Although "how small is too small" is highly dependent on
     the length of the processing, this flag will be raised when the transaction
@@ -1582,7 +1582,7 @@ As soon as an IFR is read high, the HAL calls a weak implementation of the inter
 After the call, the loop continues to look for interrupts in other channels, and then returns.
 
 There is, however, an **additional level of customization** provided by the HAL. 
-It's possible to set an index to differentiate between low and high priority channels by setting *DMA_HP_INTR_INDEX* in `dma.h`. In other words, when a channel whose ID is lower or equal to that index raises an interrupt, the *handler_irq_dma()* calls the user-defined IRQ handler and then returns, instead of compleating the loop.
+It's possible to set an index to differentiate between low and high priority channels by setting *DMA_HP_INTR_INDEX* in `dma.h`. In other words, when a channel whose ID is lower or equal to that index raises an interrupt, the *handler_irq_dma()* calls the user-defined IRQ handler and then returns, instead of completing the loop.
 This means that low ID channels, i.e. high priority channels, have a higher probability of being serviced that the rest of the channels.
 
 However, this feature could cause low priority channels to never be serviced if the high priority interrupts are raised at a faster frequency and the user-defined handler executes long and complex operations.
@@ -1647,7 +1647,7 @@ void fic_irq_dma(void)
 Everything that has been explained in this paragraph is true for the **window count interrupts** too.
 
 In this example, none of these additional functionalities are necessary, as the IRQ handler will be used to simply set a flag. 
-A detailed explaination of how these mechanisms work was still necessary, since they are very useful in a variety of applications.
+A detailed explanation of how these mechanisms work was still necessary, since they are very useful in a variety of applications.
 
 Let's redefine *dma_intr_handler_trans_done()* to set some flags:
 
@@ -1947,7 +1947,7 @@ The goal of this example is to exploit the DMA Subaddress Mode to transfer data 
 - Using the _SPI Host 1_ configured to read at quad speed.
 - Using the _SPI Flash_ configured to read at standard speed. 
 
-For each configuration, five data transfers are performed chaging source and destination targets data types in the following manner:
+For each configuration, five data transfers are performed changing source and destination targets data types in the following manner:
 - Both source and destination data types are `Word`
 - Source data type is `Word`, destination one is `Half-word` and data is signed-extended before being written in the destination. 
 - Source data type is `Word`, destination one is `Half-word` and no sign-extension is performed. 
@@ -1956,7 +1956,7 @@ For each configuration, five data transfers are performed chaging source and des
 
 > :warning: This example can be executed only on QuestaSim or FPGA targets with the appropriate compilation flags.
 
-#### Data to be transfered and golden outputs
+#### Data to be transferred and golden outputs
 File `buffer.h` contains input data for the DMA transfers, i.e. `original_128B` and `flash_only_buffer`. It also contains golden outputs for all the previously mentioned test cases.
 
 #### Test Functions

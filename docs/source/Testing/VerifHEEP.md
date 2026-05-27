@@ -168,7 +168,7 @@ By default, this is the format expected:
 </div>
 
 An application can send N lines composed of:
-- **test_id**: the ID of the test being performed. A single application can test multiple aspects or features, so different tests can be performed in a single run. In the **im2col_spc** application, this is exactly what happens: three different tests are perfomed each run.
+- **test_id**: the ID of the test being performed. A single application can test multiple aspects or features, so different tests can be performed in a single run. In the **im2col_spc** application, this is exactly what happens: three different tests are performed each run.
 - **cycles**: the number of cycles needed by the system to perform that specific test. In order to keep track of the execution cycles, a `timer_sdk` has been developed. Please refer to `example_timer_sdk` for a practical implementation.
 - **outcome**: the outcome of the verification performed by the application itself. For example, the application might set up the DMA to perform a transaction and then check that the result corresponds to the golden result.
 

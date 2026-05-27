@@ -231,7 +231,7 @@ export HEEP_DIR = <path_to_x_heep_relative_to_this_directory>
 
 ## Extending the mcu-gen configuration
 
-In your own `Makefile`, you can also extend the `mcu-gen` target to generate a custom MCU configuration for your application, includiing any `.tpl` files you might want to add. To do so, you can add an `mcu-gen` target in your `Makefile` like the following:
+In your own `Makefile`, you can also extend the `mcu-gen` target to generate a custom MCU configuration for your application, including any `.tpl` files you might want to add. To do so, you can add an `mcu-gen` target in your `Makefile` like the following:
 
 <details>
     <summary>Example of Makefile extending mcu-gen</summary>
@@ -321,5 +321,5 @@ endif
 
 </details><br>
 
-> Remeber to add double hashes `##` on any comment you want printed on the help.
+> Remember to add double hashes `##` on any comment you want printed on the help.
 > Use `## @section SectionName` to divide the documentation in sections

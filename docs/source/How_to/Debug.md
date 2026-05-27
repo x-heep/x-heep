@@ -94,7 +94,7 @@ openocd -f ./tb/core-v-mini-mcu.cfg
 OpenOCD will connect to the DPI remote bitbang server and it will start initialize the MCU.
 Check the waveform of the JTAG on Modelsim if you like.
 
-In a 3rd shell, conenct gdb as:
+In a 3rd shell, connect gdb as:
 
 ```
 $RISCV_XHEEP/bin/riscv32-unknown-elf-gdb ./sw/build/main.elf
@@ -187,7 +187,7 @@ Set a breakpoint to a specific instruction address:
 Breakpoint 1 at 0x19c: file /x-heep/sw/device/lib/crt/crt0.S, line 38.
 ```
 
-and continue the execution untill the breakpoint as:
+and continue the execution until the breakpoint as:
 
 ```
 (gdb) continue
@@ -217,7 +217,7 @@ make gdb_connect MAINFILE=<main_file_name_of_the_project_that WAS_built WITHOUT 
 
 ## Debugging on FPGA
 
-We can use either the `Digilet HS2` cable with the `FT232HQ` [chip](https://www.ftdichip.com/Support/Documents/TechnicalNotes/TN_100_USB_VID-PID_Guidelines.pdf) which has Vendor ID `0x0403` and Product ID `0x6014`, or the EPFL Programmer (described in
+We can use either the `Digilent HS2` cable with the `FT232HQ` [chip](https://www.ftdichip.com/Support/Documents/TechnicalNotes/TN_100_USB_VID-PID_Guidelines.pdf) which has Vendor ID `0x0403` and Product ID `0x6014`, or the EPFL Programmer (described in
 [ProgramFlash](./ProgramFlash.md)) which has the `FT4232H` which has Vendor ID `0x0403` and Product ID `0x6011`.
 
 Connect the HS2 cable to the FPGA or the EPFL PRogrammer.

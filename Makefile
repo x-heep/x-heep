@@ -349,9 +349,9 @@ flash-erase:
 openOCD_epflp:
 	xterm -e openocd -f ./tb/core-v-mini-mcu-esl-programmer.cfg;
 
-## Run openOCD w/ BSCAN of the Pynq-Z2 board
+## Run openOCD w/ BSCAN of the $(FPGA_BOARD) board
 openOCD_bscan:
-	xterm -e openocd -f ./tb/core-v-mini-mcu-pynq-z2-bscan.cfg;
+	xterm -e openocd -f ./tb/core-v-mini-mcu-$(FPGA_BOARD)-bscan.cfg;
 
 ## Start GDB
 gdb_connect:

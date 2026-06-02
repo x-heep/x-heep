@@ -1,6 +1,6 @@
 # eXtending X-HEEP
 
-X-HEEP is meant to be extended with your own custom IPs. X-HEEP itself posseses a hardware-software framework capable of working standalone. If you want to extend it, you will need to merge your hardware and software with X-HEEP's.
+X-HEEP is meant to be extended with your own custom IPs. X-HEEP itself possesses a hardware-software framework capable of working standalone. If you want to extend it, you will need to merge your hardware and software with X-HEEP's.
 
 For this purpose we support the [CV-X-IF](https://docs.openhwgroup.org/projects/openhw-group-core-v-xif/en/latest/intro.html) interface with the [cv32e40px](https://github.com/x-heep/cv32e40px) or [cv32e40x](https://github.com/openhwgroup/cv32e40x) or [cv32e20](https://github.com/openhwgroup/cve2) RISC-V CPUs, and we expose master and slave ports to/from the bus.
 

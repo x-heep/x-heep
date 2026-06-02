@@ -6,7 +6,7 @@ Most of the the cores available in X-HEEP support the CV-V-IF interface to offlo
 - CV32E40PX
 
 ```{warning}
-CV32E20 only supports offloading two source operands. If your coprocessor requries 3 input operands (e.g., if it uses R4-type instructions), _you should rely on the CV32E40*X cores_. Support for 3 operands is going to be added in the near future. Note that, for testing purposes, `testharness.sv` allows CV32E20 as a valid choice when the FPU is enabled (together with the ZFINX RISC-V extension).
+CV32E20 only supports offloading two source operands. If your coprocessor requires 3 input operands (e.g., if it uses R4-type instructions), _you should rely on the CV32E40*X cores_. Support for 3 operands is going to be added in the near future. Note that, for testing purposes, `testharness.sv` allows CV32E20 as a valid choice when the FPU is enabled (together with the ZFINX RISC-V extension).
 ```
 
 ## Python configuration file

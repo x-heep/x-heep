@@ -20,6 +20,7 @@ run_verif_rtl_log.txt
 tb/tb_util.svh
 tb/testharness.sv
 tb/testharness_pkg.sv
+tb/ext_bus.sv
 
 hw/core-v-mini-mcu/include/core_v_mini_mcu_pkg.sv
 hw/core-v-mini-mcu/system_bus.sv

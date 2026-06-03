@@ -4,20 +4,28 @@
  * SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
  *  
  * Info: XHEEP wrapper for pulp-platform/serial_link.
-  On the sending side, it translates OBI transactions to AXI requests. 
-  On the receiving side, write requests are not propagated as 
-  AXI master operations but stored in a memory-mapped FIFO, 
-  which can be accessed via DMA in tests. 
-  Master functionality on the receiving side is not implemented.
+ * On the sending side, it translates OBI transactions to AXI requests.
+ * On the receiving side, two RX modes are selectable via the RX_MODE
+ * software register:
+ *   - FIFO mode (rx_mode=0, default): incoming AXI write transactions
+ *     are stored in a memory-mapped FIFO, readable via DMA or polling.
+ *   - Direct write mode (rx_mode=1): incoming AXI write transactions
+ *     are routed through axi_to_mem directly to into the receiving 
+ *     X-HEEP’s memory space. An interrupt is fired via PLIC when 
+ *     the expected word count (DIRECT_WRITE_WORD_COUNT) has been 
+ *     committed.
  */
 
 module serial_link_xheep_wrapper
   import obi_pkg::*;
   import serial_link_minimum_axi_pkg::*;
   import axi_pkg::*;
+  import serial_link_xheep_wrapper_reg_pkg::*;
 #(
-    parameter int MaxClkDiv = 32,
-    parameter int DataWidth = 32
+    parameter int MaxClkDiv = 1024,
+    parameter int AddrWidth = 32,
+    parameter int DataWidth = 32,
+    parameter logic [31:0] AxiAddrOffset = 32'h0
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -34,11 +42,19 @@ module serial_link_xheep_wrapper
     input  reg_pkg::reg_req_t cfg_req_i,
     output reg_pkg::reg_rsp_t cfg_rsp_o,
 
+    input  reg_pkg::reg_req_t wrapper_cfg_req_i,
+    output reg_pkg::reg_rsp_t wrapper_cfg_rsp_o,
+
+    output obi_pkg::obi_req_t  direct_write_req_o,
+    input  obi_pkg::obi_resp_t direct_write_resp_i,
 
     input logic [serial_link_minimum_axi_pkg::NumChannels-1:0] ddr_rcv_clk_i,
     output logic [serial_link_minimum_axi_pkg::NumChannels-1:0] ddr_snd_clk_o,
     input  logic [serial_link_minimum_axi_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_i,
-    output logic [serial_link_minimum_axi_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_o
+    output logic [serial_link_minimum_axi_pkg::NumChannels-1:0][serial_link_minimum_axi_pkg::NumLanes-1:0] ddr_o,
+
+    output logic intr_event_o,
+    output logic direct_write_intr_o
 
 );
 
@@ -49,9 +65,31 @@ module serial_link_xheep_wrapper
   serial_link_minimum_axi_pkg::axi_req_t fast_sl_req_O, axi_in_req, axi_lite_req;
   serial_link_minimum_axi_pkg::axi_resp_t fast_sl_rsp_O, axi_in_rsp, axi_lite_rsp;
 
-  // Transaltes the OBI request into the AXI request
-  // To allow transparent functionality of the SL and send data only
-  // The serial_link_minimum_axi_pkg parameters are used
+  serial_link_minimum_axi_pkg::axi_req_t fifo_axi_req, direct_axi_req;
+  serial_link_minimum_axi_pkg::axi_resp_t fifo_axi_rsp, direct_axi_rsp;
+  serial_link_minimum_axi_pkg::axi_req_t                                       direct_axi_req_cut;
+  serial_link_minimum_axi_pkg::axi_resp_t                                      direct_axi_rsp_cut;
+
+  logic                                                                        rx_mode;
+  serial_link_xheep_wrapper_reg_pkg::serial_link_xheep_wrapper_reg2hw_t        reg2hw;
+
+  logic                                                                        dw_word_commit;
+  logic                                                                 [15:0] dw_count_q;
+
+  serial_link_xheep_wrapper_reg_top #(
+      .reg_req_t(reg_pkg::reg_req_t),
+      .reg_rsp_t(reg_pkg::reg_rsp_t)
+  ) i_serial_link_xheep_wrapper_reg_top (
+      .clk_i,
+      .rst_ni,
+      .reg_req_i(wrapper_cfg_req_i),
+      .reg_rsp_o(wrapper_cfg_rsp_o),
+      .reg2hw   (reg2hw),
+      .devmode_i(1'b1)
+  );
+
+  assign rx_mode = reg2hw.rx_mode.q;
+
   axi_lite_from_mem #(
       .MemAddrWidth(32'd32), // obi addr width
       .AxiAddrWidth(serial_link_minimum_axi_pkg::AXI_ADDR_WIDTH),
@@ -63,7 +101,7 @@ module serial_link_xheep_wrapper
       .clk_i,
       .rst_ni,
       .mem_req_i      (writer_req_i.req),
-      .mem_addr_i     (writer_req_i.addr),
+      .mem_addr_i     (writer_req_i.addr - AxiAddrOffset),
       .mem_we_i       (writer_req_i.we),
       .mem_wdata_i    (writer_req_i.wdata),
       .mem_be_i       (writer_req_i.be),
@@ -93,6 +131,82 @@ module serial_link_xheep_wrapper
       .mst_resp_i(axi_in_rsp)
   );
 
+  // MUX - route fast_sl_req_O to either FIFO or direct write path
+  always_comb begin
+    fifo_axi_req   = '0;
+    direct_axi_req = '0;
+    if (rx_mode) begin
+      direct_axi_req = fast_sl_req_O;
+      fast_sl_rsp_O  = direct_axi_rsp;
+    end else begin
+      fifo_axi_req  = fast_sl_req_O;
+      fast_sl_rsp_O = fifo_axi_rsp;
+    end
+  end
+
+  axi_cut #(
+      .aw_chan_t (serial_link_minimum_axi_pkg::axi_aw_t),
+      .w_chan_t  (serial_link_minimum_axi_pkg::axi_w_t),
+      .b_chan_t  (serial_link_minimum_axi_pkg::axi_b_t),
+      .ar_chan_t (serial_link_minimum_axi_pkg::axi_ar_t),
+      .r_chan_t  (serial_link_minimum_axi_pkg::axi_r_t),
+      .axi_req_t (serial_link_minimum_axi_pkg::axi_req_t),
+      .axi_resp_t(serial_link_minimum_axi_pkg::axi_resp_t)
+  ) i_axi_cut (
+      .clk_i,
+      .rst_ni,
+      .slv_req_i (direct_axi_req),
+      .slv_resp_o(direct_axi_rsp),
+      .mst_req_o (direct_axi_req_cut),
+      .mst_resp_i(direct_axi_rsp_cut)
+  );
+
+  axi_to_mem #(
+      .axi_req_t (serial_link_minimum_axi_pkg::axi_req_t),
+      .axi_resp_t(serial_link_minimum_axi_pkg::axi_resp_t),
+      .AddrWidth (AddrWidth),
+      .DataWidth (DataWidth),
+      .IdWidth   (serial_link_minimum_axi_pkg::AXI_ID_WIDTH),
+      .NumBanks  (1),
+      .BufDepth  (1)
+  ) i_axi_to_mem (
+      .clk_i,
+      .rst_ni,
+      .busy_o      (),
+      .axi_req_i   (direct_axi_req_cut),
+      .axi_resp_o  (direct_axi_rsp_cut),
+      .mem_req_o   (direct_write_req_o.req),
+      .mem_gnt_i   (direct_write_resp_i.gnt),
+      .mem_addr_o  (direct_write_req_o.addr),
+      .mem_wdata_o (direct_write_req_o.wdata),
+      .mem_strb_o  (direct_write_req_o.be),
+      .mem_atop_o  (),
+      .mem_we_o    (direct_write_req_o.we),
+      .mem_rvalid_i(direct_write_resp_i.rvalid),
+      .mem_rdata_i (direct_write_resp_i.rdata)
+  );
+
+  // Direct write word counter
+  // Fires direct_write_intr_o for exactly one cycle when the expected number
+  // of words (DIRECT_WRITE_WORD_COUNT) have been committed to RAM.
+  // Counter resets automatically after firing.
+  assign dw_word_commit = direct_write_req_o.req & direct_write_req_o.we & direct_write_resp_i.gnt;
+
+  always_ff @(posedge clk_i or negedge rst_ni) begin
+    if (!rst_ni) begin
+      dw_count_q <= '0;
+    end else if (direct_write_intr_o) begin
+      dw_count_q <= '0;
+    end else if (dw_word_commit) begin
+      dw_count_q <= dw_count_q + 1'b1;
+    end
+  end
+
+  assign direct_write_intr_o =
+      dw_word_commit &
+      (reg2hw.direct_write_word_count.q != '0) &
+      (dw_count_q + 1'b1 == reg2hw.direct_write_word_count.q);
+
   // Slave interface for the Serial Link
   // Data is saved in the fifo of parametrizable depth
   // The new transactions can be accepted only when fifo is empty
@@ -108,8 +222,9 @@ module serial_link_xheep_wrapper
       .reader_rvalid_o (reader_resp_o.rvalid),
       .reader_we_i     (reader_req_i.we),
       .reader_rdata_o  (reader_resp_o.rdata),
-      .writer_axi_req_i(fast_sl_req_O),
-      .writer_axi_rsp_o(fast_sl_rsp_O)
+      .writer_axi_req_i(fifo_axi_req),
+      .writer_axi_rsp_o(fifo_axi_rsp),
+      .intr_event_o    (intr_event_o)
   );
 
   tc_clk_mux2 i_tc_reset_mux (

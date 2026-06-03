@@ -1,3 +1,7 @@
+<%
+  user_peripheral_domain = xheep.get_user_peripheral_domain()
+%>
+
 // Copyright 2022 EPFL and Politecnico di Torino.
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
@@ -90,6 +94,10 @@ module ext_bus #(
       assign master_req[core_v_mini_mcu_pkg::DMA_ADDR_P0_IDX+i*3]  = heep_dma_addr_req_i[i];
     end
   endgenerate
+
+  % if user_peripheral_domain.contains_peripheral('serial_link_reg'): 
+    assign master_req[core_v_mini_mcu_pkg::SL_DIRECT_WRITE_MASTER_IDX] = '0;
+  % endif
 
   generate
     for (genvar i = 0; i < EXT_XBAR_NMASTER; i++) begin : gen_ext_master_req_map

@@ -9,7 +9,7 @@
 
 package serial_link_minimum_axi_pkg;
   `include "axi/typedef.svh"
-  parameter int unsigned AXI_ADDR_WIDTH = 1;  //original 32
+  parameter int unsigned AXI_ADDR_WIDTH = 32;  //original 32
   parameter int unsigned AXI_DATA_WIDTH = 32;
   parameter int unsigned AXI_USER_WIDTH = 1;  //8
   parameter int unsigned AXI_ID_WIDTH = 1;  //8

@@ -81,6 +81,10 @@
  */
 #define W25Q128JW_CONTROLLER_ID          W25Q128JW_CONTROLLER_INTR_EVENT
 
+/**
+ * ID of the serial link direct write done interrupt
+ */
+#define SERIAL_LINK_DIRECT_WRITE_ID  SERIAL_LINK_DIRECT_WRITE_INTR_EVENT    
 
 /**
  * ID of the external interrupt request lines

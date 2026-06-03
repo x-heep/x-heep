@@ -337,6 +337,7 @@ module core_v_mini_mcu
   obi_req_t [1:0] dma_addr_req;
   obi_resp_t [1:0] dma_addr_resp;
 
+
   // ram signals
   obi_req_t [core_v_mini_mcu_pkg::NUM_BANKS-1:0] ram_slave_req;
   obi_resp_t [core_v_mini_mcu_pkg::NUM_BANKS-1:0] ram_slave_resp;
@@ -462,6 +463,7 @@ module core_v_mini_mcu
 
   // I2s
   logic i2s_rx_valid;
+
 
   assign intr = {irq_fast, 4'b0, irq_external, 3'b0, rv_timer_intr[0], 3'b0, irq_software, 3'b0};
 

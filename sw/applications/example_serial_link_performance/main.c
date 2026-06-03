@@ -1,0 +1,202 @@
+// Copyright 2026 EPFL
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+// Description: Performance evaluation of Serial Link FIFO vs Direct Write modes.
+//              Measures sender-side cycles for 1, 4, 8, 16, 32 words.
+
+#include <stdio.h>
+#include <stdlib.h>
+#include "serial_link_single_channel_regs.h"
+#include "serial_link_regs.h"
+#include "serial_link.h"
+#include "serial_link_xheep_wrapper_driver.h"
+#include "serial_link_sdk.h"
+#include "core_v_mini_mcu.h"
+#include "csr.h"
+#include "pad_control.h"
+#include "pad_control_regs.h"
+#include "example_serial_link_performance.h"
+
+#if TARGET_SIM
+#error "example_serial_link_performance is FPGA only and cannot be built for simulation."
+#endif
+
+int main(int argc, char *argv[]) {
+
+    sl_init((volatile uint32_t *)CTRL_REG_ADDR, (int32_t *)CTRL_REG_ADDR);
+
+    raw_data_init();
+
+#if FPGA_RECEIVE
+    // =========================================================================
+    // FPGA RECEIVER
+    // =========================================================================
+    int errors = 0;
+    int32_t rcv_data;
+    uint32_t cycles_start, cycles_end;
+    uint32_t fifo_cycles[NUM_SIZES];
+    uint32_t dw_cycles[NUM_SIZES];
+    uint32_t raw_cycles[NUM_SIZES];
+
+    PRINTF("=== Serial Link Performance Evaluation (FPGA RECEIVE) ===\n");
+
+    // Test 1: FIFO mode
+    sl_wrapper_set_rx_mode(SL_WRAPPER_RX_MODE_FIFO);
+    for (int s = 0; s < NUM_SIZES; s++) {
+        int n = test_sizes[s];
+        volatile int32_t *addr_p_fifo = SL_READ;
+        
+        // Warmup - consume dummy word sent by sender before test
+        rcv_data = *addr_p_fifo;  // not measured
+
+        CSR_READ(CSR_REG_MCYCLE, &cycles_start);
+        for (int i = 0; i < n; i++) {
+            rcv_data = *addr_p_fifo;
+            if (rcv_data != test_data[i]) errors++;
+        }
+        CSR_READ(CSR_REG_MCYCLE, &cycles_end);
+        fifo_cycles[s] = cycles_end - cycles_start;
+    }
+
+    // Test 2: Direct write mode
+    sl_wrapper_set_rx_mode(SL_WRAPPER_RX_MODE_DIRECT_WRITE);
+    for (int s = 0; s < NUM_SIZES; s++) {
+        int n = test_sizes[s];
+        
+        // Clear all targets
+        for (int i = 0; i < n; i++)
+            *(volatile uint32_t *)(DIRECT_WRITE_TARGET_ADDR + i * 4) = 0;
+
+        CSR_READ(CSR_REG_MCYCLE, &cycles_start);
+        for (int i = 0; i < n; i++) {
+            volatile uint32_t *target = (volatile uint32_t *)(DIRECT_WRITE_TARGET_ADDR + i * 4);
+            while(*target == 0);
+            if ((int32_t)*target != test_data[i]) errors++;
+        }
+        CSR_READ(CSR_REG_MCYCLE, &cycles_end);
+        dw_cycles[s] = cycles_end - cycles_start;
+    }
+
+    // Test 3: Raw mode
+   sl_wrapper_direct_write(SYNC_ADDR, READY);
+   sl_raw_mode_enable(RAW_MODE_CH_SEL, RAW_MODE_CH_MASK);
+
+   for (int s = 0; s < NUM_SIZES; s++) {
+       int n = raw_sizes[s];
+
+       CSR_READ(CSR_REG_MCYCLE, &cycles_start);
+       sl_raw_mode_recv(raw_buffer, n);
+       CSR_READ(CSR_REG_MCYCLE, &cycles_end);
+       raw_cycles[s] = cycles_end - cycles_start;
+
+       for (int i = 0; i < n; i++) {
+           if (raw_buffer[i] != raw_test_data[i]) errors++;
+       }
+
+      // Tell sender this burst is consumed, safe to send next
+      sl_raw_mode_disable();
+      sl_wrapper_direct_write(SYNC_ADDR, READY);
+      sl_raw_mode_enable(RAW_MODE_CH_SEL, RAW_MODE_CH_MASK);
+   }
+
+    // Print results
+    PRINTF("\n=== Receiver Cycle Counts ===\n");
+    PRINTF(" Words | FIFO cyc | FIFO cyc/word |   DW cyc | DW cyc/word | RAW cyc | RAW cyc/word\n");
+    PRINTF("-------|----------|---------------|----------|-------------|---------|-------------\n");
+    for (int s = 0; s < NUM_SIZES; s++) {
+        int n = test_sizes[s];
+        PRINTF(" %5d | %8u | %13u | %8u | %11u | %7u | %12u\n",
+            n,
+            fifo_cycles[s], fifo_cycles[s] / n,
+            dw_cycles[s],   dw_cycles[s]   / n,
+            raw_cycles[s],  raw_cycles[s]  / n);
+    }
+
+    if (errors == 0) {
+        PRINTF("\nDONE - All tests passed\n");
+        return EXIT_SUCCESS;
+    } else {
+        PRINTF("\nFAILED - %d errors\n", errors);
+        return EXIT_FAILURE;
+    }
+
+#else
+    // =========================================================================
+    // FPGA SENDER
+    // =========================================================================
+    uint32_t cycles_start, cycles_end;
+    uint32_t fifo_cycles[NUM_SIZES];
+    uint32_t dw_cycles[NUM_SIZES];
+    uint32_t raw_cycles[NUM_SIZES];
+
+    sl_wrapper_set_rx_mode(SL_WRAPPER_RX_MODE_DIRECT_WRITE);
+    volatile uint32_t *ready = (volatile uint32_t *)SYNC_ADDR;
+
+    PRINTF("=== Serial Link Performance Evaluation (FPGA SEND) ===\n");
+
+    // Test 1: FIFO mode 
+    for (int s = 0; s < NUM_SIZES; s++) {
+        int n = test_sizes[s];
+
+        *SL_WRITE = 0xDEADBEEF; // dummy word, receiver will discard 
+
+        CSR_READ(CSR_REG_MCYCLE, &cycles_start);
+        for (int i = 0; i < n; i++) {
+            *SL_WRITE = test_data[i];
+        }
+        CSR_READ(CSR_REG_MCYCLE, &cycles_end);
+        fifo_cycles[s] = cycles_end - cycles_start;
+    }
+
+    // Test 2: Direct write mode
+    for (int s = 0; s < NUM_SIZES; s++) {
+        int n = test_sizes[s];
+
+        CSR_READ(CSR_REG_MCYCLE, &cycles_start);
+        for (int i = 0; i < n; i++) {
+            sl_wrapper_direct_write(DIRECT_WRITE_TARGET_ADDR + i * 4,
+                                    (uint32_t)test_data[i]);
+        }
+        CSR_READ(CSR_REG_MCYCLE, &cycles_end);
+        dw_cycles[s] = cycles_end - cycles_start;
+    }
+
+  while (*ready != READY);
+  *ready = 0;
+
+  for (int s = 0; s < NUM_SIZES; s++) {
+      int n = raw_sizes[s];
+
+      sl_raw_mode_enable(RAW_MODE_CH_SEL, RAW_MODE_CH_MASK);
+
+      CSR_READ(CSR_REG_MCYCLE, &cycles_start);
+      sl_raw_mode_send(raw_test_data, n);
+      CSR_READ(CSR_REG_MCYCLE, &cycles_end);
+      raw_cycles[s] = cycles_end - cycles_start;
+
+      sl_raw_mode_disable();
+
+      // Wait for receiver to consume before sending next burst
+      while (*ready != READY);
+      *ready = 0;  
+  }
+
+    // Print results after all measurements
+    PRINTF("\n=== Sender Cycle Counts ===\n");
+    PRINTF(" Words | FIFO cyc | FIFO cyc/word |   DW cyc | DW cyc/word | RAW cyc | RAW cyc/word\n");
+    PRINTF("-------|----------|---------------|----------|-------------|---------|-------------\n");
+    for (int s = 0; s < NUM_SIZES; s++) {
+        int n = test_sizes[s];
+        PRINTF(" %5d | %8u | %13u | %8u | %11u | %7u | %12u\n",
+            n,
+            fifo_cycles[s], fifo_cycles[s] / n,
+            dw_cycles[s],   dw_cycles[s]   / n,
+            raw_cycles[s],  raw_cycles[s]  / n);
+    }
+
+    PRINTF("\nDONE\n");
+    return EXIT_SUCCESS;
+#endif
+}
+
+

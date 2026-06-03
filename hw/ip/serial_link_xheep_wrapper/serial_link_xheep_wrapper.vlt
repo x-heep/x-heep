@@ -5,4 +5,6 @@
 `verilator_config
 
 lint_off -rule UNUSED -file "*/rtl/serial_link_xheep_wrapper.sv" -match "Bits of signal are not used: 'reader_req_i'[67:0]*"
-lint_off -rule UNUSED -file "*/rtl/serial_link_xheep_wrapper_fifo.sv" -match "Bits of signal are not used: 'writer_axi_req_i'[112:75,33:0]*"
+lint_off -rule UNUSED -file "*/rtl/serial_link_xheep_wrapper_fifo.sv" -match "Bits of signal are not used: 'writer_axi_req_i'[174:106,64:0]*"
+lint_off -rule DECLFILENAME -file "*/serial_link_xheep_wrapper_reg_top.sv" -match "Filename 'serial_link_xheep_wrapper_reg_top' does not match MODULE name: 'serial_link_xheep_wrapper_reg_top_intf'"
+

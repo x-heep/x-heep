@@ -122,6 +122,11 @@ module core_v_mini_mcu
     output logic [EXT_DOMAINS_RND-1:0] external_subsystem_clkgate_en_no,
 
     output logic [31:0] exit_value_o,
+    % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
+      //Serial Link
+      output obi_pkg::obi_req_t  serial_link_direct_write_req_o,   
+      input  obi_pkg::obi_resp_t serial_link_direct_write_resp_i, 
+    %endif
 
     // External SPC interface
     input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_tx_i,
@@ -160,6 +165,12 @@ module core_v_mini_mcu
   obi_resp_t [${dma_obi_msb}:0]dma_write_resp;
   obi_req_t [${dma_obi_msb}:0]dma_addr_req;
   obi_resp_t [${dma_obi_msb}:0]dma_addr_resp;
+
+  % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
+  obi_pkg::obi_resp_t serial_link_direct_write_resp;
+  obi_req_t serial_link_slave_req;
+  obi_resp_t serial_link_slave_resp;
+  % endif
 
   // ram signals
   obi_req_t [core_v_mini_mcu_pkg::NUM_BANKS-1:0] ram_slave_req;
@@ -283,6 +294,10 @@ module core_v_mini_mcu
   // I2s
   logic i2s_rx_valid;
 
+  % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
+    logic serial_link_fifo_not_empty;    
+  % endif
+ 
   assign intr = {
     irq_fast, 4'b0, irq_external, 3'b0, rv_timer_intr[0], 3'b0, irq_software, 3'b0
   };
@@ -367,6 +382,12 @@ module core_v_mini_mcu
       .dma_write_resp_o(dma_write_resp),
       .dma_addr_req_i(dma_addr_req),
       .dma_addr_resp_o(dma_addr_resp),
+      % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
+      .serial_link_direct_write_req_i(serial_link_direct_write_req_o),
+      .serial_link_direct_write_resp_o(serial_link_direct_write_resp),
+      .serial_link_slave_req_o(serial_link_slave_req),
+      .serial_link_slave_resp_i(serial_link_slave_resp),
+      % endif
       .ext_xbar_master_req_i(ext_xbar_master_req_i),
       .ext_xbar_master_resp_o(ext_xbar_master_resp_o),
       .ram_req_o(ram_slave_req),
@@ -465,6 +486,9 @@ module core_v_mini_mcu
       .spi_rx_valid_i(spi_rx_valid),
       .spi_tx_ready_i(spi_tx_ready),
       .i2s_rx_valid_i(i2s_rx_valid),
+      % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
+      .serial_link_fifo_not_empty_i(serial_link_fifo_not_empty),
+      %endif 
       .ext_peripheral_slave_req_o,
       .ext_peripheral_slave_resp_i,
       .ext_dma_slot_tx_i,
@@ -535,6 +559,13 @@ module core_v_mini_mcu
       .ddr_snd_1_o,
       .ddr_snd_2_o,
       .ddr_snd_3_o,
+      % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
+        .serial_link_direct_write_req_o,
+        .serial_link_direct_write_resp_i(serial_link_direct_write_resp),
+        .serial_link_slave_req_i(serial_link_slave_req),
+        .serial_link_slave_resp_o(serial_link_slave_resp),
+        .serial_link_fifo_not_empty_o(serial_link_fifo_not_empty),
+      %endif
       .uart_rx_i,
       .uart_tx_o
   );

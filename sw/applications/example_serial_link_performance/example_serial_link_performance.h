@@ -6,9 +6,7 @@
 //              Included by main.c only, not a general-purpose header.
 //
 // Compile-time flags :
-//   FPGA_RECEIVE  1 = receiver board, 0 = sender board  (FPGA only)
-//
-// Note : for TARGET_SIM you need at least 3 ram_banks 
+//   FPGA_RECEIVE  1 = receiver board, 0 = sender board  (FPGA only) 
 
 #ifndef EXAMPLE_SERIAL_LINK_PERFORMANCE_H
 #define EXAMPLE_SERIAL_LINK_PERFORMANCE_H

@@ -1,5 +1,5 @@
 # CLOCK
-set_property -dict {PACKAGE_PIN D8 IOSTANDARD DIFF_SSTL12} [get_ports clk_100mhz_p]
+set_property -dict {PACKAGE_PIN D7 IOSTANDARD DIFF_SSTL12} [get_ports clk_100mhz_p]
 set_property -dict {PACKAGE_PIN D6 IOSTANDARD DIFF_SSTL12} [get_ports clk_100mhz_n]
 set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets jtag_tck_i_IBUF]
 

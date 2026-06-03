@@ -52,7 +52,7 @@ filesets:
     files:
     - scripts/aup-zu3/xilinx_generate_clk_wizard.tcl
     file_type: tclSource
-  
+
   ip-fpga-genesys2:
     files:
     - scripts/genesys2/xilinx_generate_clk_wizard.tcl
@@ -112,6 +112,16 @@ filesets:
     - constraints/common/sync.xdc
     file_type: xdc
 
+  tcl-fpga-ps-utils:
+    files:
+    - scripts/vivado/set_tcl_hooks.tcl
+    file_type: tclSource
+
+parameters:
+  PS_ENABLE:
+    datatype: bool
+    paramtype: vlogdefine
+
 targets:
   default: &default_target
     filesets:
@@ -119,6 +129,7 @@ targets:
     - ip-fpga
     - target_pynq-z2 ? (ip-fpga-pynq-z2)
     - target_pynq-z2 ? (xdc-fpga-pynq-z2)
+    - target_pynq-z2 ? (tcl-fpga-ps-utils)
     - target_nexys-a7-100t ? (ip-fpga-nexys)
     - target_nexys-a7-100t ? (xdc-fpga-nexys)
     - target_zcu104 ? (ip-fpga-zcu104)
@@ -127,5 +138,9 @@ targets:
     - target_zcu102 ? (xdc-fpga-zcu102)
     - target_aup-zu3 ? (xdc-fpga-aup-zu3)
     - target_aup-zu3 ? (ip-fpga-aup-zu3)
+    - target_aup-zu3 ? (tcl-fpga-ps-utils)
     - target_genesys2 ? (ip-fpga-genesys2)
     - target_genesys2 ? (xdc-fpga-genesys2)
+
+    parameters:
+      - PS_ENABLE

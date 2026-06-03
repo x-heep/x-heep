@@ -38,7 +38,7 @@ You need 3 shells to do this job.
 
 Now we are going to Simulate debugging with core-v-mini-mcu.
 In this setup, OpenOCD communicates with the remote bitbang server by means of DPIs.
-The remote bitbang server is simplemented in the folder ./hw/vendor/pulp_platform/pulpissimo/rtl/tb/remote_bitbang and it will be compiled using fusesoc.
+The remote bitbang server is implemented in the folder ./hw/vendor/pulp_platform/pulpissimo/rtl/tb/remote_bitbang and it will be compiled using fusesoc.
 
 ### Verilator (C++ only)
 
@@ -56,7 +56,7 @@ make verilator-run SIM_ARGS="+openOCD=true"
 
 ### Questasim
 
-To simulate your application with Questasim using the remote_bitbang server, you need to compile you system adding the `JTAG DPI` functions:
+To simulate your application with Questasim using the remote_bitbang server, you need to compile your system adding the `JTAG DPI` functions:
 
 ```
 make questasim-build FUSESOC_PARAM="--JTAG_DPI=1"
@@ -94,7 +94,7 @@ openocd -f ./tb/core-v-mini-mcu.cfg
 OpenOCD will connect to the DPI remote bitbang server and it will start initialize the MCU.
 Check the waveform of the JTAG on Modelsim if you like.
 
-In a 3rd shell, conenct gdb as:
+In a 3rd shell, connect gdb as:
 
 ```
 $RISCV_XHEEP/bin/riscv32-unknown-elf-gdb ./sw/build/main.elf
@@ -187,7 +187,7 @@ Set a breakpoint to a specific instruction address:
 Breakpoint 1 at 0x19c: file /x-heep/sw/device/lib/crt/crt0.S, line 38.
 ```
 
-and continue the execution untill the breakpoint as:
+and continue the execution until the breakpoint as:
 
 ```
 (gdb) continue
@@ -217,7 +217,7 @@ make gdb_connect MAINFILE=<main_file_name_of_the_project_that WAS_built WITHOUT 
 
 ## Debugging on FPGA
 
-We can use either the `Digilet HS2` cable with the `FT232HQ` [chip](https://www.ftdichip.com/Support/Documents/TechnicalNotes/TN_100_USB_VID-PID_Guidelines.pdf) which has Vendor ID `0x0403` and Product ID `0x6014`, or the EPFL Programmer (described in
+We can use either the `Digilent HS2` cable with the `FT232HQ` [chip](https://www.ftdichip.com/Support/Documents/TechnicalNotes/TN_100_USB_VID-PID_Guidelines.pdf) which has Vendor ID `0x0403` and Product ID `0x6014`, or the EPFL Programmer (described in
 [ProgramFlash](./ProgramFlash.md)) which has the `FT4232H` which has Vendor ID `0x0403` and Product ID `0x6011`.
 
 Connect the HS2 cable to the FPGA or the EPFL PRogrammer.

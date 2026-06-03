@@ -40,6 +40,39 @@ module xilinx_core_v_mini_mcu_wrapper
     output logic rst_led_o,
     output logic clk_led_o,
 
+`ifdef PS_ENABLE
+`ifndef FPGA_ZCU104
+`ifndef FPGA_ZCU102
+`ifndef FPGA_AUP_ZU3
+`ifndef FPGA_GENESYS2
+    inout [14:0] DDR_addr,
+    inout [2:0] DDR_ba,
+    inout DDR_cas_n,
+    inout DDR_ck_n,
+    inout DDR_ck_p,
+    inout DDR_cke,
+    inout DDR_cs_n,
+    inout [3:0] DDR_dm,
+    inout [31:0] DDR_dq,
+    inout [3:0] DDR_dqs_n,
+    inout [3:0] DDR_dqs_p,
+    inout DDR_odt,
+    inout DDR_ras_n,
+    inout DDR_reset_n,
+    inout DDR_we_n,
+    inout FIXED_IO_ddr_vrn,
+    inout FIXED_IO_ddr_vrp,
+    inout [53:0] FIXED_IO_mio,
+    inout FIXED_IO_ps_clk,
+    inout FIXED_IO_ps_porb,
+    inout FIXED_IO_ps_srstb,
+`endif
+`endif
+`endif
+`endif
+`endif
+
+`ifndef PS_ENABLE
     inout logic boot_select_i,
     inout logic execute_from_flash_i,
 
@@ -51,6 +84,7 @@ module xilinx_core_v_mini_mcu_wrapper
 
     inout logic uart_rx_i,
     inout logic uart_tx_o,
+`endif
 
     inout logic [13:0] gpio_io,
 
@@ -90,6 +124,26 @@ module xilinx_core_v_mini_mcu_wrapper
   logic [                      31:0] exit_value;
   wire                               rst_n;
   logic [CLK_LED_COUNT_LENGTH - 1:0] clk_count;
+
+`ifdef PS_ENABLE
+  wire exit_valid;
+
+  wire [1:0] ps_x_heep_i;
+  wire [4:0] ps_x_heep_o;
+  wire ps_tck;
+  wire ps_tdi;
+  wire ps_tdo;
+  wire ps_tms;
+  wire ps_uart_rx;
+  wire ps_uart_tx;
+
+  (* DONT_TOUCH = "TRUE" *) wire ps_quadspi_io_io0_io;
+  (* DONT_TOUCH = "TRUE" *) wire ps_quadspi_io_io1_io;
+  (* DONT_TOUCH = "TRUE" *) wire ps_quadspi_io_io2_io;
+  (* DONT_TOUCH = "TRUE" *) wire ps_quadspi_io_io3_io;
+  wire ps_quadspi_io_sck_io;
+  wire [0:0] ps_quadspi_io_ss_io;
+`endif
 
   // low active reset
 `ifdef FPGA_NEXYS
@@ -153,6 +207,65 @@ module xilinx_core_v_mini_mcu_wrapper
   );
 `endif
 
+`ifdef PS_ENABLE
+`ifdef FPGA_AUP_ZU3
+  xilinx_ps_wizard_wrapper xilinx_ps_wizard_wrapper_i (
+      .ps_gpio_i(ps_x_heep_i),
+      .ps_gpio_o(ps_x_heep_o),
+      .ps_tck_o(ps_tck),
+      .ps_tdi_o(ps_tdi),
+      .ps_tdo_i(ps_tdo),
+      .ps_tms_o(ps_tms),
+      .ps_uart_rx_i(ps_uart_rx),
+      .ps_uart_tx_o(ps_uart_tx),
+      .ps_quadspi_io_io0_io(ps_quadspi_io_io0_io),
+      .ps_quadspi_io_io1_io(ps_quadspi_io_io1_io),
+      .ps_quadspi_io_io2_io(ps_quadspi_io_io2_io),
+      .ps_quadspi_io_io3_io(ps_quadspi_io_io3_io),
+      .ps_quadspi_io_sck_io(ps_quadspi_io_sck_io),
+      .ps_quadspi_io_ss_io(ps_quadspi_io_ss_io)
+  );
+`else
+  xilinx_ps_wizard_wrapper xilinx_ps_wizard_wrapper_i (
+      .DDR_addr(DDR_addr),
+      .DDR_ba(DDR_ba),
+      .DDR_cas_n(DDR_cas_n),
+      .DDR_ck_n(DDR_ck_n),
+      .DDR_ck_p(DDR_ck_p),
+      .DDR_cke(DDR_cke),
+      .DDR_cs_n(DDR_cs_n),
+      .DDR_dm(DDR_dm),
+      .DDR_dq(DDR_dq),
+      .DDR_dqs_n(DDR_dqs_n),
+      .DDR_dqs_p(DDR_dqs_p),
+      .DDR_odt(DDR_odt),
+      .DDR_ras_n(DDR_ras_n),
+      .DDR_reset_n(DDR_reset_n),
+      .DDR_we_n(DDR_we_n),
+      .FIXED_IO_ddr_vrn(FIXED_IO_ddr_vrn),
+      .FIXED_IO_ddr_vrp(FIXED_IO_ddr_vrp),
+      .FIXED_IO_mio(FIXED_IO_mio),
+      .FIXED_IO_ps_clk(FIXED_IO_ps_clk),
+      .FIXED_IO_ps_porb(FIXED_IO_ps_porb),
+      .FIXED_IO_ps_srstb(FIXED_IO_ps_srstb),
+      .ps_gpio_i(ps_x_heep_i),
+      .ps_gpio_o(ps_x_heep_o),
+      .ps_tck_o(ps_tck),
+      .ps_tdi_o(ps_tdi),
+      .ps_tdo_i(ps_tdo),
+      .ps_tms_o(ps_tms),
+      .ps_uart_rx_i(ps_uart_rx),
+      .ps_uart_tx_o(ps_uart_tx),
+      .ps_quadspi_io_io0_io(ps_quadspi_io_io0_io),
+      .ps_quadspi_io_io1_io(ps_quadspi_io_io1_io),
+      .ps_quadspi_io_io2_io(ps_quadspi_io_io2_io),
+      .ps_quadspi_io_io3_io(ps_quadspi_io_io3_io),
+      .ps_quadspi_io_sck_io(ps_quadspi_io_sck_io),
+      .ps_quadspi_io_ss_io(ps_quadspi_io_ss_io)
+  );
+`endif
+`endif
+
   x_heep_system x_heep_system_i (
       .hart_id_i('0),
       .xheep_instance_id_i('0),
@@ -193,6 +306,19 @@ module xilinx_core_v_mini_mcu_wrapper
       .external_subsystem_clkgate_en_no(),
       .exit_value_o(exit_value),
       .clk_i(clk_gen),
+`ifdef PS_ENABLE
+      .rst_ni(ps_x_heep_o[0] & rst_n),
+      .boot_select_i(ps_x_heep_o[1]),
+      .execute_from_flash_i(ps_x_heep_o[2]),
+      .jtag_tck_i(ps_tck),
+      .jtag_tms_i(ps_tms),
+      .jtag_trst_ni(ps_x_heep_o[3]),
+      .jtag_tdi_i(ps_tdi),
+      .jtag_tdo_o(ps_tdo),
+      .uart_rx_i(ps_uart_tx),
+      .uart_tx_o(ps_uart_rx),
+      .exit_valid_o(exit_valid),
+`else
       .rst_ni(rst_n),
       .boot_select_i(boot_select_i),
       .execute_from_flash_i(execute_from_flash_i),
@@ -204,6 +330,7 @@ module xilinx_core_v_mini_mcu_wrapper
       .uart_rx_i(uart_rx_i),
       .uart_tx_o(uart_tx_o),
       .exit_valid_o(exit_valid_o),
+`endif
       .gpio_0_io(gpio_io[0]),
       .gpio_1_io(gpio_io[1]),
       .gpio_2_io(gpio_io[2]),
@@ -268,5 +395,35 @@ module xilinx_core_v_mini_mcu_wrapper
 
   assign exit_value_o = exit_value[0];
 
+`ifdef PS_ENABLE
+  assign ps_x_heep_i[0] = exit_valid;
+  assign ps_x_heep_i[1] = exit_value[0];
 
+  assign exit_valid_o   = exit_valid;
+
+  // QuadSPI flash mux hook
+  (* DONT_TOUCH = "TRUE" *)
+  LUT1 #(
+      .INIT(2'b10)
+  ) u_keep_ps_spi_flash_sel (
+      .I0(ps_x_heep_o[4]),
+      .O ()
+  );
+
+  (* DONT_TOUCH = "TRUE" *)
+  LUT1 #(
+      .INIT(2'b10)
+  ) u_keep_ps_quadspi_sck (
+      .I0(ps_quadspi_io_sck_io),
+      .O ()
+  );
+
+  (* DONT_TOUCH = "TRUE" *)
+  LUT1 #(
+      .INIT(2'b10)
+  ) u_keep_ps_quadspi_ss (
+      .I0(ps_quadspi_io_ss_io[0]),
+      .O ()
+  );
+`endif
 endmodule

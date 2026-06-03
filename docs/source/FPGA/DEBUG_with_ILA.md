@@ -40,7 +40,7 @@ To debug the **X-HEEP** SoC running on an FPGA like the ZCU104 using the ILA too
 
 3. **Generate RTL wrapper**
    - Inside **Hierarchy** find the ila you just generated (if it is not visible try to click update IP sources).
-   - Right click **Create HDL Wrapper**  (In our case we need to connect the ILA within the RTL since X-HEEP does not allow you to see the whole Block Diagram due to the diversity of the HDL languages. For this case we create the HDL wrapper which is needed to beconnected inside the RTL modules).
+   - Right click **Create HDL Wrapper**  (In our case we need to connect the ILA within the RTL since X-HEEP does not allow you to see the whole Block Diagram due to the diversity of the HDL languages. For this case we create the HDL wrapper which is needed to be connected inside the RTL modules).
    ![External_ILA](../images/ila_guide/ILA_verilog.png)
 
 4. **Connect ILA to your RTL**
@@ -55,12 +55,12 @@ To debug the **X-HEEP** SoC running on an FPGA like the ZCU104 using the ILA too
 6. **Program the Board and Use the ILA Debugger**
    - Open *Hardware Manager* and program the FPGA with the new bitstream.
    You should see the empty waveform window. Then you need to insert your probe trigger signal setting by clicking **+** in the trigger setup window. In your hardware window the status of ILA should be IDLE.
-   - Set up trigget settings:
+   - Set up trigger settings:
       - Increase **Window Data Depth** to 128 (how many cycles you are gonna catch)
       - **Trigger Position Window** is telling you when you are gonna see your signal: 0 - you see the transmission and then WDD of clock cycles, 64 - you see 64 cycles before your trigger and 64 after.
    
 ![Empty_ILA](../images/ila_guide/empty_ILA.png)
-   - CLick run and your status shold change to **Waiting for Trigger**
+   - Click run and your status should change to **Waiting for Trigger**
    - As soon as you press the SW reset on FPGA you are gonna see your waveforms
 
 ![Empty_ILA](../images/ila_guide/waveforms_ILA.png)
@@ -68,7 +68,7 @@ To debug the **X-HEEP** SoC running on an FPGA like the ZCU104 using the ILA too
    If when you press **start** button and your status never goes into waiting for trigger mode you might have messed up few things with the clock so check the next point.   
 ```
 7. **Troubleshoot**
-   - Be careful with correctly initializing your ILA within your rtl. The clock which is used with ILA should be the same as your system clock and it should not pass any CDCs, Clock Dividors, Resetted Clock or anything which can perturb the system clock. If you use it within core-v-mini-mcu as in the image it should work well.
+   - Be careful with correctly initializing your ILA within your rtl. The clock which is used with ILA should be the same as your system clock and it should not pass any CDCs, Clock Dividers, Resetted Clock or anything which can perturb the system clock. If you use it within core-v-mini-mcu as in the image it should work well.
    - Not obvious problem could be that the JTAG clock is too fast for your ILA to sense the clock so follow the next steps to solve your problem:
       - DO not delete or change anything in your design if you are sure the clock is safe and sound and your trigger signal is moving (you can run picocom in parallel with ILA and if you see the output on the terminal you are sure that your FPGA is correctly running).
       - Close the hardware manager and reopen it without connection to your board. Then **Open Target** -> **Next** -> Select what to connect to 99%  stay on local server and click **Next** -> NOW in the JTAG Clock Frequency choose lower one (in pynq z2 the default one is 15MHz, so you can decrease it to 10 or 5 MHz) and click Next. Try to run and see if the status of your ILA changes to **Waiting for Trigger** and test it with the sw reset.  

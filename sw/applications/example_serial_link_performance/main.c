@@ -25,6 +25,8 @@ int main(int argc, char *argv[]) {
 
     sl_init((volatile uint32_t *)CTRL_REG_ADDR, (int32_t *)CTRL_REG_ADDR);
 
+    raw_data_init();
+
 #if FPGA_RECEIVE
     // =========================================================================
     // FPGA RECEIVER
@@ -34,6 +36,7 @@ int main(int argc, char *argv[]) {
     uint32_t cycles_start, cycles_end;
     uint32_t fifo_cycles[NUM_SIZES];
     uint32_t dw_cycles[NUM_SIZES];
+    uint32_t raw_cycles[NUM_SIZES];
 
     PRINTF("=== Serial Link Performance Evaluation (FPGA RECEIVE) ===\n");
 
@@ -74,16 +77,39 @@ int main(int argc, char *argv[]) {
         dw_cycles[s] = cycles_end - cycles_start;
     }
 
+    // Test 3: Raw mode
+   sl_wrapper_direct_write(SYNC_ADDR, READY);
+   sl_raw_mode_enable(RAW_MODE_CH_SEL, RAW_MODE_CH_MASK);
+
+   for (int s = 0; s < NUM_SIZES; s++) {
+       int n = raw_sizes[s];
+
+       CSR_READ(CSR_REG_MCYCLE, &cycles_start);
+       sl_raw_mode_recv(raw_buffer, n);
+       CSR_READ(CSR_REG_MCYCLE, &cycles_end);
+       raw_cycles[s] = cycles_end - cycles_start;
+
+       for (int i = 0; i < n; i++) {
+           if (raw_buffer[i] != raw_test_data[i]) errors++;
+       }
+
+      // Tell sender this burst is consumed, safe to send next
+      sl_raw_mode_disable();
+      sl_wrapper_direct_write(SYNC_ADDR, READY);
+      sl_raw_mode_enable(RAW_MODE_CH_SEL, RAW_MODE_CH_MASK);
+   }
+
     // Print results
     PRINTF("\n=== Receiver Cycle Counts ===\n");
-    PRINTF("Words | FIFO cycles | FIFO cyc/word | DW cycles | DW cyc/word\n");
-    PRINTF("------|-------------|---------------|-----------|------------\n");
+    PRINTF(" Words | FIFO cyc | FIFO cyc/word |   DW cyc | DW cyc/word | RAW cyc | RAW cyc/word\n");
+    PRINTF("-------|----------|---------------|----------|-------------|---------|-------------\n");
     for (int s = 0; s < NUM_SIZES; s++) {
         int n = test_sizes[s];
-        PRINTF("%5d | %11u | %13u | %9u | %11u\n",
-               n,
-               fifo_cycles[s], fifo_cycles[s] / n,
-               dw_cycles[s],   dw_cycles[s] / n);
+        PRINTF(" %5d | %8u | %13u | %8u | %11u | %7u | %12u\n",
+            n,
+            fifo_cycles[s], fifo_cycles[s] / n,
+            dw_cycles[s],   dw_cycles[s]   / n,
+            raw_cycles[s],  raw_cycles[s]  / n);
     }
 
     if (errors == 0) {
@@ -101,6 +127,10 @@ int main(int argc, char *argv[]) {
     uint32_t cycles_start, cycles_end;
     uint32_t fifo_cycles[NUM_SIZES];
     uint32_t dw_cycles[NUM_SIZES];
+    uint32_t raw_cycles[NUM_SIZES];
+
+    sl_wrapper_set_rx_mode(SL_WRAPPER_RX_MODE_DIRECT_WRITE);
+    volatile uint32_t *ready = (volatile uint32_t *)SYNC_ADDR;
 
     PRINTF("=== Serial Link Performance Evaluation (FPGA SEND) ===\n");
 
@@ -131,18 +161,42 @@ int main(int argc, char *argv[]) {
         dw_cycles[s] = cycles_end - cycles_start;
     }
 
+  while (*ready != READY);
+  *ready = 0;
+
+  for (int s = 0; s < NUM_SIZES; s++) {
+      int n = raw_sizes[s];
+
+      sl_raw_mode_enable(RAW_MODE_CH_SEL, RAW_MODE_CH_MASK);
+
+      CSR_READ(CSR_REG_MCYCLE, &cycles_start);
+      sl_raw_mode_send(raw_test_data, n);
+      CSR_READ(CSR_REG_MCYCLE, &cycles_end);
+      raw_cycles[s] = cycles_end - cycles_start;
+
+      sl_raw_mode_disable();
+
+      // Wait for receiver to consume before sending next burst
+      while (*ready != READY);
+      *ready = 0;  
+  }
+
     // Print results after all measurements
-    PRINTF("Words | FIFO cycles | FIFO cyc/word | DW cycles | DW cyc/word\n");
-    PRINTF("------|-------------|---------------|-----------|------------\n");
+    PRINTF("\n=== Sender Cycle Counts ===\n");
+    PRINTF(" Words | FIFO cyc | FIFO cyc/word |   DW cyc | DW cyc/word | RAW cyc | RAW cyc/word\n");
+    PRINTF("-------|----------|---------------|----------|-------------|---------|-------------\n");
     for (int s = 0; s < NUM_SIZES; s++) {
         int n = test_sizes[s];
-        PRINTF("%5d | %11u | %13u | %9u | %11u\n",
-               n,
-               fifo_cycles[s], fifo_cycles[s] / n,
-               dw_cycles[s],   dw_cycles[s] / n);
+        PRINTF(" %5d | %8u | %13u | %8u | %11u | %7u | %12u\n",
+            n,
+            fifo_cycles[s], fifo_cycles[s] / n,
+            dw_cycles[s],   dw_cycles[s]   / n,
+            raw_cycles[s],  raw_cycles[s]  / n);
     }
 
     PRINTF("\nDONE\n");
     return EXIT_SUCCESS;
 #endif
 }
+
+

@@ -7,8 +7,7 @@
 //
 // Compile-time flags :
 //   FPGA_RECEIVE  1 = receiver board, 0 = sender board  (FPGA only)
-//
-// Note : for TARGET_SIM you need at least 3 ram_banks 
+
 
 #ifndef EXAMPLE_SERIAL_LINK_PERFORMANCE_H
 #define EXAMPLE_SERIAL_LINK_PERFORMANCE_H
@@ -25,6 +24,13 @@
 #endif
 
 #define DIRECT_WRITE_TARGET_ADDR    0x0000F800
+
+#define SYNC_ADDR   0x00007F00
+#define READY       0x00000001
+
+#define RAW_MODE_CH_SEL   0
+#define RAW_MODE_CH_MASK  0x1
+
 #define MAX_WORDS                   32
 
 const int32_t test_data[MAX_WORDS] = {
@@ -41,5 +47,20 @@ const int32_t test_data[MAX_WORDS] = {
 // Word counts to test
 const int test_sizes[] = {1, 4, 8, 16, 32};
 #define NUM_SIZES 5
+
+const int raw_sizes[] = {4, 16, 32, 64, 128};
+
+static uint8_t raw_test_data[MAX_WORDS * 4]; 
+
+static inline void raw_data_init(void) {
+    for (int i = 0; i < MAX_WORDS * 4; i++) {
+        // Pack each 32-bit word little-endian into four consecutive bytes
+        int word  = i / 4;
+        int shift = (i % 4) * 8;
+        raw_test_data[i] = (uint8_t)((test_data[word] >> shift) & 0xFF);
+    }
+}
+
+static uint8_t raw_buffer[MAX_WORDS * 4] __attribute__((aligned(4))) = {0};
 
 #endif // EXAMPLE_SERIAL_LINK_PERFORMANCE_H

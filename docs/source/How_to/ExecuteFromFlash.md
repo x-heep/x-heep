@@ -32,7 +32,7 @@ booting address. During this procedure, the CPU runs
 in `debug mode` until the JTAG (e.g., GDB) tells it to start
 executing the code.
 
-To use this mode, when targetting ASICs or FPGA bitstreams,
+To use this mode, when targeting ASICs or FPGA bitstreams,
 make sure you have the `boot_sel_i` input (e.g., a switch) set to 0,
 and connect the JTAG cable to the microcontroller.
 
@@ -70,15 +70,15 @@ At booting time, first, the SPI sends the waking-up command to the FLASH,
 then it sends the lower 24bits of the entry address, i.e., 0x000180.
 The CPU then executes the instruction stored in the FLASH.
 
-To use this mode, when targetting ASICs or FPGA bitstreams,
+To use this mode, when targeting ASICs or FPGA bitstreams,
 make sure you have the `boot_sel_i` input (e.g., a switch) set to 1,
 and the `execute_from_flash_i` set to 1 too.
 
 Note that the FLASH model is not `fully` compatible with **verilator**,
 thus the simulation must be carried out with either **modelsim** or **vcs**.
-The FLASH models requires a simulator capable of representing high-impedence states (`z`),
+The FLASH models requires a simulator capable of representing high-impedance states (`z`),
 and the current **verilator** version does not support them.
-However, high-impedence states are only required when reading in quad-mode, or 
+However, high-impedance states are only required when reading in quad-mode, or 
 when writing (in any mode) - thus reading only in single-mode from FLASH is supported in 
 **verilator** as well (as for example booting from FLASH, where the bootrom and crt0 only reads in single-mode).
 !! Note that it supports single-mode just because the **verilator** model is compiled in a way that bidirectional `MOSI/MISO` signals 

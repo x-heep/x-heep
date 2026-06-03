@@ -53,7 +53,7 @@ and external _SPI slave_ data.
 
 ```c
 typedef struct {
-    spi_idx_e   idx;   // The identifier for the desired SPI devide
+    spi_idx_e   idx;   // The identifier for the desired SPI device
     uint32_t    id;    // spi_t instance ID
     bool        init;  // Indicates if initialization was successful
     spi_slave_t slave; // The slave with whom to communicate configuration 
@@ -204,7 +204,7 @@ by the _SPI Host IP_.
 
 #### Command Segments
 
-Each command segment consists of a simple instruction dermining the direction of 
+Each command segment consists of a simple instruction determining the direction of 
 data transfer (TX, RX or Bidirectional), its speed (Standard, Dual, or Quad), and
 the length of the data.
 
@@ -308,7 +308,7 @@ spi_state_e spi_get_state(spi_t* spi);
 ```
 
 Which returns `SPI_STATE_DONE` if the transaction completed successfully
-(i.e. all segments were completed), `SPI_STATE_ERROR` if a hardware error occured
+(i.e. all segments were completed), `SPI_STATE_ERROR` if a hardware error occurred
 during the transaction, or `SPI_STATE_TIMEOUT` if the transaction has timed-out.
 
 ````{important}
@@ -536,9 +536,9 @@ the outcome of the operation. Below is the complete list of return flags:
 
 ```c
 typedef enum {
-    // Everithing went well
+    // Everything went well
     SPI_FLAG_OK                 = 0x0000,
-    // The SPI variabled passed was a null pointer
+    // The SPI variable passed was a null pointer
     SPI_FLAG_NULL_PTR           = 0x0001,
     // The Watermark exceeded SPI_HOST_PARAM_TX_DEPTH or SPI_HOST_PARAM_RX_DEPTH 
     // and was therefore not set
@@ -565,7 +565,7 @@ typedef enum {
 
 **Note**: All functions in the HAL returning a `spi_return_flags_e` will **always** 
 return `SPI_FLAG_NULL_PTR` when the argument `spi_host_t* spi` is a `NULL` pointer 
-and `SPI_FLAG_OK` if the operation has suceeded. To avoid repetition, `SPI_FLAG_NULL_PTR` 
+and `SPI_FLAG_OK` if the operation has succeeded. To avoid repetition, `SPI_FLAG_NULL_PTR` 
 and `SPI_FLAG_OK` will be omitted from discussions of function return values. Only
 `spi_return_flags_e` different from these two will be mentioned. If there is any
 doubt please refer to the functions documentation.
@@ -582,7 +582,7 @@ _SPI Host IP_.
 
 ```c
 typedef struct spi_configopts_s {
-    // The clock divider to use with a paricular slave
+    // The clock divider to use with a particular slave
     uint16_t clkdiv     : 16;
     // Indicates the minimum number of sck half-cycles to hold cs_n high between 
     // commands
@@ -791,7 +791,7 @@ typedef struct spi_status_s {
     uint8_t rxqd        : 8;
     // CMD queue depth (how many unprocessed commands are in the FIFO)
     uint8_t cmdqd       : 4;
-    // Indicates wether rxqd is above the RX Watermark
+    // Indicates whether rxqd is above the RX Watermark
     bool    rxwm        : 1;
     // Not used
     bool    __rsvd0     : 1;
@@ -803,7 +803,7 @@ typedef struct spi_status_s {
     bool    rxempty     : 1;
     // Indicates RX FIFO is full
     bool    rxfull      : 1;
-    // Indicates wether txqd is below the TX Watermark
+    // Indicates whether txqd is below the TX Watermark
     bool    txwm        : 1;
     // Indicates if the SPI still has more data to send but the TX FIFO is empty
     bool    txstall     : 1;
@@ -1082,7 +1082,7 @@ _W25Q128JW_ Flash slave device using this method:
 // MCU frequency
 #define SYS_FREQ (soc_ctrl_peri->SYSTEM_FREQUENCY_HZ)
 
-// Flash paramters
+// Flash parameters
 #define FLASH_MAX_FREQ  (133*1000*1000)
 #define FLASH_CSN_TIMES 0x0F
 #define FLASH_POL       0

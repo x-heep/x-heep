@@ -8,7 +8,7 @@ Peripherals are split between two domains :
  - Base peripheral domain ({py:class}`peripherals.base_peripherals.BasePeripheralDomain`)
  - User peripheral domain ({py:class}`peripherals.user_peripherals.UserPeripheralDomain`)
 
- Each domain contains a base adress and a length, representing the memory space they occupy.
+ Each domain contains a base address and a length, representing the memory space they occupy.
 
 Each domain has its corresponding peripherals : 
  - Base peripherals (Mandatory peripherals)

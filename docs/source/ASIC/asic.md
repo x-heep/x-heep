@@ -81,7 +81,7 @@ There are no references yet about this chip as it hasn't been tested yet.
 
 ## X-TRELA
 
-`X-TRELA` is the third sillicon implementation of X-HEEP, developed by the [CEI](https://www.cei.upm.es/) lab of the Universidad Politécnica de Madrid (UPM), Spain.
+`X-TRELA` is the third silicon implementation of X-HEEP, developed by the [CEI](https://www.cei.upm.es/) lab of the Universidad Politécnica de Madrid (UPM), Spain.
 
 ![X-TRELA](..//images/chips/xtrela.png)
 
@@ -137,13 +137,13 @@ This chip has been sponsored by Talent2Concept (PDC2023-145865)
 
 In addition to the novel coprocessor and memory units, HEEPatia contains various heterogeneous accelerator architectures to improve the performance and decrease the energy consumption of different edge-AI workloads. Namely, it integrates two instances of near-memory computing [Carus](https://ieeexplore.ieee.org/abstract/document/10964076) with the DomaIn-specific System-technology CO-design (DISCO) CGRA, an IP based on the [VWR2A](https://dl.acm.org/doi/abs/10.1145/3489517.3530980) architecture.
 
-HEEPatia is implemented using a mixture of LVT and SVT cells. Its purposes are to serve as a research platform used for comparing various hardware IPs in terms of PPA trade-offs, and to use a combination of the aforementioned IPs to execute state-of-the-art edge-AI applicaitons.
+HEEPatia is implemented using a mixture of LVT and SVT cells. Its purposes are to serve as a research platform used for comparing various hardware IPs in terms of PPA trade-offs, and to use a combination of the aforementioned IPs to execute state-of-the-art edge-AI applications.
 
 This chip has been sponsored by [SwissChips](https://swisschips.ethz.ch/).
 
 ## polHEEPo
 
-`polHEEPo` is the first silicon tape‑out of the X‑HEEP design carried out by the [VLSI](https://www.vlsilab.polito.it/) lab at the Poltecnico di Torino, Italy.
+`polHEEPo` is the first silicon tape‑out of the X‑HEEP design carried out by the [VLSI](https://www.vlsilab.polito.it/) lab at the Politecnico di Torino, Italy.
 
 ![polHEEPo](..//images/chips/polheepo.png)
 

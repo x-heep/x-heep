@@ -4,7 +4,7 @@
 **                            *******************
 **
 ** project  : X-HEEP
-** filename : w25q128jw.h
+** filename : w25q128jw_sector_size.h
 ** version  : 1
 ** date     : 1/11/2023
 **
@@ -20,7 +20,7 @@
 /***************************************************************************/
 
 /**
-* @file   w25q128jw.h
+* @file   w25q128jw_sector_size.h
 * @date   13/02/23
 * @brief  Header file for the W25Q128JW flash memory.
 */

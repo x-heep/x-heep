@@ -103,7 +103,7 @@ This is a crucial step in integrating the new peripheral in X-HEEP's flow:
 
 ## 4. Reserve Address Space in the Configuration
 This is another crucial step in the integration of the peripheral. Please be aware that the address map of X-HEEP might change in the future, so consider this for the addresses of the following examples.
-As said at the beginning of this guide, these steps are the same for any domain you want to integrate the perihperal in, both `user peripherals` and `base peripherals`.
+As said at the beginning of this guide, these steps are the same for any domain you want to integrate the peripheral in, both `user peripherals` and `base peripherals`.
 
 1. Extend the configuration you built (HJSON or Python) with a new entry in the preferred domain. Example (`configs/general.hjson`):
    ```js

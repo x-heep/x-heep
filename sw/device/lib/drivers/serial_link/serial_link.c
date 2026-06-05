@@ -9,42 +9,37 @@
  * Serial Link (SL) driver – single-channel adaptation
  * ============================================================================
  *
- * This file provides low-level bring-up and data transfer routines for the
+ * This file provides low-level bring-up routines for the
  * Serial Link IP, adapted specifically for SINGLE-CHANNEL configurations.
  *
  * Core responsibilities:
+ *  - Board-level pad mux configuration 
  *  - Wake up the Serial Link by programming configuration registers
  *  - De-assert AXI isolation to enable data transfers
- *  - Provide CPU-based and DMA-based data transmission helpers
  *
  * IMPORTANT:
- *  - INIT() must be called before any SL_CPU_TRANS or SL_DMA_TRANS
- *  - SIM_INIT() must be used only in simulation environments
+ *  - sl_init() must be called before any sl_cpu_trans or sl_dma_trans
  *  - Register configuration differs for single vs multi-channel designs
  *
  * AXI isolation and RAW mode behavior are documented in:
  * https://github.com/pulp-platform/serial_link
  */
 
-
-/* ----------------------------------------------------------------------------
- * Initialization functions
- * ----------------------------------------------------------------------------
- */
-
-/**
- * @brief Initialize Serial Link for SIMULATION.
- *
- * This function performs the full Serial Link bring-up sequence for simulation:
- *  1) Programs the SL configuration registers
- *  2) De-asserts AXI isolation on the SL IP
- *  3) Programs the SL instance located in the simulation testharness
- *
- * SIM_INIT must NOT be used on real hardware or FPGA, as it accesses
- * testharness-only address space.
- */
+void sl_pad_mux_init(void) {
+    pad_control_t pad_control;
+    pad_control.base_addr = mmio_region_from_addr((uintptr_t)PAD_CONTROL_START_ADDRESS);
+    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_1_REG_OFFSET),  1);
+    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_2_REG_OFFSET),  1);
+    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_3_REG_OFFSET),  1);
+    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_6_REG_OFFSET),  1);
+    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_7_REG_OFFSET),  1);
+    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_8_REG_OFFSET),  1);
+    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_9_REG_OFFSET),  1);
+    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_GPIO_10_REG_OFFSET), 1);
+}
 
 void __attribute__ ((optimize("00"))) sl_init(volatile uint32_t * addr_reg, int32_t * addr_isolate){
+    sl_pad_mux_init(); 
     reg_config(addr_reg);
     axi_isolate(addr_isolate);
 }
@@ -95,92 +90,3 @@ void __attribute__ ((optimize("00"))) axi_isolate(int32_t * addr){
     *addr_p_reg_ISOLATE_OUT &= ~(1<<9); // axi_out_isolate
 }
     
-void __attribute__ ((optimize("00"))) sl_cpu_send(uint32_t *src_d,uint32_t *src,  uint32_t large ){
-
-    for (int i = 0; i < large; i++) {
-        *src = *(src_d + i);
-    }
-}
-
-void __attribute__ ((optimize("00"))) sl_cpu_read(uint32_t *dst_d, uint32_t *dst,  uint32_t large ){
-    
-    for (int i = 0; i < large; i++) {
-        *(dst_d + i) = *dst;
-    }
-}
-
-void __attribute__ ((optimize("00"))) sl_dma_send(uint32_t *src_d, uint32_t *src,uint32_t large){
-    volatile static dma_config_flags_t res;
-    volatile static dma_target_t tgt_src_d;
-    volatile static dma_target_t tgt_dst_d;
-    volatile static dma_trans_t trans;
-
-
-        dma_init(NULL);
-        tgt_src_d.ptr = (uint8_t *)src_d;
-        tgt_src_d.inc_d1_du = 1;
-        tgt_src_d.trig = DMA_TRIG_MEMORY;
-        tgt_src_d.type = DMA_DATA_TYPE_WORD;
-
-        tgt_dst_d.ptr = (uint8_t *)src;
-        tgt_dst_d.inc_d1_du = 0;
-        tgt_dst_d.trig = DMA_TRIG_MEMORY;
-        tgt_dst_d.type = DMA_DATA_TYPE_WORD;
-
-        trans.src = &tgt_src_d;
-        trans.dst = &tgt_dst_d;
-        trans.size_d1_du = large;
-        trans.mode = DMA_TRANS_MODE_SINGLE;
-        trans.win_du = 0;
-        trans.sign_ext = 0;
-        trans.end = DMA_TRANS_END_INTR;
-
-        res |= dma_validate_transaction(&trans, false, false);
-        res |= dma_load_transaction(&trans);
-        res |= dma_launch(&trans);
-        
-        if(!dma_is_ready(0)) {
-            CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-                    if (!dma_is_ready(0)) {
-                        wait_for_interrupt();
-                    }
-            CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
-        }
-}
-
-void __attribute__ ((optimize("00"))) sl_dma_read( uint32_t *dst_d, uint32_t *dst,uint32_t large){
-    volatile static dma_config_flags_t res;
-    volatile static dma_target_t tgt_src_d;
-    volatile static dma_target_t tgt_dst_d;
-    volatile static dma_trans_t trans;
-        dma_init(NULL);
-        tgt_src_d.ptr = (uint8_t *)dst;
-        tgt_src_d.inc_d1_du = 0;
-        tgt_src_d.trig = DMA_TRIG_MEMORY;
-        tgt_src_d.type = DMA_DATA_TYPE_WORD;
-
-        tgt_dst_d.ptr = (uint8_t *)dst_d;
-        tgt_dst_d.inc_d1_du = 1;
-        tgt_dst_d.trig = DMA_TRIG_MEMORY;
-        tgt_dst_d.type = DMA_DATA_TYPE_WORD;
-
-        trans.src = &tgt_src_d;
-        trans.dst = &tgt_dst_d;
-        trans.size_d1_du = large;
-        trans.mode = DMA_TRANS_MODE_SINGLE;
-        trans.win_du = 0;
-        trans.sign_ext = 0;
-        trans.end = DMA_TRANS_END_INTR;
-
-        res |= dma_validate_transaction(&trans, false, false);
-        res |= dma_load_transaction(&trans);
-        res |= dma_launch(&trans);
-
-        if(!dma_is_ready(0)) {
-            CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-                    if (!dma_is_ready(0)) {
-                        wait_for_interrupt();
-                    }
-            CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
-        }
-}

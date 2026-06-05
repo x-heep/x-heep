@@ -95,7 +95,13 @@ module peripheral_subsystem
     output logic ddr_snd_1_o,
     output logic ddr_snd_2_o,
     output logic ddr_snd_3_o,
-    
+    % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
+      output obi_pkg::obi_req_t  serial_link_direct_write_req_o,
+      input  obi_pkg::obi_resp_t serial_link_direct_write_resp_i,
+      input  obi_pkg::obi_req_t  serial_link_slave_req_i,
+      output obi_pkg::obi_resp_t serial_link_slave_resp_o,
+      output logic serial_link_fifo_not_empty_o,
+    %endif
 
     // PDM2PCM Interface
     output logic pdm2pcm_clk_o,
@@ -639,32 +645,45 @@ module peripheral_subsystem
 
 % endif
 
-% if user_peripheral_domain.contains_peripheral('serial_link'):
+
+% if user_peripheral_domain.contains_peripheral('serial_link_reg'):
+
   // TBD parametrizable to support different number of channels and lanes
   logic [3:0] ddr_i;
   logic [3:0] ddr_o;
   assign ddr_i = {ddr_rcv_3_i, ddr_rcv_2_i, ddr_rcv_1_i, ddr_rcv_0_i};
   assign {ddr_snd_3_o, ddr_snd_2_o, ddr_snd_1_o, ddr_snd_0_o} = ddr_o;
 
+  logic serial_link_direct_write_intr_event;  
+  assign intr_vector[${interrupts["serial_link_direct_write_intr_event"]}] = serial_link_direct_write_intr_event; 
+
   serial_link_xheep_wrapper #(
-    .MaxClkDiv(32),
-    .DataWidth(32)
+    .MaxClkDiv(1024),
+    .AddrWidth(32),
+    .DataWidth(32),
+    .AxiAddrOffset(core_v_mini_mcu_pkg::SERIAL_LINK_START_ADDRESS)
   ) serial_link_xheep_wrapper_i (
     .clk_i(clk_i),
     .rst_ni(rst_ni),
     .clk_reg_i(clk_i),       
     .rst_reg_ni(rst_ni),      
     .testmode_i('0),
-    .writer_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SERIAL_LINK_IDX]),
-    .writer_rsp_i(peripheral_slv_rsp[core_v_mini_mcu_pkg::SERIAL_LINK_IDX]),
+    .writer_req_i(serial_link_slave_req_i),
+    .writer_rsp_i(serial_link_slave_resp_o),
     .reader_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SERIAL_LINK_RECEIVER_FIFO_IDX]),
     .reader_resp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SERIAL_LINK_RECEIVER_FIFO_IDX]),
     .cfg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SERIAL_LINK_REG_IDX]),
     .cfg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SERIAL_LINK_REG_IDX]),
+    .wrapper_cfg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SERIAL_LINK_WRAPPER_REG_IDX]),
+    .wrapper_cfg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SERIAL_LINK_WRAPPER_REG_IDX]),
+    .direct_write_req_o (serial_link_direct_write_req_o),
+    .direct_write_resp_i(serial_link_direct_write_resp_i),
     .ddr_rcv_clk_i,         
     .ddr_i,                   
     .ddr_snd_clk_o,          
-    .ddr_o                   
+    .ddr_o,
+    .intr_event_o(serial_link_fifo_not_empty_o),
+    .direct_write_intr_o(serial_link_direct_write_intr_event)   
   );
 % else:
     //Serial Link

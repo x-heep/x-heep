@@ -136,8 +136,9 @@ typedef enum
     DMA_TRIG_SLOT_SPI_FLASH_RX  = 4, /*!< Slot 3 (MEM < SPI FLASH). */
     DMA_TRIG_SLOT_SPI_FLASH_TX  = 8, /*!< Slot 4 (MEM > SPI FLASH). */
     DMA_TRIG_SLOT_I2S           = 16,/*!< Slot 5 (I2S). */
-    DMA_TRIG_SLOT_EXT_TX        = 32,/*!< Slot 6 (External peripherals TX). */
-    DMA_TRIG_SLOT_EXT_RX        = 64,/*!< Slot 7 (External peripherals RX). */
+    DMA_TRIG_SLOT_SL_FIFO_RX    = 32, /*!< Slot 6 (Serial Link FIFO RX). */
+    DMA_TRIG_SLOT_EXT_TX        = 64, /*!< Slot 7 (External peripherals TX). */
+    DMA_TRIG_SLOT_EXT_RX        = 128,/*!< Slot 8 (External peripherals RX). */
     DMA_TRIG__size,      /*!< Not used, only for sanity checks. */
     DMA_TRIG__undef,     /*!< DMA will not be used. */
 } dma_trigger_slot_mask_t;

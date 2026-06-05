@@ -24,11 +24,14 @@ module serial_link_xheep_wrapper_fifo #(
     input  logic                      reader_we_i,
     output logic     [DATA_WIDTH-1:0] reader_rdata_o,
     input  axi_req_t                  writer_axi_req_i,
-    output axi_rsp_t                  writer_axi_rsp_o
+    output axi_rsp_t                  writer_axi_rsp_o,
+    output logic                      intr_event_o
 );
 
   logic push, pop, full, empty;
   logic [DATA_WIDTH-1:0] reader_rdata_n;
+
+  assign intr_event_o = ~empty;
 
   assign reader_gnt_o = ~empty;
 

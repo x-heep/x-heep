@@ -30,9 +30,9 @@ from .user_peripherals import (
     PDM2PCM,
     I2S,
     UART,
-    SerialLink,
     SerialLinkReg,
     SerialLinkReceiverFifo,
+    SerialLinkWrapperReg,
 )
 
 
@@ -72,9 +72,9 @@ def load_peripherals_config(system, config: hjson.OrderedDict):
         "pdm2pcm": lambda o, l: PDM2PCM(o, l),
         "i2s": lambda o, l: I2S(o, l),
         "uart": lambda o, l: UART(o, l),
-        "serial_link": lambda o, l: SerialLink(o, l),
         "serial_link_reg": lambda o, l: SerialLinkReg(o, l),
         "serial_link_receiver_fifo": lambda o, l: SerialLinkReceiverFifo(o, l),
+        "serial_link_wrapper_mux": lambda o, l: SerialLinkWrapperReg(o, l),
     }
 
     for name, fields in config.items():

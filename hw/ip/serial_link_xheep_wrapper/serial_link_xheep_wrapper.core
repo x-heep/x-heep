@@ -10,6 +10,8 @@ filesets:
     - pulp-platform.org::serial_link 
     files:
     - rtl/serial_link_minimum_axi_pkg.sv
+    - rtl/serial_link_xheep_wrapper_reg_pkg.sv
+    - rtl/serial_link_xheep_wrapper_reg_top.sv
     - rtl/serial_link_xheep_wrapper.sv
     - rtl/serial_link_xheep_wrapper_fifo.sv
     file_type: systemVerilogSource

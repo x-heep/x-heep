@@ -8,7 +8,10 @@
 #include <stdlib.h>
 #include "serial_link_single_channel_regs.h"
 #include "serial_link_regs.h"
+#include "pad_control.h"
+#include "pad_control_regs.h"
 #include "serial_link.h"
+#include "serial_link_sdk.h"
 
 
 #define DMA_DATA_LARGE 8 

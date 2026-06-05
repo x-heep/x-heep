@@ -16,3 +16,10 @@ lint_off -rule WIDTH -file "*/pulp_platform/axi/src/axi_lite_to_axi.sv" -match "
 
 // Intended only for the serial_link x_heep wrapper / i_obi2axi integration path. Resolved in V5. Linked with Lines 21-28 in common_cells.vlt
 lint_off -rule UNUSED -file "*pulp_platform/axi/src/axi_lite_from_mem.sv" -match "*Bits of signal are not used: 'mem_addr_i'[31:1]*"
+
+// Added for serial_link_xheep_wrapper :  
+lint_off -rule WIDTHEXPAND -file "*/axi_to_detailed_mem.sv" -match "Operator ADD expects 32 bits on the RHS, but RHS's SEL generates 7 bits."
+lint_off -rule WIDTHEXPAND -file "*/axi_to_detailed_mem.sv" -match "Operator ADD expects 32 bits on the RHS, but RHS's FUNCREF 'num_bytes' generates 16 bits."
+// False-positive UNOPTFLAT warning in vendor PULP axi_to_detailed_mem module. Verilator detects a circular ready/valid dependency through stream_mux 
+// arbitration (meta_sel_d), but the path only affects metadata propagation and does not create a real combinational loop.
+lint_off -rule UNOPTFLAT -file "*/axi_to_detailed_mem.sv" -match "Signal unoptimizable: Circular combinational logic: *meta_sel_d*"

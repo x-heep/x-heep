@@ -39,9 +39,9 @@ from peripherals.user_peripherals import (
     PDM2PCM,
     I2S,
     UART,
-    SerialLink,
     SerialLinkReg,
     SerialLinkReceiverFifo,
+    SerialLinkWrapperReg,
 )
 
 
@@ -106,9 +106,9 @@ def config():
     user_peripheral_domain.add_peripheral(PDM2PCM(0x00060000, cic_only=True))
     user_peripheral_domain.add_peripheral(I2S(0x00070000))
     user_peripheral_domain.add_peripheral(UART(0x00080000))
-    user_peripheral_domain.add_peripheral(SerialLink(0x00090000))
     user_peripheral_domain.add_peripheral(SerialLinkReg(0x000A0000))
     user_peripheral_domain.add_peripheral(SerialLinkReceiverFifo(0x000B0000))
+    user_peripheral_domain.add_peripheral(SerialLinkWrapperReg(0x000C0000))
 
     # Add the peripheral domains to the system
     system.add_peripheral_domain(base_peripheral_domain)

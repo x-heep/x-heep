@@ -22,6 +22,11 @@ filesets:
     - rtl/im2col_spc.sv
     file_type: systemVerilogSource
 
+  verilator-waiver:
+    files:
+    - im2col_spc.vlt
+    file_type: vlt
+
 targets:
   default:
     filesets:

@@ -15,7 +15,13 @@ filesets:
     - rtl/slow_memory.sv
     file_type: systemVerilogSource
 
+  verilator-waiver:
+    files:
+    - slow_memory.vlt
+    file_type: vlt
+
 targets:
   default:
     filesets:
     - files_rtl
+    - tool_verilator ? (verilator-waiver)

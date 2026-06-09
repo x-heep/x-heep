@@ -20,7 +20,13 @@ filesets:
     - rtl/iffifo.sv
     file_type: systemVerilogSource
 
+  verilator-waiver:
+    files:
+    - iffifo.vlt
+    file_type: vlt
+
 targets:
   default:
     filesets:
     - files_rtl
+    - tool_verilator ? (verilator-waiver)

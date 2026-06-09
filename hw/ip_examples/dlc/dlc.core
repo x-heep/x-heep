@@ -18,7 +18,13 @@ filesets:
     - rtl/dlc.sv
     file_type: systemVerilogSource
 
+  verilator-waiver:
+    files:
+    - dlc.vlt
+    file_type: vlt
+
 targets:
   default:
     filesets:
     - files_rtl
+    - tool_verilator ? (verilator-waiver)

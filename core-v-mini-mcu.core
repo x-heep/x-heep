@@ -28,7 +28,7 @@ filesets:
     - lowrisc:ip:i2c:0.1
     - yosyshq:picorv32_spimemio:0-r1
     - x-heep:ip:cv32e40px
-    - x-heep:obi_spimemio:0.1.0
+    - x-heep:ip:obi_spimemio
     - x-heep:ip:boot_rom
     - x-heep:ip:dma
     - x-heep:ip:dma_subsystem

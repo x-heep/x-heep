@@ -1,6 +1,6 @@
 CAPI=2:
 
-name : x-heep:obi_spimemio:0.1.0
+name : x-heep:ip:obi_spimemio:0.1.0
 description: OBI interface for the spimemio core from picosoc
 
 filesets:

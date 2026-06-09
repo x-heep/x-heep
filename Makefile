@@ -426,6 +426,7 @@ clean-app:
 .PHONY: clean
 clean: clean-app
 	@rm -rf $(BUILD_DIR)
+	find . -type f -name "*_reg_gen.cache" -delete
 
 ## Leave the repository in a clean state, removing all generated files. For now, it just calls clean.
 .PHONY: clean-all

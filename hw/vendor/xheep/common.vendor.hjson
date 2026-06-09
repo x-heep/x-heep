@@ -24,6 +24,8 @@
   },
 
   mapping: [
+    {from: "LICENSE", to: "LICENSE"},
+    
     // FuseSoC generator wrapper for OpenTitan's reggen
     {from: "util/reg-generator", to: "util/reg-generator"},
   ]

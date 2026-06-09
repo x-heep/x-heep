@@ -1,0 +1,12 @@
+diff --git a/hw/ip/prim/prim.core b/hw/ip/prim/prim.core
+index 63522fd28..b9e044619 100644
+--- a/hw/ip/prim/prim.core
++++ b/hw/ip/prim/prim.core
+@@ -12,7 +12,6 @@ filesets:
+       - lowrisc:prim:assert
+       - lowrisc:prim:util
+       - lowrisc:prim:diff_decode # for prim_alert_sender/receiver
+-      - lowrisc:prim:pad_wrapper
+       - lowrisc:prim:prim_pkg
+       - lowrisc:prim:clock_mux2
+       - lowrisc:prim:buf

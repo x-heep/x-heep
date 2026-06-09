@@ -8,7 +8,7 @@
 {
   upstream:
   {
-    url: https://github.com/YosysHQ/picorv32.git
-    rev: f00a88c36eaab478b64ee27d8162e421049bcc66
+    url: https://github.com/pulp-platform/common_cells.git
+    rev: 9afda9abb565971649c2aa0985639c096f351171
   }
 }

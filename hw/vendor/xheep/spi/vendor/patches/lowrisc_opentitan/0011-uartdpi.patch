@@ -1,0 +1,44 @@
+diff --git a/hw/dv/dpi/uartdpi/uartdpi.h b/hw/dv/dpi/uartdpi/uartdpi.h
+index 29d50a5a28..2149fb1155 100644
+--- a/hw/dv/dpi/uartdpi/uartdpi.h
++++ b/hw/dv/dpi/uartdpi/uartdpi.h
+@@ -5,7 +5,9 @@
+ #ifndef OPENTITAN_HW_DV_DPI_UARTDPI_UARTDPI_H_
+ #define OPENTITAN_HW_DV_DPI_UARTDPI_UARTDPI_H_
+ 
++#ifdef __cplusplus
+ extern "C" {
++#endif
+ 
+ #include <stdio.h>
+ 
+@@ -22,5 +24,7 @@ void uartdpi_close(void *ctx_void);
+ int uartdpi_can_read(void *ctx_void);
+ char uartdpi_read(void *ctx_void);
+ void uartdpi_write(void *ctx_void, char c);
++#ifdef __cplusplus
+ }
++#endif
+ #endif  // OPENTITAN_HW_DV_DPI_UARTDPI_UARTDPI_H_
+diff --git a/hw/dv/dpi/uartdpi/uartdpi.sv b/hw/dv/dpi/uartdpi/uartdpi.sv
+index 97fae47674..2be4df54ff 100644
+--- a/hw/dv/dpi/uartdpi/uartdpi.sv
++++ b/hw/dv/dpi/uartdpi/uartdpi.sv
+@@ -82,11 +82,16 @@ module uartdpi #(
+     end
+   end
+ 
+-
++`ifndef VCS
++`ifndef MODELSIM
++`ifndef XCELIUM
+   initial begin
+     // Prevent falling edges of rx_i before reset causing spurious characters
+     seen_reset = 0;
+   end
++`endif
++`endif
++`endif
+ 
+   // RX
+   reg rxactive;

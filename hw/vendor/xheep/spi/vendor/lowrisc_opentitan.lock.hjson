@@ -8,7 +8,7 @@
 {
   upstream:
   {
-    url: https://github.com/alebaroc/xheep_spi.git
-    rev: 19975596685544026868f6336a03462750ed91d1
+    url: https://github.com/lowRISC/opentitan.git
+    rev: 47a0f4798febd9e53dd131ef8c8c2b0255d8c139
   }
 }

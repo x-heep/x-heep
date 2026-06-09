@@ -11,19 +11,70 @@ filesets:
   files_rtl:
     depend:
       - pulp-platform.org::register_interface
-      - yosyshq:picorv32_spimemio:0-r1
       - lowrisc:ip:spi_host:1.0
+      - pulp-platform.org::axi
     files:
-    - rtl/spi_subsystem.sv
+      - rtl/obi_pkg.sv
+      - rtl/reg_pkg.sv
+      - rtl/spi_subsystem_reg_pkg.sv
+      # w25_ctr ignored because dma_reg_pkg.sv not existing yet
+      # - rtl/w25q128jw_controller/rtl/w25q128jw_controller_reg_pkg.sv
+      # - rtl/w25q128jw_controller/rtl/w25q128jw_controller.sv
+      # - rtl/w25q128jw_controller/rtl/w25q128jw_controller_reg_top.sv
+      - rtl/spi_subsystem_reg_top.sv
+      - rtl/axi_to_flash_beat_queues.sv
+      - rtl/axi_to_flash_controller.sv
     file_type: systemVerilogSource
 
   files_verilator_waiver:
     files:
-      - lint/w25q128jw_controller.vlt
+      # - lint/w25q128jw_controller.vlt
+      - lint/spi_subsystem.vlt
     file_type: vlt
+
+  files_scratchpad_tb:
+    files:
+      - tb/tc_sram.sv
+      - tb/sram_wrapper.sv
+    file_type: systemVerilogSource
+
+  files_toplvl_rtl:
+    files:
+      - rtl/spi_subsystem.sv 
+    file_type: systemVerilogSource
+
+  files_verilator_tb:
+    files:
+      - tb/yosys_spiflash.sv: {file_type: systemVerilogSource}
+      - tb/spi_subsystem_tb_wrapper.sv: {file_type: systemVerilogSource}
+      - tb/spi_subsystem_tb.cpp: {file_type: cppSource}
 
 targets:
   default:
     filesets:
-    - files_rtl
-    - tool_verilator ? (files_verilator_waiver)
+      - "!target_format ? (!target_lint ? (files_rtl))"
+    toplevel: spi_subsystem
+
+  sim:
+    filesets:
+      - files_rtl
+      - files_toplvl_rtl
+      - files_scratchpad_tb
+      - files_verilator_tb
+      - files_verilator_waiver
+    toplevel: spi_subsystem_tb_wrapper
+    default_tool: verilator
+
+    tools:
+      verilator:
+        mode: cc
+        verilator_options:
+          - '--trace-fst'
+          - '--trace-structs'
+          - '--trace-params'
+          - '-Wno-fatal'
+          - '-Wno-PINCONNECTEMPTY'
+          - '-Wno-ASSIGNDLY'
+          - '-O3'
+          - '--x-assign fast'
+          - '--x-initial fast'

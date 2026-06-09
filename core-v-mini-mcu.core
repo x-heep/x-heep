@@ -86,12 +86,11 @@ filesets:
     - hw/ip/obi_spimemio/obi_spimemio.vlt
     - hw/ip/dma_subsystem/dma_subsystem.vlt
     - hw/ip/pdm2pcm/pdm2pcm.vlt
-    - hw/ip_examples/pdm2pcm_dummy/pdm2pcm_dummy.vlt
     - hw/ip/power_manager/power_manager.vlt
     - hw/ip/fast_intr_ctrl/fast_intr_ctrl.vlt
+    - hw/ip/serial_link_xheep_wrapper/serial_link_xheep_wrapper.vlt
     - hw/system/pad_control/pad_control.vlt
     - hw/system/x_heep_system.vlt
-    - hw/ip/serial_link_xheep_wrapper/serial_link_xheep_wrapper.vlt
     file_type: vlt
 
   rtl-fpga:

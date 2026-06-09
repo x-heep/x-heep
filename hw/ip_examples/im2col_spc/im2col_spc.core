@@ -31,3 +31,4 @@ targets:
   default:
     filesets:
     - files_rtl
+    - tool_verilator ? (verilator-waiver)

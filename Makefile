@@ -150,8 +150,8 @@ mcu-gen:
 	
 	bash -c "cd hw/vendor/xheep/dma; source dma_gen.sh; cd ../../../"
 	$(MAKE) -C hw/vendor/xheep/spi reg SW_DIR=$(mkfile_path)/sw/device/lib/drivers/
-	$(FUSESOC) --cores-root . run --tool=verilator $(FUSESOC_FLAGS) --setup openhwgroup.org:systems:core-v-mini-mcu
-	
+	$(FUSESOC) --cores-root . run --target=sim --tool=verilator $(FUSESOC_FLAGS) --setup openhwgroup.org:systems:core-v-mini-mcu
+
 	$(MAKE) verible
 	$(MAKE) format-python
 

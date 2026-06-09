@@ -56,10 +56,10 @@ hw/ip/pdm2pcm/rtl/pdm2pcm_reg_pkg.sv
 hw/ip/boot_rom/boot_rom.sv
 hw/ip/boot_rom/boot_rom.dump
 
-hw/fpga/sram_wrapper.sv
-hw/fpga/scripts/generate_sram.tcl
-hw/fpga/constraints/pynq-z2/constraints.xdc
-hw/fpga/constraints/pynq-z2/pin_assign.xdc
+hw/fpga/xheep_fpga_support/rtl/sram_wrapper.sv
+hw/fpga/xheep_fpga_support/scripts/generate_sram.tcl
+hw/fpga/xheep_fpga_support/constraints/pynq-z2/constraints.xdc
+hw/fpga/xheep_fpga_support/constraints/pynq-z2/pin_assign.xdc
 
 hw/vendor/xheep/spi/rtl/spi_subsystem.sv
 

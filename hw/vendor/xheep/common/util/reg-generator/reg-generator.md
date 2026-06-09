@@ -116,6 +116,17 @@ targets:
 
 When `config` has a `.tpl` extension, the generator first renders it as a [Mako](https://www.makotemplates.org/) template before passing it to `regtool`. This is useful for parametric register maps whose field count or addresses depend on design-time constants. All `parameters` key-value pairs (e.g, `<others>`) entries are forwarded to the template as variables, plus a pre-computed `version_hex` (a `0x00MMmmPP` hex string derived from the target core's semantic version).
 
+## Caching
+
+The generator skips all subprocess calls (regtool and the optional structs generator) when it can determine the outputs are already up to date. Generation is skipped if and only if **both** conditions hold:
+
+1. The SHA-256 hash of the (rendered) HJSON input file matches the hash stored from the previous run.
+2. Every expected output file exists on disk.
+
+If either condition fails — the input changed, or any output was deleted — the full generation runs and the cache is updated on success. A failed run never updates the cache, so the next invocation always retries.
+
+The cache is stored as a plain-text file named `.{name}_reg_gen.cache` in `files_root` (the directory containing the invoking `.core` file). It therefore lives in the source tree alongside the IP it belongs to, and persists across `make clean` (which only removes the `build/` directory). It can be invalidated explicitly by deleting it, or implicitly by modifying the HJSON input or removing any output file.
+
 ## `regtool` path resolution
 
 The generator locates `regtool.py` in this order:

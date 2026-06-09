@@ -16,6 +16,9 @@ __pycache__/
 # Apps output files
 run_verif_rtl_log.txt
 
+# reg-generator cache files
+*_reg_gen.cache
+
 # Automatically generated hw files
 tb/tb_util.svh
 tb/testharness.sv

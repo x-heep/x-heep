@@ -20,7 +20,7 @@
 
   upstream: {
     url: "https://github.com/x-heep/x-heep-common.git",
-    rev: "0fb524f8e4209389f2890dc14c06646bfd7b5d7d",
+    rev: "98d63ae3e4774a9fed94549b53cc2aeda67ec4d7",
   },
 
   mapping: [

@@ -3,6 +3,7 @@
 import sys
 import os
 import subprocess
+import hashlib
 import yaml
 from mako.template import Template
 
@@ -329,6 +330,47 @@ def generate_core_file(cfg: dict):
         return False
 
 
+def compute_input_hash(config_file_path: str) -> str:
+    """Returns the SHA-256 hex digest of the (rendered) HJSON input file."""
+    with open(config_file_path, "rb") as f:
+        return hashlib.sha256(f.read()).hexdigest()
+
+
+def get_expected_outputs(cfg: dict) -> list:
+    """Returns the list of all file paths that the generator is expected to produce."""
+    files_root = cfg["files_root"]
+    name = cfg["parameters"]["name"]
+    outputs = [
+        os.path.join(files_root, cfg["parameters"]["rtl_dir"], name + "_reg_pkg.sv"),
+        os.path.join(files_root, cfg["parameters"]["rtl_dir"], name + "_reg_top.sv"),
+        os.path.normpath(os.path.join(files_root, cfg["parameters"]["sw_path"])),
+        os.path.normpath(os.path.join(files_root, cfg["parameters"]["doc_path"])),
+    ]
+    if "structs_gen_path" in cfg.get("parameters", {}):
+        if "structs_sw_path" in cfg["parameters"]:
+            outputs.append(os.path.normpath(os.path.join(files_root, cfg["parameters"]["structs_sw_path"])))
+        else:
+            sw_path = os.path.normpath(os.path.join(files_root, cfg["parameters"]["sw_path"]))
+            outputs.append(os.path.join(os.path.dirname(sw_path), name + "_structs.h"))
+    return outputs
+
+
+def is_cache_valid(cache_path: str, input_hash: str, output_files: list) -> bool:
+    """Returns True if the cache hash matches and every expected output exists."""
+    if not os.path.isfile(cache_path):
+        return False
+    if any(not os.path.isfile(f) for f in output_files):
+        return False
+    with open(cache_path, "r", encoding="utf-8") as f:
+        return f.read().strip() == input_hash
+
+
+def save_cache(cache_path: str, input_hash: str) -> None:
+    """Writes the input hash to the cache file."""
+    with open(cache_path, "w", encoding="utf-8") as f:
+        f.write(input_hash)
+
+
 def main():
     """Main function to run the script logic."""
     # Check command-line arguments
@@ -353,21 +395,33 @@ def main():
 
     # Get regtool.py path
     regtool_path = get_regtool_path(config)
-    
+
     # Render template if needed
     config_file = get_cfg_file_path(config)
     if config_file.split(".")[-1] == "tpl":
         kwargs = get_kwargs(config)
         config["parameters"]["config"] = render_template(config_file, kwargs)
-        
-    # Generate registers using regtool
-    generate_rtl(regtool_path, config)
-    generate_docs(regtool_path, config)
-    generate_c_header(regtool_path, config)
-    if "structs_gen_path" in config.get("parameters", {}):
-        generate_c_structs(config)
 
-    # Generate .core file
+    # Check cache: skip all subprocess calls if inputs and outputs are unchanged
+    config_file = get_cfg_file_path(config)  # re-fetch: may have been updated by render_template
+    input_hash = compute_input_hash(config_file)
+    cache_path = os.path.join(config["files_root"], f".{config['parameters']['name']}_reg_gen.cache")
+    expected_outputs = get_expected_outputs(config)
+
+    if is_cache_valid(cache_path, input_hash, expected_outputs):
+        print("> INFO: All outputs are up to date. Skipping generation.")
+    else:
+        # Generate registers using regtool
+        generate_rtl(regtool_path, config)
+        generate_docs(regtool_path, config)
+        generate_c_header(regtool_path, config)
+        if "structs_gen_path" in config.get("parameters", {}):
+            generate_c_structs(config)
+
+        # Save cache only after all steps succeed
+        save_cache(cache_path, input_hash)
+
+    # Always write the .core file: FuseSoC expects it on every generator invocation
     generate_core_file(config)
 
 

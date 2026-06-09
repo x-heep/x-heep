@@ -7,7 +7,12 @@ filesets:
   includes:
     files:
       #Ugly workaround from https://github.com/fusesoc/fusesoc-cores/blob/master/pulp-platform.org/common_cells-1.16.4.core#L9
-      - pulp_platform/serial_link/src/axis/include/axis : {is_include_file : true}
+      - pulp_platform/serial_link/src/axis/include/axis/assign.svh: 
+          is_include_file: true
+          include_path: pulp_platform/serial_link/src/axis/include
+      - pulp_platform/serial_link/src/axis/include/axis/typedef.svh: 
+          is_include_file: true
+          include_path: pulp_platform/serial_link/src/axis/include
     file_type : systemVerilogSource
 
   rtl:

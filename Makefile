@@ -148,10 +148,9 @@ conda:
 mcu-gen:
 	$(PYTHON) util/xheep_gen/mcu_gen.py --config $(X_HEEP_CFG) --python_config $(PYTHON_X_HEEP_CFG) --pads_cfg $(PADS_CFG) --outtpl "$(MCU_GEN_TEMPLATES)" --externaltpl "$(EXTERNAL_MCU_GEN_TEMPLATES)" --cpu $(CPU) --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL)
 	
-	$(FUSESOC) --cores-root . run --tool=verilator $(FUSESOC_FLAGS) --setup openhwgroup.org:systems:core-v-mini-mcu
-	
 	bash -c "cd hw/vendor/xheep/dma; source dma_gen.sh; cd ../../../"
 	$(MAKE) -C hw/vendor/xheep/spi reg SW_DIR=$(mkfile_path)/sw/device/lib/drivers/
+	$(FUSESOC) --cores-root . run --tool=verilator $(FUSESOC_FLAGS) --setup openhwgroup.org:systems:core-v-mini-mcu
 	
 	$(MAKE) verible
 	$(MAKE) format-python

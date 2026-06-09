@@ -147,7 +147,6 @@ conda:
 ## @param PYTHON_X_HEEP_CFG=[configs/general.py(default),<path-to-config-file>]
 mcu-gen:
 	$(PYTHON) util/xheep_gen/mcu_gen.py --config $(X_HEEP_CFG) --python_config $(PYTHON_X_HEEP_CFG) --pads_cfg $(PADS_CFG) --outtpl "$(MCU_GEN_TEMPLATES)" --externaltpl "$(EXTERNAL_MCU_GEN_TEMPLATES)" --cpu $(CPU) --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL)
-	bash -c "cd hw/ip/boot_rom; make clean; make all; cd ../../../"
 	
 	$(FUSESOC) --cores-root . run --tool=verilator $(FUSESOC_FLAGS) --setup openhwgroup.org:systems:core-v-mini-mcu
 	

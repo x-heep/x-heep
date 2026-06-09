@@ -83,7 +83,6 @@ filesets:
     files:
     - hw/core-v-mini-mcu/core_v_mini_mcu.vlt
     - hw/ip/soc_ctrl/soc_ctrl.vlt
-    - hw/ip/boot_rom/boot_rom.vlt
     - hw/ip/obi_spimemio/obi_spimemio.vlt
     - hw/ip/dma_subsystem/dma_subsystem.vlt
     - hw/ip/pdm2pcm/pdm2pcm.vlt

@@ -3,6 +3,6 @@ data/dma.hjson
 data/dma_conf.svh
 rtl/dma_reg_pkg.sv
 rtl/dma_reg_top.sv
-sw/dma_reg.h
+sw/dma_regs.h
 sw/dma_structs.h
-docs/dma_reg.md
+docs/dma_regs.md

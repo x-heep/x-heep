@@ -1,0 +1,28 @@
+plugin -i slang
+
+read_liberty -lib hw/asic/ihp130/pdk/ihp-sg13g2/libs.ref/sg13g2_sram/lib/RM_IHPSG13_1P_256x32_c2_bm_bist_typ_1p20V_25C.lib
+read_liberty -lib hw/asic/ihp130/pdk/ihp-sg13g2/libs.ref/sg13g2_sram/lib/RM_IHPSG13_1P_512x32_c2_bm_bist_typ_1p20V_25C.lib
+read_liberty -lib hw/asic/ihp130/pdk/ihp-sg13g2/libs.ref/sg13g2_sram/lib/RM_IHPSG13_1P_1024x32_c2_bm_bist_typ_1p20V_25C.lib
+read_liberty -lib hw/asic/ihp130/pdk/ihp-sg13g2/libs.ref/sg13g2_sram/lib/RM_IHPSG13_1P_8192x32_c4_typ_1p20V_25C.lib
+read_liberty -lib hw/asic/ihp130/pdk/ihp-sg13g2/libs.ref/sg13g2_stdcell/lib/sg13g2_stdcell_typ_1p20V_25C.lib
+read_liberty -lib hw/asic/ihp130/pdk/ihp-sg13g2/libs.ref/sg13g2_io/lib/sg13g2_io_typ_1p2V_3p3V_25C.lib
+read_slang \
+  --top asic_x_heep_system_wrapper \
+  --allow-use-before-declare \
+  --keep-hierarchy \
+  build/openhwgroup.org_systems_core-v-mini-mcu_1.0.4/pickle-morty/x_heep_system_pickled.sv
+
+hierarchy -check -top asic_x_heep_system_wrapper
+
+proc
+opt
+fsm
+opt
+memory
+opt
+
+synth -top asic_x_heep_system_wrapper
+
+clean
+
+write_verilog asic_x_heep_system.v

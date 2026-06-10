@@ -1,0 +1,33 @@
+// Copyright 2020 OpenHW Group
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+{
+  name: "ihp130",
+  target_dir: "pdk",
+
+  upstream: {
+    url: "https://github.com/IHP-GmbH/IHP-Open-PDK.git",
+    rev: "v0.3.0",
+  },
+
+  exclude_from_upstream: [
+    ".github",
+    ".flake8",
+    ".gitignore",
+    ".gitmodules",
+    ".rubocop.yml".
+    "AUTHORS",
+    "CHANGELOG.md",
+    "CODE_OF_CONDUCT.md",
+    "CONTRIBUTING.md",
+    "LICENSE",
+    "Makefile",
+    "README.md",
+    "requirements.txt",
+    "versions.txt",
+    "ihp-sg13g2/libs.doc",
+    "ihp-sg13g2/libs.qa",
+    "ihp-sg13g2/libs.tech",
+  ]
+
+}

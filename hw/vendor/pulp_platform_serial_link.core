@@ -4,19 +4,15 @@ name : pulp-platform.org::serial_link
 # Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 # SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 filesets:
-  includes:
-    files:
-      #Ugly workaround from https://github.com/fusesoc/fusesoc-cores/blob/master/pulp-platform.org/common_cells-1.16.4.core#L9
-      - pulp_platform/serial_link/src/axis/include/axis : {is_include_file : true}
-    file_type : systemVerilogSource
-
-  rtl:
+  files_rtl:
     depend:
     - pulp-platform.org::axi:0.39.8
     - pulp-platform.org::common_cells
     - pulp-platform.org::register_interface
     - pulp-platform.org::axi_slice   
     files:
+    - pulp_platform/serial_link/src/axis/include/axis/assign.svh : {is_include_file: true, include_path: pulp_platform/serial_link/src/axis/include}
+    - pulp_platform/serial_link/src/axis/include/axis/typedef.svh : {is_include_file: true, include_path: pulp_platform/serial_link/src/axis/include}
     - pulp_platform/serial_link/src/regs/serial_link_reg_pkg.sv
     - pulp_platform/serial_link/src/regs/serial_link_reg_top.sv
     - pulp_platform/serial_link/src/regs/serial_link_single_channel_reg_pkg.sv
@@ -32,9 +28,8 @@ filesets:
     - pulp_platform/serial_link/src/serial_link_data_link.sv
     - pulp_platform/serial_link/src/serial_link.sv
     file_type: systemVerilogSource
-    include_dirs:
-      - pulp_platform/serial_link/src/axis/include
 
 targets:
   default:
-    filesets : [includes, rtl]
+    filesets: 
+    - files_rtl

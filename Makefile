@@ -323,6 +323,9 @@ openroad-sky130:
 	$(FUSESOC) --verbose --cores-root . run --target=asic_yosys_synthesis --flag=use_sky130 openhwgroup.org:systems:core-v-mini-mcu $(FUSESOC_PARAM) 2>&1 | tee buildopenroad.log
 	git checkout hw/vendor/pulp_platform/common_cells/*
 
+morty:
+	RUST_MIN_STACK=67108864 $(FUSESOC) --cores-root . run --build --target=pickle openhwgroup.org:systems:core-v-mini-mcu
+
 ## @section Program, Execute, and Debug w/ EPFL_Programmer
 
 ## Read the id from the EPFL_Programmer flash

@@ -1,0 +1,23 @@
+CAPI=2:
+
+# Copyright 2026 Politecnico di Torino. 
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details. 
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1 # # File: prim-ihp130.core 
+# Author: Marco Penno 
+# Description: IHP 130nm primitives 
+
+name: "polito::prim-ihp130" 
+description: "Technology-specific files for IHP130" 
+filesets: 
+  # RTL simulation models
+  rtl:
+    files:
+    - rtl/pad_cell.sv
+    - rtl/prim_ihp130_clk.sv
+    - rtl/sram_wrapper.sv
+    file_type: systemVerilogSource
+
+targets:
+  default:
+    filesets:
+      - target_pickle ? (rtl)

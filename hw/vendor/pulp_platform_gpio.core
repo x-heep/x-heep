@@ -42,6 +42,7 @@ targets:
     - target_sim_sc? (clock-gate)
     - target_asic_synthesis? (clock-gate)
     - target_asic_yosys_synthesis? (clock-gate)
+    - target_pickle? (clock-gate)
     - target_nexys-a7-100t? (no-clock-gate)
     - target_pynq-z2? (no-clock-gate)
     - target_pynq-z2-arm-emulation? (no-clock-gate)

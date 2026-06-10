@@ -198,79 +198,79 @@ begin
 case(fdsu_ex3_expnt_rst[9:0])
   10'h382:begin qt_result_single_denorm_for_round[27:0] = {total_qt_rt_30[4:0],23'b0}; //-126 1
                 single_denorm_lst_frac =  total_qt_rt_30[5];
-			 		end//-1022 1
+			 		end //-1022 1
   10'h381:begin qt_result_single_denorm_for_round[27:0] = {total_qt_rt_30[5:0],22'b0}; //-127 0
                 single_denorm_lst_frac =  total_qt_rt_30[6];
-			 		end//-1022 1
+			 		end //-1022 1
   10'h380:begin qt_result_single_denorm_for_round[27:0] = {total_qt_rt_30[6:0],21'b0}; //-128 -1
                 single_denorm_lst_frac =  total_qt_rt_30[7];
-			 		end//-1022 1
+			 		end //-1022 1
   10'h37f:begin qt_result_single_denorm_for_round[27:0] = {total_qt_rt_30[7:0],20'b0}; //-129 -2
                 single_denorm_lst_frac =  total_qt_rt_30[8];
-			 		end//-1022 1
+			 		end //-1022 1
   10'h37e:begin qt_result_single_denorm_for_round[27:0] = {total_qt_rt_30[8:0],19'b0}; //-130 -3
                 single_denorm_lst_frac =  total_qt_rt_30[9];
-			 		end//-1022 1
+			 		end //-1022 1
   10'h37d:begin qt_result_single_denorm_for_round[27:0] = {total_qt_rt_30[9:0],18'b0}; //-131 -4
                 single_denorm_lst_frac =  total_qt_rt_30[10];
-			 		end//-1022 1
+			 		end //-1022 1
   10'h37c:begin qt_result_single_denorm_for_round[27:0] = {total_qt_rt_30[10:0],17'b0}; //-132 -5
                 single_denorm_lst_frac =  total_qt_rt_30[11];
-			 		end//-1022 1
+			 		end //-1022 1
   10'h37b:begin qt_result_single_denorm_for_round[27:0] = {total_qt_rt_30[11:0],16'b0}; //-133 -6
                 single_denorm_lst_frac =  total_qt_rt_30[12];
-			 		end//-1022 1
+			 		end //-1022 1
   10'h37a:begin qt_result_single_denorm_for_round[27:0] = {total_qt_rt_30[12:0],15'b0}; //-134 -7
                 single_denorm_lst_frac =  total_qt_rt_30[13];
-			 		end//-1022 1
+			 		end //-1022 1
   10'h379:begin qt_result_single_denorm_for_round[27:0] = {total_qt_rt_30[13:0],14'b0}; //-135 -8
                 single_denorm_lst_frac =  total_qt_rt_30[14];
-			 		end//-1022 1
+			 		end //-1022 1
   10'h378:begin qt_result_single_denorm_for_round[27:0] = {total_qt_rt_30[14:0],13'b0}; //-136 -9
                 single_denorm_lst_frac =  total_qt_rt_30[15];
-			 		end//-1022 1
+			 		end //-1022 1
   10'h377:begin qt_result_single_denorm_for_round[27:0] = {total_qt_rt_30[15:0],12'b0}; //-137 -10
                 single_denorm_lst_frac =  total_qt_rt_30[16];
-			 		end//-1022 1
+			 		end //-1022 1
   10'h376:begin qt_result_single_denorm_for_round[27:0] = {total_qt_rt_30[16:0],11'b0}; //-138 -11
                 single_denorm_lst_frac =  total_qt_rt_30[17];
-			 		end//-1022 1
+			 		end //-1022 1
   10'h375:begin qt_result_single_denorm_for_round[27:0] = {total_qt_rt_30[17:0],10'b0}; //-139 -12
                 single_denorm_lst_frac =  total_qt_rt_30[18];
-			 		end//-1022 1
+			 		end //-1022 1
   10'h374:begin qt_result_single_denorm_for_round[27:0] = {total_qt_rt_30[18:0],9'b0}; //-140 -13
                 single_denorm_lst_frac =  total_qt_rt_30[19];
-			 		end//-1022 1
+			 		end //-1022 1
   10'h373:begin qt_result_single_denorm_for_round[27:0] = {total_qt_rt_30[19:0],8'b0}; // -141
                 single_denorm_lst_frac =  total_qt_rt_30[20];
-			 		end//-1022 1
+			 		end //-1022 1
   10'h372:begin qt_result_single_denorm_for_round[27:0] = {total_qt_rt_30[20:0],7'b0};//-142
                 single_denorm_lst_frac =  total_qt_rt_30[21];
-			 		end//-1022 1
+			 		end //-1022 1
   10'h371:begin qt_result_single_denorm_for_round[27:0] = {total_qt_rt_30[21:0],6'b0};//-143
                 single_denorm_lst_frac =  total_qt_rt_30[22];
-			 		end//-1022 1
+			 		end //-1022 1
   10'h370:begin qt_result_single_denorm_for_round[27:0] = {total_qt_rt_30[22:0],5'b0}; //-144
                 single_denorm_lst_frac =  total_qt_rt_30[23];
-			 		end//-1022 1
+			 		end //-1022 1
   10'h36f:begin qt_result_single_denorm_for_round[27:0] = {total_qt_rt_30[23:0],4'b0}; //-145
                 single_denorm_lst_frac =  total_qt_rt_30[24];
-			 		end//-1022 1
+			 		end //-1022 1
   10'h36e:begin qt_result_single_denorm_for_round[27:0] = {total_qt_rt_30[24:0],3'b0}; //-146
                 single_denorm_lst_frac =  total_qt_rt_30[25];
-			 		end//-1022 1
+			 		end //-1022 1
   10'h36d:begin qt_result_single_denorm_for_round[27:0] = {total_qt_rt_30[25:0],2'b0}; //-147
                 single_denorm_lst_frac =  total_qt_rt_30[26];
-			 		end//-1022 1
+			 		end //-1022 1
   10'h36c:begin qt_result_single_denorm_for_round[27:0] = {total_qt_rt_30[26:0],1'b0}; //-148
                 single_denorm_lst_frac =  total_qt_rt_30[27];
-			 		end//-1022 1
+			 		end //-1022 1
   10'h36b: begin qt_result_single_denorm_for_round[27:0] = {total_qt_rt_30[27:0]};
                  single_denorm_lst_frac = total_qt_rt_30[28] ;
-						end//-1022 1
+						end //-1022 1
   default:  begin qt_result_single_denorm_for_round[27:0] = {total_qt_rt_30[28:1]};
                  single_denorm_lst_frac = 1'b0;
-						end//-1022 1
+						end //-1022 1
 endcase
 // &CombEnd; @148
 end
@@ -535,6 +535,3 @@ assign ex3_frac_final_rst[25:0] = frac_final_rst[25:0];
 
 // &ModuleEnd; @403
 endmodule
-
-
-

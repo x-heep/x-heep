@@ -17,9 +17,13 @@ module sram_wrapper #(
     input  logic [         31:0] wdata_i,  // write data
     input  logic [          3:0] be_i,     // write byte enable
     input  logic                 set_retentive_ni, // set retentive state (unused here)
+    input  logic                 pwrgate_ni,      // power gate enable active low (unused in sky130)
+    output logic                 pwrgate_ack_no,  // power gate ack active low (tie-through)
     // output ports
     output logic [         31:0] rdata_o   // read data
 );
+
+  assign pwrgate_ack_no = pwrgate_ni;
 
   if (NumWords != 8192) begin
     $error("Bank size not implemented.");

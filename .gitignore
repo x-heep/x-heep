@@ -21,6 +21,8 @@ tb/tb_util.svh
 tb/testharness.sv
 tb/testharness_pkg.sv
 
+hw/asic/asic_x_heep_system_wrapper.sv
+
 hw/core-v-mini-mcu/include/core_v_mini_mcu_pkg.sv
 hw/core-v-mini-mcu/system_bus.sv
 hw/core-v-mini-mcu/system_xbar.sv

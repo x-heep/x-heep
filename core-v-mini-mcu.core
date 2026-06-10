@@ -116,6 +116,10 @@ filesets:
     - hw/vendor/pulp_platform/tech_cells_generic/src/rtl/tc_clk.sv #as for now use the simulation clk cells
     file_type: systemVerilogSource
 
+  rtl-ihp130:
+    depend:
+    - polito::prim-ihp130
+
   lib-sky130:
     files:
       - hw/asic/sky130/sky130_sram_4kbyte_1rw_32x1024_8_TT_1p8V_25C.lib : { copyto: lib/sky130_sram_4kbyte_1rw_32x1024_8_TT_1p8V_25C.lib }
@@ -587,3 +591,40 @@ targets:
       openroad:
         flow_path: flow/OpenROAD-flow-scripts/flow
         make_target: synth
+
+  pickle:
+    <<: *default_target
+    default_tool: morty
+    description: Pickle of file with Morty
+    parameters:
+    filesets_append:
+      - rtl-ihp130
+      - x_heep_system
+    tools:
+      morty:
+        morty_options:
+          - "--strip-comments"
+          - "-D"
+          - "SYNTHESIS" 
+          - "-o"
+          - "x_heep_system_pickled.sv"
+          - "--top"
+          - "asic_x_heep_system_wrapper"
+          - "-I"
+          - "../src/lowrisc_prim_assert_0.1/rtl"
+          - "-I"
+          - "../src/lowrisc_prim_util_memload_0/rtl"
+          - "-I"
+          - "../src/lowrisc_dv_dv_fcov_macros_0"
+          - "-I"
+          - "../src/pulp-platform.org__common_cells_1.38.0/include"
+          - "-I"
+          - "../src/pulp-platform.org__register_interface_0/pulp_platform_register_interface/include"
+          - "-I"
+          - "../src/pulp-platform.org__axi_0.39.8/include"
+          - "-I"
+          - "../src/openhwgroup_cve2_cve2_core_0.1/rtl"
+          - "-I"
+          - "../src/x-heep_ip_dma_0/data"
+          - "-I"
+          - "../src/pulp-platform.org__serial_link_0/pulp_platform_serial_link/src/axis/include"

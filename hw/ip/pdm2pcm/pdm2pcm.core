@@ -38,7 +38,7 @@ generate:
       rtl_dir:          rtl
       sw_path:          ../../../sw/device/lib/drivers/pdm2pcm/pdm2pcm_regs.h
       doc_path:         ../../../sw/device/lib/drivers/pdm2pcm/pdm2pcm_regs.md
-      structs_gen_path: ../../../util/periph_structs_gen/periph_structs_gen.py
+      structs_sw_path:  ../../../sw/device/lib/drivers/pdm2pcm/pdm2pcm_structs.h
 
 targets:
   default:

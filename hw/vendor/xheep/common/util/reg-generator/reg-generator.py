@@ -4,6 +4,7 @@ import sys
 import os
 import subprocess
 import hashlib
+import shutil
 import yaml
 from mako.template import Template
 
@@ -59,24 +60,14 @@ def get_regtool_path(cfg: dict) -> str:
                 cfg["files_root"], cfg["parameters"]["regtool_path"]
             )
         except (KeyError, IndexError, TypeError):
-            # 3. Fallback to default path within X-HEEP
-            regtool_path = os.path.join(
-                cfg["cores"]["xheep:util:reg-generator:0.1.0"]["core_root"],
-                "..",
-                "..",
-                "..",
-                "..",
-                "pulp_platform",
-                "register_interface",
-                "vendor",
-                "lowrisc_opentitan",
-                "util",
-                "regtool.py",
-            )
+            # 3. Fallback: plain name, assumed to be in PATH
+            regtool_path = "regtool.py"
 
     if not os.path.isfile(regtool_path):
+        regtool_path = shutil.which(regtool_path) or ""
+    if not regtool_path:
         print(
-            f"Error: regtool.py not found at '{regtool_path}'. "
+            "Error: regtool.py not found. "
             "Set REGTOOL or 'parameters.regtool_path' in your config.",
             file=sys.stderr,
         )
@@ -103,23 +94,14 @@ def get_structs_gen_path(cfg: dict) -> str:
                 cfg["files_root"], cfg["parameters"]["structs_gen_path"]
             )
         except (KeyError, IndexError, TypeError):
-            # 3. Fallback to default path within X-HEEP
-            structs_gen_path = os.path.join(
-                cfg["cores"]["xheep:util:reg-generator:0.1.0"]["core_root"],
-                "..",
-                "..",
-                "..",
-                "..",
-                "..",
-                "..",
-                "util",
-                "periph_structs_gen",
-                "periph_structs_gen.py",
-            )
+            # 3. Fallback: plain name, assumed to be in PATH
+            structs_gen_path = "periph_structs_gen.py"
 
     if not os.path.isfile(structs_gen_path):
+        structs_gen_path = shutil.which(structs_gen_path) or ""
+    if not structs_gen_path:
         print(
-            f"Error: structs generator not found at '{structs_gen_path}'. "
+            "Error: structs generator not found. "
             "Set PERIPH_STRUCTS_GEN or 'parameters.structs_gen_path' in your config.",
             file=sys.stderr,
         )

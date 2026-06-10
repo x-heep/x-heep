@@ -135,11 +135,12 @@ The generator locates `regtool.py` in this order:
 
 1. **`REGTOOL` environment variable** — highest priority; useful in CI or when integrating reg-generator into a project that vendors its own copy of OpenTitan.
 2. **`regtool_path` parameter** in the `.core` file — relative to `files_root`.
-3. **Built-in default** — derived from the generator's own location in the FuseSoC core list, pointing to the vendored OpenTitan copy inside X-HEEP at `hw/vendor/pulp_platform/register_interface/vendor/lowrisc_opentitan/util/regtool.py`.
+3. **Built-in default** — the plain name `regtool.py`, resolved via `PATH`.
 
-### C structs generator
+### `periph_structs_gen.py`
 
-When `structs_sw_path` is set, the generator locates the structs generator script in this order:
+When `structs_sw_path` is set, The generator locates `periph_structs_gen.py` in this order:
 
-1. **`PERIPH_STRUCTS_GEN` environment variable** — highest priority; useful in CI or when the default path is not applicable.
-2. **Built-in default** — derived from the generator's own location in the FuseSoC core list (see `get_structs_gen_path` in `reg-generator.py` for the exact default path).
+1. **`PERIPH_STRUCTS_GEN` environment variable** — highest priority; useful in CI or when integrating reg-generator into a project that vendors its own copy of X-HEEP.
+2. **`structs_gen_path` parameter** in the `.core` file — relative to `files_root`.
+3. **Built-in default** — the plain name `periph_structs_gen.py`, resolved via `PATH`.

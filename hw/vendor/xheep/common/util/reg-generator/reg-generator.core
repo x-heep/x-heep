@@ -41,16 +41,25 @@ generators:
             sw_path:          <string>  # Output file path for generated software header file.
             doc_path:         <string>  # Output file path for generated documentation file.
             regtool_path:     <string>  # [Optional] Path to regtool.py relative to `files_root`.
-                                          Use the version of 'toplevel' core if left empty.
-            structs_gen_path: <string>  # [Optional] Path to a peripheral structs generator script
-                                          relative to `files_root`.
+                                          Overridden by the REGTOOL environment variable.
+            structs_sw_path:  <string>  # [Optional] Output file path for the generated C structs header,
+                                          relative to `files_root`. When set, triggers structs generation
+                                          via the script resolved by PERIPH_STRUCTS_GEN, structs_gen_path,
+                                          or the built-in default.
+            structs_gen_path: <string>  # [Optional] Path to the peripheral structs generator script,
+                                          relative to `files_root`. Overridden by PERIPH_STRUCTS_GEN.
+                                          Only used when structs_sw_path is set.
             structs_tpl_path: <string>  # [Optional] Path to the structs template file, relative to
                                           `files_root`. Defaults to <structs_gen_dir>/<name_without_gen>.tpl
-            structs_sw_path:  <string>  # [Optional] Output file path for the generated C structs header,
-                                          relative to `files_root`. Defaults to <sw_dir>/<name>_structs.h
             ver_core:         <string>  # [Optional] Target core for versioning (vendor:library:name).
             [<others>]: ...             # Additional optional parameters exposed to Mako templates if used.
-      
+
       If the configuration file is a Mako template (.tpl extension), it will be rendered first using the provided key-value parameters.
-      
+
       The 'version_hex' parameter is provided by default based on the version of the 'toplevel' core for the current FuseSoC target. This value is inferred from a semantic versioning scheme (MAJOR.minor.PATCH) and exposed as a hexadecimal representation (0x00MMmmPP).
+
+      Environment variables:
+        REGTOOL            Path to regtool.py; overrides regtool_path and the built-in default.
+        PERIPH_STRUCTS_GEN Path to the peripheral C-structs generator script; overrides the
+                             built-in default. Required if structs_sw_path is set and the default
+                             path is not valid.

@@ -7,6 +7,7 @@ import hashlib
 import yaml
 from mako.template import Template
 
+
 def get_version_hex(version_str):
     """
     Converts a semantic version string (MAJOR.minor.PATCH) into a hexadecimal representation (0x00MMmmPP).
@@ -40,33 +41,92 @@ def get_cfg_file_path(cfg: dict) -> str:
         )
         sys.exit(1)
 
+
 def get_regtool_path(cfg: dict) -> str:
     """
-    Retrieves the path to regtool.py from the REGGEN_PATH environment variable,
+    Retrieves the path to regtool.py from the REGTOOL environment variable,
     the configuration dictionary, or a default fallback (in this order).
     The environment variable takes highest priority to allow parent projects and
     CI environments to override the path without modifying vendored config files.
     """
     # 1. Environment variable takes highest priority (parent project/CI override)
-    regtool_path = os.getenv("REGGEN_PATH")
+    regtool_path = os.getenv("REGTOOL")
 
     if regtool_path is None:
         try:
             # 2. Explicit path in config (relative to files_root)
-            regtool_path = os.path.join(cfg["files_root"], cfg["parameters"]["regtool_path"])
+            regtool_path = os.path.join(
+                cfg["files_root"], cfg["parameters"]["regtool_path"]
+            )
         except (KeyError, IndexError, TypeError):
             # 3. Fallback to default path within X-HEEP
-            regtool_path = os.path.join(cfg["cores"]["xheep:util:reg-generator:0.1.0"]["core_root"], "..", "..", "..", "..", "pulp_platform", "register_interface", "vendor", "lowrisc_opentitan", "util", "regtool.py")
+            regtool_path = os.path.join(
+                cfg["cores"]["xheep:util:reg-generator:0.1.0"]["core_root"],
+                "..",
+                "..",
+                "..",
+                "..",
+                "pulp_platform",
+                "register_interface",
+                "vendor",
+                "lowrisc_opentitan",
+                "util",
+                "regtool.py",
+            )
 
     if not os.path.isfile(regtool_path):
         print(
             f"Error: regtool.py not found at '{regtool_path}'. "
-            "Set REGGEN_PATH or 'parameters.regtool_path' in your config.",
+            "Set REGTOOL or 'parameters.regtool_path' in your config.",
             file=sys.stderr,
         )
         sys.exit(1)
 
     return regtool_path
+
+
+def get_structs_gen_path(cfg: dict) -> str:
+    """
+    Retrieves the path to periph_structs_gen.py from the PERIPH_STRUCTS_GEN
+    environment variable, the configuration dictionary, or a default fallback
+    (in this order). The environment variable takes highest priority to allow
+    parent projects and CI environments to override the path without modifying
+    vendored config files.
+    """
+    # 1. Environment variable takes highest priority (parent project/CI override)
+    structs_gen_path = os.getenv("PERIPH_STRUCTS_GEN")
+
+    if structs_gen_path is None:
+        try:
+            # 2. Explicit path in config (relative to files_root)
+            structs_gen_path = os.path.join(
+                cfg["files_root"], cfg["parameters"]["structs_gen_path"]
+            )
+        except (KeyError, IndexError, TypeError):
+            # 3. Fallback to default path within X-HEEP
+            structs_gen_path = os.path.join(
+                cfg["cores"]["xheep:util:reg-generator:0.1.0"]["core_root"],
+                "..",
+                "..",
+                "..",
+                "..",
+                "..",
+                "..",
+                "util",
+                "periph_structs_gen",
+                "periph_structs_gen.py",
+            )
+
+    if not os.path.isfile(structs_gen_path):
+        print(
+            f"Error: structs generator not found at '{structs_gen_path}'. "
+            "Set PERIPH_STRUCTS_GEN or 'parameters.structs_gen_path' in your config.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+    return structs_gen_path
+
 
 def get_kwargs(cfg) -> tuple:
     """
@@ -100,7 +160,9 @@ def get_kwargs(cfg) -> tuple:
         )
         sys.exit(1)
     version_hex = get_version_hex(version_str)
-    print(f"> INFO: Detected version '{version_str}' ({version_hex}) for '{version_core}' core")
+    print(
+        f"> INFO: Detected version '{version_str}' ({version_hex}) for '{version_core}' core"
+    )
 
     # Get keyword arguments
     kwargs = {}
@@ -125,9 +187,12 @@ def render_template(template_path, kwargs) -> str:
             f.write(rendered_content)
             return output_path
     except Exception as e:
-        print(f"Error: Could not render template '{template_path}': {e}", file=sys.stderr)
+        print(
+            f"Error: Could not render template '{template_path}': {e}", file=sys.stderr
+        )
         sys.exit(1)
-    
+
+
 def generate_rtl(regtool_path: str, cfg: dict) -> None:
     """
     Generates the register files using regtool based on the provided configuration file.
@@ -149,12 +214,20 @@ def generate_rtl(regtool_path: str, cfg: dict) -> None:
     # Generate RTL files
     try:
         subprocess.run(
-            [sys.executable, regtool_path, '-r', '--outdir', rtl_dir, get_cfg_file_path(cfg)],
+            [
+                sys.executable,
+                regtool_path,
+                "-r",
+                "--outdir",
+                rtl_dir,
+                get_cfg_file_path(cfg),
+            ],
             check=True,
         )
     except subprocess.CalledProcessError as e:
         print(f"Error: regtool failed with error: {e}", file=sys.stderr)
         sys.exit(1)
+
 
 def generate_c_header(regtool_path: str, cfg: dict) -> None:
     """
@@ -177,12 +250,20 @@ def generate_c_header(regtool_path: str, cfg: dict) -> None:
     # Generate C header file
     try:
         subprocess.run(
-            [sys.executable, regtool_path, '--cdefines', '--outfile', sw_path, get_cfg_file_path(cfg)],
+            [
+                sys.executable,
+                regtool_path,
+                "--cdefines",
+                "--outfile",
+                sw_path,
+                get_cfg_file_path(cfg),
+            ],
             check=True,
         )
     except subprocess.CalledProcessError as e:
         print(f"Error: regtool failed with error: {e}", file=sys.stderr)
         sys.exit(1)
+
 
 def generate_docs(regtool_path: str, cfg: dict) -> None:
     """
@@ -206,30 +287,27 @@ def generate_docs(regtool_path: str, cfg: dict) -> None:
     # Generate documentation file
     try:
         subprocess.run(
-            [sys.executable, regtool_path, '-d', '--outfile', doc_path, get_cfg_file_path(cfg)],
+            [
+                sys.executable,
+                regtool_path,
+                "-d",
+                "--outfile",
+                doc_path,
+                get_cfg_file_path(cfg),
+            ],
             check=True,
         )
     except subprocess.CalledProcessError as e:
         print(f"Error: regtool failed with error: {e}", file=sys.stderr)
         sys.exit(1)
 
-def generate_c_structs(cfg: dict) -> None:
+
+def generate_c_structs(structs_gen_path: str, cfg: dict) -> None:
     """
     Generates the C structs header file using a peripheral structs generator script.
-    Only called when 'structs_gen_path' is present in the configuration parameters.
+    Only called when 'structs_sw_path' is present in the configuration parameters.
     """
     print("> INFO: - Generating C structs header...")
-
-    # Resolve structs generator script path (relative to files_root)
-    structs_gen_path = os.path.normpath(
-        os.path.join(cfg["files_root"], cfg["parameters"]["structs_gen_path"])
-    )
-    if not os.path.isfile(structs_gen_path):
-        print(
-            f"Error: structs generator not found at '{structs_gen_path}'.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
 
     # Infer template path: same directory as the script, basename without '_gen' + '.tpl'
     # Override with 'structs_tpl_path' if provided.
@@ -242,18 +320,10 @@ def generate_c_structs(cfg: dict) -> None:
             os.path.join(cfg["files_root"], cfg["parameters"]["structs_tpl_path"])
         )
 
-    # Infer output path: same directory as sw_path, named {name}_structs.h
-    # Override with 'structs_sw_path' if provided.
-    sw_path = os.path.normpath(
-        os.path.join(cfg["files_root"], cfg["parameters"]["sw_path"])
+    # Get output path from 'structs_sw_path' parameter
+    structs_output = os.path.normpath(
+        os.path.join(cfg["files_root"], cfg["parameters"]["structs_sw_path"])
     )
-    structs_output = os.path.join(
-        os.path.dirname(sw_path), cfg["parameters"]["name"] + "_structs.h"
-    )
-    if "structs_sw_path" in cfg["parameters"]:
-        structs_output = os.path.normpath(
-            os.path.join(cfg["files_root"], cfg["parameters"]["structs_sw_path"])
-        )
 
     # Create output directory if needed
     os.makedirs(os.path.dirname(structs_output), exist_ok=True)
@@ -262,10 +332,14 @@ def generate_c_structs(cfg: dict) -> None:
     try:
         subprocess.run(
             [
-                sys.executable, structs_gen_path,
-                "--template_filename", template_path,
-                "--hjson_filename", get_cfg_file_path(cfg),
-                "--output_filename", structs_output,
+                sys.executable,
+                structs_gen_path,
+                "--template_filename",
+                template_path,
+                "--hjson_filename",
+                get_cfg_file_path(cfg),
+                "--output_filename",
+                structs_output,
             ],
             check=True,
         )
@@ -292,23 +366,28 @@ def generate_core_file(cfg: dict):
 
     # Append a list of Verilator 5.X specific waivers if the major version is >=5
     file_list = [
-        os.path.join(cfg["files_root"], cfg["parameters"]["rtl_dir"], cfg["parameters"]["name"] + "_reg_pkg.sv"),
-        os.path.join(cfg["files_root"], cfg["parameters"]["rtl_dir"], cfg["parameters"]["name"] + "_reg_top.sv")
+        os.path.join(
+            cfg["files_root"],
+            cfg["parameters"]["rtl_dir"],
+            cfg["parameters"]["name"] + "_reg_pkg.sv",
+        ),
+        os.path.join(
+            cfg["files_root"],
+            cfg["parameters"]["rtl_dir"],
+            cfg["parameters"]["name"] + "_reg_top.sv",
+        ),
     ]
 
     # Generate the output .core file content
     core_contents = {
-        'name': vlnv,
-        'filesets': {
-            'rtl': {
-                'files': file_list,
-                'file_type': 'systemVerilogSource'
-            },
+        "name": vlnv,
+        "filesets": {
+            "rtl": {"files": file_list, "file_type": "systemVerilogSource"},
         },
-        'targets': {
-            'default': {
-                'filesets': [
-                    'rtl',
+        "targets": {
+            "default": {
+                "filesets": [
+                    "rtl",
                 ],
             },
         },
@@ -317,11 +396,9 @@ def generate_core_file(cfg: dict):
     # Write the output .core file
     try:
         with open(output_filename, "w", encoding="utf-8") as f:
-            f.write('CAPI=2:\n')
+            f.write("CAPI=2:\n")
             yaml.dump(core_contents, f, encoding="utf-8", Dumper=yaml.CSafeDumper)
-            print(
-                f"> INFO: Successfully wrote '{output_filename}'"
-            )
+            print(f"> INFO: Successfully wrote '{output_filename}'")
         return True
     except IOError as e:
         print(
@@ -346,12 +423,12 @@ def get_expected_outputs(cfg: dict) -> list:
         os.path.normpath(os.path.join(files_root, cfg["parameters"]["sw_path"])),
         os.path.normpath(os.path.join(files_root, cfg["parameters"]["doc_path"])),
     ]
-    if "structs_gen_path" in cfg.get("parameters", {}):
-        if "structs_sw_path" in cfg["parameters"]:
-            outputs.append(os.path.normpath(os.path.join(files_root, cfg["parameters"]["structs_sw_path"])))
-        else:
-            sw_path = os.path.normpath(os.path.join(files_root, cfg["parameters"]["sw_path"]))
-            outputs.append(os.path.join(os.path.dirname(sw_path), name + "_structs.h"))
+    if "structs_sw_path" in cfg.get("parameters", {}):
+        outputs.append(
+            os.path.normpath(
+                os.path.join(files_root, cfg["parameters"]["structs_sw_path"])
+            )
+        )
     return outputs
 
 
@@ -396,6 +473,11 @@ def main():
     # Get regtool.py path
     regtool_path = get_regtool_path(config)
 
+    # Get structs generator path if structs generation is requested
+    structs_gen_path = None
+    if "structs_sw_path" in config.get("parameters", {}):
+        structs_gen_path = get_structs_gen_path(config)
+
     # Render template if needed
     config_file = get_cfg_file_path(config)
     if config_file.split(".")[-1] == "tpl":
@@ -403,9 +485,13 @@ def main():
         config["parameters"]["config"] = render_template(config_file, kwargs)
 
     # Check cache: skip all subprocess calls if inputs and outputs are unchanged
-    config_file = get_cfg_file_path(config)  # re-fetch: may have been updated by render_template
+    config_file = get_cfg_file_path(
+        config
+    )  # re-fetch: may have been updated by render_template
     input_hash = compute_input_hash(config_file)
-    cache_path = os.path.join(config["files_root"], f".{config['parameters']['name']}_reg_gen.cache")
+    cache_path = os.path.join(
+        config["files_root"], f".{config['parameters']['name']}_reg_gen.cache"
+    )
     expected_outputs = get_expected_outputs(config)
 
     if is_cache_valid(cache_path, input_hash, expected_outputs):
@@ -415,8 +501,8 @@ def main():
         generate_rtl(regtool_path, config)
         generate_docs(regtool_path, config)
         generate_c_header(regtool_path, config)
-        if "structs_gen_path" in config.get("parameters", {}):
-            generate_c_structs(config)
+        if structs_gen_path is not None:
+            generate_c_structs(structs_gen_path, config)
 
         # Save cache only after all steps succeed
         save_cache(cache_path, input_hash)

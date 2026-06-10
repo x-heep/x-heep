@@ -67,9 +67,11 @@ MCU_GEN_TEMPLATES = $(shell find . \
      -path './util/*' ! -path './util/profile' ! -path './util/profile/*' -o \
      -path './test/*' \) -prune -o \
   -name '*.tpl' -print)
+MCU_GEN_OUTPUTS = $(patsubst %.tpl,%, $(MCU_GEN_TEMPLATES))
 
 # Optionally, additional external template files can be provided to mcu-gen
 EXTERNAL_MCU_GEN_TEMPLATES ?= 
+EXTERNAL_MCU_GEN_OUTPUTS = $(patsubst %.tpl,%, $(EXTERNAL_MCU_GEN_TEMPLATES))
 
 # Compiler options are 'gcc' (default) and 'clang'
 COMPILER 		?= gcc
@@ -150,6 +152,7 @@ mcu-gen:
 	
 	bash -c "cd hw/vendor/xheep/dma; source dma_gen.sh; cd ../../../"
 	$(MAKE) -C hw/vendor/xheep/spi reg SW_DIR=$(mkfile_path)/sw/device/lib/drivers/
+	@echo "### MCU-GEN completed! Running FuseSoC register generators..."	
 	$(FUSESOC) --cores-root . run --target=sim --tool=verilator $(FUSESOC_FLAGS) --setup openhwgroup.org:systems:core-v-mini-mcu
 
 	$(MAKE) verible
@@ -419,12 +422,13 @@ vendor-clean:
 ## Remove the sw build folder
 .PHONY: clean-app
 clean-app:
-	@rm -rf sw/build
+	$(RM) -r sw/build
 
 ## Remove the build folders
 .PHONY: clean
 clean: clean-app
-	@rm -rf $(BUILD_DIR)
+	$(RM) -r $(BUILD_DIR)
+	$(RM) $(MCU_GEN_OUTPUTS) $(EXTERNAL_MCU_GEN_OUTPUTS)
 	find . -type f -name "*_reg_gen.cache" -delete
 
 ## Leave the repository in a clean state, removing all generated files. For now, it just calls clean.

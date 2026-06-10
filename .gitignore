@@ -95,10 +95,6 @@ sw/device/lib/drivers/pdm2pcm/pdm2pcm_regs.md
 sw/device/lib/drivers/pad_control/pad_control_regs.h
 sw/device/lib/drivers/pad_control/pad_control_regs.md
 
-sw/device/lib/drivers/dma/dma_regs.h
-sw/device/lib/drivers/dma/dma_structs.h
-sw/device/lib/drivers/dma/dma_regs.md
-
 # Openroad
 flow/OpenROAD-flow-scripts
 

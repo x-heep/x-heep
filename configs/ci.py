@@ -87,7 +87,6 @@ def config():
             num_master_ports=2,
             num_channels_per_master_port=2,
             fifo_depth=4,
-            addr_mode="no",
         )
     )
     base_peripheral_domain.add_peripheral(Power_manager(0x00040000, external_domains=1))

@@ -11,6 +11,7 @@ filesets:
   files_rtl:
     depend:
       - pulp-platform.org::common_cells
+      - xheep:util:reg-generator
     files:
     - rtl/dma_reg_pkg.sv
     - rtl/dma_pkg.sv

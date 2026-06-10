@@ -8,7 +8,7 @@
 {
   upstream:
   {
-    url: https://github.com/x-heep/xheep_dma.git
-    rev: 10ee7b3f611a23433ec654c2b0ae8cce4210dabd
+    url: https://github.com/x-heep/x-heep-common.git
+    rev: de18c292e6f4b59aa843f91a99460aa892c8f0aa
   }
 }

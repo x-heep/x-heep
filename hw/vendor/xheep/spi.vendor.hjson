@@ -7,11 +7,10 @@
 
   upstream: {
     url: "https://github.com/x-heep/xheep_spi.git",
-    rev: "530336de36968337f1f5bbed4221861b23ad2429",
+    rev: "307ec1add7ad8491d817d062a2210602b2d2003f",
   },
 
   exclude_from_upstream: [
-    "sw",
     "util",
     "vendor/xheep-common",
     "vendor/pulp_platform_register_interface",

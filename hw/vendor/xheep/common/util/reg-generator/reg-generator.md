@@ -44,9 +44,9 @@ All paths are relative to `files_root`, which FuseSoC sets to the directory cont
 |--------------------|----------|-------------|
 | `name`             | yes      | Name of the register block (used to derive output filenames). |
 | `config`           | yes      | Path to the HJSON register description, relative to `files_root`. A `.tpl` extension triggers Mako template rendering before passing the file to `regtool`. |
-| `rtl_dir`          | yes      | Output directory for the generated RTL files, relative to `files_root`. |
-| `sw_path`          | yes      | Output file path for the generated C register-defines header, relative to `files_root`. |
-| `doc_path`         | yes      | Output file path for the generated Markdown register documentation, relative to `files_root`. |
+| `rtl_dir`          | no       | Output directory for the generated RTL files, relative to `files_root`. When omitted, no RTL is generated. |
+| `sw_path`          | no       | Output file path for the generated C register-defines header, relative to `files_root`. When omitted, no C header is generated. |
+| `doc_path`         | no       | Output file path for the generated Markdown register documentation, relative to `files_root`. When omitted, no documentation is generated. |
 | `regtool_path`     | no       | Path to `regtool.py`, relative to `files_root`. Overrides the built-in default. The `REGTOOL` environment variable takes even higher priority and can be used in CI without modifying `.core` files. |
 | `structs_sw_path`  | no       | Output file path for the C structs header, relative to `files_root`. When set, triggers generation of the C structs header using the script resolved by `PERIPH_STRUCTS_GEN`, `structs_gen_path`, or the built-in default. |
 | `structs_gen_path` | no       | Path to the peripheral C-structs generator script, relative to `files_root`. Overrides the built-in default. The `PERIPH_STRUCTS_GEN` environment variable takes even higher priority. Only used when `structs_sw_path` is set. |

@@ -7,7 +7,7 @@
 
   upstream: {
     url: "https://github.com/x-heep/xheep_dma.git",
-    rev: "243c0c538000e63a38cc45c63af77d66ec625706",
+    rev: "80a64e6de3b09f5d2868b870b8a43c385e65477a",
   },
 
   exclude_from_upstream: [

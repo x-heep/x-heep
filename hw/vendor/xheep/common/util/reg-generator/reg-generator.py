@@ -348,34 +348,29 @@ def generate_core_file(cfg: dict):
         )
         return False
 
-    # Append a list of Verilator 5.X specific waivers if the major version is >=5
-    file_list = [
-        os.path.join(
-            cfg["files_root"],
-            cfg["parameters"]["rtl_dir"],
-            cfg["parameters"]["name"] + "_reg_pkg.sv",
-        ),
-        os.path.join(
-            cfg["files_root"],
-            cfg["parameters"]["rtl_dir"],
-            cfg["parameters"]["name"] + "_reg_top.sv",
-        ),
-    ]
+    # Build RTL file list only when rtl_dir was provided
+    file_list = []
+    if "rtl_dir" in cfg.get("parameters", {}):
+        file_list = [
+            os.path.join(
+                cfg["files_root"],
+                cfg["parameters"]["rtl_dir"],
+                cfg["parameters"]["name"] + "_reg_pkg.sv",
+            ),
+            os.path.join(
+                cfg["files_root"],
+                cfg["parameters"]["rtl_dir"],
+                cfg["parameters"]["name"] + "_reg_top.sv",
+            ),
+        ]
 
     # Generate the output .core file content
-    core_contents = {
-        "name": vlnv,
-        "filesets": {
+    core_contents = {"name": vlnv, "targets": {"default": {}}}
+    if file_list:
+        core_contents["filesets"] = {
             "rtl": {"files": file_list, "file_type": "systemVerilogSource"},
-        },
-        "targets": {
-            "default": {
-                "filesets": [
-                    "rtl",
-                ],
-            },
-        },
-    }
+        }
+        core_contents["targets"]["default"]["filesets"] = ["rtl"]
 
     # Write the output .core file
     try:
@@ -395,17 +390,22 @@ def get_expected_outputs(cfg: dict) -> list:
     """Returns the list of all file paths that the generator is expected to produce."""
     files_root = cfg["files_root"]
     name = cfg["parameters"]["name"]
-    outputs = [
-        os.path.join(files_root, cfg["parameters"]["rtl_dir"], name + "_reg_pkg.sv"),
-        os.path.join(files_root, cfg["parameters"]["rtl_dir"], name + "_reg_top.sv"),
-        os.path.normpath(os.path.join(files_root, cfg["parameters"]["sw_path"])),
-        os.path.normpath(os.path.join(files_root, cfg["parameters"]["doc_path"])),
-    ]
-    if "structs_sw_path" in cfg.get("parameters", {}):
+    params = cfg.get("parameters", {})
+    outputs = []
+    if "rtl_dir" in params:
+        outputs.extend(
+            [
+                os.path.join(files_root, params["rtl_dir"], name + "_reg_pkg.sv"),
+                os.path.join(files_root, params["rtl_dir"], name + "_reg_top.sv"),
+            ]
+        )
+    if "sw_path" in params:
+        outputs.append(os.path.normpath(os.path.join(files_root, params["sw_path"])))
+    if "doc_path" in params:
+        outputs.append(os.path.normpath(os.path.join(files_root, params["doc_path"])))
+    if "structs_sw_path" in params:
         outputs.append(
-            os.path.normpath(
-                os.path.join(files_root, cfg["parameters"]["structs_sw_path"])
-            )
+            os.path.normpath(os.path.join(files_root, params["structs_sw_path"]))
         )
     return outputs
 
@@ -479,14 +479,19 @@ def main():
             config["parameters"]["config"] = render_template(config_file, kwargs)
 
         # Resolve tool paths and generate
-        regtool_path = get_regtool_path(config)
+        params = config.get("parameters", {})
+        needs_regtool = any(k in params for k in ("rtl_dir", "sw_path", "doc_path"))
+        regtool_path = get_regtool_path(config) if needs_regtool else None
         structs_gen_path = None
-        if "structs_sw_path" in config.get("parameters", {}):
+        if "structs_sw_path" in params:
             structs_gen_path = get_structs_gen_path(config)
 
-        generate_rtl(regtool_path, config)
-        generate_docs(regtool_path, config)
-        generate_c_header(regtool_path, config)
+        if "rtl_dir" in params:
+            generate_rtl(regtool_path, config)
+        if "doc_path" in params:
+            generate_docs(regtool_path, config)
+        if "sw_path" in params:
+            generate_c_header(regtool_path, config)
         if structs_gen_path is not None:
             generate_c_structs(structs_gen_path, config)
 

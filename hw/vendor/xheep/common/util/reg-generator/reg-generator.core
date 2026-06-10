@@ -37,9 +37,12 @@ generators:
           parameters:
             name:             <string>  # Name of the control register block instance.
             config:           <string>  # Path to the HJSON configuration file (.hjson or .tpl Mako template).
-            rtl_dir:          <string>  # Output directory for generated RTL files.
-            sw_path:          <string>  # Output file path for generated software header file.
-            doc_path:         <string>  # Output file path for generated documentation file.
+            rtl_dir:          <string>  # [Optional] Output directory for generated RTL files.
+                                          When omitted, no RTL is generated.
+            sw_path:          <string>  # [Optional] Output file path for generated C header.
+                                          When omitted, no C header is generated.
+            doc_path:         <string>  # [Optional] Output file path for generated documentation.
+                                          When omitted, no documentation is generated.
             regtool_path:     <string>  # [Optional] Path to regtool.py relative to `files_root`.
                                           Overridden by the REGTOOL environment variable.
             structs_sw_path:  <string>  # [Optional] Output file path for the generated C structs header,

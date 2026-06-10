@@ -1,0 +1,1 @@
+../../../hw/vendor/xheep/common/util/reg-generator/reg-generator.md

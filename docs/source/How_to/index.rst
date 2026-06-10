@@ -9,4 +9,6 @@ Here you can find a list of guides that describe in detail how to use X-HEEP.
 
    CompileApps
    Simulate
+   IntegratePeripheral
+   RegGenerator
    *

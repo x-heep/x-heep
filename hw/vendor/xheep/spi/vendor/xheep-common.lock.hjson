@@ -8,7 +8,7 @@
 {
   upstream:
   {
-    url: https://github.com/x-heep/xheep_spi.git
-    rev: 530336de36968337f1f5bbed4221861b23ad2429
+    url: https://github.com/x-heep/x-heep-common.git
+    rev: de18c292e6f4b59aa843f91a99460aa892c8f0aa
   }
 }

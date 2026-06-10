@@ -8,7 +8,7 @@
 {
   upstream:
   {
-    url: https://github.com/x-heep/xheep_spi.git
-    rev: 530336de36968337f1f5bbed4221861b23ad2429
+    url: https://github.com/pulp-platform/register_interface.git
+    rev: 8e8c209ea559d3b54f45cf30fcce95ce70ff5e49
   }
 }

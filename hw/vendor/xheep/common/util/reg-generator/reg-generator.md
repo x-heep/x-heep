@@ -125,7 +125,12 @@ The generator skips all subprocess calls (regtool and the optional structs gener
 
 If either condition fails — the input changed, or any output was deleted — the full generation runs and the cache is updated on success. A failed run never updates the cache, so the next invocation always retries.
 
-The cache is stored as a plain-text file named `.{name}_reg_gen.cache` in `files_root` (the directory containing the invoking `.core` file). It therefore lives in the source tree alongside the IP it belongs to, and persists across `make clean` (which only removes the `build/` directory). It can be invalidated explicitly by deleting it, or implicitly by modifying the HJSON input or removing any output file.
+The cache is stored as a plain-text file named `.{name}_reg_gen.cache` in `files_root` (the directory containing the invoking `.core` file). The cache key is:
+
+- **Template HJSON** (`.tpl`): SHA-256 of the template file content and all rendering kwargs (parameters + `version_hex`). Any change to the template source or its parameters invalidates the cache.
+- **Plain HJSON**: SHA-256 of the HJSON file content.
+
+The cache file lives in the source tree alongside the IP and persists across `make clean` (which only removes the `build/` directory). It can be invalidated explicitly by deleting it, or implicitly by modifying the HJSON input (or template and its parameters) or removing any expected output file.
 
 ## Path resolution
 

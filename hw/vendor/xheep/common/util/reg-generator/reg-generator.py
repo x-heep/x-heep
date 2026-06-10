@@ -4,9 +4,9 @@ import sys
 import os
 import subprocess
 import hashlib
+import json
 import shutil
 import yaml
-from mako.template import Template
 
 
 def get_version_hex(version_str):
@@ -160,6 +160,8 @@ def render_template(template_path, kwargs) -> str:
     """
     Renders a Mako template with the provided keyword arguments.
     """
+    from mako.template import Template  # lazy import: only pay the cost when rendering
+
     print(f"> INFO: Rendering configuration template '{template_path}'")
     try:
         template = Template(filename=template_path)
@@ -389,12 +391,6 @@ def generate_core_file(cfg: dict):
         return False
 
 
-def compute_input_hash(config_file_path: str) -> str:
-    """Returns the SHA-256 hex digest of the (rendered) HJSON input file."""
-    with open(config_file_path, "rb") as f:
-        return hashlib.sha256(f.read()).hexdigest()
-
-
 def get_expected_outputs(cfg: dict) -> list:
     """Returns the list of all file paths that the generator is expected to produce."""
     files_root = cfg["files_root"]
@@ -412,6 +408,16 @@ def get_expected_outputs(cfg: dict) -> list:
             )
         )
     return outputs
+
+
+def compute_cache_key(file_path: str, kwargs: dict = None) -> str:
+    """Returns a SHA-256 hex digest of the file content and optional rendering kwargs."""
+    h = hashlib.sha256()
+    with open(file_path, "rb") as f:
+        h.update(f.read())
+    if kwargs is not None:
+        h.update(json.dumps(kwargs, sort_keys=True, default=str).encode())
+    return h.hexdigest()
 
 
 def is_cache_valid(cache_path: str, input_hash: str, output_files: list) -> bool:
@@ -452,34 +458,32 @@ def main():
         print(f"Error: Could not parse YAML file '{config_path}': {e}", file=sys.stderr)
         sys.exit(1)
 
-    # Get regtool.py path
-    regtool_path = get_regtool_path(config)
-
-    # Get structs generator path if structs generation is requested
-    structs_gen_path = None
-    if "structs_sw_path" in config.get("parameters", {}):
-        structs_gen_path = get_structs_gen_path(config)
-
-    # Render template if needed
+    # Compute cache key: hash(tpl + kwargs) for templates, hash(HJSON) for plain files
     config_file = get_cfg_file_path(config)
-    if config_file.split(".")[-1] == "tpl":
+    if config_file.endswith(".tpl"):
         kwargs = get_kwargs(config)
-        config["parameters"]["config"] = render_template(config_file, kwargs)
+        cache_key = compute_cache_key(config_file, kwargs)
+    else:
+        cache_key = compute_cache_key(config_file)
 
-    # Check cache: skip all subprocess calls if inputs and outputs are unchanged
-    config_file = get_cfg_file_path(
-        config
-    )  # re-fetch: may have been updated by render_template
-    input_hash = compute_input_hash(config_file)
     cache_path = os.path.join(
         config["files_root"], f".{config['parameters']['name']}_reg_gen.cache"
     )
     expected_outputs = get_expected_outputs(config)
 
-    if is_cache_valid(cache_path, input_hash, expected_outputs):
+    if is_cache_valid(cache_path, cache_key, expected_outputs):
         print("> INFO: All outputs are up to date. Skipping generation.")
     else:
-        # Generate registers using regtool
+        # Render template if needed (only on cache miss)
+        if config_file.endswith(".tpl"):
+            config["parameters"]["config"] = render_template(config_file, kwargs)
+
+        # Resolve tool paths and generate
+        regtool_path = get_regtool_path(config)
+        structs_gen_path = None
+        if "structs_sw_path" in config.get("parameters", {}):
+            structs_gen_path = get_structs_gen_path(config)
+
         generate_rtl(regtool_path, config)
         generate_docs(regtool_path, config)
         generate_c_header(regtool_path, config)
@@ -487,7 +491,7 @@ def main():
             generate_c_structs(structs_gen_path, config)
 
         # Save cache only after all steps succeed
-        save_cache(cache_path, input_hash)
+        save_cache(cache_path, cache_key)
 
     # Always write the .core file: FuseSoC expects it on every generator invocation
     generate_core_file(config)

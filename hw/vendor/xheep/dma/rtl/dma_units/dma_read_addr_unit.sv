@@ -8,6 +8,9 @@
  *  
  * Info: Reading FSM for DMA channel in address mode, controls the input FIFO.
  */
+`include "dma_conf.svh"
+
+`ifdef ADDR_MODE_EN
 
 module dma_read_addr_unit
   import dma_reg_pkg::*;
@@ -169,3 +172,5 @@ module dma_read_addr_unit
   assign data_addr_in_we_o = data_addr_in_we;
 
 endmodule
+
+`endif

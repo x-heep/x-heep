@@ -13,6 +13,8 @@
   exclude_from_upstream: [
     "util",
     "vendor/xheep-common",
+    "vendor/xheep-common.vendor.hjson",             # ignore revision check until major changes are made
+    "vendor/xheep-common.lock.hjson",               # ignore revision check until major changes are made
     "vendor/pulp_platform_register_interface",
     "vendor/pulp_platform_register_interface.core",
   ],

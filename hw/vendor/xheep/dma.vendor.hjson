@@ -11,6 +11,8 @@
   },
 
   exclude_from_upstream: [
-    "vendor/xheep-common",  # already vendored in X-HEEP
+    "vendor/xheep-common",                # already vendored in X-HEEP
+    "vendor/xheep-common.vendor.hjson",   # ignore revision check until major changes are made
+    "vendor/xheep-common.lock.hjson",     # ignore revision check until major changes are made
   ]
 }

@@ -9,6 +9,10 @@
  * Info: Processing unit for DMA channel.
  */
 
+`include "dma_conf.svh"
+
+`ifdef ZERO_PADDING_EN
+
 module dma_processing_unit
   import dma_reg_pkg::*;
 #(
@@ -39,7 +43,6 @@ module dma_processing_unit
   /* Parameter definition */
 
   import dma_reg_pkg::*;
-  `include "dma_conf.svh"
 
   /*_________________________________________________________________________________________________________________________________ */
 
@@ -348,3 +351,5 @@ module dma_processing_unit
 
 
 endmodule
+
+`endif

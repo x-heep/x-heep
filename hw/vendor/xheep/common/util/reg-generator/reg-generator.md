@@ -116,8 +116,7 @@ targets:
 
 When `config` has a `.tpl` extension, the generator first renders it as a [Mako](https://www.makotemplates.org/) template before passing it to `regtool`. This is useful for parametric register maps whose field count or addresses depend on design-time constants. All `parameters` key-value pairs (e.g, `<others>`) entries are forwarded to the template as variables, plus a pre-computed `version_hex` (a `0x00MMmmPP` hex string derived from the target core's semantic version).
 
-> [!NOTE]
-> In those cases where a dedicated template renderer is used before calling FuseSoC, as it happens with [MCU-GEN](https://github.com/x-heep/xheep_gen) in X-HEEP, the rendered `.hjson` file must be passed as the `config` parameter.
+> **Note:** In those cases where a dedicated template renderer is used before calling FuseSoC, as it happens with [MCU-GEN](https://github.com/x-heep/xheep_gen) in X-HEEP, the rendered `.hjson` file must be passed as the `config` parameter.
 
 ## Caching
 

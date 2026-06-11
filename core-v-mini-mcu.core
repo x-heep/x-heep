@@ -438,7 +438,7 @@ targets:
     - REMOVE_OBI_FIFO
     - COMMON_CELLS_ASSERTS_OFF
     - ASSERTS_OFF
-    - FPGA_ICESUGAR=true
+    - FPGA_ICESUGARPRO=true
     tools:
       modelsim:
         vlog_options:
@@ -644,7 +644,7 @@ targets:
         arch: ecp5
         output_format: json
         yosys_template: "../../../scripts/yosys/edalize_yosys_template.tcl"
-        nextpnr_options: ["--25k", "--package CABGA256", "--speed 6", "--lpf '../../../hw/fpga/lattice/icesugar_pins.lpf'", "--freq 65"]
+        nextpnr_options: ["--25k", "--package CABGA256", "--speed 6", "--lpf '../../../hw/fpga/xheep_fpga_support/board_files/icesugarpro/icesugar_pins.lpf'", "--freq 65"]
     toplevel: [lattice_core_v_mini_mcu_wrapper]
 
   asic_synthesis:

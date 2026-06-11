@@ -34,12 +34,12 @@ module ssdp_wf_8192 (
   reg [31:0] data_out;
 
   always @(posedge clka) begin
-    if (wea) begin 
+    if (wea) begin
       //sram[addra] <= dina;
-      if(be_i[0]) sram[addra][7:0] <= dina[7:0];
-      if(be_i[1]) sram[addra][15:8] <= dina[15:8];
-      if(be_i[2]) sram[addra][23:16] <= dina[23:16];
-      if(be_i[3]) sram[addra][31:24] <= dina[31:24];
+      if (be_i[0]) sram[addra][7:0] <= dina[7:0];
+      if (be_i[1]) sram[addra][15:8] <= dina[15:8];
+      if (be_i[2]) sram[addra][23:16] <= dina[23:16];
+      if (be_i[3]) sram[addra][31:24] <= dina[31:24];
     end
     if (ena) data_out <= sram[addra];
   end

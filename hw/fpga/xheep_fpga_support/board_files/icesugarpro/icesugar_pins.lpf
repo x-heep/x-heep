@@ -15,9 +15,9 @@ IOBUF PORT "rst_i" IO_TYPE=LVCMOS33;
 
 // Specific pins
 //B11 red, A11 green, A12 blue
-LOCATE COMP "clk_led_o" SITE "B11";
+LOCATE COMP "clk_led_o" SITE "A11";
 IOBUF PORT "clk_led_o" IO_TYPE=LVCMOS33;
-LOCATE COMP "rst_led_o" SITE "A11";
+LOCATE COMP "rst_led_o" SITE "B11";
 IOBUF PORT "rst_led_o" IO_TYPE=LVCMOS33;
 
 // other pins // boot select commented to boot with jtag (set to 0 in code)
@@ -62,7 +62,7 @@ LOCATE COMP "uart_rx_i" SITE "A9";
 IOBUF PORT "uart_rx_i" IO_TYPE=LVCMOS33;
 
 // other pins
-LOCATE COMP "gpio_io[0]" SITE "A12"; // R2 before A12
+LOCATE COMP "gpio_io[0]" SITE "A12"; // R2 before A12, for testing
 IOBUF PORT "gpio_io[0]" IO_TYPE=LVCMOS33;
 LOCATE COMP "gpio_io[1]" SITE "T2";
 IOBUF PORT "gpio_io[1]" IO_TYPE=LVCMOS33;

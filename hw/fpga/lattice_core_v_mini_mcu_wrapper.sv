@@ -9,7 +9,7 @@ module lattice_core_v_mini_mcu_wrapper
   import obi_pkg::*;
   import reg_pkg::*;
 #(
-    parameter CLK_LED_COUNT_LENGTH = 24
+    parameter CLK_LED_COUNT_LENGTH = 23
 ) (
 
 `ifdef FPGA_ZCU104
@@ -173,7 +173,7 @@ module lattice_core_v_mini_mcu_wrapper
   // counter to blink an LED
   assign clk_led_o = clk_count[CLK_LED_COUNT_LENGTH-1];
 
-  assign clk_gen = clk_gen_logic;
+  assign clk_gen   = clk_gen_logic;
 
   always_ff @(posedge clk_i or negedge rst_n) begin : clk_count_process
     if (!rst_n) begin
@@ -182,7 +182,7 @@ module lattice_core_v_mini_mcu_wrapper
       clk_count <= clk_count + 1;
     end
   end
-/*
+  /*
   always_ff @(posedge clk_i or negedge rst_n) begin : clk_wrapper
     if (!rst_n) begin
       clk_gen_count <= '0;
@@ -242,7 +242,7 @@ module lattice_core_v_mini_mcu_wrapper
   //      .clk_out1_0(clk_gen)
   //  );
 
-  
+
 `endif
 
 
@@ -307,11 +307,11 @@ module lattice_core_v_mini_mcu_wrapper
 
   // uncomment when running the simulation
 
-    x_heep_system #(
-  	.EXT_XBAR_NMASTER(8),
-  	.AO_SPC_NUM(1)
-    ) x_heep_system_i (
-  //x_heep_system x_heep_system_i (
+  x_heep_system #(
+      .EXT_XBAR_NMASTER(8),
+      .AO_SPC_NUM(1)
+  ) x_heep_system_i (
+      //x_heep_system x_heep_system_i (
       .hart_id_i('0),
       .xheep_instance_id_i('0),
       .intr_vector_ext_i('0),

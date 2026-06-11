@@ -25,32 +25,57 @@ filesets:
     - rtl/pad_cell_inout_xilinx.sv
     file_type: systemVerilogSource
 
+  ip-fpga-lattice:
+    files:
+    - rtl/lattice/ssdp_wf_8192.sv
+    - rtl/lattice/prim_lattice_clk.sv
+    - rtl/lattice/cve2_lattice_clock_gate.sv
+    - rtl/lattice/cv32e40px_lattice_clock_gate.sv
+    - rtl/lattice/pad_cell_input_lattice.sv
+    - rtl/lattice/pad_cell_output_lattice.sv
+    - rtl/lattice/pad_cell_inout_lattice.sv
+    - rtl/lattice/pad_cell_bypass_input_lattice.sv
+    - rtl/lattice/pad_cell_bypass_output_lattice.sv
+    file_type: systemVerilogSource
+
   ip-fpga-pynq-z2:
+    filesets:
+    - ip-fpga
     files:
     - scripts/pynq-z2/xilinx_generate_clk_wizard.tcl
     file_type: tclSource
 
   ip-fpga-nexys:
+    filesets:
+    - ip-fpga
     files:
     - scripts/nexys/xilinx_generate_clk_wizard.tcl
     file_type: tclSource
 
   ip-fpga-zcu104:
+    filesets:
+    - ip-fpga
     files:
     - scripts/zcu104/xilinx_generate_clk_wizard.tcl
     file_type: tclSource
 
   ip-fpga-zcu102:
+    filesets:
+    - ip-fpga
     files:
     - scripts/zcu102/xilinx_generate_clk_wizard.tcl
     file_type: tclSource
     
   ip-fpga-aup-zu3:
+    filesets:
+    - ip-fpga
     files:
     - scripts/aup-zu3/xilinx_generate_clk_wizard.tcl
     file_type: tclSource
 
   ip-fpga-genesys2:
+    filesets:
+    - ip-fpga
     files:
     - scripts/genesys2/xilinx_generate_clk_wizard.tcl
     file_type: tclSource
@@ -123,7 +148,6 @@ targets:
   default: &default_target
     filesets:
     - rtl-fpga
-    - ip-fpga
     - target_pynq-z2 ? (ip-fpga-pynq-z2)
     - target_pynq-z2 ? (xdc-fpga-pynq-z2)
     - target_pynq-z2 ? (tcl-fpga-ps-utils)
@@ -138,6 +162,14 @@ targets:
     - target_aup-zu3 ? (tcl-fpga-ps-utils)
     - target_genesys2 ? (ip-fpga-genesys2)
     - target_genesys2 ? (xdc-fpga-genesys2)
+    - target_icesugar ? (ip-fpga-lattice)
+    - target_sim-lattice ? (ip-fpga-lattice)
 
     parameters:
-      - PS_ENABLE
+      - "target_aup-zu3 ? (PS_ENABLE)"
+      - "target_genesys2 ? (PS_ENABLE)"
+      - "target_nexys-a7-100t ? (PS_ENABLE)"
+      - "target_pynq-z2 ? (PS_ENABLE)"
+      - "target_sim ? (PS_ENABLE)"
+      - "target_zcu102 ? (PS_ENABLE)"
+      - "target_zcu104 ? (PS_ENABLE)"

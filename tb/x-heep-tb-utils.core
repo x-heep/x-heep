@@ -43,9 +43,11 @@ filesets:
     - pulp-platform.org:ip:quadrilatero
     files:
     - tb_util.svh: {is_include_file: true}
+    - tb_util_lattice.svh: {is_include_file: true}
     - yosys_spiflash.sv
     - testharness_pkg.sv
     - testharness.sv
+    - testharness_lattice.sv
     - ext_xbar.sv
     - ext_bus.sv
     file_type: systemVerilogSource

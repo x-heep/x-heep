@@ -102,6 +102,13 @@ filesets:
     - hw/fpga/xilinx_core_v_mini_mcu_wrapper.sv
     file_type: systemVerilogSource
 
+  rtl-fpga-lattice:
+    depend:
+    - x-heep:x-heep:x-heep-fpga-support
+    files:
+    - hw/fpga/lattice_core_v_mini_mcu_wrapper.sv
+    file_type: systemVerilogSource
+
   ip-asic:
     depend:
     - technology::prim_mytech
@@ -156,12 +163,14 @@ filesets:
     files:
     - tb/XHEEP_CmdLineOptions.hh: { is_include_file: true }
     - tb/XHEEP_CmdLineOptions.cpp
-    - tb/tb_top.cpp
+    - target_sim ? (tb/tb_top.cpp)
+    - target_sim-lattice ? (tb/tb_top_lattice.cpp)
     file_type: cppSource
 
   tb-sv:
     files:
-    - tb/tb_top.sv
+    - target_sim ? (tb/tb_top.sv)
+    - target_sim-lattice ? (tb/tb_top_lattice.sv)
     file_type: systemVerilogSource
 
   tb-sc-verilator:
@@ -260,6 +269,10 @@ parameters:
     description: Turn off asserts for PULP common cells
     paramtype: vlogdefine
     default: false
+  FPGA_ICESUGARPRO:
+    datatype: bool
+    paramtype: vlogdefine
+    default: false
 
 scripts:
   # Build utils
@@ -296,6 +309,7 @@ targets:
     - files_rtl_generic
     - target_sim ? (tool_verilator? (files_verilator_waiver))
     - target_sim_sc ? (tool_verilator? (files_verilator_waiver))
+    - target_sim-lattice ? (tool_verilator? (files_verilator_waiver))
     toplevel: [core_v_mini_mcu]
 
   sim:
@@ -392,6 +406,69 @@ targets:
           - '-CFLAGS "-Wall -fpermissive"'
           - '-LDFLAGS "-pthread -lutil -lelf"'
           - "-Wall"
+
+  sim-lattice:
+    <<: *default_target
+    default_tool: modelsim
+    filesets_append:
+    - tb-utils
+    - rtl-fpga-lattice
+    - tool_modelsim? (pre_build_remote_bitbang)
+    - tool_modelsim? (pre_build_uartdpi)
+    - tool_modelsim? (pre_patch_modelsim_Makefile)
+    - tool_verilator? (tb-verilator)
+    - tool_modelsim? (tb-sv-lattice)
+    - "!integrated_heep? (x_heep_system)"
+    toplevel:
+    - tool_modelsim? (tb_top_lattice)
+    - tool_verilator? (testharness_lattice)
+    hooks:
+      pre_build:
+        - tool_modelsim? (pre_build_uartdpi)
+        - tool_modelsim? (pre_build_remote_bitbang)
+        - tool_modelsim? (pre_patch_modelsim_Makefile) # this is required by Questa 2020 on
+      pre_run:
+        - remove_uart_log
+      post_run:
+        - print_uart_log
+    parameters:
+    - JTAG_DPI
+    - USE_EXTERNAL_DEVICE_EXAMPLE
+    - USE_UPF
+    - REMOVE_OBI_FIFO
+    - COMMON_CELLS_ASSERTS_OFF
+    - ASSERTS_OFF
+    - FPGA_ICESUGAR=true
+    tools:
+      modelsim:
+        vlog_options:
+        - -override_timescale 1ns/1ps
+        - -suppress vlog-2583
+        - -suppress vlog-2577
+        - -suppress vlog-2720
+        - -pedanticerrors
+        - -define MODELSIM
+        vsim_options:
+        - -sv_lib ../../../hw/vendor/lowrisc/opentitan/hw/dv/dpi/uartdpi/uartdpi
+        - -sv_lib ../../../hw/vendor/pulp_platform/pulpissimo/rtl/tb/remote_bitbang/librbs
+        - -voptargs=+acc=npr
+      verilator:
+        mode: cc
+        verilator_options:
+          - '--sv'
+          - '--cc'
+          - '--trace'
+          - '--trace-fst'
+          - '--trace-structs'
+          - '--trace-params'
+          - '--trace-max-array 1024'
+          - '--x-assign unique'
+          - '--x-initial unique'
+          - '--exe tb_top_lattice.cpp'
+          - '-CFLAGS "-Wall -fpermissive"'
+          - '-LDFLAGS "-pthread -lutil -lelf"'
+          - "-Wall"
+          - "-Wno-fatal"
 
   sim_sc:
     <<: *default_target
@@ -548,6 +625,27 @@ targets:
         board_part: digilentinc.com:genesys2:part0:1.1
         board_repo_paths: [../../../hw/fpga/xheep_fpga_support/board_files/genesys2]
     toplevel: [xilinx_core_v_mini_mcu_wrapper]
+
+  icesugar:
+    <<: *default_target
+    default_tool: trellis
+    description: iCESugar-pro board
+    filesets_append:
+    - x_heep_system
+    - rtl-fpga-lattice
+    parameters:
+    - SYNTHESIS=true
+    - REMOVE_OBI_FIFO
+    - FPGA_SYNTHESIS=true
+    - FPGA_ICESUGARPRO=true
+    - NO_DDR_CLK_PORTS=true
+    tools:
+      trellis:
+        arch: ecp5
+        output_format: json
+        yosys_template: "../../../scripts/yosys/edalize_yosys_template.tcl"
+        nextpnr_options: ["--25k", "--package CABGA256", "--speed 6", "--lpf '../../../hw/fpga/lattice/icesugar_pins.lpf'", "--freq 65"]
+    toplevel: [lattice_core_v_mini_mcu_wrapper]
 
   asic_synthesis:
     <<: *default_target

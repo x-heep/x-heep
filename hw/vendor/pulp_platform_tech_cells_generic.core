@@ -20,4 +20,5 @@ targets:
   default:
     filesets:
     - target_sim? (rtl_sim)
+    - target_sim-lattice? (rtl_sim)
     - target_sim_sc? (rtl_sim)

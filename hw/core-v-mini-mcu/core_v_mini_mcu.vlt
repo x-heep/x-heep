@@ -57,4 +57,4 @@ lint_off -rule UNUSED -file "*/cpu_subsystem.sv" -match "Signal is not used: 'ha
 lint_off -rule UNDRIVEN -file "*/core_v_mini_mcu.sv" -match "Signal is not driven: 'ddr_i*"
 lint_off -rule UNDRIVEN -file "*/core_v_mini_mcu.sv" -match "Signal is not driven: 'ddr_o*"
 lint_off -rule UNDRIVEN -file "*/core_v_mini_mcu.sv" -match "Signal is not driven: 'ddr_rcv_clk*"
-
+lint_off -rule UNDRIVEN -file "*/core_v_mini_mcu.sv" -match "Signal is not driven: 'ddr_snd*"

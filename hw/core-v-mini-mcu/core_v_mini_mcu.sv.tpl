@@ -1,11 +1,9 @@
 // Copyright 2022 OpenHW Group
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
-
 <%!
     from pads.pin import Input, Output, Inout
 %>
-
 <%
   dma = xheep.get_base_peripheral_domain().get_dma()
   memory_ss = xheep.memory_ss()
@@ -13,10 +11,8 @@
   dma = xheep.get_base_peripheral_domain().get_dma()
   memory_ss = xheep.memory_ss()
   dma_obi_msb = dma.get_num_master_ports() - 1
-
   clk_module = next((p for p in xheep.get_padring().get_connected_pins() if p.name in ["clk", "ref_clk"] ), None).module
   rst_module = next((p for p in xheep.get_padring().get_connected_pins() if p.name == "rst"), None).module
-
 %>
 
 module core_v_mini_mcu
@@ -525,6 +521,7 @@ module core_v_mini_mcu
       .i2s_sd_oe_o(i2s_sd_oe_o),
       .i2s_sd_i(i2s_sd_i),
       .i2s_rx_valid_o(i2s_rx_valid),
+% if user_peripheral_domain.contains_peripheral('serial_link'):
       .ddr_rcv_clk_i,  
       .ddr_snd_clk_o,
       .ddr_rcv_0_i,
@@ -535,6 +532,7 @@ module core_v_mini_mcu
       .ddr_snd_1_o,
       .ddr_snd_2_o,
       .ddr_snd_3_o,
+% endif
       .uart_rx_i,
       .uart_tx_o
   );
@@ -572,6 +570,5 @@ module core_v_mini_mcu
       %endif
     % endif
   % endfor
-
 
 endmodule  // core_v_mini_mcu

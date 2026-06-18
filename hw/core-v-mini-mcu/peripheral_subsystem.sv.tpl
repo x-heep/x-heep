@@ -84,6 +84,7 @@ module peripheral_subsystem
     input  logic i2s_sd_i,
     output logic i2s_rx_valid_o,
 
+% if user_peripheral_domain.contains_peripheral('serial_link'):
     //Serial Link
     input  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0]    ddr_rcv_clk_i,  
     output logic [serial_link_single_channel_reg_pkg::NumChannels-1:0]    ddr_snd_clk_o,
@@ -95,7 +96,7 @@ module peripheral_subsystem
     output logic ddr_snd_1_o,
     output logic ddr_snd_2_o,
     output logic ddr_snd_3_o,
-    
+% endif
 
     // PDM2PCM Interface
     output logic pdm2pcm_clk_o,
@@ -666,11 +667,7 @@ module peripheral_subsystem
     .ddr_snd_clk_o,          
     .ddr_o                   
   );
-% else:
-    //Serial Link
-    assign ddr_snd_clk_o = '0;
-    assign {ddr_snd_3_o, ddr_snd_2_o, ddr_snd_1_o, ddr_snd_0_o} = '0;
-%endif
+% endif
 
 % if len(user_peripheral_domain.get_peripherals()) == 0:
   // If no peripherals are selected, tie off the slave response

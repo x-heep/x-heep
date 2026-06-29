@@ -133,27 +133,185 @@ make vivado-fpga-pgm FPGA_BOARD=pynq-z2
 ```
 
 
-**Step 3 : Release the flash programmer:**
+### Step 3: Reconnect Board A's Programmer and Release Both Flash Programmers
 
+After programming Board B, reconnect Board A's EPFL programmer.
 
-After programming Board B, replug the EPFL programmer of board A. Since we unplugged the EPFL programmer of board A the FTDI chip holds the SPI flash pins preventing X-HEEP from reading the flash. Run this command to release them (since two EPFL programmers are connected simultaneously, use index `:0` or `:1` to target the correct one:):
+Because Board A's EPFL programmer was unplugged, its FTDI chip may hold the SPI flash pins. This can prevent X-HEEP from booting correctly from flash.
+
+With both EPFL programmers connected, release both programmers:
+
 ```bash
-cd sw/vendor/yosyshq_icestorm/iceprog && ./iceprog -d i:0x0403:0x6011:0 -I B -t  # first programmer
-cd sw/vendor/yosyshq_icestorm/iceprog && ./iceprog -d i:0x0403:0x6011:1 -I B -t  # second programmer
+cd sw/vendor/yosyshq_icestorm/iceprog
+
+./iceprog -d i:0x0403:0x6011:0 -I B -t
+./iceprog -d i:0x0403:0x6011:1 -I B -t
 ```
 
-**Step 4 : Run:**
+The programmer index, `:0` or `:1`, selects which EPFL programmer is targeted.
 
+---
 
-Open picocom on both Board A and Board B UARTs to see the output:
+### Step 4: Identify the Correct UART Devices
+
+When two EPFL programmers are connected at the same time, do not rely on `/dev/ttyUSBX` or `/dev/serial/by-id/...`, because the two FTDI programmers may have identical IDs.
+
+Instead, use `/dev/serial/by-path/`.
+
+List the available serial devices:
+
 ```bash
-picocom -b 9600 -r -l --imap lfcrlf /dev/ttyUSBX  # replace X with correct device
+ls -l /dev/serial/by-path/
 ```
 
-Reset **Board B (receiver) first**, then reset **Board A (sender)**. The program will run and you should see the outputs.
+Then inspect the UART interfaces:
+
+```bash
+for d in /dev/ttyUSB*; do
+  echo "==== $d ===="
+  udevadm info -q property -n "$d" | grep -E 'ID_PATH=|ID_SERIAL=|ID_USB_INTERFACE_NUM=|DEVLINKS='
+done
+```
+
+For the EPFL programmer UART, look for entries with:
+
+```text
+ID_SERIAL=FTDI_Quad_RS232-HS
+ID_USB_INTERFACE_NUM=02
+```
+
+In one working setup, the two UARTs were:
+
+```text
+Receiver / FPGA_RECEIVE = 1:
+  /dev/serial/by-path/pci-0000:00:14.0-usb-0:12:1.2-port0
+
+Sender / FPGA_RECEIVE = 0:
+  /dev/serial/by-path/pci-0000:00:14.0-usb-0:8:1.2-port0
+```
+
+These paths may be different on another machine or when using different USB ports.
+
+---
+
+### Step 5: Open Picocom on Both Boards
+
+Open two terminal windows.
+
+In the first terminal, open the receiver UART:
+
+```bash
+picocom -b 9600 -r -l --imap lfcrlf /dev/serial/by-path/<receiver-if02-path>
+```
+
+In the second terminal, open the sender UART:
+
+```bash
+picocom -b 9600 -r -l --imap lfcrlf /dev/serial/by-path/<sender-if02-path>
+```
+
+For example:
+
+```bash
+picocom -b 9600 -r -l --imap lfcrlf /dev/serial/by-path/pci-0000:00:14.0-usb-0:12:1.2-port0
+```
+
+and:
+
+```bash
+picocom -b 9600 -r -l --imap lfcrlf /dev/serial/by-path/pci-0000:00:14.0-usb-0:8:1.2-port0
+```
+
+To exit picocom, use:
+
+```text
+Ctrl-a Ctrl-x
+```
+
+---
+
+### Step 6: Reset the Boards in the Correct Order
+
+After both picocom terminals are open:
+
+1. Reset **Board B**, the receiver.
+2. Then reset **Board A**, the sender.
+
+The receiver should print something similar to:
+
+```text
+=== Serial Link MUX Mode Test (FPGA RECEIVE) ===
+--- Test 1: FIFO mode ---
+```
+
+The sender should print something similar to:
+
+```text
+=== Serial Link MUX Mode Test (FPGA SEND) ===
+--- Test 1: FIFO mode ---
+FIFO sent [0]: 0x11111111
+FIFO sent [1]: 0x22222222
+FIFO sent [2]: 0x33333333
+FIFO sent [3]: 0x44444444
+```
 
 ```{warning}
 Always reset the receiver before the sender. The receiver must be waiting for data before the sender starts transmitting.
+```
+
+---
+
+### Troubleshooting
+
+#### Picocom is empty on one board
+
+First check that the correct UART interface is being used. The EPFL programmer UART is usually the FTDI interface with:
+
+```text
+ID_USB_INTERFACE_NUM=02
+```
+
+Use `/dev/serial/by-path/...` instead of `/dev/serial/by-id/...` when two EPFL programmers are connected.
+
+#### One board does not boot or does not print anything
+
+Exit picocom and release both EPFL programmers again:
+
+```bash
+cd sw/vendor/yosyshq_icestorm/iceprog
+
+./iceprog -d i:0x0403:0x6011:0 -I B -t
+./iceprog -d i:0x0403:0x6011:1 -I B -t
+```
+
+Then reopen picocom and reset the board.
+
+#### The sender prints, but the receiver does not receive data
+
+Check the reset order. The receiver must be reset first, then the sender.
+
+Also check the physical wiring:
+
+- Board A outputs must go to Board B inputs.
+- Board B outputs must go to Board A inputs.
+- Both clock signals must be connected.
+- GND must be connected between the boards.
+
+#### The wrong board is programmed
+
+Program each board separately, and verify the value of `FPGA_RECEIVE` before building:
+
+```c
+#define FPGA_RECEIVE 0   // sender
+```
+
+or:
+
+```c
+#define FPGA_RECEIVE 1   // receiver
+```
+
+After changing `FPGA_RECEIVE`, rebuild the application before flashing.
 ```
 
 ---

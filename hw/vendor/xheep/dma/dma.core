@@ -11,10 +11,9 @@ filesets:
   files_rtl:
     depend:
       - pulp-platform.org::common_cells
+      - xheep:util:reg-generator
     files:
-    - rtl/dma_reg_pkg.sv
     - rtl/dma_pkg.sv
-    - rtl/dma_reg_top.sv
     - rtl/dma_units/dma_processing_unit.sv
     - rtl/dma_units/dma_read_unit.sv
     - rtl/dma_units/dma_read_addr_unit.sv
@@ -35,7 +34,16 @@ filesets:
       - dma.vlt
     file_type: vlt
 
-
+generate:
+  dma:
+    generator: regtool
+    parameters:
+      config:           data/dma.hjson
+      name:             dma
+      rtl_dir:          rtl
+      sw_path:          sw/dma_regs.h
+      doc_path:         docs/dma_regs.md
+      structs_sw_path:  sw/dma_structs.h
 
 targets:
   default:
@@ -43,4 +51,5 @@ targets:
     - files_rtl
     - headers
     - tool_verilator ? (files_verilator_waiver)
-
+    generate:
+    - dma

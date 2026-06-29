@@ -10,14 +10,25 @@ description: "core-v-mini-mcu dma peripheral"
 filesets:
   files_rtl:
     depend:
+      - xheep:util:reg-generator
       - pulp-platform.org::common_cells
     files:
-    - rtl/pad_control_reg_pkg.sv
-    - rtl/pad_control_reg_top.sv
     - rtl/pad_control.sv
     file_type: systemVerilogSource
+
+generate:
+  pad_control:
+    generator: regtool
+    parameters:
+      config:       data/pad_control.hjson
+      name:         pad_control
+      rtl_dir:      rtl
+      sw_path:      ../../../sw/device/lib/drivers/pad_control/pad_control_regs.h
+      doc_path:     ../../../sw/device/lib/drivers/pad_control/pad_control_regs.md
 
 targets:
   default:
     filesets:
     - files_rtl
+    generate:
+    - pad_control

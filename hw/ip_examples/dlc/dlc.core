@@ -12,13 +12,30 @@ filesets:
   files_rtl:
     depend:
       - x-heep::packages
+      - xheep:util:reg-generator
     files:
-    - rtl/dlc_reg_pkg.sv
-    - rtl/dlc_reg_top.sv
     - rtl/dlc.sv
     file_type: systemVerilogSource
+
+  verilator-waiver:
+    files:
+    - dlc.vlt
+    file_type: vlt
+
+generate:
+  dlc:
+    generator: regtool
+    parameters:
+      config:           data/dlc.hjson
+      name:             dlc
+      rtl_dir:          rtl
+      sw_path:          ../../../sw/device/lib/drivers/dlc/dlc.h
+      doc_path:         ../../../sw/device/lib/drivers/dlc/dlc.md
 
 targets:
   default:
     filesets:
     - files_rtl
+    - tool_verilator ? (verilator-waiver)
+    generate:
+    - dlc

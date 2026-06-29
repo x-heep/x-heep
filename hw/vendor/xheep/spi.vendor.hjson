@@ -7,17 +7,15 @@
 
   upstream: {
     url: "https://github.com/x-heep/xheep_spi.git",
-    rev: "d5b4401ab8b5e85d51af5fb9e9f69fb5dbe86519",
+    rev: "f990e21523431d2f73558faae7a8b37568df6667",
   },
 
   exclude_from_upstream: [
-    ".gitignore",
-    "sw",
     "util",
+    "vendor/xheep-common",
+    "vendor/xheep-common.vendor.hjson",             # ignore revision check until major changes are made
+    "vendor/xheep-common.lock.hjson",               # ignore revision check until major changes are made
     "vendor/pulp_platform_register_interface",
-    "vendor/pulp_platform_register_interface.vendor.hjson",
-    "vendor/pulp_platform_register_interface.lock.hjson",
     "vendor/pulp_platform_register_interface.core",
   ],
-
 }

@@ -11,11 +11,35 @@ filesets:
   files_rtl:
     depend:
       - pulp-platform.org::register_interface
+      - openhwgroup.org:ip:soc_ctrl
+      - x-heep:ip:power_manager
+      - lowrisc:ip:spi_host
+      - x-heep:ip:obi_spimemio
     files:
     - boot_rom.sv
     file_type: systemVerilogSource
+
+  verilator-waiver:
+    files:
+    - boot_rom.vlt
+    file_type: vlt
+
+generators:
+  # Boot ROM generator
+  boot_rom_gen:
+    interpreter: sh
+    command: boot_rom_gen.sh
+    description: |
+      Generate a SystemVerilog source file containing the compiled BOOT ROM code.
+
+generate:
+  boot_rom:
+    generator: boot_rom_gen
 
 targets:
   default:
     filesets:
     - files_rtl
+    - tool_verilator ? (verilator-waiver)
+    generate:
+    - boot_rom

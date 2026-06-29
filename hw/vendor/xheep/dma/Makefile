@@ -14,4 +14,3 @@ $(RTL_REG_DEFINES): $(CFG)
 
 $(CDEFINES): $(CFG)
 	$(REGTOOL) --cdefines -o $@ $<
-

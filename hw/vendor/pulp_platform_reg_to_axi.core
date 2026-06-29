@@ -23,7 +23,7 @@ CAPI=2:
 #       AXI as well.
 
 name: pulp-platform.org::reg_to_axi
-desc: "Registere Interface to AXI bridges"
+description: "Registere Interface to AXI bridges"
 
 filesets:
   rtl:

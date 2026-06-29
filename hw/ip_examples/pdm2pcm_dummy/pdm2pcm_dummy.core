@@ -16,7 +16,13 @@ filesets:
     - rtl/pdm2pcm_dummy.sv
     file_type: systemVerilogSource
 
+  verilator-waiver:
+    files:
+    - pdm2pcm_dummy.vlt
+    file_type: vlt
+
 targets:
   default:
     filesets:
     - files_rtl
+    - tool_verilator ? (verilator-waiver)

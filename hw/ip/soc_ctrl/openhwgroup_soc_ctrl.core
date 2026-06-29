@@ -12,13 +12,25 @@ filesets:
     depend:
       - lowrisc:prim:all
       - pulp-platform.org::register_interface
+      - xheep:util:reg-generator
     files:
-    - rtl/soc_ctrl_reg_pkg.sv
-    - rtl/soc_ctrl_reg_top.sv
     - rtl/soc_ctrl.sv
     file_type: systemVerilogSource
+
+generate:
+  soc-ctrl:
+    generator: regtool
+    parameters:
+      config:           data/soc_ctrl.hjson
+      name:             soc_ctrl
+      rtl_dir:          rtl
+      sw_path:          ../../../sw/device/lib/drivers/soc_ctrl/soc_ctrl_regs.h
+      doc_path:         ../../../sw/device/lib/drivers/soc_ctrl/soc_ctrl_regs.md
+      structs_sw_path:  ../../../sw/device/lib/drivers/soc_ctrl/soc_ctrl_structs.h
 
 targets:
   default:
     filesets:
     - files_rtl
+    generate:
+    - soc-ctrl

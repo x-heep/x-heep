@@ -14,13 +14,30 @@ filesets:
   files_rtl:
     depend:
       - pulp-platform.org::common_cells
+      - xheep:util:reg-generator
     files:
-    - rtl/iffifo_reg_pkg.sv
-    - rtl/iffifo_reg_top.sv
     - rtl/iffifo.sv
     file_type: systemVerilogSource
+
+  verilator-waiver:
+    files:
+    - iffifo.vlt
+    file_type: vlt
+
+generate:
+  iffifo:
+    generator: regtool
+    parameters:
+      config:           data/iffifo.hjson
+      name:             iffifo
+      rtl_dir:          rtl
+      sw_path:          ../../../sw/device/lib/drivers/iffifo/iffifo_regs.h
+      doc_path:         ../../../sw/device/lib/drivers/iffifo/iffifo_regs.md
 
 targets:
   default:
     filesets:
     - files_rtl
+    - tool_verilator ? (verilator-waiver)
+    generate:
+    - iffifo

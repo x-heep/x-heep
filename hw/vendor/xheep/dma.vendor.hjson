@@ -7,7 +7,12 @@
 
   upstream: {
     url: "https://github.com/x-heep/xheep_dma.git",
-    rev: "3270993d06b120198b75d0cfa9688c9a039de2d9",
+    rev: "1e7f540b9e538b7098fa402f7645e79afb438503",
   },
 
+  exclude_from_upstream: [
+    "vendor/xheep-common",                # already vendored in X-HEEP
+    "vendor/xheep-common.vendor.hjson",   # ignore revision check until major changes are made
+    "vendor/xheep-common.lock.hjson",     # ignore revision check until major changes are made
+  ]
 }

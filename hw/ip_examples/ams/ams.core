@@ -11,14 +11,31 @@ filesets:
   files_rtl:
     depend:
       - pulp-platform.org::common_cells
+      - xheep:util:reg-generator
     files:
-    - rtl/ams_reg_pkg.sv
-    - rtl/ams_reg_top.sv
     - rtl/ams.sv
     - "!ams_sim? (rtl/dummy_adc.sv)"
     file_type: systemVerilogSource
+
+  verilator-waiver:
+    files:
+    - ams.vlt
+    file_type: vlt
+
+generate:
+  ams:
+    generator: regtool
+    parameters:
+      config:           data/ams.hjson
+      name:             ams
+      rtl_dir:          rtl
+      sw_path:          ../../../sw/device/lib/drivers/ams/ams_regs.h
+      doc_path:         ../../../sw/device/lib/drivers/ams/ams_regs.md
 
 targets:
   default:
     filesets:
     - files_rtl
+    - tool_verilator ? (verilator-waiver)
+    generate:
+    - ams

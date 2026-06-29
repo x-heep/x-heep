@@ -16,6 +16,9 @@ __pycache__/
 # Apps output files
 run_verif_rtl_log.txt
 
+# reg-generator cache files
+*_reg_gen.cache
+
 # Automatically generated hw files
 tb/tb_util.svh
 tb/testharness.sv
@@ -57,10 +60,10 @@ hw/ip/pdm2pcm/rtl/pdm2pcm_reg_pkg.sv
 hw/ip/boot_rom/boot_rom.sv
 hw/ip/boot_rom/boot_rom.dump
 
-hw/fpga/sram_wrapper.sv
-hw/fpga/scripts/generate_sram.tcl
-hw/fpga/constraints/pynq-z2/constraints.xdc
-hw/fpga/constraints/pynq-z2/pin_assign.xdc
+hw/fpga/xheep_fpga_support/rtl/sram_wrapper.sv
+hw/fpga/xheep_fpga_support/scripts/generate_sram.tcl
+hw/fpga/xheep_fpga_support/constraints/pynq-z2/constraints.xdc
+hw/fpga/xheep_fpga_support/constraints/pynq-z2/pin_assign.xdc
 
 hw/vendor/xheep/spi/rtl/spi_subsystem.sv
 
@@ -78,10 +81,6 @@ sw/device/lib/drivers/soc_ctrl/soc_ctrl_regs.h
 sw/device/lib/drivers/soc_ctrl/soc_ctrl_structs.h
 sw/device/lib/drivers/soc_ctrl/soc_ctrl_regs.md
 
-sw/device/lib/drivers/w25q128jw_controller/w25q128jw_controller_regs.h
-sw/device/lib/drivers/w25q128jw_controller/w25q128jw_controller_structs.h
-sw/device/lib/drivers/w25q128jw_controller/w25q128jw_controller_regs.md
-
 sw/device/lib/drivers/power_manager/power_manager_regs.h
 sw/device/lib/drivers/power_manager/power_manager_structs.h
 sw/device/lib/drivers/power_manager/power_manager_regs.md
@@ -92,10 +91,6 @@ sw/device/lib/drivers/pdm2pcm/pdm2pcm_regs.md
 
 sw/device/lib/drivers/pad_control/pad_control_regs.h
 sw/device/lib/drivers/pad_control/pad_control_regs.md
-
-sw/device/lib/drivers/dma/dma_regs.h
-sw/device/lib/drivers/dma/dma_structs.h
-sw/device/lib/drivers/dma/dma_regs.md
 
 # Openroad
 flow/OpenROAD-flow-scripts
@@ -108,5 +103,3 @@ flow/OpenROAD-flow-scripts
 .continue
 private/
 .DS_Store
-
-

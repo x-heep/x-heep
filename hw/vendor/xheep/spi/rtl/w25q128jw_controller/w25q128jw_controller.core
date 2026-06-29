@@ -14,13 +14,31 @@ filesets:
       - x-heep::packages
       - lowrisc:ip:spi_host:1.0
       - x-heep:ip:dma
+      - xheep:util:reg-generator:0.1.0
     files:
-    - rtl/w25q128jw_controller_reg_pkg.sv
-    - rtl/w25q128jw_controller_reg_top.sv
     - rtl/w25q128jw_controller.sv
     file_type: systemVerilogSource
+
+  files_verilator_waiver:
+    files:
+      - lint/w25q128jw_controller.vlt
+    file_type: vlt
+
+generate:
+  w25q128jw_controller:
+    generator: regtool
+    parameters:
+      config:           data/w25q128jw_controller.hjson
+      name:             w25q128jw_controller
+      rtl_dir:          rtl
+      sw_path:          ../../sw/w25q128jw_controller/w25q128jw_controller_regs.h
+      doc_path:         ../../docs/w25q128jw_controller/w25q128jw_controller_regs.md
+      structs_sw_path:  ../../sw/w25q128jw_controller/w25q128jw_controller_structs.h
 
 targets:
   default:
     filesets:
     - files_rtl
+    - tool_verilator ? (files_verilator_waiver)
+    generate:
+    - w25q128jw_controller

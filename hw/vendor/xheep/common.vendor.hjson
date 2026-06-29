@@ -1,0 +1,32 @@
+// Copyright (c) 2026 EPFL.
+// Copyright and related rights are licensed under the Solderpad Hardware
+// License, Version 2.0 (the "License"); you may not use this file except in
+// compliance with the License. You may obtain a copy of the License at
+// http://solderpad.org/licenses/SHL-2.0. Unless required by applicable law
+// or agreed to in writing, software, hardware and materials distributed under
+// this License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+// CONDITIONS OF ANY KIND, either express or implied. See the License for the
+// specific language governing permissions and limitations under the License.
+//
+// File: common.vendor.hjson
+// Author(s):
+//   Michele Caon <michele.caon@epfl.ch>
+// Date: 09/06/2026
+// Description: X-HEEP common files
+
+{
+  name: "common",
+  target_dir: "common",
+
+  upstream: {
+    url: "https://github.com/x-heep/x-heep-common.git",
+    rev: "d32ba1ce395b060863c6b109398e8f2327504227",
+  },
+
+  mapping: [
+    {from: "LICENSE", to: "LICENSE"},
+    
+    // FuseSoC generator wrapper for OpenTitan's reggen
+    {from: "util/reg-generator", to: "util/reg-generator"},
+  ]
+}

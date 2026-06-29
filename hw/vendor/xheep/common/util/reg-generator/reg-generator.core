@@ -1,0 +1,67 @@
+CAPI=2:
+# Copyright (c) 2026 EPFL.
+# Copyright and related rights are licensed under the Solderpad Hardware
+# License, Version 2.0 (the "License"); you may not use this file except in
+# compliance with the License. You may obtain a copy of the License at
+# http://solderpad.org/licenses/SHL-2.0. Unless required by applicable law
+# or agreed to in writing, software, hardware and materials distributed under
+# this License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+# CONDITIONS OF ANY KIND, either express or implied. See the License for the
+# specific language governing permissions and limitations under the License.
+#
+# File: reg-generator.core
+# Author(s):
+#   Michele Caon <michele.caon@epfl.ch>
+# Date: 08/06/2026
+# Description: FuseSoC wrapper for OpenTitan's RegTool
+
+name: "xheep:util:reg-generator:0.1.0"
+description: "FuseSoC wrapper for OpenTitan's RegTool"
+
+# Generators
+generators:
+  # Control register generator (regtool)
+  regtool:
+    interpreter: python
+    command: reg-generator.py
+    cache_type: generator
+    description: |
+      Generate control registers from HJSON configuration file using regtool.
+    usage: |
+      Required minimal configuration key-value parameters:
+      
+      generate:
+        <inst-name>:
+          generator: regtool
+          parameters:
+            name:             <string>  # Name of the control register block instance.
+            config:           <string>  # Path to the HJSON configuration file (.hjson or .tpl Mako template).
+            rtl_dir:          <string>  # [Optional] Output directory for generated RTL files.
+                                          When omitted, no RTL is generated.
+            sw_path:          <string>  # [Optional] Output file path for generated C header.
+                                          When omitted, no C header is generated.
+            doc_path:         <string>  # [Optional] Output file path for generated documentation.
+                                          When omitted, no documentation is generated.
+            regtool_path:     <string>  # [Optional] Path to regtool.py relative to `files_root`.
+                                          Overridden by the REGTOOL environment variable.
+            structs_sw_path:  <string>  # [Optional] Output file path for the generated C structs header,
+                                          relative to `files_root`. When set, triggers structs generation
+                                          via the script resolved by PERIPH_STRUCTS_GEN, structs_gen_path,
+                                          or the built-in default.
+            structs_gen_path: <string>  # [Optional] Path to the peripheral structs generator script,
+                                          relative to `files_root`. Overridden by PERIPH_STRUCTS_GEN.
+                                          Only used when structs_sw_path is set.
+            structs_tpl_path: <string>  # [Optional] Path to the structs template file, relative to
+                                          `files_root`. Defaults to <structs_gen_dir>/<name_without_gen>.tpl
+            ver_core:         <string>  # [Optional] Target core for versioning (vendor:library:name).
+            [<others>]: ...             # Additional optional parameters exposed to Mako templates if used.
+
+      If the configuration file is a Mako template (.tpl extension), it will be rendered first using the provided key-value parameters.
+
+      The 'version_hex' parameter is provided by default based on the version of the 'toplevel' core for the current FuseSoC target. This value is inferred from a semantic versioning scheme (MAJOR.minor.PATCH) and exposed as a hexadecimal representation (0x00MMmmPP).
+
+      Environment variables:
+        REGTOOL            Path to regtool.py; overrides regtool_path and the built-in default.
+        PERIPH_STRUCTS_GEN Path to the peripheral C-structs generator script; overrides the
+                             built-in default. Required if structs_sw_path is set and the default
+                             path is not valid.

@@ -1,0 +1,143 @@
+CAPI=2:
+# Copyright 2026 X-HEEP contibutors
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+name: x-heep:x-heep:x-heep-fpga-support
+description: X-HEEP FPGA related files.
+
+filesets:
+  rtl-fpga:
+    files:
+    - rtl/sram_wrapper.sv
+    file_type: systemVerilogSource
+
+  ip-fpga:
+    files:
+    - scripts/generate_sram.tcl:  { file_type: tclSource }
+    - rtl/prim_xilinx_clk.sv
+    - rtl/cv32e40p_xilinx_clock_gate.sv
+    - rtl/cv32e40x_xilinx_clock_gate.sv
+    - rtl/cve2_xilinx_clock_gate.sv
+    - rtl/cv32e40px_xilinx_clock_gate.sv
+    - rtl/pad_cell_input_xilinx.sv
+    - rtl/pad_cell_output_xilinx.sv
+    - rtl/pad_cell_inout_xilinx.sv
+    file_type: systemVerilogSource
+
+  ip-fpga-pynq-z2:
+    files:
+    - scripts/pynq-z2/xilinx_generate_clk_wizard.tcl
+    file_type: tclSource
+
+  ip-fpga-nexys:
+    files:
+    - scripts/nexys/xilinx_generate_clk_wizard.tcl
+    file_type: tclSource
+
+  ip-fpga-zcu104:
+    files:
+    - scripts/zcu104/xilinx_generate_clk_wizard.tcl
+    file_type: tclSource
+
+  ip-fpga-zcu102:
+    files:
+    - scripts/zcu102/xilinx_generate_clk_wizard.tcl
+    file_type: tclSource
+    
+  ip-fpga-aup-zu3:
+    files:
+    - scripts/aup-zu3/xilinx_generate_clk_wizard.tcl
+    file_type: tclSource
+
+  ip-fpga-genesys2:
+    files:
+    - scripts/genesys2/xilinx_generate_clk_wizard.tcl
+    file_type: tclSource
+
+  xdc-fpga-nexys:
+    files:
+    - constraints/nexys/pin_assign.xdc
+    - constraints/nexys/constraints.xdc
+    - constraints/common/spi_slave.xdc
+    - constraints/common/jtag.xdc
+    - constraints/common/sync.xdc
+    file_type: xdc
+
+  xdc-fpga-pynq-z2:
+    files:
+    - constraints/pynq-z2/pin_assign.xdc
+    - constraints/pynq-z2/constraints.xdc
+    - constraints/common/spi_slave.xdc
+    - constraints/common/jtag.xdc
+    - constraints/common/sync.xdc
+    file_type: xdc
+
+  xdc-fpga-zcu104:
+    files:
+    - constraints/zcu104/pin_assign.xdc
+    - constraints/zcu104/constraints.xdc
+    - constraints/common/spi_slave.xdc
+    - constraints/common/jtag.xdc
+    - constraints/common/sync.xdc
+    file_type: xdc
+
+  xdc-fpga-zcu102:
+    files:
+    - constraints/zcu102/pin_assign.xdc
+    - constraints/zcu102/constraints.xdc
+    - constraints/common/spi_slave.xdc
+    - constraints/common/jtag.xdc
+    - constraints/common/sync.xdc
+    file_type: xdc
+    
+  xdc-fpga-aup-zu3:
+    files:
+    - constraints/aup-zu3/pin_assign.xdc
+    - constraints/aup-zu3/constraints.xdc
+    - constraints/common/spi_slave.xdc
+    - constraints/common/jtag.xdc
+    - constraints/common/sync.xdc
+    file_type: xdc
+  
+  xdc-fpga-genesys2:
+    files:
+    - constraints/genesys2/pin_assign.xdc
+    - constraints/genesys2/constraints.xdc
+    - constraints/common/spi_slave.xdc
+    - constraints/common/jtag.xdc
+    - constraints/common/sync.xdc
+    file_type: xdc
+
+  tcl-fpga-ps-utils:
+    files:
+    - scripts/vivado/set_tcl_hooks.tcl
+    file_type: tclSource
+
+parameters:
+  PS_ENABLE:
+    datatype: bool
+    paramtype: vlogdefine
+
+targets:
+  default: &default_target
+    filesets:
+    - rtl-fpga
+    - ip-fpga
+    - target_pynq-z2 ? (ip-fpga-pynq-z2)
+    - target_pynq-z2 ? (xdc-fpga-pynq-z2)
+    - target_pynq-z2 ? (tcl-fpga-ps-utils)
+    - target_nexys-a7-100t ? (ip-fpga-nexys)
+    - target_nexys-a7-100t ? (xdc-fpga-nexys)
+    - target_zcu104 ? (ip-fpga-zcu104)
+    - target_zcu104 ? (xdc-fpga-zcu104)
+    - target_zcu102 ? (ip-fpga-zcu102)
+    - target_zcu102 ? (xdc-fpga-zcu102)
+    - target_aup-zu3 ? (xdc-fpga-aup-zu3)
+    - target_aup-zu3 ? (ip-fpga-aup-zu3)
+    - target_aup-zu3 ? (tcl-fpga-ps-utils)
+    - target_genesys2 ? (ip-fpga-genesys2)
+    - target_genesys2 ? (xdc-fpga-genesys2)
+
+    parameters:
+      - PS_ENABLE

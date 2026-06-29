@@ -14,9 +14,8 @@ filesets:
   files_rtl:
     depend:
       - pulp-platform.org::common_cells
+      - xheep:util:reg-generator
     files:
-      - rtl/pdm2pcm_reg_pkg.sv 
-      - rtl/pdm2pcm_reg_top.sv 
       - rtl/cic_combs.sv 
       - rtl/cic_comb.sv 
       - rtl/cic_integrators.sv 
@@ -30,7 +29,20 @@ filesets:
     
     file_type: systemVerilogSource
 
+generate:
+  pdm2pcm:
+    generator: regtool
+    parameters:
+      config:           data/pdm2pcm.hjson
+      name:             pdm2pcm
+      rtl_dir:          rtl
+      sw_path:          ../../../sw/device/lib/drivers/pdm2pcm/pdm2pcm_regs.h
+      doc_path:         ../../../sw/device/lib/drivers/pdm2pcm/pdm2pcm_regs.md
+      structs_sw_path:  ../../../sw/device/lib/drivers/pdm2pcm/pdm2pcm_structs.h
+
 targets:
   default:
     filesets:
     - files_rtl
+    generate:
+    - pdm2pcm

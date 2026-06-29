@@ -12,9 +12,8 @@ filesets:
     depend:
       - pulp-platform.org::common_cells
       - x-heep:ip:dma
+      - xheep:util:reg-generator
     files:
-    - rtl/im2col_spc_reg_pkg.sv
-    - rtl/im2col_spc_reg_top.sv
     - rtl/dma_if_pkg.sv
     - rtl/pipe_reg.sv
     - rtl/im2col_spc_regintfc_controller.sv
@@ -22,7 +21,25 @@ filesets:
     - rtl/im2col_spc.sv
     file_type: systemVerilogSource
 
+  verilator-waiver:
+    files:
+    - im2col_spc.vlt
+    file_type: vlt
+
+generate:
+  im2col_spc:
+    generator: regtool
+    parameters:
+      config:           data/im2col_spc.hjson
+      name:             im2col_spc
+      rtl_dir:          rtl
+      sw_path:          ../../../sw/device/lib/drivers/im2col_spc/im2col_spc_regs.h
+      doc_path:         ../../../sw/device/lib/drivers/im2col_spc/im2col_spc_regs.md
+
 targets:
   default:
     filesets:
     - files_rtl
+    - tool_verilator ? (verilator-waiver)
+    generate:
+    - im2col_spc

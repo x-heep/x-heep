@@ -13,16 +13,28 @@ filesets:
       - lowrisc:prim:all
       - pulp-platform.org::register_interface
       - pulp-platform.org::common_cells
-      - x-heep:ip:power_manager_pkg
+      - xheep:util:reg-generator
     files:
-    - rtl/power_manager_reg_top.sv
     - rtl/power_manager_counter_sequence.sv
     - rtl/power_manager_sequence.sv
     - rtl/power_manager.sv
     - rtl/reg_to_counter.sv
     file_type: systemVerilogSource
 
+generate:
+  power-manager:
+    generator: regtool
+    parameters:
+      config:           data/power_manager.hjson
+      name:             power_manager
+      rtl_dir:          rtl
+      sw_path:          ../../../sw/device/lib/drivers/power_manager/power_manager_regs.h
+      doc_path:         ../../../sw/device/lib/drivers/power_manager/power_manager_regs.md
+      structs_sw_path:  ../../../sw/device/lib/drivers/power_manager/power_manager_structs.h
+
 targets:
   default:
     filesets:
     - files_rtl
+    generate:
+    - power-manager

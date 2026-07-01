@@ -304,6 +304,14 @@ scripts:
     cmd:
     - sh
     - ../../../scripts/icesugar/generate_yosys_filelist.sh
+  add_simulation_parameters:
+    cmd:
+    - sh
+    - ../../../scripts/icesugar/add_simulation_parameters.sh
+  remove_simulation_parameters:
+    cmd:
+    - sh
+    - ../../../scripts/icesugar/remove_simulation_parameters.sh
 
   # Simulation utils
   remove_uart_log:
@@ -433,6 +441,7 @@ targets:
     hooks:
       pre_build:
         - change_sram_module
+        - add_simulation_parameters
         - tool_modelsim? (pre_build_uartdpi)
         - tool_modelsim? (pre_build_remote_bitbang)
         - tool_modelsim? (pre_patch_modelsim_Makefile) # this is required by Questa 2020 on
@@ -651,13 +660,14 @@ targets:
     - NO_DDR_CLK_PORTS=true
     hooks:        
       pre_build:
+        - remove_simulation_parameters
         - change_sram_module
         - generate_yosys_filelist
     tools:
       trellis:
         arch: ecp5
         output_format: json
-        yosys_template: "../../../scripts/yosys/edalize_yosys_template.tcl"
+        yosys_template: "../../../scripts/icesugar/edalize_yosys_template.tcl"
         nextpnr_options: ["--25k", "--package CABGA256", "--speed 6", "--lpf '../../../hw/fpga/xheep_fpga_support/board_files/icesugarpro/icesugar_pins.lpf'", "--freq 65"]
     toplevel: [fpga_core_v_mini_mcu_wrapper]
 

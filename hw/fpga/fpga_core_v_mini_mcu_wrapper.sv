@@ -270,8 +270,8 @@ module fpga_core_v_mini_mcu_wrapper
 `endif
 
   x_heep_system #(
-      .EXT_XBAR_NMASTER(8),  //TODO
-      .AO_SPC_NUM(1)  //TODO
+     //.EXT_XBAR_NMASTER(8),
+      //.AO_SPC_NUM(1)
   ) x_heep_system_i (
       .hart_id_i('0),
       .xheep_instance_id_i('0),

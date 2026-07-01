@@ -29,6 +29,7 @@ hw/core-v-mini-mcu/cpu_subsystem.sv
 hw/core-v-mini-mcu/memory_subsystem.sv
 hw/core-v-mini-mcu/peripheral_subsystem.sv
 hw/core-v-mini-mcu/spi_subsystem.sv
+hw/core-v-mini-mcu/core_v_mini_mcu.sv
 
 hw/system/x_heep_system.sv
 hw/system/pad_ring.sv

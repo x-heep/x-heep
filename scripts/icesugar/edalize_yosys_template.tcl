@@ -19,6 +19,11 @@ log "\n\n=-=-=-=-=-=-=-=-=-=-=-=-=-=>\t   Checkpoint 01\t<=-=-=-=-=-=-=-=-=-=-=-
 #  verilog_defines "-D$key=$val"
 #}}
 
+#verilog_defines -DSYNTHESIS
+#verilog_defines -DFPGA_SYNTHESIS
+#verilog_defines -DFPGA_ICESUGARPRO
+#verilog_defines -DNO_DDR_CLK_PORTS
+
 #proc set_incdirs {} {
 #verilog_defaults -add -I../../../hw/vendor/openhwgroup_cv32e20/vendor/lowrisc_ip/dv/sv/dv_utils -I../../../hw/vendor/lowrisc_opentitan/hw/ip/prim/rtl -I../../../hw/vendor/pulp_platform_common_cells/include -I../../../hw/vendor/pulp_platform_register_interface/include -I../../../hw/vendor/openhwgroup_cv32e20/rtl -I../../../hw/vendor/pulp_platform_axi/include -I../../../hw/vendor/xheep_dma/data -I../../../hw/vendor/pulp_platform_serial_link/src/axis/include}
 
@@ -57,7 +62,7 @@ synth_lattice -top $top -family ecp5
 #testing -noflatten to keep it from flattening
 
 
-set top lattice_core_v_mini_mcu_wrapper
+set top fpga_core_v_mini_mcu_wrapper
 set name openhwgroup.org_systems_core-v-mini-mcu_1.0.5
 
 
@@ -120,6 +125,10 @@ log "\n\n=-=-=-=-=-=-=-=-=-=-=-=-=-=>\t   Checkpoint 07\t<=-=-=-=-=-=-=-=-=-=-=-
 
 
 read_slang --top $top \
+	--define-macro SYNTHESIS=true \
+	--define-macro FPGA_SYNTHESIS=true \
+	--define-macro FPGA_ICESUGARPRO=true \
+	--define-macro NO_DDR_CLK_PORTS=true \
 	--error-limit=100 \
 	-Wno-implicit-port-type-mismatch \
 	-Wno-duplicate-definition \
@@ -128,7 +137,8 @@ read_slang --top $top \
 	-Wno-unconnected-port \
 	--keep-hierarchy \
 	--allow-use-before-declare \
-	-f "../../../scripts/yosys/files.flist"
+	-f "files.flist" 
+#	-f "../../../scripts/yosys/files.flist"
 
 # -libfile plutot que la ligne 71 ??????????????????????????????????????????????????????????????
 
@@ -194,4 +204,3 @@ write_json $name.json
 write_verilog $name.v
 
 log "\n\n=-=-=-=-=-=-=-=-=-=-=-=-=-=>\t   Checkpoint 10\t<=-=-=-=-=-=-=-=-=-=-=-=-=-=\n"
-

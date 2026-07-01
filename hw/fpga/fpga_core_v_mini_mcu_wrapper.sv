@@ -2,10 +2,9 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
-`define _WITH_BOOT_SELECT
-`define NO_DDR_CLK_PORTS
 
-module lattice_core_v_mini_mcu_wrapper
+
+module fpga_core_v_mini_mcu_wrapper
   import obi_pkg::*;
   import reg_pkg::*;
 #(
@@ -74,9 +73,7 @@ module lattice_core_v_mini_mcu_wrapper
 `endif
 
 `ifndef PS_ENABLE
-`ifdef _WITH_BOOT_SELECT
     inout logic boot_select_i,
-`endif
     inout logic execute_from_flash_i,
 
     inout logic jtag_tck_i,
@@ -127,16 +124,6 @@ module lattice_core_v_mini_mcu_wrapper
   logic [                      31:0] exit_value;
   wire                               rst_n;
   logic [CLK_LED_COUNT_LENGTH - 1:0] clk_count;
-  logic [                       4:0] clk_gen_count;
-  logic                              clk_gen_logic;
-
-
-  // defaults to jtag boot procedure // todo verify functionnality
-`ifndef _WITH_BOOT_SELECT
-  wire boot_select_i;
-  assign boot_select_i = '0;
-`endif
-
 
 `ifdef PS_ENABLE
   wire exit_valid;
@@ -168,12 +155,10 @@ module lattice_core_v_mini_mcu_wrapper
 `endif
 
   // reset LED for debugging
-  assign rst_led_o = ~rst_n;
+  assign rst_led_o = rst_n;
 
   // counter to blink an LED
   assign clk_led_o = clk_count[CLK_LED_COUNT_LENGTH-1];
-
-  assign clk_gen   = clk_gen_logic;
 
   always_ff @(posedge clk_i or negedge rst_n) begin : clk_count_process
     if (!rst_n) begin
@@ -182,24 +167,9 @@ module lattice_core_v_mini_mcu_wrapper
       clk_count <= clk_count + 1;
     end
   end
-  /*
-  always_ff @(posedge clk_i or negedge rst_n) begin : clk_wrapper
-    if (!rst_n) begin
-      clk_gen_count <= '0;
-      clk_gen_logic <= '0;
-    end else begin
-      if (clk_gen_count == 1) begin 
-         clk_gen_count <= '0 ;
-         clk_gen_logic <= ~clk_gen_logic;
-      end else begin
-        clk_gen_count <= clk_gen_count + 1;
-      end
-    end
-  end
-*/
+
   // eXtension Interface
   if_xif #() ext_if ();
-
 
 `ifdef FPGA_ZCU104
   xilinx_clk_wizard_wrapper xilinx_clk_wizard_wrapper_i (
@@ -228,23 +198,17 @@ module lattice_core_v_mini_mcu_wrapper
 `elsif FPGA_NEXYS
   xilinx_clk_wizard_wrapper xilinx_clk_wizard_wrapper_i (
       .clk_100MHz(clk_i),
-      .clk_out1_0(clk_i)
+      .clk_out1_0(clk_gen)
   );
-`else
-  //`elsif FPGA_ICESUGAR
-  ////////assign clk_gen = clk_i;
-
-  // `elsif FPGA_ICESUGAR does no seem to work  todo
-
-  //`else  // FPGA PYNQ-Z2
-  //  xilinx_clk_wizard_wrapper xilinx_clk_wizard_wrapper_i (
-  //      .clk_125MHz(clk_i),
-  //      .clk_out1_0(clk_gen)
-  //  );
-
-
+`elsif FPGA_ICESUGARPRO
+  //should be filled and replace the `ifdef FPGA_ICESUGARPRO for clk_i of x_heep_system_i.
+  //assign clk_gen = clk_i; // does not work, i could not figure out why. // TODO
+`else  // FPGA PYNQ-Z2
+  xilinx_clk_wizard_wrapper xilinx_clk_wizard_wrapper_i (
+      .clk_125MHz(clk_i),
+      .clk_out1_0(clk_gen)
+  );
 `endif
-
 
 `ifdef PS_ENABLE
 `ifdef FPGA_AUP_ZU3
@@ -305,13 +269,10 @@ module lattice_core_v_mini_mcu_wrapper
 `endif
 `endif
 
-  // uncomment when running the simulation
-
   x_heep_system #(
-      .EXT_XBAR_NMASTER(8),
-      .AO_SPC_NUM(1)
+      .EXT_XBAR_NMASTER(8),  //TODO
+      .AO_SPC_NUM(1)  //TODO
   ) x_heep_system_i (
-      //x_heep_system x_heep_system_i (
       .hart_id_i('0),
       .xheep_instance_id_i('0),
       .intr_vector_ext_i('0),
@@ -350,7 +311,11 @@ module lattice_core_v_mini_mcu_wrapper
       .external_ram_banks_set_retentive_no(),
       .external_subsystem_clkgate_en_no(),
       .exit_value_o(exit_value),
+`ifdef FPGA_ICESUGARPRO
       .clk_i(clk_i),
+`else
+      .clk_i(clk_gen),
+`endif
 `ifdef PS_ENABLE
       .rst_ni(ps_x_heep_o[0] & rst_n),
       .boot_select_i(ps_x_heep_o[1]),

@@ -27,7 +27,7 @@ filesets:
 
   ip-fpga-lattice:
     files:
-    - rtl/lattice/ssdp_wf_8192.sv
+    - rtl/lattice/ssdp_rf_8192.sv
     - rtl/lattice/prim_lattice_clk.sv
     - rtl/lattice/cve2_lattice_clock_gate.sv
     - rtl/lattice/cv32e40px_lattice_clock_gate.sv

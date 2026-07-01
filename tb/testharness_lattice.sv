@@ -247,8 +247,8 @@ module testharness_lattice #( //todo
   wire [1:0] gpio_24_23;
   assign gpio_24_23 = gpio[24:23];
   
-// X-HEEP wrapper for lattice fpga
-  lattice_core_v_mini_mcu_wrapper lattice_core_v_mini_mcu_wrapper_i (
+// X-HEEP wrapper for fpga
+  fpga_core_v_mini_mcu_wrapper fpga_core_v_mini_mcu_wrapper_i (
 	.clk_i(clk),
 	.rst_i(rst_i),
 	.rst_led_o(rst_led_o),

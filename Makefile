@@ -326,7 +326,7 @@ vivado-fpga-remote-pgm:
 
 ## @section Trellis
 
-## Builds (synthesis and implementation) the bitstream for the FPGA version using Trellis (Yosys + NextPnR)
+## Builds (synthesis and implementation) the bitstream for the icesugar lattice FPGA version using Trellis (Yosys + nextpnr)
 lattice-fpga:
 	$(FUSESOC) --cores-root . run --no-export --target=icesugar $(FUSESOC_FLAGS) --build openhwgroup.org:systems:core-v-mini-mcu $(FUSESOC_PARAM) 2>&1 | tee buildlattice.log
 
@@ -336,7 +336,7 @@ lattice-prog:
 
 ##
 lattice-load-sw:
-	openocd -f scripts/yosys/icesugarpro_xheep.cfg -c "init; scan_chain; load_image sw/build/main.elf;"
+	openocd -f scripts/icesugar/icesugarpro_xheep.cfg -c "init; scan_chain; load_image sw/build/main.elf;"
 
 
 ## @section ASIC

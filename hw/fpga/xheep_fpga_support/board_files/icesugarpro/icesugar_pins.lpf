@@ -1,0 +1,178 @@
+BLOCK RESETPATHS;
+BLOCK ASYNCPATHS;
+//BLOCK INTERCLOCKDOMAIN PATHS;
+//BLOCK JTAGPATHS ;
+//BLOCK PATH FROM CLKNET "jtag_tck_i" TO CLKNET "*";
+// the above commands are unrecognized
+
+
+// Specific pins
+FREQUENCY PORT "clk_i" 25.0 MHz;
+LOCATE COMP "clk_i" SITE "P6";
+IOBUF PORT "clk_i" IO_TYPE=LVCMOS33;
+LOCATE COMP "rst_i" SITE "L14";
+IOBUF PORT "rst_i" IO_TYPE=LVCMOS33;
+
+// Specific pins
+//B11 red, A11 green, A12 blue
+LOCATE COMP "clk_led_o" SITE "A11";
+IOBUF PORT "clk_led_o" IO_TYPE=LVCMOS33;
+LOCATE COMP "rst_led_o" SITE "B11";
+IOBUF PORT "rst_led_o" IO_TYPE=LVCMOS33;
+
+// other pins // boot select commented to boot with jtag (set to 0 in code)
+LOCATE COMP "boot_select_i" SITE "T6";
+IOBUF PORT "boot_select_i" IO_TYPE=LVCMOS33;
+IOBUF PORT "boot_select_i" PULLMODE=DOWN;
+//internally pulls to gnd => logic 0 /////////// TODO
+LOCATE COMP "execute_from_flash_i" SITE "P7";
+IOBUF PORT "execute_from_flash_i" IO_TYPE=LVCMOS33;
+
+//         [JTAG-1]
+//         TCK:  iCELink-PB6  -- ECP5-JTAG-TCK (25F-BG256-T10)
+//         TMS:  iCELink-PB4  -- ECP5-JTAG-TMS (25F-BG256-T11)
+//         TDI:  iCELink-PB5  -- ECP5-JTAG-TDI (25F-BG256-R11)
+//         TDO:  iCELink-PB3  -- ECP5-JTAG-TDO (25F-BG256-M10)
+//         [JTAG-2]
+//         TCK:  iCELink-PA14 -- ECP5-IO-PL8D  (25F-BG256-F5)
+//         TMS:  iCELink-PA13 -- ECP5-IO-PL17A (25F-BG256-H5)
+//         TDI:  iCELink-PA0  -- ECP5-IO-PL38A (25F-BG256-N4)
+//         TDO:  iCELink-PA1  -- ECP5-IO-PL17D (25F-BG256-J5)
+
+// Specific pins (except trst)
+FREQUENCY PORT "jtag_tck_i" 10 MHz;
+LOCATE COMP "jtag_tck_i" SITE "F5";
+IOBUF PORT "jtag_tck_i" IO_TYPE=LVCMOS33;
+LOCATE COMP "jtag_tms_i" SITE "H5";
+IOBUF PORT "jtag_tms_i" IO_TYPE=LVCMOS33;
+LOCATE COMP "jtag_trst_ni" SITE "R4";
+IOBUF PORT "jtag_trst_ni" IO_TYPE=LVCMOS33;
+// SET TO PULLMODE=UP to pass scan-chain //////////
+IOBUF PORT "jtag_trst_ni" PULLMODE=UP;
+//IOBUF PORT "jtag_trst_ni" DRIVE=12; /////////////
+LOCATE COMP "jtag_tdi_i" SITE "N4";
+IOBUF PORT "jtag_tdi_i" IO_TYPE=LVCMOS33;
+LOCATE COMP "jtag_tdo_o" SITE "J5";
+IOBUF PORT "jtag_tdo_o" IO_TYPE=LVCMOS33;
+
+// Specific pins // normally tx=B9 and rx=A9 //// test G14 G13
+LOCATE COMP "uart_tx_o" SITE "B9";
+IOBUF PORT "uart_tx_o" IO_TYPE=LVCMOS33;
+LOCATE COMP "uart_rx_i" SITE "A9";
+IOBUF PORT "uart_rx_i" IO_TYPE=LVCMOS33;
+
+// other pins
+LOCATE COMP "gpio_io[0]" SITE "A12"; // R2 before A12, for testing
+IOBUF PORT "gpio_io[0]" IO_TYPE=LVCMOS33;
+LOCATE COMP "gpio_io[1]" SITE "T2";
+IOBUF PORT "gpio_io[1]" IO_TYPE=LVCMOS33;
+LOCATE COMP "gpio_io[2]" SITE "P2";
+IOBUF PORT "gpio_io[2]" IO_TYPE=LVCMOS33;
+LOCATE COMP "gpio_io[3]" SITE "R1";
+IOBUF PORT "gpio_io[3]" IO_TYPE=LVCMOS33;
+LOCATE COMP "gpio_io[4]" SITE "N3";
+IOBUF PORT "gpio_io[4]" IO_TYPE=LVCMOS33;
+LOCATE COMP "gpio_io[5]" SITE "P1";
+IOBUF PORT "gpio_io[5]" IO_TYPE=LVCMOS33;
+LOCATE COMP "gpio_io[6]" SITE "M3";
+IOBUF PORT "gpio_io[6]" IO_TYPE=LVCMOS33;
+LOCATE COMP "gpio_io[7]" SITE "N1";
+IOBUF PORT "gpio_io[7]" IO_TYPE=LVCMOS33;
+LOCATE COMP "gpio_io[8]" SITE "L2";
+IOBUF PORT "gpio_io[8]" IO_TYPE=LVCMOS33;
+LOCATE COMP "gpio_io[9]" SITE "M1";
+IOBUF PORT "gpio_io[9]" IO_TYPE=LVCMOS33;
+LOCATE COMP "gpio_io[10]" SITE "G2";
+IOBUF PORT "gpio_io[10]" IO_TYPE=LVCMOS33;
+LOCATE COMP "gpio_io[11]" SITE "K1";
+IOBUF PORT "gpio_io[11]" IO_TYPE=LVCMOS33;
+LOCATE COMP "gpio_io[12]" SITE "E1";
+IOBUF PORT "gpio_io[12]" IO_TYPE=LVCMOS33;
+LOCATE COMP "gpio_io[13]" SITE "F2";
+IOBUF PORT "gpio_io[13]" IO_TYPE=LVCMOS33;
+
+
+
+// other pins
+LOCATE COMP "exit_value_o" SITE "C2";
+IOBUF PORT "exit_value_o" IO_TYPE=LVCMOS33;
+LOCATE COMP "exit_valid_o" SITE "D1";
+IOBUF PORT "exit_valid_o" IO_TYPE=LVCMOS33;
+
+
+// other pins
+LOCATE COMP "spi_flash_sd_io[0]" SITE "B2";
+IOBUF PORT "spi_flash_sd_io[0]" IO_TYPE=LVCMOS33;
+LOCATE COMP "spi_flash_sd_io[1]" SITE "C1";
+IOBUF PORT "spi_flash_sd_io[1]" IO_TYPE=LVCMOS33;
+LOCATE COMP "spi_flash_sd_io[2]" SITE "A2";
+IOBUF PORT "spi_flash_sd_io[2]" IO_TYPE=LVCMOS33;
+LOCATE COMP "spi_flash_sd_io[3]" SITE "B1";
+IOBUF PORT "spi_flash_sd_io[3]" IO_TYPE=LVCMOS33;
+LOCATE COMP "spi_flash_csb_o" SITE "A3";
+IOBUF PORT "spi_flash_csb_o" IO_TYPE=LVCMOS33;
+LOCATE COMP "spi_flash_sck_o" SITE "B3";
+IOBUF PORT "spi_flash_sck_o" IO_TYPE=LVCMOS33;
+
+// other pins
+LOCATE COMP "spi_sd_io[0]" SITE "A4";
+IOBUF PORT "spi_sd_io[0]" IO_TYPE=LVCMOS33;
+LOCATE COMP "spi_sd_io[1]" SITE "B4";
+IOBUF PORT "spi_sd_io[1]" IO_TYPE=LVCMOS33;
+LOCATE COMP "spi_sd_io[2]" SITE "A5";
+IOBUF PORT "spi_sd_io[2]" IO_TYPE=LVCMOS33;
+LOCATE COMP "spi_sd_io[3]" SITE "B5";
+IOBUF PORT "spi_sd_io[3]" IO_TYPE=LVCMOS33;
+LOCATE COMP "spi_csb_o" SITE "A6";
+IOBUF PORT "spi_csb_o" IO_TYPE=LVCMOS33;
+LOCATE COMP "spi_sck_o" SITE "B6";
+IOBUF PORT "spi_sck_o" IO_TYPE=LVCMOS33;
+
+// other pins
+//FREQUENCY PORT "spi_slave_sck_io" 62.5 MHz;
+LOCATE COMP "spi_slave_sck_io" SITE "A7";
+IOBUF PORT "spi_slave_sck_io" IO_TYPE=LVCMOS33;
+LOCATE COMP "spi_slave_cs_io" SITE "B7";
+IOBUF PORT "spi_slave_cs_io" IO_TYPE=LVCMOS33;
+LOCATE COMP "spi_slave_mosi_io" SITE "A8";
+IOBUF PORT "spi_slave_mosi_io" IO_TYPE=LVCMOS33;
+LOCATE COMP "spi_slave_miso_io" SITE "B8";
+IOBUF PORT "spi_slave_miso_io" IO_TYPE=LVCMOS33;
+
+// other pins
+LOCATE COMP "spi2_sd_io[0]" SITE "P11";
+IOBUF PORT "spi2_sd_io[0]" IO_TYPE=LVCMOS33;
+LOCATE COMP "spi2_sd_io[1]" SITE "P12";
+IOBUF PORT "spi2_sd_io[1]" IO_TYPE=LVCMOS33;
+LOCATE COMP "spi2_sd_io[2]" SITE "N12";
+IOBUF PORT "spi2_sd_io[2]" IO_TYPE=LVCMOS33;
+LOCATE COMP "spi2_sd_io[3]" SITE "P13";
+IOBUF PORT "spi2_sd_io[3]" IO_TYPE=LVCMOS33;
+LOCATE COMP "spi2_csb_o[0]" SITE "N13";
+IOBUF PORT "spi2_csb_o[0]" IO_TYPE=LVCMOS33;
+LOCATE COMP "spi2_csb_o[1]" SITE "P14";
+IOBUF PORT "spi2_csb_o[1]" IO_TYPE=LVCMOS33;
+LOCATE COMP "spi2_sck_o" SITE "M12";
+IOBUF PORT "spi2_sck_o" IO_TYPE=LVCMOS33;
+
+// other pins  ============================ L15 -> H14 ???
+LOCATE COMP "i2c_scl_io" SITE "M13";
+IOBUF PORT "i2c_scl_io" IO_TYPE=LVCMOS33;
+LOCATE COMP "i2c_sda_io" SITE "H14";
+IOBUF PORT "i2c_sda_io" IO_TYPE=LVCMOS33;
+
+// other pins
+LOCATE COMP "pdm2pcm_clk_io" SITE "L13";
+IOBUF PORT "pdm2pcm_clk_io" IO_TYPE=LVCMOS33;
+LOCATE COMP "pdm2pcm_pdm_io" SITE "K14";
+IOBUF PORT "pdm2pcm_pdm_io" IO_TYPE=LVCMOS33;
+
+// other pins
+LOCATE COMP "i2s_sck_io" SITE "K13";
+IOBUF PORT "i2s_sck_io" IO_TYPE=LVCMOS33;
+LOCATE COMP "i2s_ws_io" SITE "J14";
+IOBUF PORT "i2s_ws_io" IO_TYPE=LVCMOS33;
+LOCATE COMP "i2s_sd_io" SITE "J13";
+IOBUF PORT "i2s_sd_io" IO_TYPE=LVCMOS33;
+
+

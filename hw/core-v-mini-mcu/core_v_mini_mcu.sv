@@ -330,12 +330,12 @@ module core_v_mini_mcu
   obi_resp_t core_data_resp;
   obi_req_t debug_master_req;
   obi_resp_t debug_master_resp;
-  obi_req_t [1:0] dma_read_req;
-  obi_resp_t [1:0] dma_read_resp;
-  obi_req_t [1:0] dma_write_req;
-  obi_resp_t [1:0] dma_write_resp;
-  obi_req_t [1:0] dma_addr_req;
-  obi_resp_t [1:0] dma_addr_resp;
+  obi_req_t [0:0] dma_read_req;
+  obi_resp_t [0:0] dma_read_resp;
+  obi_req_t [0:0] dma_write_req;
+  obi_resp_t [0:0] dma_write_resp;
+  obi_req_t [0:0] dma_addr_req;
+  obi_resp_t [0:0] dma_addr_resp;
 
   // ram signals
   obi_req_t [core_v_mini_mcu_pkg::NUM_BANKS-1:0] ram_slave_req;
@@ -424,12 +424,6 @@ module core_v_mini_mcu
   assign memory_subsystem_banks_powergate_iso_n[0] = memory_subsystem_pwr_ctrl_out[0].isogate_en_n;
   assign memory_subsystem_banks_set_retentive_n[0] = memory_subsystem_pwr_ctrl_out[0].retentive_en_n;
   assign memory_subsystem_clkgate_en_n[0] = memory_subsystem_pwr_ctrl_out[0].clkgate_en_n;
-  assign memory_subsystem_banks_powergate_switch_n[1] = memory_subsystem_pwr_ctrl_out[1].pwrgate_en_n;
-  assign memory_subsystem_pwr_ctrl_in[1].pwrgate_ack_n = memory_subsystem_banks_powergate_switch_ack_n[1];
-  //isogate exposed outside for UPF sim flow and switch cells
-  assign memory_subsystem_banks_powergate_iso_n[1] = memory_subsystem_pwr_ctrl_out[1].isogate_en_n;
-  assign memory_subsystem_banks_set_retentive_n[1] = memory_subsystem_pwr_ctrl_out[1].retentive_en_n;
-  assign memory_subsystem_clkgate_en_n[1] = memory_subsystem_pwr_ctrl_out[1].clkgate_en_n;
 
   for (genvar i = 0; i < EXT_DOMAINS_RND; i = i + 1) begin : gen_external_subsystem_pwr_gating
     assign external_subsystem_powergate_switch_no[i]        = external_subsystem_pwr_ctrl_out[i].pwrgate_en_n;
@@ -505,7 +499,7 @@ module core_v_mini_mcu
   debug_subsystem #(
       .NRHARTS    (NRHARTS),
       .JTAG_IDCODE(JTAG_IDCODE),
-      .SPI_SLAVE  (1)
+      .SPI_SLAVE  (0)
   ) debug_subsystem_i (
       .clk_i,
       .rst_ni,

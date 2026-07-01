@@ -65,6 +65,7 @@ hw/fpga/xheep_fpga_support/constraints/pynq-z2/constraints.xdc
 hw/fpga/xheep_fpga_support/constraints/pynq-z2/pin_assign.xdc
 
 hw/vendor/xheep/spi/rtl/spi_subsystem.sv
+hw/vendor/xheep/dma/data/xheep_dma.hjson
 
 # Automatically generated C header files, linker scripts, and assembly files
 sw/device/lib/crt/crt0.S

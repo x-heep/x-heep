@@ -1,6 +1,6 @@
 #!/bin/bash
 # This script change the fpga wrapper for simulation after it was use for fpga implementation
-# It effectively uncomment two parameters given to the x_heep_system instance
+# It effectively uncomment two parameters given to the x_heep_system instance in case they were commented.
 
 pushd ../../../hw/fpga/
 

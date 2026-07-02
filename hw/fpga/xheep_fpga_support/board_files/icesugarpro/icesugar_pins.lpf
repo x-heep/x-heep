@@ -1,10 +1,5 @@
 BLOCK RESETPATHS;
 BLOCK ASYNCPATHS;
-//BLOCK INTERCLOCKDOMAIN PATHS;
-//BLOCK JTAGPATHS ;
-//BLOCK PATH FROM CLKNET "jtag_tck_i" TO CLKNET "*";
-// the above commands are unrecognized
-
 
 // Specific pins
 FREQUENCY PORT "clk_i" 25.0 MHz;
@@ -14,20 +9,22 @@ LOCATE COMP "rst_i" SITE "L14";
 IOBUF PORT "rst_i" IO_TYPE=LVCMOS33;
 
 // Specific pins
-//B11 red, A11 green, A12 blue
+// B11 red, A11 green, A12 blue
 LOCATE COMP "clk_led_o" SITE "A11";
 IOBUF PORT "clk_led_o" IO_TYPE=LVCMOS33;
 LOCATE COMP "rst_led_o" SITE "B11";
 IOBUF PORT "rst_led_o" IO_TYPE=LVCMOS33;
 
-// other pins // boot select commented to boot with jtag (set to 0 in code)
+// other pins
 LOCATE COMP "boot_select_i" SITE "T6";
 IOBUF PORT "boot_select_i" IO_TYPE=LVCMOS33;
 IOBUF PORT "boot_select_i" PULLMODE=DOWN;
-//internally pulls to gnd => logic 0 /////////// TODO
+//internally pulls to gnd => logic 0, to ensure correct boot method
 LOCATE COMP "execute_from_flash_i" SITE "P7";
 IOBUF PORT "execute_from_flash_i" IO_TYPE=LVCMOS33;
 
+// Pins definition for iCELink / iCESugar-pro JTAG 
+// JTAG-1 is used for programming the FPGA. Our design can use JTAG-2.
 //         [JTAG-1]
 //         TCK:  iCELink-PB6  -- ECP5-JTAG-TCK (25F-BG256-T10)
 //         TMS:  iCELink-PB4  -- ECP5-JTAG-TMS (25F-BG256-T11)
@@ -47,22 +44,21 @@ LOCATE COMP "jtag_tms_i" SITE "H5";
 IOBUF PORT "jtag_tms_i" IO_TYPE=LVCMOS33;
 LOCATE COMP "jtag_trst_ni" SITE "R4";
 IOBUF PORT "jtag_trst_ni" IO_TYPE=LVCMOS33;
-// SET TO PULLMODE=UP to pass scan-chain //////////
+// SET TO PULLMODE=UP to pass scan-chain
 IOBUF PORT "jtag_trst_ni" PULLMODE=UP;
-//IOBUF PORT "jtag_trst_ni" DRIVE=12; /////////////
 LOCATE COMP "jtag_tdi_i" SITE "N4";
 IOBUF PORT "jtag_tdi_i" IO_TYPE=LVCMOS33;
 LOCATE COMP "jtag_tdo_o" SITE "J5";
 IOBUF PORT "jtag_tdo_o" IO_TYPE=LVCMOS33;
 
-// Specific pins // normally tx=B9 and rx=A9 //// test G14 G13
+// Specific pins
 LOCATE COMP "uart_tx_o" SITE "B9";
 IOBUF PORT "uart_tx_o" IO_TYPE=LVCMOS33;
 LOCATE COMP "uart_rx_i" SITE "A9";
 IOBUF PORT "uart_rx_i" IO_TYPE=LVCMOS33;
 
 // other pins
-LOCATE COMP "gpio_io[0]" SITE "A12"; // R2 before A12, for testing
+LOCATE COMP "gpio_io[0]" SITE "R2";
 IOBUF PORT "gpio_io[0]" IO_TYPE=LVCMOS33;
 LOCATE COMP "gpio_io[1]" SITE "T2";
 IOBUF PORT "gpio_io[1]" IO_TYPE=LVCMOS33;
@@ -92,13 +88,11 @@ LOCATE COMP "gpio_io[13]" SITE "F2";
 IOBUF PORT "gpio_io[13]" IO_TYPE=LVCMOS33;
 
 
-
 // other pins
 LOCATE COMP "exit_value_o" SITE "C2";
 IOBUF PORT "exit_value_o" IO_TYPE=LVCMOS33;
 LOCATE COMP "exit_valid_o" SITE "D1";
 IOBUF PORT "exit_valid_o" IO_TYPE=LVCMOS33;
-
 
 // other pins
 LOCATE COMP "spi_flash_sd_io[0]" SITE "B2";
@@ -155,7 +149,7 @@ IOBUF PORT "spi2_csb_o[1]" IO_TYPE=LVCMOS33;
 LOCATE COMP "spi2_sck_o" SITE "M12";
 IOBUF PORT "spi2_sck_o" IO_TYPE=LVCMOS33;
 
-// other pins  ============================ L15 -> H14 ???
+// other pins
 LOCATE COMP "i2c_scl_io" SITE "M13";
 IOBUF PORT "i2c_scl_io" IO_TYPE=LVCMOS33;
 LOCATE COMP "i2c_sda_io" SITE "H14";

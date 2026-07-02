@@ -1,7 +1,8 @@
 #!/bin/bash
 # This script creates a file list, from edalize_yosys_procs.tcl, that can be processed by Slang plugin in Yosys.
 # This is done from edalize_yosys_procs.tcl as core-deps.mk also includes non SV files (.core, .py)
-# Leonardo Vega
+# If edalize change how the file is created, this script would need to be adapted.
+# TODO : modify edalize to directly generate the correct file when using Yosys/Trellis.
 
 # First create a list of include folders
 sed '/proc set_incdirs {} {/,/proc set_params {} {/!d' edalize_yosys_procs.tcl > includes.txt

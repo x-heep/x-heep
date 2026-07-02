@@ -7,6 +7,49 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 0.39.10 - 2026-06-19
+
+### Added
+- Add core file entries required for the FuseSoC package database. #404
+- `axi_demux_id_counters`: Separate into its own module and add port. #406
+- Add `DECL` macros to be used in the parameter port list. #413
+- Add GitHub Action for Verilator lint and yosys-slang elaboration. #414
+
+### Fixed
+- Use XSIM define to remove all default disable blocks under `src`. #391
+- `axi_fifo_delay_dyn`: Correct FF macro termination. #403
+- `axi_lite_mailbox`: Fix `wstrb` AXI violation. #412
+- treewide: Fix various lint issues. #416
+- `tb_axi_xbar`: Fix queue format specifier. #417
+- `axi_to_detailed_mem_intf`: Fix user/id width. #418
+- `axi_sim_mem`, `tb_axi_xbar`: Fix elaboration issues surfaced by Verilator/yosys-slang. #414
+
+### Changed
+- `axi_xbar_unmuxed`: Exclude multidimensional interface code from Genus targets. #405
+- `axi_xbar`: Remove redundant assertions. #407
+- `axi_id_remap`: Enable non-atop writes when reads are stalled and vice versa #409
+- Replace memora with GitLab-native artifacts and rules in CI. #424
+
+
+## 0.39.9 - 2025-11-21
+
+### Added
+- `assign`: Add assignment to flat axi ports. #392
+- Add `axi_inval_filter`. #386
+
+### Fixed
+- `axi_to_detailed_mem`: Avoid spurious write responses with HideStrb. #383
+- `axi_dw_downsizer`: Fix linting warnings. #385
+- `axi_burst_unwrap`: Remove overly pessimistic assertion. #387
+- `axi_burst_splitter_gran`: Ensure IP has stable `w.last`. #393
+- `axi_fifo_delay_dyn_intf`: Use DELAY_WIDTH for delay ports. #395
+- `axi_to_mem`: Fix strb inputs to dead_response_fifo. #389
+- `axi_id_prepend`: Fix implicit conversion linter warning. #397
+
+### Changed
+- `axi_burst_unwrap`: Only invalidate WRAP bursts if they are unmodifiable. #382
+
+
 ## 0.39.8 - 2025-06-24
 ### Added
 - Add a non-synthesizable IP to delay each channel of an AXI bus individually. #380
@@ -18,7 +61,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - `axi_lite_to_apb`: Various fixes. #375
 - `axi_to_mem`: Fix edge cases. #376
 -  Various lint fixes. #374
-`
+
 ### Changed
 - `axi_sim_mem`: Propagate user field on B and R channels. #373
 - Switched to VSIM version 2025.1 in CI. #378

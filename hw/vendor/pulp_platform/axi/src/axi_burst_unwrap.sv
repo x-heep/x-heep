@@ -101,9 +101,9 @@ module axi_burst_unwrap #(
     // ATOPs are not supported.
     if (atop != '0) return 1'b0;
     // The AXI Spec (A3.4.1) only allows splitting non-modifiable transactions ..
-    if (!axi_pkg::modifiable(cache)) begin
-      // .. if they are INCR bursts and longer than 16 beats.
-      return (burst == axi_pkg::BURST_INCR) & (len > 16);
+    // ... but this module only splits WRAP bursts, so ignore all others
+    if (!axi_pkg::modifiable(cache) && (burst == axi_pkg::BURST_WRAP)) begin
+      return 1'b0;
     end
     // All other transactions are supported.
     return 1'b1;
@@ -364,6 +364,7 @@ module axi_burst_unwrap #(
   // Assumptions and assertions
   // --------------------------------------------------
   `ifndef VERILATOR
+  `ifndef XSIM
   // pragma translate_off
   default disable iff (!rst_ni);
   // Inputs
@@ -378,6 +379,7 @@ module axi_burst_unwrap #(
     ) else $fatal(1, "Unsupported ATOP that gives rise to a R response received,\
                       cannot respond in protocol-compliant manner!");
   // pragma translate_on
+  `endif
   `endif
 
 endmodule
@@ -614,7 +616,9 @@ module axi_burst_counters #(
     .oup_req_i        ( cnt_req_i     ),
     .oup_data_o       ( cnt_r_idx     ),
     .oup_data_valid_o ( idq_oup_valid ),
-    .oup_gnt_o        ( idq_oup_gnt   )
+    .oup_gnt_o        ( idq_oup_gnt   ),
+    .full_o           (/* keep open */),
+    .empty_o          (/* keep open */)
   );
   assign idq_inp_req = alloc_req_i & alloc_gnt_o;
   assign alloc_gnt_o = idq_inp_gnt & |(cnt_free);
@@ -646,12 +650,5 @@ module axi_burst_counters #(
 
   // registers
   `FFARN(err_q, err_d, '0, clk_i, rst_ni)
-
-  `ifndef VERILATOR
-  // pragma translate_off
-  assume property (@(posedge clk_i) idq_oup_gnt |-> idq_oup_valid)
-    else $warning("Invalid output at ID queue, read not granted!");
-  // pragma translate_on
-  `endif
 
 endmodule

@@ -1,0 +1,26 @@
+CAPI=2:
+
+# Copyright 2022 OpenHW Group
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+name: "technology::prim_ihp-sg13g2"
+description: "IHP-SG13G2 primitive wrappers"
+filesets:
+  files_rtl:
+    files:
+      - rtl/prim_ihp-sg13g2_clk.sv
+      - rtl/sram_wrapper_ihp-sg13g2.sv
+    file_type: systemVerilogSource
+  #files_postlayout_sim:
+  #  files:
+  #    - rtl/mymemory.v #add here your tech-sram verilog model for post-layout sim
+  #  file_type: VerilogSource
+
+
+targets:
+  default:
+    filesets:
+      - target_asic_synthesis ? (files_rtl)
+      - target_asic_librelane ? (files_rtl)
+    #  - target_sim_postlayout ? (files_postlayout_sim)

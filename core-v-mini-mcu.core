@@ -118,6 +118,10 @@ filesets:
     files:
       - hw/asic/sky130/sky130_sram_4kbyte_1rw_32x1024_8_TT_1p8V_25C.lib : { copyto: lib/sky130_sram_4kbyte_1rw_32x1024_8_TT_1p8V_25C.lib }
 
+  rtl-ihp-sg13g2:
+    depend:
+    - technology::prim_ihp-sg13g2
+
   # Scripts for hooks
   post_build_modelsim_scripts:
     files:
@@ -585,3 +589,12 @@ targets:
       openroad:
         flow_path: flow/OpenROAD-flow-scripts/flow
         make_target: synth
+
+  asic_librelane:
+    <<: *default_target
+    default_tool: openlane
+    description: Librelane files generation
+    parameters:
+    filesets_append:
+      - x_heep_system
+      - rtl-ihp-sg13g2

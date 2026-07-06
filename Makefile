@@ -328,6 +328,9 @@ openroad-sky130:
 	$(FUSESOC) --verbose --cores-root $(FUSESOC_CORES_ROOT) run --target=asic_yosys_synthesis --flag=use_sky130 openhwgroup.org:systems:core-v-mini-mcu $(FUSESOC_PARAM) 2>&1 | tee buildopenroad.log
 	git checkout hw/vendor/pulp_platform/common_cells/*
 
+librelane:
+	$(FUSESOC) --verbose --cores-root $(FUSESOC_CORES_ROOT) run --target=asic_librelane --setup openhwgroup.org:systems:core-v-mini-mcu $(FUSESOC_PARAM) 2>&1 | tee buildlibrelane.log
+
 ## @section Program, Execute, and Debug w/ EPFL_Programmer
 
 ## Read the id from the EPFL_Programmer flash

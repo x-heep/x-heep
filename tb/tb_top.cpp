@@ -30,6 +30,8 @@ int main (int argc, char * argv[])
   vluint64_t max_sim_time;
   unsigned int boot_sel, exit_val;
   bool use_openocd;
+  bool execute_from_flash;
+  bool direct_rom_boot;
   bool run_all = false;
 
   Verilated::commandArgs(argc, argv);
@@ -47,15 +49,29 @@ int main (int argc, char * argv[])
 
   use_openocd = cmd_lines_options->get_use_openocd();
   firmware = cmd_lines_options->get_firmware();
+  boot_sel = cmd_lines_options->get_boot_sel();
+  execute_from_flash = cmd_lines_options->get_execute_from_flash();
 
-  if(firmware.empty() && use_openocd==false){
-      std::cout<<"You must specify the firmware if you are not using OpenOCD"<<std::endl;
-      exit(EXIT_FAILURE);
+  // boot_sel=0, execute_from_flash=1 → direct ROM boot:
+  // the application is baked into boot_rom.sv; no firmware file is needed.
+  direct_rom_boot = (boot_sel == 0) && execute_from_flash;
+
+  if(direct_rom_boot) {
+    std::cout<<"[TESTBENCH]: Direct ROM boot — application is in boot_rom.sv"<<std::endl;
+  } else if(boot_sel == 0) {
+    std::cout<<"[TESTBENCH]: JTAG boot"<<std::endl;
+  } else if(execute_from_flash) {
+    std::cout<<"[TESTBENCH]: Flash XiP boot"<<std::endl;
+  } else {
+    std::cout<<"[TESTBENCH]: Flash load boot"<<std::endl;
+  }
+
+  if(firmware.empty() && use_openocd==false && !direct_rom_boot){
+    std::cout<<"You must specify the firmware if you are not using OpenOCD or direct ROM boot"<<std::endl;
+    exit(EXIT_FAILURE);
   }
 
   max_sim_time = cmd_lines_options->get_max_sim_time(run_all);
-
-  boot_sel     = cmd_lines_options->get_boot_sel();
 
   svSetScope(svGetScopeFromName("TOP.testharness"));
   svScope scope = svGetScope();
@@ -70,7 +86,7 @@ int main (int argc, char * argv[])
   dut->jtag_tms_i           = 0;
   dut->jtag_trst_ni         = 0;
   dut->jtag_tdi_i           = 0;
-  dut->execute_from_flash_i = 0;
+  dut->execute_from_flash_i = execute_from_flash ? 1 : 0;
 
   dut->eval();
   m_trace->dump(sim_time);
@@ -87,14 +103,15 @@ int main (int argc, char * argv[])
   runCycles(40, dut, m_trace);
   std::cout<<"Reset Released"<< std::endl;
 
-  dut->load_flash_hex(firmware.c_str());
-
-  if(boot_sel != 1) {
-    //Booting from JTAG or loading the memory from the testbench
+  if(direct_rom_boot) {
+    std::cout<<"X-HEEP direct ROM boot — waiting for exit_valid..."<< std::endl;
+  } else if(boot_sel == 1) {
+    dut->load_flash_hex(firmware.c_str());
+    std::cout<<"X-HEEP is loading from FLASH..."<< std::endl;
+  } else {
     if(use_openocd==false) {
       dut->tb_loadHEX(firmware.c_str());
       runCycles(1, dut, m_trace);
-      //you need to exit from the bootrom loop if not using OpenOCD
       dut->tb_set_exit_loop();
       std::cout<<"Set Exit Loop"<< std::endl;
       runCycles(1, dut, m_trace);
@@ -102,8 +119,6 @@ int main (int argc, char * argv[])
     } else {
       std::cout<<"Waiting for GDB"<< std::endl;
     }
-  } else {
-      std::cout<<"X-HEEP is loading from FLASH..."<< std::endl;
   }
 
 

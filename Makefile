@@ -156,7 +156,8 @@ conda:
 mcu-gen:
 	$(PYTHON) util/xheep_gen/mcu_gen.py --config $(X_HEEP_CFG) --python_config $(PYTHON_X_HEEP_CFG) --pads_cfg $(PADS_CFG) --outtpl "$(MCU_GEN_TEMPLATES)" --externaltpl "$(EXTERNAL_MCU_GEN_TEMPLATES)" --cpu $(CPU) --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL)
 
-	@echo "### MCU-GEN completed! Running FuseSoC register generators..."	
+	@echo "### MCU-GEN completed! Running FuseSoC register generators..."
+	rm -f hw/ip/boot_rom/.direct_rom
 	$(FUSESOC) --cores-root $(FUSESOC_CORES_ROOT) run --target=sim --tool=verilator $(FUSESOC_FLAGS) --setup openhwgroup.org:systems:core-v-mini-mcu
 
 	$(MAKE) verible
@@ -204,6 +205,12 @@ app: clean-app
 		--elf $(mkfile_path)/sw/build/main.elf \
 		--ld $(mkfile_path)/sw/build/main.ld \
 		--mcu-pkg $(mkfile_path)/hw/core-v-mini-mcu/include/core_v_mini_mcu_pkg.sv
+
+## Build a direct-ROM application and regenerate boot_rom.sv with it baked in
+app-execute-from-rom:
+	$(MAKE) app LINKER=direct_rom
+	$(MAKE) -C hw/ip/boot_rom direct \
+		APP_BIN=$(abspath sw/build/main.bin)
 
 ## Just list the different application names available
 app-list:

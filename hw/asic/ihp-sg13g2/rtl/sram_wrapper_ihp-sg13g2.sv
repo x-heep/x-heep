@@ -16,13 +16,18 @@ module sram_wrapper #(
     input logic [AddrWidth-1:0] addr_i,
     input logic [31:0] wdata_i,
     input logic [3:0] be_i,
+    input logic pwrgate_ni,
+    input logic pwrgate_ack_no,
     input logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] set_retentive_ni,
     // output ports
     output logic [31:0] rdata_o
 );
 
+    // Not supported
+    assign pwrgate_ack_no = pwrgate_ni;
+
     generate
-        if (DataWords != 32) begin
+        if (DataWidth != 32) begin
           $error("Bank size not implemented.");
         end
 
@@ -91,18 +96,18 @@ module sram_wrapper #(
                 );
             end
             // NOTE: No byte enable
-            // 8192: begin
-            //     RM_IHPSG13_1P_1024x32_c2_bm_bist sram_inst (
-            //         .A_CLK      (clk_i),
-            //         .A_MEN      (req_i),
-            //         .A_WEN      (we_i),
-            //         .A_REN      (!we_i),
-            //         .A_ADDR     (addr_i),
-            //         .A_DIN      (wdata_i),
-            //         .A_DLY      (1'b1),
-            //         .A_DOUT     (rdata_o),
-            //     );
-            // end
+            8192: begin
+                RM_IHPSG13_1P_8192x32_c4 sram_inst (
+                    .A_CLK      (clk_i),
+                    .A_MEN      (req_i),
+                    .A_WEN      (we_i),
+                    .A_REN      (!we_i),
+                    .A_ADDR     (addr_i),
+                    .A_DIN      (wdata_i),
+                    .A_DLY      (1'b1),
+                    .A_DOUT     (rdata_o)
+                );
+            end
             default: $error("Bank size not implemented.");
         endcase
     endgenerate

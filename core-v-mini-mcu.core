@@ -592,9 +592,19 @@ targets:
 
   asic_librelane:
     <<: *default_target
-    default_tool: openlane
+    default_tool: librelane
     description: Librelane files generation
     parameters:
+      - SYNTHESIS=true
+      - REMOVE_OBI_FIFO
     filesets_append:
       - x_heep_system
       - rtl-ihp-sg13g2
+    toplevel: [core_v_mini_mcu]
+    tools:
+      librelane:
+        clock_port: clk_i
+        clock_period: 20
+        core_area: [0,0,3000,3000]
+        die_area: [200,200,2800,2800]
+

@@ -600,7 +600,7 @@ targets:
     filesets_append:
       - x_heep_system
       - rtl-ihp-sg13g2
-    toplevel: [core_v_mini_mcu]
+    toplevel: [x_heep_system]
     tools:
       librelane:
         clock_port: clk_i

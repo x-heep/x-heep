@@ -11,7 +11,14 @@ filesets:
     files:
       - rtl/prim_ihp-sg13g2_clk.sv
       - rtl/sram_wrapper_ihp-sg13g2.sv
+      - rtl/pad_cell_inout_ihp-sg13g2.sv
+      - rtl/pad_cell_input_ihp-sg13g2.sv
+      - rtl/pad_cell_output_ihp-sg13g2.sv
     file_type: systemVerilogSource
+  additional_librelane_config:
+    files:
+      - ihp-sg13g2_librelane_config.yaml
+    file_type: yamlConfig
   #files_postlayout_sim:
   #  files:
   #    - rtl/mymemory.v #add here your tech-sram verilog model for post-layout sim
@@ -23,4 +30,5 @@ targets:
     filesets:
       - target_asic_synthesis ? (files_rtl)
       - target_asic_librelane ? (files_rtl)
+      - target_asic_librelane ? (additional_librelane_config)
     #  - target_sim_postlayout ? (files_postlayout_sim)

@@ -7,7 +7,7 @@ filesets:
 
   rtl:
     depend:
-    - pulp-platform.org::serial_link 
+    - pulp-platform.org:serial_link:serial_link
     files:
     - rtl/serial_link_minimum_axi_pkg.sv
     - rtl/serial_link_xheep_wrapper.sv

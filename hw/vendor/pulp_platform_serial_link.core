@@ -1,43 +1,43 @@
 CAPI=2:
-name : pulp-platform.org::serial_link
-# Copyright 2025 EPFL.
-# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
-# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
-filesets:
-  includes:
-    files:
-      #Ugly workaround from https://github.com/fusesoc/fusesoc-cores/blob/master/pulp-platform.org/common_cells-1.16.4.core#L9
-      - pulp_platform/serial_link/src/axis/include/axis/assign.svh: 
-          is_include_file: true
-          include_path: pulp_platform/serial_link/src/axis/include
-      - pulp_platform/serial_link/src/axis/include/axis/typedef.svh: 
-          is_include_file: true
-          include_path: pulp_platform/serial_link/src/axis/include
-    file_type : systemVerilogSource
 
+# Copyright (c) 2026 EPFL.
+# Copyright and related rights are licensed under the Solderpad Hardware
+# License, Version 2.0 (the "License"); you may not use this file except in
+# compliance with the License. You may obtain a copy of the License at
+# http://solderpad.org/licenses/SHL-2.0. Unless required by applicable law
+# or agreed to in writing, software, hardware and materials distributed under
+# this License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+# CONDITIONS OF ANY KIND, either express or implied. See the License for the
+# specific language governing permissions and limitations under the License.
+#
+# File: pulp_platform_serial_link.core
+# Author(s):
+#   Anna Burdina <anna.burdina@epfl.ch>
+#   Michele Caon <michele.caon@epfl.ch>
+# Date: 09/07/2026
+# Description: X-HEEP specific SerialLink core file
+
+name : pulp-platform.org:serial_link:serial_link
+description: X-HEEP specific SerialLink core file
+
+filesets:
+  # RTL files
   rtl:
     depend:
     - pulp-platform.org::axi:0.39.8
     - pulp-platform.org::common_cells
     - pulp-platform.org::register_interface
-    - pulp-platform.org::axi_slice   
+    - pulp-platform.org::axi_slice
+    - pulp-platform.org:serial_link:common
     files:
     - pulp_platform/serial_link/src/regs/serial_link_reg_pkg.sv
     - pulp_platform/serial_link/src/regs/serial_link_reg_top.sv
     - pulp_platform/serial_link/src/regs/serial_link_single_channel_reg_pkg.sv
     - pulp_platform/serial_link/src/regs/serial_link_single_channel_reg_top.sv
-    - pulp_platform/serial_link/src/serial_link_pkg.sv
-    - pulp_platform/serial_link/src/channel_allocator/serial_link_channel_allocator.sv
-    - pulp_platform/serial_link/src/channel_allocator/stream_dechopper.sv
-    - pulp_platform/serial_link/src/channel_allocator/stream_chopper.sv
-    - pulp_platform/serial_link/src/channel_allocator/channel_spread_sfr.sv
-    - pulp_platform/serial_link/src/channel_allocator/channel_despread_sfr.sv
-    - pulp_platform/serial_link/src/serial_link_network.sv
-    - pulp_platform/serial_link/src/serial_link_physical.sv
-    - pulp_platform/serial_link/src/serial_link_data_link.sv
     - pulp_platform/serial_link/src/serial_link.sv
     file_type: systemVerilogSource
 
 targets:
   default:
-    filesets : [includes, rtl]
+    filesets:
+    - rtl

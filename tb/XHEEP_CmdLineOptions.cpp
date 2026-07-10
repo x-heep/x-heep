@@ -109,3 +109,17 @@ unsigned int XHEEP_CmdLineOptions::get_boot_sel()
 
   return boot_sel;
 }
+
+bool XHEEP_CmdLineOptions::get_execute_from_flash()
+{
+  std::string arg = this->getCmdOption(this->argc, this->argv, "+execute_from_flash=");
+
+  if(arg.empty() || arg.compare("0") == 0) {
+    return false;
+  } else if(arg.compare("1") == 0) {
+    return true;
+  } else {
+    std::cout<<"[TESTBENCH]: Wrong execute_from_flash value (use 0 or 1) - defaulting to 0"<<std::endl;
+    return false;
+  }
+}

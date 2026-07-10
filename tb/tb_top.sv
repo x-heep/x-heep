@@ -27,9 +27,11 @@ module tb_top #(
   // wire for inout connections
   wire clk_w, rst_n_w;
 
-  // Boot selection (0:jtag or 1:flash)
+  // Boot selection (0:jtag/rom, 1:flash)
   logic boot_sel;
-  // SPI selection (0:ot-qspi or 1:memory mapped flash, only valid if boot_sel is 1)
+  // Execute-from-flash flag.
+  // When boot_sel=1: selects between flash-load (0) and flash-exec (1).
+  // When boot_sel=0: selects between JTAG/hex-load (0) and direct-ROM boot (1).
   logic execute_from_flash;
   // wire for inout connections
   wire boot_sel_w, execute_from_flash_w;
@@ -60,15 +62,20 @@ module tb_top #(
   // doesn't do more than an infinite loop with some I/O
   initial begin : load_prog
     automatic string firmware, arg_boot_sel, arg_execute_from_flash;
+    automatic logic firmware_provided;
+    automatic logic direct_rom_boot;
 
-    if ($value$plusargs("firmware=%s", firmware)) begin
+    firmware_provided = $value$plusargs("firmware=%s", firmware);
+    if (firmware_provided) begin
       $display("[TESTBENCH]: loading firmware %0s", firmware);
     end else begin
       $display("[TESTBENCH]: no firmware specified");
-      if (JTAG_DPI == 0) begin
-        $finish;
-      end
     end
+
+    //   boot_sel=0, execute_from_flash=0 → JTAG/hex load (default)
+    //   boot_sel=0, execute_from_flash=1 → direct ROM boot (application in boot_rom.sv)
+    //   boot_sel=1, execute_from_flash=0 → flash load into RAM then execute
+    //   boot_sel=1, execute_from_flash=1 → execute directly from flash
 
     boot_sel = 0;
     if ($test$plusargs("boot_sel")) begin
@@ -90,28 +97,40 @@ module tb_top #(
     end
 
     execute_from_flash = 0;
-    if (boot_sel == 1) begin
-      if ($test$plusargs("execute_from_flash")) begin
-        $value$plusargs("execute_from_flash=%s", arg_execute_from_flash);
-        if (arg_execute_from_flash == "1") begin
-          $display("[TESTBENCH]: Using YosysHQ memory mapped SPI");
-          execute_from_flash = 1;
-        end else if (arg_execute_from_flash == "0") begin
-          $display("[TESTBENCH]: Using OpenTitan SPI");
-          execute_from_flash = 0;
-        end else begin
-          $display(
-              "[TESTBENCH]: Wrong SPI Option specified (execute from flash, load flash in-memory) - using execute from flash (execute_from_flash=1)");
-          execute_from_flash = 1;
-        end
+    if ($test$plusargs("execute_from_flash")) begin
+      $value$plusargs("execute_from_flash=%s", arg_execute_from_flash);
+      if (arg_execute_from_flash == "1") begin
+        if (boot_sel == 1) $display("[TESTBENCH]: Using YosysHQ memory mapped SPI");
+        execute_from_flash = 1;
+      end else if (arg_execute_from_flash == "0") begin
+        if (boot_sel == 1) $display("[TESTBENCH]: Using OpenTitan SPI");
+        execute_from_flash = 0;
       end else begin
         $display(
-            "[TESTBENCH]: No SPI Option specified, using load from flash (execute_from_flash=0)");
-        execute_from_flash = 0;
+            "[TESTBENCH]: Wrong SPI Option specified (execute from flash, load flash in-memory) - using execute from flash (execute_from_flash=1)");
+        execute_from_flash = 1;
       end
+    end else begin
+      if (boot_sel == 1)
+        $display(
+            "[TESTBENCH]: No SPI Option specified, using load from flash (execute_from_flash=0)");
     end
 
-    testharness_i.load_flash_hex(firmware);
+    direct_rom_boot = (boot_sel == 1'b0) && (execute_from_flash == 1'b1);
+
+    if (direct_rom_boot) begin
+      $display(
+          "[TESTBENCH]: Direct ROM boot — application is in boot_rom.sv, no firmware needed");
+    end
+
+    if (!firmware_provided && JTAG_DPI == 0 && !direct_rom_boot) begin
+      $display("[TESTBENCH]: no firmware and not direct ROM boot - aborting");
+      $finish;
+    end
+
+    if (boot_sel == 1) begin
+      testharness_i.load_flash_hex(firmware);
+    end
 
     wait (rst_n == 1'b1);
 
@@ -120,7 +139,10 @@ module tb_top #(
       @(posedge clk);
     end
 
-    if (JTAG_DPI == 0 && boot_sel == 0) begin
+    if (direct_rom_boot) begin
+      if ($test$plusargs("verbose"))
+        $display("[TESTBENCH] %t: direct ROM boot — waiting for exit_valid", $time);
+    end else if (JTAG_DPI == 0 && boot_sel == 0) begin
       testharness_i.tb_loadHEX(firmware);
       #CLK_PHASE_HI testharness_i.tb_set_exit_loop();
       #CLK_PHASE_LO if ($test$plusargs("verbose")) $display("[TESTBENCH] %t: memory loaded", $time);
@@ -183,9 +205,9 @@ module tb_top #(
     end
   end
 
-  assign clk_w = clk;
-  assign rst_n_w = rst_n;
-  assign boot_sel_w = boot_sel;
+  assign clk_w                = clk;
+  assign rst_n_w              = rst_n;
+  assign boot_sel_w           = boot_sel;
   assign execute_from_flash_w = execute_from_flash;
 
   // wrapper for riscv, the memory system and stdout peripheral

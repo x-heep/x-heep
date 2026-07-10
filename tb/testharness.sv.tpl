@@ -499,14 +499,14 @@ module testharness #(
   obi_rsp_t ext_systemc_resp;
 
   assign ext_systemc_req_req_o            = ext_systemc_req.req;
-  assign ext_systemc_req_we_o             = ext_systemc_req.we;
-  assign ext_systemc_req_be_o             = ext_systemc_req.be;
-  assign ext_systemc_req_addr_o           = ext_systemc_req.addr;
-  assign ext_systemc_req_wdata_o          = ext_systemc_req.wdata;
+  assign ext_systemc_req_we_o             = ext_systemc_req.a.we;
+  assign ext_systemc_req_be_o             = ext_systemc_req.a.be;
+  assign ext_systemc_req_addr_o           = ext_systemc_req.a.addr;
+  assign ext_systemc_req_wdata_o          = ext_systemc_req.a.wdata;
 
   assign ext_systemc_resp.gnt             = ext_systemc_resp_gnt_i;
   assign ext_systemc_resp.rvalid          = ext_systemc_resp_rvalid_i;
-  assign ext_systemc_resp.rdata           = ext_systemc_resp_rdata_i;
+  assign ext_systemc_resp.r.rdata         = ext_systemc_resp_rdata_i;
 
   assign ext_systemc_req                  = ext_slave_req[SLOW_MEMORY0_IDX];
   assign ext_slave_resp[SLOW_MEMORY0_IDX] = ext_systemc_resp;
@@ -525,13 +525,13 @@ module testharness #(
           .clk_i,
           .rst_ni,
           .req_i(slow_ram_slave_req[SLOW_MEMORY0_IDX].req),
-          .we_i(slow_ram_slave_req[SLOW_MEMORY0_IDX].we),
-          .addr_i(slow_ram_slave_req[SLOW_MEMORY0_IDX].addr[15:2]),
-          .wdata_i(slow_ram_slave_req[SLOW_MEMORY0_IDX].wdata),
-          .be_i(slow_ram_slave_req[SLOW_MEMORY0_IDX].be),
+          .we_i(slow_ram_slave_req[SLOW_MEMORY0_IDX].a.we),
+          .addr_i(slow_ram_slave_req[SLOW_MEMORY0_IDX].a.addr[15:2]),
+          .wdata_i(slow_ram_slave_req[SLOW_MEMORY0_IDX].a.wdata),
+          .be_i(slow_ram_slave_req[SLOW_MEMORY0_IDX].a.be),
           // output ports
           .gnt_o(slow_ram_slave_resp[SLOW_MEMORY0_IDX].gnt),
-          .rdata_o(slow_ram_slave_resp[SLOW_MEMORY0_IDX].rdata),
+          .rdata_o(slow_ram_slave_resp[SLOW_MEMORY0_IDX].r.rdata),
           .rvalid_o(slow_ram_slave_resp[SLOW_MEMORY0_IDX].rvalid)
       );
 
@@ -542,13 +542,13 @@ module testharness #(
           .clk_i,
           .rst_ni,
           .req_i(slow_ram_slave_req[SLOW_MEMORY1_IDX].req),
-          .we_i(slow_ram_slave_req[SLOW_MEMORY1_IDX].we),
-          .addr_i(slow_ram_slave_req[SLOW_MEMORY1_IDX].addr[15:2]),
-          .wdata_i(slow_ram_slave_req[SLOW_MEMORY1_IDX].wdata),
-          .be_i(slow_ram_slave_req[SLOW_MEMORY1_IDX].be),
+          .we_i(slow_ram_slave_req[SLOW_MEMORY1_IDX].a.we),
+          .addr_i(slow_ram_slave_req[SLOW_MEMORY1_IDX].a.addr[15:2]),
+          .wdata_i(slow_ram_slave_req[SLOW_MEMORY1_IDX].a.wdata),
+          .be_i(slow_ram_slave_req[SLOW_MEMORY1_IDX].a.be),
           // output ports
           .gnt_o(slow_ram_slave_resp[SLOW_MEMORY1_IDX].gnt),
-          .rdata_o(slow_ram_slave_resp[SLOW_MEMORY1_IDX].rdata),
+          .rdata_o(slow_ram_slave_resp[SLOW_MEMORY1_IDX].r.rdata),
           .rvalid_o(slow_ram_slave_resp[SLOW_MEMORY1_IDX].rvalid)
       );
 `endif
@@ -840,20 +840,20 @@ module testharness #(
 
     end else begin : gen_DONT_USE_EXTERNAL_DEVICE_EXAMPLE
       assign slow_ram_slave_resp[0].gnt = '0;
-      assign slow_ram_slave_resp[0].rdata = '0;
+      assign slow_ram_slave_resp[0].r.rdata = '0;
       assign slow_ram_slave_resp[0].rvalid = '0;
       assign slow_ram_slave_resp[1].gnt = '0;
-      assign slow_ram_slave_resp[1].rdata = '0;
+      assign slow_ram_slave_resp[1].r.rdata = '0;
       assign slow_ram_slave_resp[1].rvalid = '0;
 
       assign ext_periph_slv_req = '0;
       assign ext_periph_slv_rsp = '0;
 
       assign ext_master_req[testharness_pkg::EXT_MASTER0_IDX].req = '0;
-      assign ext_master_req[testharness_pkg::EXT_MASTER0_IDX].we = '0;
-      assign ext_master_req[testharness_pkg::EXT_MASTER0_IDX].be = '0;
-      assign ext_master_req[testharness_pkg::EXT_MASTER0_IDX].addr = '0;
-      assign ext_master_req[testharness_pkg::EXT_MASTER0_IDX].wdata = '0;
+      assign ext_master_req[testharness_pkg::EXT_MASTER0_IDX].a.we = '0;
+      assign ext_master_req[testharness_pkg::EXT_MASTER0_IDX].a.be = '0;
+      assign ext_master_req[testharness_pkg::EXT_MASTER0_IDX].a.addr = '0;
+      assign ext_master_req[testharness_pkg::EXT_MASTER0_IDX].a.wdata = '0;
 
       assign memcopy_intr = '0;
       assign iffifo_int_o = '0;

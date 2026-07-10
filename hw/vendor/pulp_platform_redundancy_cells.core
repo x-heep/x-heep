@@ -1,0 +1,29 @@
+CAPI=2:
+# Copyright 2026
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+name : pulp-platform.org::redundancy_cells
+filesets:
+  rtl:
+    files:
+    - pulp_platform/redundancy_cells/include/redundancy_cells/voters.svh : {is_include_file : true, include_path : pulp_platform/redundancy_cells/include}
+    - pulp_platform/redundancy_cells/rtl/hsiao_ecc/hsiao_ecc_pkg.sv
+    - pulp_platform/redundancy_cells/rtl/hsiao_ecc/hsiao_ecc_enc.sv
+    - pulp_platform/redundancy_cells/rtl/hsiao_ecc/hsiao_ecc_dec.sv
+    - pulp_platform/redundancy_cells/rtl/TMR_word_voter.sv
+    - pulp_platform/redundancy_cells/rtl/rel_fifo.sv
+    - pulp_platform/redundancy_cells/rtl/TMR_voter_fail.sv
+    - pulp_platform/redundancy_cells/rtl/rel_rr_arb_tree.sv
+    - pulp_platform/redundancy_cells/rtl/ecc_concat_32_64.sv
+    - pulp_platform/redundancy_cells/rtl/TMR_voter.sv
+    - pulp_platform/redundancy_cells/rtl/TMR_voter_detect.sv
+    - pulp_platform/redundancy_cells/rtl/rel_spill_register.sv
+    - pulp_platform/redundancy_cells/rtl/bitwise_TMR_voter.sv
+    - pulp_platform/redundancy_cells/rtl/bitwise_TMR_voter_fail.sv
+    file_type: systemVerilogSource
+
+targets:
+  default:
+    filesets : 
+    - rtl

@@ -1,0 +1,34 @@
+redundancy_cells:
+  files: [
+    # Level 0
+    lowrisc_ecc/prim_secded_13_8_dec.sv,
+    lowrisc_ecc/prim_secded_13_8_enc.sv,
+    lowrisc_ecc/prim_secded_22_16_dec.sv,
+    lowrisc_ecc/prim_secded_22_16_enc.sv,
+    lowrisc_ecc/prim_secded_39_32_dec.sv,
+    lowrisc_ecc/prim_secded_39_32_enc.sv,
+    lowrisc_ecc/prim_secded_72_64_dec.sv,
+    lowrisc_ecc/prim_secded_72_64_enc.sv,
+    rtl/TMR_voter.sv,
+    rtl/TMR_voter_fail.sv,
+    rtl/TMR_word_voter,
+    # Level 1
+    rtl/bitwise_TMR_voter_fail.sv
+    rtl/ecc_concat_32_64.sv,
+    rtl/ecc_sram_wrap.sv,
+    rtl/BUS_enc_dec/AXI_bus_ecc_dec.sv,
+    rtl/BUS_enc_dec/AXI_bus_ecc_enc.sv,
+    rtl/BUS_enc_dec/hci_core_intf_ecc_dec.sv,
+    rtl/BUS_enc_dec/hci_core_intf_ecc_enc.sv,
+    rtl/BUS_enc_dec/hci_mem_intf_ecc_dec.sv,
+    rtl/BUS_enc_dec/hci_mem_intf_ecc_enc.sv,
+    rtl/BUS_enc_dec/PE_XBAR_bus_ecc_dec.sv,
+    rtl/BUS_enc_dec/PE_XBAR_bus_ecc_enc.sv,
+    rtl/BUS_enc_dec/TCDM_XBAR_bus_ecc_dec.sv,
+    rtl/BUS_enc_dec/TCDM_XBAR_bus_ecc_enc.sv,
+    rlt/BUS_enc_dec/XBAR_DEMUX_BUS_ecc_dec.sv,
+    rtl/BUS_enc_dec/XBAR_DEMUX_BUS_ecc_enc.sv,
+    rtl/TMR_voter_detect.sv,
+    # Level 2
+    rtl/bitwise_TMR_voter.sv,
+  ]

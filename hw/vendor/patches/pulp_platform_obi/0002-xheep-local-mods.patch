@@ -1,0 +1,270 @@
+diff --git b/include/obi/typedef.svh a/include/obi/typedef.svh
+index 412153b4..5b669156 100644
+--- b/include/obi/typedef.svh
++++ a/include/obi/typedef.svh
+@@ -127,16 +127,16 @@
+   `OBI_TYPEDEF_R_CHAN_T(obi_t``_r_chan_t, cfg.DataWidth, cfg.IdWidth, obi_t``_r_optional_t)                \
+   `OBI_TYPEDEF_RSP_T(obi_t``_rsp_t, obi_t``_r_chan_t)
+ 
+-`define OBI_TYPEDEF_ALL_WITH_OPTIONAL(obi_t, cfg, a_optional_t, r_optional_t) \
+-  `OBI_TYPEDEF_A_CHAN_T(obi_t``_a_chan_t, cfg.AddrWidth, cfg.DataWidth, cfg.IdWidth, a_optional_t)                                                       \
+-  `OBI_TYPEDEF_INTEGRITY_REQ_T(obi_t``_req_t, obi_t``_a_chan_t)                                                                                                  \
+-  `OBI_TYPEDEF_R_CHAN_T(obi_t``_r_chan_t, cfg.DataWidth, cfg.IdWidth, r_optional_t)                                                                      \
++`define OBI_TYPEDEF_ALL_WITH_OPTIONAL(obi_t, cfg, a_optional_t, r_optional_t)                      \
++  `OBI_TYPEDEF_A_CHAN_T(obi_t``_a_chan_t, cfg.AddrWidth, cfg.DataWidth, cfg.IdWidth, a_optional_t) \
++  `OBI_TYPEDEF_INTEGRITY_REQ_T(obi_t``_req_t, obi_t``_a_chan_t)                                    \
++  `OBI_TYPEDEF_R_CHAN_T(obi_t``_r_chan_t, cfg.DataWidth, cfg.IdWidth, r_optional_t)                \
+   `OBI_TYPEDEF_INTEGRITY_RSP_T(obi_t``_rsp_t, obi_t``_r_chan_t)
+ 
+-`define OBI_TYPEDEF_ALL_DEFAULT_WITH_OPTIONAL(obi_t, cfg, a_optional_t, r_optional_t) \
+-  `OBI_TYPEDEF_A_CHAN_T(obi_t``_a_chan_t, cfg.AddrWidth, cfg.DataWidth, cfg.IdWidth, a_optional_t)                                                       \
+-  `OBI_TYPEDEF_DEFAULT_REQ_T(obi_t``_req_t, obi_t``_a_chan_t)                                                                                                  \
+-  `OBI_TYPEDEF_R_CHAN_T(obi_t``_r_chan_t, cfg.DataWidth, cfg.IdWidth, r_optional_t)                                                                      \
++`define OBI_TYPEDEF_ALL_DEFAULT_WITH_OPTIONAL(obi_t, cfg, a_optional_t, r_optional_t)              \
++  `OBI_TYPEDEF_A_CHAN_T(obi_t``_a_chan_t, cfg.AddrWidth, cfg.DataWidth, cfg.IdWidth, a_optional_t) \
++  `OBI_TYPEDEF_DEFAULT_REQ_T(obi_t``_req_t, obi_t``_a_chan_t)                                      \
++  `OBI_TYPEDEF_R_CHAN_T(obi_t``_r_chan_t, cfg.DataWidth, cfg.IdWidth, r_optional_t)                \
+   `OBI_TYPEDEF_RSP_T(obi_t``_rsp_t, obi_t``_r_chan_t)
+ 
+ `define RELOBI_TYPEDEF_A_CHAN_T(a_chan_t, ADDR_WIDTH, DATA_WIDTH, ID_WIDTH, a_optional_t) \
+@@ -179,18 +179,18 @@
+     logic [2:0] rvalid;                       \
+   } rsp_t;
+ 
+-`define RELOBI_TYPEDEF_ALL(obi_t, cfg)                                                                                                                              \
+-  `OBI_TYPEDEF_ALL_A_OPTIONAL(obi_t``_a_optional_t, cfg.OptionalCfg.AUserWidth, cfg.OptionalCfg.WUserWidth, cfg.OptionalCfg.MidWidth, cfg.OptionalCfg.AChkWidth) \
+-  `RELOBI_TYPEDEF_A_CHAN_T(obi_t``_a_chan_t, cfg.AddrWidth, cfg.DataWidth, cfg.IdWidth, obi_t``_a_optional_t)                                                       \
+-  `RELOBI_TYPEDEF_DEFAULT_REQ_T(obi_t``_req_t, obi_t``_a_chan_t)                                                                                                  \
+-  `OBI_TYPEDEF_ALL_R_OPTIONAL(obi_t``_r_optional_t, cfg.OptionalCfg.RUserWidth, cfg.OptionalCfg.RChkWidth)                                                       \
+-  `RELOBI_TYPEDEF_R_CHAN_T(obi_t``_r_chan_t, cfg.DataWidth, cfg.IdWidth, obi_t``_r_optional_t)                                                                      \
+-  `RELOBI_TYPEDEF_RSP_T(obi_t``_rsp_t, obi_t``_r_chan_t)
+-
+-`define RELOBI_TYPEDEF_ALL_WITH_OPTIONAL(obi_t, cfg, a_optional_t, r_optional_t)                                                                                                                              \
+-  `RELOBI_TYPEDEF_A_CHAN_T(obi_t``_a_chan_t, cfg.AddrWidth, cfg.DataWidth, cfg.IdWidth, a_optional_t)                                                       \
+-  `RELOBI_TYPEDEF_DEFAULT_REQ_T(obi_t``_req_t, obi_t``_a_chan_t)                                                                                                  \
+-  `RELOBI_TYPEDEF_R_CHAN_T(obi_t``_r_chan_t, cfg.DataWidth, cfg.IdWidth, r_optional_t)                                                                      \
++`define RELOBI_TYPEDEF_ALL(obi_t, cfg)                                                                                                                           \
++  `OBI_TYPEDEF_ALL_A_OPTIONAL(obi_t``_a_optional_t, cfg.OptionalCfg.AUserWidth, cfg.OptionalCfg.WUserWidth, cfg.OptionalCfg.MidWidth, cfg.OptionalCfg.AChkWidth, cfg.OptionalCfg.UseAtop*cfg.OptionalCfg.ATopWidth, cfg.OptionalCfg.UseMemtype * cfg.OptionalCfg.MemtypeWidth, cfg.OptionalCfg.UseProt * cfg.OptionalCfg.ProtWidth) \
++  `RELOBI_TYPEDEF_A_CHAN_T(obi_t``_a_chan_t, cfg.AddrWidth, cfg.DataWidth, cfg.IdWidth, obi_t``_a_optional_t)                                                             \
++  `RELOBI_TYPEDEF_DEFAULT_REQ_T(obi_t``_req_t, obi_t``_a_chan_t)                                                                                                          \
++  `OBI_TYPEDEF_ALL_R_OPTIONAL(obi_t``_r_optional_t, cfg.OptionalCfg.RUserWidth, cfg.OptionalCfg.RChkWidth)                                                                \
++  `RELOBI_TYPEDEF_R_CHAN_T(obi_t``_r_chan_t, cfg.DataWidth, cfg.IdWidth, obi_t``_r_optional_t)                                                                            \
++  `RELOBI_TYPEDEF_RSP_T(obi_t``_rsp_t, obi_t``_r_chan_t)  
++
++`define RELOBI_TYPEDEF_ALL_WITH_OPTIONAL(obi_t, cfg, a_optional_t, r_optional_t)                      \
++  `RELOBI_TYPEDEF_A_CHAN_T(obi_t``_a_chan_t, cfg.AddrWidth, cfg.DataWidth, cfg.IdWidth, a_optional_t) \
++  `RELOBI_TYPEDEF_DEFAULT_REQ_T(obi_t``_req_t, obi_t``_a_chan_t)                                      \
++  `RELOBI_TYPEDEF_R_CHAN_T(obi_t``_r_chan_t, cfg.DataWidth, cfg.IdWidth, r_optional_t)                \
+   `RELOBI_TYPEDEF_RSP_T(obi_t``_rsp_t, obi_t``_r_chan_t)
+ 
+ 
+diff --git b/src/obi_demux.sv a/src/obi_demux.sv
+index 55703272..ca5d7852 100644
+--- b/src/obi_demux.sv
++++ a/src/obi_demux.sv
+@@ -130,7 +130,7 @@ module obi_demux_intf #(
+   OBI_BUS.Manager     mgr_ports [NumMgrPorts]
+ );
+ 
+-  `OBI_TYPEDEF_ALL(obi, ObiCfg)
++  `OBI_TYPEDEF_ALL(obi, ObiCfg, obi_pkg)
+ 
+   obi_req_t sbr_port_req;
+   obi_rsp_t sbr_port_rsp;
+diff --git b/src/obi_err_sbr.sv a/src/obi_err_sbr.sv
+index e116ca71..77dd399c 100644
+--- b/src/obi_err_sbr.sv
++++ a/src/obi_err_sbr.sv
+@@ -81,7 +81,7 @@ module obi_err_sbr_intf #(
+   OBI_BUS.Subordinate sbr_port
+ );
+ 
+-  `OBI_TYPEDEF_ALL(obi, ObiCfg)
++  `OBI_TYPEDEF_ALL(obi, ObiCfg, obi_pkg)
+ 
+   obi_req_t obi_req;
+   obi_rsp_t obi_rsp;
+diff --git b/src/obi_pkg.sv a/src/obi_pkg.sv
+index 8ff947d7..50edaef8 100644
+--- b/src/obi_pkg.sv
++++ a/src/obi_pkg.sv
+@@ -28,6 +28,9 @@ package obi_pkg;
+     bit          UseMemtype;
+     bit          UseProt;
+     bit          UseDbg;
++    int unsigned ATopWidth;
++    int unsigned MemtypeWidth;
++    int unsigned ProtWidth;
+     int unsigned AUserWidth;
+     int unsigned WUserWidth;
+     int unsigned RUserWidth;
+@@ -47,7 +50,10 @@ package obi_pkg;
+     RUserWidth:    0,
+     MidWidth:      0,
+     AChkWidth:     0,
+-    RChkWidth:     0
++    RChkWidth:     0,
++    ATopWidth:     5,
++    MemtypeWidth:  1,   
++    ProtWidth:     2
+   };
+ 
+   /// The atop optional config only enables atomics, everything else is disabled.
+@@ -61,7 +67,10 @@ package obi_pkg;
+     RUserWidth:    0,
+     MidWidth:      0,
+     AChkWidth:     0,
+-    RChkWidth:     0
++    RChkWidth:     0,
++    ATopWidth:     5,
++    MemtypeWidth:  1,   
++    ProtWidth:     2
+   };
+ 
+   /// Returns a config enabling all optional features with specified user, mid, and chk widths.
+@@ -78,7 +87,10 @@ package obi_pkg;
+       RUserWidth: RUserWidth,
+       MidWidth:     MidWidth,
+       AChkWidth:   AChkWidth,
+-      RChkWidth:   RChkWidth
++      RChkWidth:   RChkWidth,
++      ATopWidth:     5,
++      MemtypeWidth:  1,   
++      ProtWidth:     2
+     };
+   endfunction
+ 
+diff --git b/src/relobi_tmr_a.sv a/src/relobi_tmr_a.sv
+index 92d27e44..b7f0880b 100644
+--- b/src/relobi_tmr_a.sv
++++ a/src/relobi_tmr_a.sv
+@@ -20,7 +20,7 @@ module relobi_tmr_a #(
+ 
+   bitwise_TMR_voter_fail #(
+     .DataWidth(3*ObiCfg.AddrWidth)
+-  ) i_r_data (
++  ) i_r_addr (
+     .a_i        (three_a_i[0].addr),
+     .b_i        (three_a_i[1].addr),
+     .c_i        (three_a_i[2].addr),
+@@ -36,7 +36,7 @@ module relobi_tmr_a #(
+   );
+   bitwise_TMR_voter_fail #(
+     .DataWidth(ObiCfg.DataWidth/8)
+-  ) i_r_data (
++  ) i_r_be (
+     .a_i        (three_a_i[0].be),
+     .b_i        (three_a_i[1].be),
+     .c_i        (three_a_i[2].be),
+@@ -45,7 +45,7 @@ module relobi_tmr_a #(
+   );
+   bitwise_TMR_voter_fail #(
+     .DataWidth(ObiCfg.DataWidth+hsiao_ecc_pkg::min_ecc(ObiCfg.DataWidth))
+-  ) i_r_data (
++  ) i_r_wdata (
+     .a_i        (three_a_i[0].wdata),
+     .b_i        (three_a_i[1].wdata),
+     .c_i        (three_a_i[2].wdata),
+@@ -54,7 +54,7 @@ module relobi_tmr_a #(
+   );
+   bitwise_TMR_voter_fail #(
+     .DataWidth(3*ObiCfg.IdWidth)
+-  ) i_r_id (
++  ) i_r_aid (
+     .a_i        (three_a_i[0].aid),
+     .b_i        (three_a_i[1].aid),
+     .c_i        (three_a_i[2].aid),
+@@ -72,7 +72,7 @@ module relobi_tmr_a #(
+   if (ObiCfg.OptionalCfg.AUserWidth) begin : gen_auser
+     bitwise_TMR_voter_fail #(
+       .DataWidth(ObiCfg.OptionalCfg.RUserWidth)
+-    ) i_r_id (
++    ) i_r_auser (
+       .a_i        (three_a_i[0].a_optional.auser),
+       .b_i        (three_a_i[1].a_optional.auser),
+       .c_i        (three_a_i[2].a_optional.auser),
+@@ -85,7 +85,7 @@ module relobi_tmr_a #(
+   if (ObiCfg.OptionalCfg.WUserWidth) begin : gen_wuser
+     bitwise_TMR_voter_fail #(
+       .DataWidth(ObiCfg.OptionalCfg.RUserWidth)
+-    ) i_r_id (
++    ) i_r_wuser (
+       .a_i        (three_a_i[0].a_optional.wuser),
+       .b_i        (three_a_i[1].a_optional.wuser),
+       .c_i        (three_a_i[2].a_optional.wuser),
+@@ -98,7 +98,7 @@ module relobi_tmr_a #(
+   if (ObiCfg.OptionalCfg.UseAtop) begin : gen_atop
+     bitwise_TMR_voter #(
+       .DataWidth(6)
+-    ) i_r_err (
++    ) i_r_atop (
+       .a_i        (three_a_i[0].a_optional.atop),
+       .b_i        (three_a_i[1].a_optional.atop),
+       .c_i        (three_a_i[2].a_optional.atop),
+@@ -111,7 +111,7 @@ module relobi_tmr_a #(
+   if (ObiCfg.OptionalCfg.UseMemtype) begin : gen_memtype
+     bitwise_TMR_voter_fail #(
+       .DataWidth(2)
+-    ) i_r_err (
++    ) i_r_memtype (
+       .a_i        (three_a_i[0].a_optional.memtype),
+       .b_i        (three_a_i[1].a_optional.memtype),
+       .c_i        (three_a_i[2].a_optional.memtype),
+@@ -124,7 +124,7 @@ module relobi_tmr_a #(
+   if (ObiCfg.OptionalCfg.MidWidth) begin : gen_mid
+     bitwise_TMR_voter_fail #(
+       .DataWidth(ObiCfg.OptionalCfg.MidWidth)
+-    ) i_r_err (
++    ) i_r_mid (
+       .a_i        (three_a_i[0].a_optional.mid),
+       .b_i        (three_a_i[1].a_optional.mid),
+       .c_i        (three_a_i[2].a_optional.mid),
+@@ -137,7 +137,7 @@ module relobi_tmr_a #(
+   if (ObiCfg.OptionalCfg.UseProt) begin : gen_prot
+     bitwise_TMR_voter_fail #(
+       .DataWidth(3)
+-    ) i_r_err (
++    ) i_r_prot (
+       .a_i        (three_a_i[0].a_optional.prot),
+       .b_i        (three_a_i[1].a_optional.prot),
+       .c_i        (three_a_i[2].a_optional.prot),
+@@ -148,7 +148,7 @@ module relobi_tmr_a #(
+     assign faults[11] = 1'b0;
+   end
+   if (ObiCfg.OptionalCfg.UseDbg) begin : gen_dbg
+-    TMR_voter_fail i_r_err (
++    TMR_voter_fail i_r_dbg (
+       .a_i        (three_a_i[0].a_optional.dbg),
+       .b_i        (three_a_i[1].a_optional.dbg),
+       .c_i        (three_a_i[2].a_optional.dbg),
+@@ -161,7 +161,7 @@ module relobi_tmr_a #(
+   if (ObiCfg.OptionalCfg.AChkWidth) begin : gen_achk
+     bitwise_TMR_voter_fail #(
+       .DataWidth(ObiCfg.OptionalCfg.AChkWidth)
+-    ) i_r_id (
++    ) i_r_achk (
+       .a_i        (three_a_i[0].a_optional.achk),
+       .b_i        (three_a_i[1].a_optional.achk),
+       .c_i        (three_a_i[2].a_optional.achk),
+@@ -183,7 +183,7 @@ module relobi_tmr_a #(
+   end
+   bitwise_TMR_voter_fail #(
+     .DataWidth(hsiao_ecc_pkg::min_ecc(1+ObiCfg.DataWidth/8+ObiCfg.IdWidth+$bits(a_optional_t)))
+-  ) i_r_id (
++  ) i_r_ecc (
+     .a_i        (three_a_i[0].other_ecc),
+     .b_i        (three_a_i[1].other_ecc),
+     .c_i        (three_a_i[2].other_ecc),
+diff --git b/src/test/obi_sim_mem.sv a/src/test/obi_sim_mem.sv
+index e0313475..66b793b5 100644
+--- b/src/test/obi_sim_mem.sv
++++ a/src/test/obi_sim_mem.sv
+@@ -170,7 +170,7 @@ module obi_sim_mem_intf import obi_pkg::*; #(
+ );
+ 
+   `ifdef TARGET_VSIM
+-  `OBI_TYPEDEF_ALL(obi, ObiCfg)
++  `OBI_TYPEDEF_ALL(obi, ObiCfg, obi_pkg)
+   `else
+   `OBI_TYPEDEF_ALL_WITH_OPTIONAL(obi, ObiCfg, a_optional_t, r_optional_t)
+   `endif

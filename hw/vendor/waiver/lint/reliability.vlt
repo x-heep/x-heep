@@ -1,0 +1,43 @@
+// Copyright 2022 OpenHW Group
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+`verilator_config
+
+lint_off -rule VARHIDDEN -file "*/*hsiao_ecc_pkg.sv"
+lint_off -rule ASCRANGE
+lint_off -rule DECLFILENAME
+lint_off -rule WIDTHTRUNC
+lint_off -rule WIDTHEXPAND
+
+// The OBI typedef (OBI_TYPEDEF_ALL) carries the optional integrity fields
+// (rready/reqpar/rreadypar on the request, gntpar/rvalidpar on the response).
+// These are only used on the reliable (relobi) datapath; the plain-OBI
+// datapath leaves them undriven/unused, which is benign.
+lint_off -rule UNDRIVEN -file "*/cpu_subsystem.sv" -match "Bits of signal are not driven: 'core_*_req_o'*"
+lint_off -rule UNUSED   -file "*/cpu_subsystem.sv" -match "Bits of signal are not used: 'core_*_resp_i'*"
+lint_off -rule UNDRIVEN -file "*/debug_subsystem.sv" -match "Bits of signal are not driven: 'debug_slave_resp_o'*"
+lint_off -rule UNDRIVEN -file "*/debug_subsystem.sv" -match "Bits of signal are not driven: 'dm_req'*"
+lint_off -rule UNDRIVEN -file "*/debug_subsystem.sv" -match "Bits of signal are not driven: 'spi_slave_req'*"
+lint_off -rule UNDRIVEN -file "*/ao_peripheral_subsystem.sv" -match "Bits of signal are not driven: 'slave_fifoout_resp'*"
+lint_off -rule UNUSED   -file "*/ao_peripheral_subsystem.sv" -match "Bits of signal are not used: 'slave_fifoout_req'*"
+lint_off -rule UNDRIVEN -file "*/peripheral_subsystem.sv" -match "Bits of signal are not driven: 'slave_fifo_resp_sel'*"
+lint_off -rule UNDRIVEN -file "*/xbar_varlat_n_to_one.sv" -match "Bits of signal are not driven: 'slave_req_o'*"
+lint_off -rule UNUSED   -file "*/xbar_varlat_n_to_one.sv" -match "Bits of signal are not used: 'slave_resp_i'*"
+lint_off -rule UNUSED   -file "*/xbar_varlat_one_to_n.sv" -match "Bits of signal are not used: 'master_req_i'*"
+lint_off -rule UNDRIVEN -file "*/simple_accelerator.sv" -match "Bits of signal are not driven: 'acc_*_req_o'*"
+lint_off -rule UNDRIVEN -file "*/obi_fifo.sv" -match "Bits of signal are not driven: 'producer_resp_o'*"
+lint_off -rule UNDRIVEN -file "*/obi_fifo.sv" -match "Bits of signal are not driven: 'consumer_req_o'*"
+lint_off -rule UNUSED   -file "*/obi_fifo.sv" -match "Bits of signal are not used: 'producer_req_i'*"
+lint_off -rule UNUSED   -file "*/obi_fifo.sv" -match "Bits of signal are not used: 'consumer_resp_i'*"
+lint_off -rule UNDRIVEN -file "*/obi_to_picorv32.sv" -match "Bits of signal are not driven: 'obi_resp_o'*"
+lint_off -rule UNUSED   -file "*/obi_to_picorv32.sv" -match "Bits of signal are not used: 'obi_req_i'*"
+lint_off -rule UNDRIVEN -file "*/dma.sv" -match "Bits of signal are not driven: 'dma_*_req_o'*"
+
+// Vendored relobi/redundancy_cells: benign unconnected status pins and unused
+// config/helper bits.
+lint_off -rule PINMISSING -file "*/relobi_isolate.sv"
+lint_off -rule PINMISSING -file "*/relobi_tmr_a.sv"
+lint_off -rule UNUSED -file "*/relobi_pkg.sv" -match "Bits of signal are not used: 'Cfg'*"
+lint_off -rule UNUSED -file "*/hsiao_ecc_pkg.sv" -match "Signal is not used: 'max_fanin'*"
+lint_off -rule UNUSED -file "*/hsiao_ecc_pkg.sv" -match "Signal is not used: 'tmp_sum'*"

@@ -12,8 +12,13 @@ module cpu_subsystem
 #(
     parameter BOOT_ADDR = 'h180,
     parameter DM_HALTADDRESS = '0,
-    parameter type obi_req_t = xheep_obi_pkg::xheep_obi_req_t,
-    parameter type obi_rsp_t = xheep_obi_pkg::xheep_obi_rsp_t
+% if xheep.reliability:
+    parameter type rel_obi_req_t = logic,
+    parameter type rel_obi_rsp_t = logic,
+    parameter xheep_obi_pkg::obi_cfg_t ObiCfg = xheep_obi_pkg::xheep_obiCfg,
+% endif
+    parameter type obi_req_t = logic,
+    parameter type obi_rsp_t = logic
 ) (
     // Clock and Reset
     input logic clk_i,
@@ -23,12 +28,21 @@ module cpu_subsystem
     input logic [31:0] hart_id_i,
 
     // Instruction memory interface
+% if xheep.reliability:
+    output rel_obi_req_t  core_instr_req_o,
+    input  rel_obi_rsp_t  core_instr_resp_i,
+
+    // Data memory interface
+    output rel_obi_req_t  core_data_req_o,
+    input  rel_obi_rsp_t  core_data_resp_i,
+% else:
     output obi_req_t  core_instr_req_o,
     input  obi_rsp_t  core_instr_resp_i,
 
     // Data memory interface
     output obi_req_t  core_data_req_o,
     input  obi_rsp_t  core_data_resp_i,
+% endif
 
     // eXtension interface
     if_xif.cpu_compressed xif_compressed_if,
@@ -56,9 +70,22 @@ module cpu_subsystem
 
   assign fetch_enable = 1'b1;
 
-  assign core_instr_req_o.wdata = '0;
-  assign core_instr_req_o.we    = '0;
-  assign core_instr_req_o.be    = 4'b1111;
+  // assign core_instr_req_o.a.wdata = '0;
+  // assign core_instr_req_o.a.we    = '0;
+  // assign core_instr_req_o.a.be    = 4'b1111;
+  // assign instr_req.a.a_optional = '0;
+  // assign data_req.a.a_optional  = '0;
+  
+
+  // logic core_instr_req, core_data_req;
+  // assign core_instr_req_o.req        = core_instr_req;
+  // assign core_instr_req_o.reqpar     = ~core_instr_req;
+  // assign core_instr_req_o.rready     = 1'b1;
+  // assign core_instr_req_o.rreadypar  = 1'b0;
+  // assign core_data_req_o.req          = core_data_req;
+  // assign core_data_req_o.reqpar       = ~core_data_req;
+  // assign core_data_req_o.rready       = 1'b1;
+  // assign core_data_req_o.rreadypar    = 1'b0;
 
 % if cpu.name == "cv32e20":
 
@@ -92,18 +119,18 @@ ${",\n".join(cv32e20_params)}
         .dm_exception_addr_i(32'h0),
         .dm_halt_addr_i(DM_HALTADDRESS),
 
-        .instr_addr_o  (core_instr_req_o.addr),
+        .instr_addr_o  (core_instr_req_o.a.addr),
         .instr_req_o   (core_instr_req_o.req),
-        .instr_rdata_i (core_instr_resp_i.rdata),
+        .instr_rdata_i (core_instr_resp_i.r.rdata),
         .instr_gnt_i   (core_instr_resp_i.gnt),
         .instr_rvalid_i(core_instr_resp_i.rvalid),
 
-        .data_addr_o  (core_data_req_o.addr),
-        .data_wdata_o (core_data_req_o.wdata),
-        .data_we_o    (core_data_req_o.we),
+        .data_addr_o  (core_data_req_o.a.addr),
+        .data_wdata_o (core_data_req_o.a.wdata),
+        .data_we_o    (core_data_req_o.a.we),
         .data_req_o   (core_data_req_o.req),
-        .data_be_o    (core_data_req_o.be),
-        .data_rdata_i (core_data_resp_i.rdata),
+        .data_be_o    (core_data_req_o.a.be),
+        .data_rdata_i (core_data_resp_i.r.rdata),
         .data_gnt_i   (core_data_resp_i.gnt),
         .data_rvalid_i(core_data_resp_i.rvalid),
 
@@ -168,29 +195,29 @@ ${",\n".join(cv32e40x_params)}
         .mtvec_addr_i(32'h0),
 
         // Instruction memory interface
-        .instr_req_o    (core_instr_req_o.req),
+        .instr_req_o    (core_instr_req),
         .instr_gnt_i    (core_instr_resp_i.gnt),
         .instr_rvalid_i (core_instr_resp_i.rvalid),
-        .instr_addr_o   (core_instr_req_o.addr),
+        .instr_addr_o   (core_instr_req_o.a.addr),
         .instr_memtype_o(),
         .instr_prot_o   (),
         .instr_dbg_o    (),
-        .instr_rdata_i  (core_instr_resp_i.rdata),
+        .instr_rdata_i  (core_instr_resp_i.r.rdata),
         .instr_err_i    (1'b0),
 
         // Data memory interface
-        .data_req_o    (core_data_req_o.req),
+        .data_req_o    (core_data_req),
         .data_gnt_i    (core_data_resp_i.gnt),
         .data_rvalid_i (core_data_resp_i.rvalid),
-        .data_addr_o   (core_data_req_o.addr),
-        .data_be_o     (core_data_req_o.be),
-        .data_we_o     (core_data_req_o.we),
-        .data_wdata_o  (core_data_req_o.wdata),
+        .data_addr_o   (core_data_req_o.a.addr),
+        .data_be_o     (core_data_req_o.a.be),
+        .data_we_o     (core_data_req_o.a.we),
+        .data_wdata_o  (core_data_req_o.a.wdata),
         .data_memtype_o(),
         .data_prot_o   (),
         .data_dbg_o    (),
         .data_atop_o   (),
-        .data_rdata_i  (core_data_resp_i.rdata),
+        .data_rdata_i  (core_data_resp_i.r.rdata),
         .data_err_i    (1'b0),
         .data_exokay_i (1'b1),
 
@@ -245,6 +272,110 @@ ${",\n".join(cv32e40x_params)}
 
     import cv32e40px_core_v_xif_pkg::*;
 
+    logic            instr_req;
+    logic            instr_gnt;
+    logic            instr_rvalid;
+    logic     [31:0] instr_addr;
+    logic     [31:0] instr_rdata;
+    logic            data_req;
+    logic            data_gnt;
+    logic            data_rvalid;
+    logic            data_we;
+    logic     [ 3:0] data_be;
+    logic     [31:0] data_addr;
+    logic     [31:0] data_wdata;
+    logic     [31:0] data_rdata;
+
+% if xheep.reliability:
+
+    logic            instr_err;
+    logic            data_err;
+    obi_req_t        instr_req_struct;
+    obi_rsp_t        instr_rsp_struct;
+    obi_req_t        data_req_struct;
+    obi_rsp_t        data_rsp_struct;
+    
+    assign instr_req_struct.req          = instr_req;
+    assign instr_req_struct.reqpar       = ~instr_req;
+    assign instr_req_struct.rready       = 1'b1;
+    assign instr_req_struct.rreadypar    = 1'b0;
+    assign instr_req_struct.a.addr       = instr_addr;
+    assign instr_req_struct.a.wdata      = '0;
+    assign instr_req_struct.a.we         = '0;
+    assign instr_req_struct.a.be         = '0;
+    assign instr_req_struct.a.aid        = '0;
+    assign instr_req_struct.a.a_optional = '0;
+    
+    assign data_req_struct.req          = data_req;
+    assign data_req_struct.reqpar       = ~data_req;
+    assign data_req_struct.rready       = 1'b1;
+    assign data_req_struct.rreadypar    = 1'b0;
+    assign data_req_struct.a.addr       = data_addr;
+    assign data_req_struct.a.wdata      = data_wdata;
+    assign data_req_struct.a.we         = data_we;
+    assign data_req_struct.a.be         = data_be;
+    assign data_req_struct.a.aid        = '0;
+    assign data_req_struct.a.a_optional = '0;
+    
+    assign instr_gnt    = instr_rsp_struct.gnt;
+    assign instr_rvalid = instr_rsp_struct.rvalid;
+    assign instr_rdata  = instr_rsp_struct.r.rdata;
+    assign instr_err    = instr_rsp_struct.r.err;
+    assign data_gnt     = data_rsp_struct.gnt;
+    assign data_rvalid  = data_rsp_struct.rvalid;
+    assign data_rdata   = data_rsp_struct.r.rdata;
+    assign data_err     = data_rsp_struct.r.err;
+    
+    relobi_encoder #(
+        .Cfg(ObiCfg),
+        .relobi_req_t(rel_obi_req_t),
+        .relobi_rsp_t(rel_obi_rsp_t),
+        .obi_req_t(obi_req_t),
+        .obi_rsp_t(obi_rsp_t),
+        .a_optional_t(logic),
+        .r_optional_t(logic)
+    ) i_instr_encoder (
+        .req_i(instr_req_struct),
+        .rsp_o(instr_rsp_struct),
+        .rel_req_o(core_instr_req_o),
+        .rel_rsp_i(core_instr_resp_i),
+        .fault_o()
+    );
+    
+    relobi_encoder #(
+        .Cfg(ObiCfg),
+        .relobi_req_t(rel_obi_req_t),
+        .relobi_rsp_t(rel_obi_rsp_t),
+        .obi_req_t(obi_req_t),
+        .obi_rsp_t(obi_rsp_t),
+        .a_optional_t(logic),
+        .r_optional_t(logic)
+    ) i_data_encoder (
+        .req_i(data_req_struct),
+        .rsp_o(data_rsp_struct),
+        .rel_req_o(core_data_req_o),
+        .rel_rsp_i(core_data_resp_i),
+        .fault_o()
+    );
+% else:
+    assign core_instr_req_o.a.addr = instr_addr;
+    assign core_instr_req_o.req    = instr_req;
+    assign instr_rdata             = core_instr_resp_i.r.rdata;
+    assign instr_gnt               = core_instr_resp_i.gnt;
+    assign instr_rvalid            = core_instr_resp_i.rvalid;
+
+    assign core_data_req_o.a.addr  = data_addr;
+    assign core_data_req_o.a.wdata = data_wdata;
+    assign core_data_req_o.a.we    = data_we;
+    assign core_data_req_o.req     = data_req;
+    assign core_data_req_o.a.be    = data_be;
+    assign data_rdata              = core_data_resp_i.r.rdata;
+    assign data_gnt                = core_data_resp_i.gnt;
+    assign data_rvalid             = core_data_resp_i.rvalid;
+% endif
+
+
+    
 <%
 cv32e40px_params = []
 
@@ -286,20 +417,20 @@ ${",\n".join(cv32e40px_params)}
         .hart_id_i,
         .dm_exception_addr_i(32'h0),
 
-        .instr_addr_o  (core_instr_req_o.addr),
-        .instr_req_o   (core_instr_req_o.req),
-        .instr_rdata_i (core_instr_resp_i.rdata),
-        .instr_gnt_i   (core_instr_resp_i.gnt),
-        .instr_rvalid_i(core_instr_resp_i.rvalid),
+        .instr_addr_o  (instr_addr),
+        .instr_req_o   (instr_req),
+        .instr_rdata_i (instr_rdata),
+        .instr_gnt_i   (instr_gnt),
+        .instr_rvalid_i(instr_rvalid),
 
-        .data_addr_o  (core_data_req_o.addr),
-        .data_wdata_o (core_data_req_o.wdata),
-        .data_we_o    (core_data_req_o.we),
-        .data_req_o   (core_data_req_o.req),
-        .data_be_o    (core_data_req_o.be),
-        .data_rdata_i (core_data_resp_i.rdata),
-        .data_gnt_i   (core_data_resp_i.gnt),
-        .data_rvalid_i(core_data_resp_i.rvalid),
+        .data_addr_o  (data_addr),
+        .data_wdata_o (data_wdata),
+        .data_we_o    (data_we),
+        .data_req_o   (data_req),
+        .data_be_o    (data_be),
+        .data_rdata_i (data_rdata),
+        .data_gnt_i   (data_gnt),
+        .data_rvalid_i(data_rvalid),
 
         // CORE-V-XIF
         .xif_compressed_if,
@@ -362,18 +493,18 @@ ${",\n".join(cv32e40p_params)}
         .hart_id_i,
         .dm_exception_addr_i(32'h0),
 
-        .instr_addr_o  (core_instr_req_o.addr),
+        .instr_addr_o  (core_instr_req_o.a.addr),
         .instr_req_o   (core_instr_req_o.req),
-        .instr_rdata_i (core_instr_resp_i.rdata),
+        .instr_rdata_i (core_instr_resp_i.r.rdata),
         .instr_gnt_i   (core_instr_resp_i.gnt),
         .instr_rvalid_i(core_instr_resp_i.rvalid),
 
-        .data_addr_o  (core_data_req_o.addr),
-        .data_wdata_o (core_data_req_o.wdata),
-        .data_we_o    (core_data_req_o.we),
+        .data_addr_o  (core_data_req_o.a.addr),
+        .data_wdata_o (core_data_req_o.a.wdata),
+        .data_we_o    (core_data_req_o.a.we),
         .data_req_o   (core_data_req_o.req),
-        .data_be_o    (core_data_req_o.be),
-        .data_rdata_i (core_data_resp_i.rdata),
+        .data_be_o    (core_data_req_o.a.be),
+        .data_rdata_i (core_data_resp_i.r.rdata),
         .data_gnt_i   (core_data_resp_i.gnt),
         .data_rvalid_i(core_data_resp_i.rvalid),
 
@@ -390,6 +521,17 @@ ${",\n".join(cv32e40p_params)}
         .core_sleep_o
     );
 
+% endif
+
+% if not xheep.reliability:
+  // Drive OBI request-side control and integrity parity bits. The cores only
+  // provide req/rready; parity mirrors the reliable path (reqpar = ~req).
+  assign core_instr_req_o.rready    = 1'b1;
+  assign core_instr_req_o.reqpar    = ~core_instr_req_o.req;
+  assign core_instr_req_o.rreadypar = ~core_instr_req_o.rready;
+  assign core_data_req_o.rready     = 1'b1;
+  assign core_data_req_o.reqpar     = ~core_data_req_o.req;
+  assign core_data_req_o.rreadypar  = ~core_data_req_o.rready;
 % endif
 
 endmodule

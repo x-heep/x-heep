@@ -1,0 +1,60 @@
+{ name: "HMR_core_regs",
+  clock_primary: "clk_i",
+  reset_primary: "rst_ni",
+  bus_interfaces: [
+    { protocol: "reg_iface",
+      direction: "device"
+    }
+  ],
+
+  regwidth: "32",
+  registers: [
+    { name: "Current_mode",
+      desc: "Value to determine wich redundancy mode the core with that ID is in.",
+      swaccess: "ro",
+      hwaccess: "hwo",
+      hwext: "true",
+      fields: [
+        { bits: "0",
+          name: "independent",
+          resval: "1",
+          desc: ""
+        },
+        { bits: "1",
+          name: "dual",
+          resval: "0",
+          desc: ""
+        },
+        { bits: "2",
+          name: "triple",
+          resval: "0",
+          desc: ""
+        }
+      ]
+
+    },
+    { name: "mismatches",
+      desc: "Mismatches of the core",
+      swaccess: "rw0c",
+      hwaccess: "hrw",
+      fields: [
+        { bits: "31:0",
+          name: "mismatches",
+          desc: "mismatch counter of the core"
+        }
+      ]
+    },
+    { name: "sp_store",
+      desc: "Stack Pointer storage register",
+      swaccess: "rw",
+      hwaccess: "hro",
+      hwqe: "true",
+      fields: [
+        { bits: "31:0",
+          name: "SP",
+          desc: "Stack Pointer"
+        }
+      ]
+    }
+  ]
+}

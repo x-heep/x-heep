@@ -1,0 +1,78 @@
+{
+  name: "TCLS_manager",
+  clock_primary: "clk_i",
+  reset_primary: "rst_ni",
+  bus_interfaces: [
+    { protocol: "reg_iface",
+      direction: "device"
+    }
+  ],
+
+  regwidth: "32",
+  registers: [
+    { name: "SP_store",
+      desc: "Stack Pointer storage register",
+      swaccess: "rw",
+      hwaccess: "hrw",
+      hwqe: "true",
+      fields: [
+        { bits: "31:0",
+          name: "SP",
+          desc: "Stack Pointer"
+        }
+      ]
+    },
+    { name: "TCLS_CONFIG",
+      desc: "Re-synchronization configuration",
+      swaccess: "rw",
+      hwaccess: "hrw",
+      fields: [
+        { bits: "0",
+          name: "SETBACK",
+          desc: "Enable setback (synchronous reset) during re-synch"
+        },
+        { bits: "1",
+          name: "RELOAD_SETBACK",
+          desc: "Enable setback on mismatch during reload section of re-synch (only possible with SETBACK)"
+        },
+        { bits: "2",
+          name: "FORCE_RESYNCH",
+          desc: "Forces a resynchronization routine"
+        }
+      ]
+    },
+    { name: "MISMATCHES_0",
+      desc: "Mismatch counter of core 0",
+      swaccess: "rw0c",
+      hwaccess: "hrw",
+      fields: [
+        { bits: "31:0",
+          name: "mismatches_0",
+          desc: "mismatch counter of core 0"
+        }
+      ]
+    },
+    { name: "MISMATCHES_1",
+      desc: "Mismatch counter of core 1",
+      swaccess: "rw0c",
+      hwaccess: "hrw",
+      fields: [
+        { bits: "31:0",
+          name: "mismatches_1",
+          desc: "mismatch counter of core 1"
+        }
+      ]
+    },
+    { name: "MISMATCHES_2",
+      desc: "Mismatch counter of core 2",
+      swaccess: "rw0c",
+      hwaccess: "hrw",
+      fields: [
+        { bits: "31:0",
+          name: "mismatches_2",
+          desc: "mismatch counter of core 2"
+        }
+      ]
+    }
+  ],
+}

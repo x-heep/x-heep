@@ -1,0 +1,141 @@
+{
+  name: "HMR_registers",
+  clock_primary: "clk_i",
+  reset_primary: "rst_ni",
+  bus_interfaces: [
+    { protocol: "reg_iface",
+      direction: "device"
+    }
+  ],
+
+  regwidth: "32",
+
+  param_list: [
+    { name: "NumCores",
+      default: "12" # Supports up to 16 cores
+    },
+    { name: "NumDMRGroups",
+      default: "6"
+    },
+    { name: "NumTMRGroups",
+      default: "4"
+    }
+  ],
+
+  registers: [
+    { name: "avail_config",
+      desc: "Available Configurations from implemented hardware.",
+      swaccess: "ro",
+      hwaccess: "hwo",
+      hwext: "true",
+      fields: [
+        { bits: "0",
+          name: "independent",
+          desc: "Independent mode is available."
+        },
+        { bits: "1",
+          name: "dual",
+          desc: "Dual Modular Redundancy (DMR) is available."
+        },
+        { bits: "2",
+          name: "triple",
+          desc: "Triple Modular Redundancy (TMR) is available."
+        },
+        { bits: "8",
+          name: "rapid_recovery",
+          desc: "Rapid Recovery is available."
+        }
+      ]
+    },
+    { name: "cores_en",
+      desc: "Enabled cores, based on the configuration. Can be used for barriers.",
+      swaccess: "ro",
+      hwaccess: "hwo",
+      hwext: "true",
+      fields: [
+        { bits: "NumCores-1:0"
+          name: "cores_en",
+          desc: "Enabled cores."
+        }
+      ]
+    },
+    { name: "DMR_enable",
+      desc: "DMR configuration enable, on bit per DMR group.",
+      swaccess: "rw",
+      hwaccess: "hrw",
+      hwqe: "true",
+      hwext: "true",
+      resval: "0",
+      fields: [
+        { bits: "NumDMRGroups-1:0",
+          name: "DMR_enable",
+          desc: "DMR configuration enable."
+        }
+      ]
+    },
+    { name: "TMR_enable",
+      desc: "TMR configuration enable, one bit per TMR group.",
+      swaccess: "rw",
+      hwaccess: "hrw",
+      hwqe: "true",
+      hwext: "true",
+      resval: "0",
+      fields: [
+        { bits: "NumTMRGroups-1:0",
+          name: "TMR_enable",
+          desc: "TMR configuration enable."
+        }
+      ]
+    },
+    { name: "DMR_config",
+      desc: "DMR configuration bits."
+      swaccess: "rw",
+      hwaccess: "hrw",
+      hwqe: "true",
+      hwext: "true",
+      fields: [
+        { bits: "0",
+          name: "rapid_recovery",
+          desc: "Enable rapid recovery using an additional register file."
+        },
+        { bits: "1"
+          name: "force_recovery",
+          desc: "Forces recovery routine (if rapid_recovery is available)."
+        }
+      ]
+    },
+    { name: "TMR_config",
+      desc: "TMR configuration bits."
+      swaccess: "rw",
+      hwaccess: "hrw",
+      hwqe: "true",
+      hwext: "true",
+      fields: [
+        { bits: "0",
+          name: "delay_resynch",
+          resval: "0",
+          desc: "Enable wait-for-restoration"
+        },
+        { bits: "1",
+          name: "setback",
+          resval: "1",
+          desc: "Enable setback (synchronous reset) during re-synch."
+        },
+        { bits: "2",
+          name: "reload_setback",
+          resval: "1",
+          desc: "Enable setback on mismatch during reload section of re-synch (only possible with `setback`)"
+        },
+        { bits: "3",
+          name: "rapid_recovery",
+          desc: "Enable rapid recovery using additional register file."
+        },
+        { bits: "4",
+          name: "force_resynch",
+          resval: "0",
+          desc: "Forces a resynchronization routine"
+        }
+      ]
+    }
+  ]
+}

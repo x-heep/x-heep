@@ -87,7 +87,7 @@ module peripheral_subsystem #(
     output logic i2s_rx_valid_o,
 
     //Serial Link
-    input  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0]    ddr_rcv_clk_i,  
+    input  logic [serial_link_single_channel_reg_pkg::NumChannels-1:0]    ddr_rcv_clk_i,
     output logic [serial_link_single_channel_reg_pkg::NumChannels-1:0]    ddr_snd_clk_o,
     input  logic ddr_rcv_0_i,
     input  logic ddr_rcv_1_i,
@@ -97,7 +97,7 @@ module peripheral_subsystem #(
     output logic ddr_snd_1_o,
     output logic ddr_snd_2_o,
     output logic ddr_snd_3_o,
-    
+
 
     // PDM2PCM Interface
     output logic pdm2pcm_clk_o,
@@ -163,7 +163,7 @@ module peripheral_subsystem #(
   logic uart_intr_rx_break_err;
   logic uart_intr_rx_timeout;
   logic uart_intr_rx_parity_err;
-  
+
   // this avoids lint errors
   assign unused_irq_id = irq_id;
 
@@ -251,6 +251,12 @@ module peripheral_subsystem #(
 
 `endif
 
+  logic slave_fifo_resp_gnt, slave_fifo_resp_rvalid;
+  assign slave_fifo_resp_sel.gnt       = slave_fifo_resp_gnt;
+  assign slave_fifo_resp_sel.rvalid    = slave_fifo_resp_rvalid;
+  assign slave_fifo_resp_sel.gntpar    = ~slave_fifo_resp_gnt;
+  assign slave_fifo_resp_sel.rvalidpar = ~slave_fifo_resp_rvalid;
+
   periph_to_reg #(
       .req_t(reg_req_t),
       .rsp_t(reg_rsp_t),
@@ -259,16 +265,16 @@ module peripheral_subsystem #(
       .clk_i(clk_cg),
       .rst_ni,
       .req_i(slave_fifo_req_sel.req),
-      .add_i(slave_fifo_req_sel.addr),
-      .wen_i(~slave_fifo_req_sel.we),
-      .wdata_i(slave_fifo_req_sel.wdata),
-      .be_i(slave_fifo_req_sel.be),
+      .add_i(slave_fifo_req_sel.a.addr),
+      .wen_i(~slave_fifo_req_sel.a.we),
+      .wdata_i(slave_fifo_req_sel.a.wdata),
+      .be_i(slave_fifo_req_sel.a.be),
       .id_i('0),
-      .gnt_o(slave_fifo_resp_sel.gnt),
-      .r_rdata_o(slave_fifo_resp_sel.rdata),
+      .gnt_o(slave_fifo_resp_gnt),
+      .r_rdata_o(slave_fifo_resp_sel.r.rdata),
       .r_opc_o(),
       .r_id_o(),
-      .r_valid_o(slave_fifo_resp_sel.rvalid),
+      .r_valid_o(slave_fifo_resp_rvalid),
       .reg_req_o(peripheral_req),
       .reg_rsp_i(peripheral_rsp)
   );
@@ -591,7 +597,7 @@ module peripheral_subsystem #(
   assign i2s_rx_valid_o   = 1'b0;
 % endif
 
-  
+
 % if user_peripheral_domain.contains_peripheral('uart'):
 
   reg_to_tlul #(
@@ -651,25 +657,70 @@ module peripheral_subsystem #(
   assign ddr_i = {ddr_rcv_3_i, ddr_rcv_2_i, ddr_rcv_1_i, ddr_rcv_0_i};
   assign {ddr_snd_3_o, ddr_snd_2_o, ddr_snd_1_o, ddr_snd_0_o} = ddr_o;
 
+  obi_req_t serial_link_writer_req, serial_link_reader_req;
+  obi_rsp_t serial_link_writer_rsp, serial_link_reader_rsp;
+
+  assign serial_link_writer_req = '{
+      req: peripheral_slv_req[core_v_mini_mcu_pkg::SERIAL_LINK_IDX].valid,
+      a: '{
+          we: peripheral_slv_req[core_v_mini_mcu_pkg::SERIAL_LINK_IDX].write,
+          be: peripheral_slv_req[core_v_mini_mcu_pkg::SERIAL_LINK_IDX].wstrb,
+          addr: peripheral_slv_req[core_v_mini_mcu_pkg::SERIAL_LINK_IDX].addr,
+          wdata: peripheral_slv_req[core_v_mini_mcu_pkg::SERIAL_LINK_IDX].wdata,
+          aid: '0,
+          a_optional: '0
+      },
+      rready: '1,
+      reqpar: ~peripheral_slv_req[core_v_mini_mcu_pkg::SERIAL_LINK_IDX].valid,
+      rreadypar: '0
+  };
+  assign peripheral_slv_rsp[core_v_mini_mcu_pkg::SERIAL_LINK_IDX] = '{
+      error: serial_link_writer_rsp.gnt,
+      ready: serial_link_writer_rsp.rvalid,
+      rdata: serial_link_writer_rsp.r.rdata
+  };
+
+  assign serial_link_reader_req = '{
+      req: peripheral_slv_req[core_v_mini_mcu_pkg::SERIAL_LINK_RECEIVER_FIFO_IDX].valid,
+      a: '{
+          we: peripheral_slv_req[core_v_mini_mcu_pkg::SERIAL_LINK_RECEIVER_FIFO_IDX].write,
+          be: peripheral_slv_req[core_v_mini_mcu_pkg::SERIAL_LINK_RECEIVER_FIFO_IDX].wstrb,
+          addr: peripheral_slv_req[core_v_mini_mcu_pkg::SERIAL_LINK_RECEIVER_FIFO_IDX].addr,
+          wdata: peripheral_slv_req[core_v_mini_mcu_pkg::SERIAL_LINK_RECEIVER_FIFO_IDX].wdata,
+          aid: '0,
+          a_optional: '0
+      },
+      rready: '1,
+      reqpar: ~peripheral_slv_req[core_v_mini_mcu_pkg::SERIAL_LINK_RECEIVER_FIFO_IDX].valid,
+      rreadypar: '0
+  };
+  assign peripheral_slv_rsp[core_v_mini_mcu_pkg::SERIAL_LINK_RECEIVER_FIFO_IDX] = '{
+      error: serial_link_reader_rsp.gnt,
+      ready: serial_link_reader_rsp.rvalid,
+      rdata: serial_link_reader_rsp.r.rdata
+  };
+
   serial_link_xheep_wrapper #(
+    .obi_req_t(obi_req_t),
+    .obi_rsp_t(obi_rsp_t),
     .MaxClkDiv(32),
     .DataWidth(32)
   ) serial_link_xheep_wrapper_i (
     .clk_i(clk_i),
     .rst_ni(rst_ni),
-    .clk_reg_i(clk_i),       
-    .rst_reg_ni(rst_ni),      
+    .clk_reg_i(clk_i),
+    .rst_reg_ni(rst_ni),
     .testmode_i('0),
-    .writer_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SERIAL_LINK_IDX]),
-    .writer_rsp_i(peripheral_slv_rsp[core_v_mini_mcu_pkg::SERIAL_LINK_IDX]),
-    .reader_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SERIAL_LINK_RECEIVER_FIFO_IDX]),
-    .reader_resp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SERIAL_LINK_RECEIVER_FIFO_IDX]),
+    .writer_req_i(serial_link_writer_req),
+    .writer_rsp_i(serial_link_writer_rsp),
+    .reader_req_i(serial_link_reader_req),
+    .reader_resp_o(serial_link_reader_rsp),
     .cfg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SERIAL_LINK_REG_IDX]),
     .cfg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SERIAL_LINK_REG_IDX]),
-    .ddr_rcv_clk_i,         
-    .ddr_i,                   
-    .ddr_snd_clk_o,          
-    .ddr_o                   
+    .ddr_rcv_clk_i,
+    .ddr_i,
+    .ddr_snd_clk_o,
+    .ddr_o
   );
 % else:
     //Serial Link

@@ -1,0 +1,27 @@
+// Copyright 2020 ETH Zurich and University of Bologna.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+{
+  name: "obi",
+  target_dir: "obi",
+
+  upstream: {
+    url: "https://github.com/pulp-platform/obi.git",
+    rev: "6b331000e2345ccc84bc1197c8a641e2223c0fc1",
+  },
+
+  patch_dir: "../patches/pulp_platform_obi",
+
+  exclude_from_upstream: [
+    ".github",
+    ".gitignore",
+    "Bender.lock",
+    "LICENSE",
+    "CHANGELOG.md",
+    "Makefile",
+    "Readme.md",
+    ".gitlab-ci.yml",
+    "Bender.yml",
+  ]
+
+}

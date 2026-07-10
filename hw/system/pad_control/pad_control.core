@@ -11,6 +11,8 @@ filesets:
   files_rtl:
     depend:
       - xheep:util:reg-generator
+      - x-heep::packages
+      - pulp-platform.org::register_interface
       - pulp-platform.org::common_cells
     files:
     - rtl/pad_control.sv

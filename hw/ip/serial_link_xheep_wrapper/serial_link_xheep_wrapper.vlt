@@ -4,5 +4,10 @@
 
 `verilator_config
 
-lint_off -rule UNUSED -file "*/rtl/serial_link_xheep_wrapper.sv" -match "Bits of signal are not used: 'reader_req_i'[67:0]*"
+lint_off -rule UNUSED -file "*/rtl/serial_link_xheep_wrapper.sv" -match "Bits of signal are not used: 'writer_req_i'[2:0]*"
+lint_off -rule UNUSED -file "*/rtl/serial_link_xheep_wrapper.sv" -match "Bits of signal are not used: 'reader_req_i'[2:0]*"
+lint_off -rule UNDRIVEN -file "*/rtl/serial_link_xheep_wrapper.sv" -match "Bits of signal are not driven: 'writer_rsp_i'[2,0]*"
+lint_off -rule UNDRIVEN -file "*/rtl/serial_link_xheep_wrapper.sv" -match "Bits of signal are not driven: 'reader_resp_o'[2,0]*"
+lint_off -rule UNOPTFLAT -file "*/rtl/serial_link_xheep_wrapper.sv" -match "Signal unoptimizable: *ircular *logic: '*.writer_rsp_i'"
+lint_off -rule UNOPTFLAT -file "*/vendor/pulp_platform/axi/src/axi_lite_from_mem.sv" -match "Signal unoptimizable*"
 lint_off -rule UNUSED -file "*/rtl/serial_link_xheep_wrapper_fifo.sv" -match "Bits of signal are not used: 'writer_axi_req_i'[112:75,33:0]*"

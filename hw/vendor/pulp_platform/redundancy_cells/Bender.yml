@@ -1,0 +1,152 @@
+package:
+  name: redundancy_cells
+  authors: 
+    - "Michael Rogenmoser <michaero@iis.ee.ethz.ch>"
+
+dependencies:
+  tech_cells_generic:  { git: "https://github.com/pulp-platform/tech_cells_generic.git", version: 0.2.13 }
+  common_verification: { git: "https://github.com/pulp-platform/common_verification.git", version: 0.2.0 }
+  register_interface:  { git: "https://github.com/pulp-platform/register_interface.git", version: 0.4.4 }
+  common_cells:        { git: "https://github.com/pulp-platform/common_cells.git", version: 1.35.0 }
+  
+export_include_dirs:
+  - include
+
+sources:
+    # Source files grouped in levels. Files in level 0 have no dependencies on files in this
+    # package. Files in level 1 only depend on files in level 0, files in level 2 on files in
+    # levels 1 and 0, etc. Files within a level are ordered alphabetically.
+    # Level 0
+  - rtl/ODRG_unit/odrg_manager_reg_pkg.sv
+  - rtl/ecc_wrap/ecc_manager_reg_pkg.sv
+  - rtl/pulpissimo_tcls/tcls_manager_reg_pkg.sv
+  - rtl/lowrisc_ecc/prim_secded_13_8_cor.sv
+  - rtl/lowrisc_ecc/prim_secded_13_8_dec.sv
+  - rtl/lowrisc_ecc/prim_secded_13_8_enc.sv
+  - rtl/lowrisc_ecc/prim_secded_22_16_cor.sv
+  - rtl/lowrisc_ecc/prim_secded_22_16_dec.sv
+  - rtl/lowrisc_ecc/prim_secded_22_16_enc.sv
+  - rtl/lowrisc_ecc/prim_secded_39_32_cor.sv
+  - rtl/lowrisc_ecc/prim_secded_39_32_dec.sv
+  - rtl/lowrisc_ecc/prim_secded_39_32_enc.sv
+  - rtl/lowrisc_ecc/prim_secded_72_64_cor.sv
+  - rtl/lowrisc_ecc/prim_secded_72_64_dec.sv
+  - rtl/lowrisc_ecc/prim_secded_72_64_enc.sv
+  - rtl/lowrisc_ecc/prim_secded_pkg.sv
+  - rtl/ODRG_unit/triple_core_barrier.sv
+  - rtl/hsiao_ecc/hsiao_ecc_pkg.sv
+  - rtl/hsiao_ecc/hsiao_ecc_enc.sv
+  - rtl/hsiao_ecc/hsiao_ecc_dec.sv
+  - rtl/hsiao_ecc/hsiao_ecc_cor.sv
+  - rtl/TMR_voter.sv
+  - rtl/TMR_voter_fail.sv
+  - rtl/TMR_word_voter.sv
+  - rtl/HMR/resp_suppress.sv
+    # Level 1
+  - rtl/ODRG_unit/odrg_manager_reg_top.sv
+  - rtl/ecc_wrap/ecc_manager_reg_top.sv
+  - rtl/pulpissimo_tcls/tcls_manager_reg_top.sv
+  - rtl/ecc_wrap/ecc_scrubber.sv
+  - rtl/rel_fifo.sv
+  - rtl/rel_rr_arb_tree.sv
+  - rtl/rel_spill_register.sv
+
+  - target: any(deprecated, axi_ecc, hci_ecc, pulp_ecc, test)
+    files:
+      - rtl/ecc_concat_32_64.sv
+      - rtl/lowrisc_ecc/prim_secded_pkg.sv
+      - rtl/lowrisc_ecc/prim_secded_13_8_cor.sv
+      - rtl/lowrisc_ecc/prim_secded_13_8_dec.sv
+      - rtl/lowrisc_ecc/prim_secded_13_8_enc.sv
+      - rtl/lowrisc_ecc/prim_secded_22_16_cor.sv
+      - rtl/lowrisc_ecc/prim_secded_22_16_dec.sv
+      - rtl/lowrisc_ecc/prim_secded_22_16_enc.sv
+      - rtl/lowrisc_ecc/prim_secded_39_32_cor.sv
+      - rtl/lowrisc_ecc/prim_secded_39_32_dec.sv
+      - rtl/lowrisc_ecc/prim_secded_39_32_enc.sv
+      - rtl/lowrisc_ecc/prim_secded_72_64_cor.sv
+      - rtl/lowrisc_ecc/prim_secded_72_64_dec.sv
+      - rtl/lowrisc_ecc/prim_secded_72_64_enc.sv
+
+  - target: axi_ecc # custom ECC for PULP AXI IPs, make sure to include interface IPs when adding this target
+    files:
+      - rtl/BUS_enc_dec/AXI_bus_ecc_dec.sv
+      - rtl/BUS_enc_dec/AXI_bus_ecc_enc.sv
+  - target: hci_ecc # custom ECC for PULP HCI IPs, make sure to include interface IPs when adding this target
+    files:
+      - rtl/BUS_enc_dec/hci_core_intf_ecc_dec.sv
+      - rtl/BUS_enc_dec/hci_core_intf_ecc_enc.sv
+      - rtl/BUS_enc_dec/hci_mem_intf_ecc_dec.sv
+      - rtl/BUS_enc_dec/hci_mem_intf_ecc_enc.sv
+  - target: pulp_ecc # custom ECC for PULP (pulp_soc) interface IPs, make sure to include interface IPs when adding this target
+    files:
+      - rtl/BUS_enc_dec/PE_XBAR_bus_ecc_dec.sv
+      - rtl/BUS_enc_dec/PE_XBAR_bus_ecc_enc.sv
+      - rtl/BUS_enc_dec/TCDM_XBAR_bus_ecc_dec.sv
+      - rtl/BUS_enc_dec/TCDM_XBAR_bus_ecc_enc.sv
+      - rtl/BUS_enc_dec/XBAR_DEMUX_BUS_ecc_dec.sv
+      - rtl/BUS_enc_dec/XBAR_DEMUX_BUS_ecc_enc.sv
+  - rtl/TMR_voter_detect.sv
+    # Level 2
+  - rtl/bitwise_TMR_voter.sv
+  - rtl/bitwise_TMR_voter_fail.sv
+  - rtl/ecc_wrap/ecc_manager.sv
+  - target: deprecated
+    files:
+      - rtl/ecc_wrap/ecc_sram_wrap.sv
+  - rtl/ecc_wrap/ecc_sram.sv
+    # Level 3
+  - include_dirs:
+      - rtl/ODRG_unit
+    files:
+      - rtl/ODRG_unit/ODRG_unit.sv
+  - include_dirs:
+      - rtl/pulpissimo_tcls
+    files:
+      - rtl/pulpissimo_tcls/TCLS_unit.sv
+  - target: test
+    files:
+      - test/tb_ecc_scrubber.sv
+      - test/tb_ecc_secded.sv
+      - test/tb_ecc_sram.sv
+      - test/tb_rel_fifo.sv
+      - test/tb_tmr_voter.sv
+      - test/tb_tmr_voter_fail.sv
+      - test/tb_tmr_voter_detect.sv
+      - test/tb_tmr_word_voter.sv
+      - test/tb_bitwise_tmr_voter.sv
+      - test/tb_bitwise_tmr_voter_fail.sv
+      - test/tb_voter_macros.sv
+
+  - files:
+      - rtl/HMR/rapid_recovery_pkg.sv
+      - rtl/HMR/recovery_csr.sv
+      - rtl/HMR/recovery_pc.sv
+      - rtl/HMR/recovery_rf.sv
+      - rtl/HMR/rapid_recovery_unit.sv
+      - rtl/HMR/DMR_checker.sv
+      - rtl/HMR/DMR_CSR_checker.sv
+      - rtl/HMR/DMR_address_generator.sv
+      # - rtl/HMR/DMR_controller.sv
+      - rtl/HMR/hmr_rapid_recovery_ctrl.sv
+      - rtl/HMR/hmr_registers_reg_pkg.sv
+      - rtl/HMR/hmr_core_regs_reg_pkg.sv
+      - rtl/HMR/hmr_dmr_regs_reg_pkg.sv
+      - rtl/HMR/hmr_tmr_regs_reg_pkg.sv
+      - rtl/HMR/hmr_registers_reg_top.sv
+      - rtl/HMR/hmr_core_regs_reg_top.sv
+      - rtl/HMR/hmr_dmr_regs_reg_top.sv
+      - rtl/HMR/hmr_dmr_ctrl.sv
+      - rtl/HMR/hmr_tmr_regs_reg_top.sv
+      - rtl/HMR/hmr_tmr_ctrl.sv
+      - rtl/HMR/HMR_wrap.sv
+      - rtl/HMR/hmr_unit.sv
+
+vendor_package:
+  - name: lowrisc_opentitan
+    target_dir: "util/lowrisc_opentitan"
+    upstream: { git: "https://github.com/lowRISC/opentitan.git", rev: "cfcfbce85e182c127b8c4be5cd8bf531e0a4d927" }
+    patch_dir: "util/patches"
+    mapping:
+      - {from: 'util/design/secded_gen.py', to: 'util/design/secded_gen.py', patch_dir: 'lowrisc_secded_gen'}
+      - {from: 'util/design/data/', to: 'util/design/data/', patch_dir: 'lowrisc_data_dir'}

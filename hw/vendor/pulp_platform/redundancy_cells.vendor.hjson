@@ -1,0 +1,21 @@
+// Copyright 2020 ETH Zurich and University of Bologna.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+{
+  name: "redundancy_cells",
+  target_dir: "redundancy_cells",
+
+  upstream: {
+    url: "https://github.com/pulp-platform/redundancy_cells.git",
+    rev: "master",
+  },
+  
+  patch_dir: "../patches/pulp_platform_redundancy_cells",
+  
+  exclude_from_upstream: [
+    "test",
+    "ci",
+    "formal",
+  ]
+
+}

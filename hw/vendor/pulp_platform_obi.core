@@ -1,0 +1,18 @@
+CAPI=2:
+
+name: pulp-platform.org::obi
+
+# Copyright 2021 OpenHW Group
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+filesets:
+  rtl:
+    files:
+    - pulp_platform/obi/include/obi/typedef.svh : {is_include_file : true, include_path : pulp_platform/obi/include}
+    file_type: systemVerilogSource
+
+targets:
+  default:
+    filesets:
+    - rtl

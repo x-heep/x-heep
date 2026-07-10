@@ -1,0 +1,56 @@
+{
+  name: "HMR_dmr_regs",
+  clock_primary: "clk_i",
+  reset_primary: "rst_ni",
+  bus_interfaces: [
+    { protocol: "reg_iface",
+      direction: "device"
+    }
+  ],
+
+  regwidth: "32",
+
+  registers: [
+    { name: "DMR_enable",
+      desc: "DMR configuration enable.",
+      swaccess: "rw",
+      hwaccess: "hrw",
+      hwqe: "true",
+      resval: "0",
+      fields: [
+        { bits: "0",
+          name: "DMR_enable",
+          desc: "DMR configuration enable."
+        }
+      ]
+    },
+    { name: "DMR_config",
+      desc: "DMR configuration bits."
+      swaccess: "rw",
+      hwaccess: "hrw",
+      hwqe: "true",
+      fields: [
+        { bits: "0",
+          name: "rapid_recovery",
+          desc: "Enable rapid recovery using an additional register file."
+        },
+        { bits: "1"
+          name: "force_recovery",
+          desc: "Forces recovery routine (if rapid_recovery is available)."
+        }
+      ]
+    },
+    { name: "checkpoint_addr",
+      desc: "Address for the last checkpoint.",
+      swaccess: "rw",
+      hwaccess: "hrw",
+      hwqe: "true",
+      fields: [
+        { bits: "31:0",
+          name: "checkpoint_addr",
+          desc: "Address for the last checkpoint."
+        }
+      ]
+    }
+  ]
+}

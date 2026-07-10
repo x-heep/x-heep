@@ -1,0 +1,36 @@
+CAPI=2:
+# Copyright 2026
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+name : pulp-platform.org::relobi
+filesets:
+  rtl:
+    files:
+    - pulp_platform/obi/include/obi/typedef.svh : {is_include_file : true, include_path : pulp_platform/obi/include}
+    - pulp_platform/obi/src/obi_pkg.sv
+    - pulp_platform/obi/src/relobi_pkg.sv
+    - pulp_platform/obi/src/relobi_tmr_r.sv
+    - pulp_platform/obi/src/relobi_a_other_decoder.sv
+    - pulp_platform/obi/src/relobi_r_other_encoder.sv
+    - pulp_platform/obi/src/relobi_encoder.sv
+    - pulp_platform/obi/src/relobi_mux.sv
+    - pulp_platform/obi/src/relobi_cut.sv
+    - pulp_platform/obi/src/relobi_sram_shim.sv
+    - pulp_platform/obi/src/relobi_xbar.sv
+    - pulp_platform/obi/src/relobi_isolate.sv
+    - pulp_platform/obi/src/relobi_r_other_corrector.sv
+    - pulp_platform/obi/src/relobi_err_sbr.sv
+    - pulp_platform/obi/src/relobi_a_other_corrector.sv
+    - pulp_platform/obi/src/relobi_tmr_a.sv
+    - pulp_platform/obi/src/relobi_demux.sv
+    - pulp_platform/obi/src/relobi_corrector.sv
+    - pulp_platform/obi/src/relobi_decoder.sv
+    - pulp_platform/obi/src/relobi_r_other_decoder.sv
+    - pulp_platform/obi/src/relobi_a_other_encoder.sv
+    file_type: systemVerilogSource
+
+targets:
+  default:
+    filesets : 
+    - rtl

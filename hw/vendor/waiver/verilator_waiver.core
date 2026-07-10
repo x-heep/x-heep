@@ -26,6 +26,7 @@ filesets:
     - lint/cluster_interconnect.vlt
     - lint/picorv32.vlt
     - lint/pulpissimo.vlt
+    - lint/reliability.vlt
     - lint/rv_plic.vlt
     - lint/spi_device.vlt
     - lint/spi_host.vlt
@@ -34,6 +35,7 @@ filesets:
     - lint/serial_link.vlt
     - lint/axi.vlt
     - lint/quadrilatero.vlt
+    - lint/obi.vlt
     - lint/opentitan.vlt
     file_type: vlt
 

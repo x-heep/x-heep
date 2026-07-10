@@ -1,0 +1,80 @@
+# Copyright 2022 ETH Zurich and University of Bologna.
+# Solderpad Hardware License, Version 0.51, see LICENSE for details.
+# SPDX-License-Identifier: SHL-0.51
+
+# Author: Michael Rogenmoser <michaero@iis.ee.ethz.ch>
+
+name: ci
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  check-stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          cache: 'pip'
+      - name: Install Bender
+        run: make bender
+      - name: Python Requirements
+        run: pip install -r requirements.txt
+      - name: Check clean make targets
+        run: |
+          make -B gen_ODRG gen_TCLS gen_ecc_registers gen_ECC
+          git status && test -z "$(git status --porcelain)"
+  lint-verilog:
+    runs-on: ubuntu-latest
+    needs: [check-stale]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: chipsalliance/verible-linter-action@main
+        with:
+          paths: |
+            ./rtl
+          exclude_paths: |
+            ./test
+            ./rtl/*/*_reg_pkg.sv
+            ./rtl/*/*_reg_top.sv
+            ./rtl/ecc_wrap/ecc_manager_2_reg_pkg.sv
+            ./rtl/ecc_wrap/ecc_manager_2_reg_top.sv
+            ./rtl/ecc_wrap/ecc_manager_8_reg_pkg.sv
+            ./rtl/ecc_wrap/ecc_manager_8_reg_top.sv
+            ./rtl/ecc_wrap/ecc_manager_reg_pkg.sv
+            ./rtl/ecc_wrap/ecc_manager_reg_top.sv
+            ./rtl/ODRG_unit/odrg_manager_reg_pkg.sv
+            ./rtl/ODRG_unit/odrg_manager_reg_top.sv
+            ./rtl/HMR/hmr_core_regs_reg_pkg.sv
+            ./rtl/HMR/hmr_core_regs_reg_top.sv
+            ./rtl/HMR/hmr_dmr_regs_reg_pkg.sv
+            ./rtl/HMR/hmr_dmr_regs_reg_top.sv
+            ./rtl/HMR/hmr_registers_reg_pkg.sv
+            ./rtl/HMR/hmr_registers_reg_top.sv
+            ./rtl/HMR/hmr_tmr_regs_reg_pkg.sv
+            ./rtl/HMR/hmr_tmr_regs_reg_top.sv
+            ./rtl/pulpissimo_tcls/tcls_manager_reg_pkg.sv
+            ./rtl/pulpissimo_tcls/tcls_manager_reg_top.sv
+          extra_args: "--rules=-interface-name-style --lint_fatal --parse_fatal --waiver_files .github/waiver.verible"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          reviewdog_reporter: github-check
+  gitlab-ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mirror and check
+        uses: pulp-platform/pulp-actions/gitlab-ci@v2
+        # Skip on forks or pull requests from forks due to missing secrets.
+        if: >
+          github.repository == 'pulp-platform/redundancy_cells' &&
+          (github.event_name != 'pull_request' ||
+          github.event.pull_request.head.repo.full_name == github.repository)
+        with:
+          domain: iis-git.ee.ethz.ch
+          repo: github-mirror/redundancy_cells
+          token: ${{ secrets.GITLAB_TOKEN }}

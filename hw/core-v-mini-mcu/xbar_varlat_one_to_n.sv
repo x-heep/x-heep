@@ -83,11 +83,11 @@ module xbar_varlat_one_to_n #(
       .rule_t   (addr_map_rule_pkg::addr_map_rule_t),
       .Napot    (1'b0)
   ) u_addr_decode (
-      .addr_i          (master_req_i.addr),
+      .addr_i          (master_req_i.a.addr),
       .addr_map_i      (addr_map_i),
       .idx_o           (slave_idx),
-      .dec_valid_o     (),                   // unused
-      .dec_error_o     (),                   // unused
+      .dec_valid_o     (),                     // unused
+      .dec_error_o     (),                     // unused
       .en_default_idx_i(1'b1),
       .default_idx_i   (default_idx_i)
   );
@@ -97,29 +97,35 @@ module xbar_varlat_one_to_n #(
   // Unroll OBI master signals
   assign master_xbar_req_req[0] = master_req_i.req;
   assign master_xbar_req_data[0] = {
-    master_req_i.we, master_req_i.be, master_req_i.addr, master_req_i.wdata
+    master_req_i.a.we, master_req_i.a.be, master_req_i.a.addr, master_req_i.a.wdata
   };
   assign master_resp_o = '{
           gnt: xbar_master_rsp_gnt[0],
           rvalid: xbar_master_rsp_rvalid[0],
-          rdata: xbar_master_rsp_data[0]
+          r: '{rdata: xbar_master_rsp_data[0], rid: '0, err: '0, r_optional: '0},
+          gntpar: ~xbar_master_rsp_gnt[0],
+          rvalidpar: ~xbar_master_rsp_rvalid[0]
       };
 
-  // Unroll OBI slave signals
   generate
     for (genvar i = 0; unsigned'(i) < XBAR_NSLAVE; i++) begin : gen_unroll_obi
-      assign slave_req_o[i].req = xbar_slave_req_req[i];
-      assign {
-        slave_req_o[i].we,
-        slave_req_o[i].be,
-        slave_req_o[i].addr,
-        slave_req_o[i].wdata
-      } = xbar_slave_req_data[i];
-      assign {
-        slave_xbar_rsp_gnt[i],
-        slave_xbar_rsp_rvalid[i],
-        slave_xbar_rsp_data[i]
-      } = slave_resp_i[i];
+      assign slave_req_o[i] = '{
+              req: xbar_slave_req_req[i],
+              a: '{
+                  we: xbar_slave_req_data[i][ReqDataWidth-1],
+                  be: xbar_slave_req_data[i][ReqDataWidth-2-:4],
+                  addr: xbar_slave_req_data[i][32+:32],
+                  wdata: xbar_slave_req_data[i][31:0],
+                  aid: '0,
+                  a_optional: '0
+              },
+              rready: '1,
+              reqpar: ~xbar_slave_req_req[i],
+              rreadypar: '0
+          };
+      assign slave_xbar_rsp_gnt[i] = slave_resp_i[i].gnt;
+      assign slave_xbar_rsp_rvalid[i] = slave_resp_i[i].rvalid;
+      assign slave_xbar_rsp_data[i] = slave_resp_i[i].r.rdata;
     end
   endgenerate
 

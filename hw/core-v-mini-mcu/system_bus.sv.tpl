@@ -23,16 +23,29 @@
 module system_bus
   import addr_map_rule_pkg::*;
 #(
+    // OBI and data types
+    parameter type obi_req_t     = logic,
+    parameter type obi_rsp_t    = logic,
+% if xheep.reliability:
+    parameter xheep_obi_pkg::obi_cfg_t ObiCfg          = xheep_obi_pkg::xheep_obiCfg,
+    parameter type addr_map_rule_t = logic,
+    parameter type a_optional_t = logic,
+    parameter type r_optional_t = logic,
+    parameter type obi_a_chan_t = logic,
+    parameter type obi_r_chan_t = logic,
+% endif
     parameter NUM_BANKS = 2,
     parameter EXT_XBAR_NMASTER = 0,
     //do not touch these parameters
-    parameter EXT_XBAR_NMASTER_RND = EXT_XBAR_NMASTER == 0 ? 1 : EXT_XBAR_NMASTER,
-    // OBI and data types
-    parameter type obi_req_t = xheep_obi_pkg::xheep_obi_req_t,
-    parameter type obi_rsp_t = xheep_obi_pkg::xheep_obi_rsp_t
+    parameter EXT_XBAR_NMASTER_RND = EXT_XBAR_NMASTER == 0 ? 1 : EXT_XBAR_NMASTER
 ) (
     input logic clk_i,
     input logic rst_ni,
+
+% if xheep.reliability:
+    output fault_o,
+    input testmode_i,
+% endif
 
     // Internal master ports
     input  obi_req_t core_instr_req_i,
@@ -119,6 +132,15 @@ module system_bus
   // Dummy external master port (to prevent unused warning)
   obi_req_t [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_req_unused;
 
+% if xheep.reliability:
+  logic [core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER-1:0] fault_demux;
+  logic fault_xbar;
+
+  logic [2:0][core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER-1:0] int_master_port_select;
+  
+  assign fault_o = (|fault_demux) | fault_xbar;
+% endif
+
   assign ext_xbar_req_unused = ext_xbar_master_req_i;
 
   assign error_slave_resp = '0;
@@ -192,7 +214,6 @@ module system_bus
     end
   endgenerate
   
-
   // Internal slave responses
   assign int_slave_resp[core_v_mini_mcu_pkg::ERROR_IDX] = error_slave_resp;
 % for bank in memory_ss.iter_ram_banks():
@@ -220,7 +241,7 @@ module system_bus
   always_ff @(posedge clk_i, negedge rst_ni) begin : check_out_of_bound
     if (rst_ni) begin
       if (error_slave_req.req) begin
-        $display("%t Out of bound memory access 0x%08x", $time, error_slave_req.addr);
+        $display("%t Out of bound memory access 0x%08x", $time, error_slave_req.a.addr);
         $stop;
       end
     end
@@ -228,8 +249,8 @@ module system_bus
 
   // show writes if requested
   always_ff @(posedge clk_i, negedge rst_ni) begin : verbose_writes
-    if ($test$plusargs("verbose") != 0 && core_data_req_i.req && core_data_req_i.we)
-      $display("write addr=0x%08x: data=0x%08x", core_data_req_i.addr, core_data_req_i.wdata);
+    if ($test$plusargs("verbose") != 0 && core_data_req_i.req && core_data_req_i.a.we)
+      $display("write addr=0x%08x: data=0x%08x", core_data_req_i.a.addr, core_data_req_i.a.wdata);
   end
 `endif
 
@@ -239,40 +260,117 @@ module system_bus
   // to the corresponding external master port.
   generate
     for (genvar i = 0; unsigned'(i) < SYSTEM_XBAR_NMASTER; i++) begin : gen_demux_xbar
-      xbar_varlat_one_to_n #(
-          .XBAR_NSLAVE (32'd2), // internal crossbar + external crossbar
-          .NUM_RULES   (32'd1), // only the external address space is defined
-          .obi_req_t     (obi_req_t),
-          .obi_rsp_t     (obi_rsp_t)
-      ) demux_xbar_i (
-          .clk_i        (clk_i),
-          .rst_ni       (rst_ni),
-          .addr_map_i   (DEMUX_XBAR_ADDR_RULES),
-          .default_idx_i(DEMUX_XBAR_INT_SLAVE_IDX[0:0]),
-          .master_req_i (int_master_req[i]),
-          .master_resp_o(int_master_resp[i]),
-          .slave_req_o  (demux_xbar_req[i]),
-          .slave_resp_i (demux_xbar_resp[i])
-      );
-    end
-  endgenerate
+% if xheep.reliability:
+        for (genvar j = 0; j < 3; j++) begin : gen_addr_decode
+            addr_decode #(
+                .NoIndices (2),
+                .NoRules   (2),
+                .addr_t    (logic [ObiCfg.AddrWidth-1:0]),
+                .rule_t    (addr_map_rule_t)
+            ) i_addr_decode (
+                .addr_i           (int_master_req[i].a.addr[j]),
+                .addr_map_i       (core_v_mini_mcu_pkg::DEMUX_XBAR_ADDR_RULES),
+                .idx_o            (int_master_port_select[j][i]),
+                .dec_valid_o      (),
+                .dec_error_o      (),
+                .en_default_idx_i ('1),
+                .default_idx_i    (core_v_mini_mcu_pkg::DEMUX_XBAR_INT_SLAVE_IDX[0:0])
+            );
+        end
+
+        relobi_demux #(
+            .ObiCfg(ObiCfg),
+            .obi_req_t(obi_req_t),
+            .obi_rsp_t(obi_rsp_t),
+            .obi_r_chan_t(obi_r_chan_t),
+            .obi_r_optional_t(r_optional_t),
+            .NumMgrPorts(32'd2),
+            .NumMaxTrans(32'd1),
+            .TmrSelect(1'b1)
+        ) demux_xbar_i (
+            .clk_i(clk_i),
+            .rst_ni(rst_ni),
+          
+            .sbr_port_select_i({int_master_port_select[2][i], int_master_port_select[1][i], int_master_port_select[0][i] }),
+            .sbr_port_req_i(int_master_req[i]),
+            .sbr_port_rsp_o(int_master_resp[i]),
+          
+            .mgr_ports_req_o(demux_xbar_req[i]),
+            .mgr_ports_rsp_i(demux_xbar_resp[i]),
+          
+            .fault_o(fault_demux[i])
+        );
+% else:
+          xbar_varlat_one_to_n #(
+              .XBAR_NSLAVE (32'd2), // internal crossbar + external crossbar
+              .NUM_RULES   (32'd1), // only the external address space is defined
+              .obi_req_t   (obi_req_t),
+              .obi_rsp_t   (obi_rsp_t)
+          ) demux_xbar_i (
+              .clk_i        (clk_i),
+              .rst_ni       (rst_ni),
+              .addr_map_i   (DEMUX_XBAR_ADDR_RULES),
+              .default_idx_i(DEMUX_XBAR_INT_SLAVE_IDX[0:0]),
+              .master_req_i (int_master_req[i]),
+              .master_resp_o(int_master_resp[i]),
+              .slave_req_o  (demux_xbar_req[i]),
+              .slave_resp_i (demux_xbar_resp[i])
+          );
+% endif
+      end
+    endgenerate
 
   // Internal system crossbar
   // ------------------------
-  system_xbar #(
-      .XBAR_NMASTER(core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER + EXT_XBAR_NMASTER),
-      .XBAR_NSLAVE (core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE),
-      .obi_req_t(obi_req_t),
-      .obi_rsp_t(obi_rsp_t)
-  ) system_xbar_i (
-      .clk_i(clk_i),
-      .rst_ni(rst_ni),
-      .addr_map_i(core_v_mini_mcu_pkg::XBAR_ADDR_RULES),
-      .default_idx_i(core_v_mini_mcu_pkg::ERROR_IDX[LOG_SYSTEM_XBAR_NSLAVE-1:0]),
-      .master_req_i(master_req),
-      .master_resp_o(master_resp),
-      .slave_req_o(int_slave_req),
-      .slave_resp_i(int_slave_resp)
-  );
+% if not xheep.reliability:
+    system_xbar #(
+        .XBAR_NMASTER(core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER + EXT_XBAR_NMASTER),
+        .XBAR_NSLAVE (core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE),
+        .obi_req_t(obi_req_t),
+        .obi_rsp_t(obi_rsp_t)
+    ) system_xbar_i (
+        .clk_i(clk_i),
+        .rst_ni(rst_ni),
+        .addr_map_i(core_v_mini_mcu_pkg::XBAR_ADDR_RULES),
+        .default_idx_i(core_v_mini_mcu_pkg::ERROR_IDX[LOG_SYSTEM_XBAR_NSLAVE-1:0]),
+        .master_req_i(master_req),
+        .master_resp_o(master_resp),
+        .slave_req_o(int_slave_req),
+        .slave_resp_i(int_slave_resp)
+    );
+% else:
+    relobi_xbar #(
+        .SbrPortObiCfg(ObiCfg),
+        .MgrPortObiCfg(ObiCfg),
+        .sbr_port_obi_req_t(obi_req_t),
+        .sbr_port_a_chan_t(obi_a_chan_t),
+        .sbr_port_obi_rsp_t(obi_rsp_t),
+        .sbr_port_r_chan_t(obi_r_chan_t),
+        .mgr_port_obi_req_t(obi_req_t),
+        .mgr_port_obi_rsp_t(obi_rsp_t),
+        .mgr_port_a_chan_t(obi_a_chan_t),
+        .mgr_port_r_chan_t(obi_r_chan_t),
+        .a_optional_t(a_optional_t),
+        .r_optional_t(r_optional_t),
+        .NumSbrPorts(core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER + EXT_XBAR_NMASTER),
+        .NumMgrPorts(core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE),
+        .NumMaxTrans(32'd1),
+        .NumAddrRules(core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE),
+        .addr_map_rule_t(addr_map_rule_t),
+        .TmrMap(1'b1)
+    ) i_relobi_xbar (
+        .clk_i(clk_i),
+        .rst_ni(rst_ni),
+        .testmode_i(testmode_i), 
+        .sbr_ports_req_i(master_req),
+        .sbr_ports_rsp_o(master_resp),
+        .mgr_ports_req_o(int_slave_req),
+        .mgr_ports_rsp_i(int_slave_resp),
+        .addr_map_i({core_v_mini_mcu_pkg::XBAR_ADDR_RULES, core_v_mini_mcu_pkg::XBAR_ADDR_RULES, core_v_mini_mcu_pkg::XBAR_ADDR_RULES}),
+        .en_default_idx_i('1),
+        .default_idx_i(core_v_mini_mcu_pkg::ERROR_IDX[core_v_mini_mcu_pkg::LOG_SYSTEM_XBAR_NSLAVE-1:0]),
+        .fault_o(fault_xbar)
+    );
+% endif
 
 endmodule

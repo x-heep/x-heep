@@ -19,6 +19,8 @@ filesets:
     - pulp-platform.org::axi:0.39.8
     - pulp-platform.org::riscv_dbg
     - pulp-platform.org::register_interface
+    - pulp-platform.org::relobi
+    - pulp-platform.org::redundancy_cells
     - openhwgroup.org:ip:soc_ctrl
     - lowrisc:ip:uart:0.1
     - lowrisc:ip:rv_plic_example:0.1
@@ -55,7 +57,7 @@ filesets:
     - hw/core-v-mini-mcu/peripheral_subsystem.sv
     - hw/core-v-mini-mcu/ao_peripheral_subsystem.sv
     file_type: systemVerilogSource
-
+    
   rtl-simulation:
     depend:
     - pulp-platform.org::tech_cells_generic

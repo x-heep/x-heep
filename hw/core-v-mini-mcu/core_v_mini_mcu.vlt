@@ -6,6 +6,10 @@
 
 lint_off -rule UNUSED -file "*/core_v_mini_mcu.sv" -match "*"
 lint_off -rule UNUSED -file "*/cpu_subsystem.sv" -match "Signal is not used: 'apu*'*"
+// Reliability path: cv32e40px has no bus-error input, so the response error bit
+// (and the intermediate instr_err/data_err) are intentionally unconsumed.
+lint_off -rule UNUSEDSIGNAL -file "*/cpu_subsystem.sv" -match "Signal is not used: '*_err'*"
+lint_off -rule UNUSEDSIGNAL -file "*/cpu_subsystem.sv" -match "Bits of signal are not used: '*_rsp_struct'*"
 lint_off -rule UNDRIVEN -file "*/memory_subsystem.sv" -match "Bits of signal are not driven: 'ram*_resp_o'[32]*"
 lint_off -rule UNOPTFLAT -file "*/core_v_mini_mcu.sv" -match "Signal unoptimizable: *ircular *logic: '*.flash_mem_slave_resp'"
 lint_off -rule UNOPTFLAT -file "*/system_xbar.sv" -match "Signal unoptimizable*"
@@ -53,8 +57,41 @@ lint_off -rule UNUSED -file "*/cve2_xif_wrapper.sv" -match "Bits of signal are n
 lint_off -rule UNUSED -file "*/cve2_xif_wrapper.sv" -match "Bits of signal are not used: 'cve2_x_register'[134:99]"
 lint_off -rule UNUSED -file "*/cve2_xif_wrapper.sv" -match "Bits of signal are not used: 'cve2_x_commit'[36:5]"
 lint_off -rule UNOPTFLAT -file "*/cv32e40px_xif_wrapper.sv" -match "Signal unoptimizable: Circular combinational logic: '*cv32e40px_xif_wrapper_i.x_issue_valid'"
-lint_off -rule UNUSED -file "*/cpu_subsystem.sv" -match "Signal is not used: 'hart_id_i'*"
 lint_off -rule UNDRIVEN -file "*/core_v_mini_mcu.sv" -match "Signal is not driven: 'ddr_i*"
 lint_off -rule UNDRIVEN -file "*/core_v_mini_mcu.sv" -match "Signal is not driven: 'ddr_o*"
 lint_off -rule UNDRIVEN -file "*/core_v_mini_mcu.sv" -match "Signal is not driven: 'ddr_rcv_clk*"
+
+lint_off -rule UNUSED -file "*/cpu_subsystem.sv" -match "Signal is not used: 'hart_id_i'*"
+lint_off -rule UNUSED -file "*/cpu_subsystem.sv" -match "Signal is not used: 'instr_err'"
+lint_off -rule UNUSED -file "*/cpu_subsystem.sv" -match "Signal is not used: 'data_err'"
+lint_off -rule UNUSED -file "*/cpu_subsystem.sv" -match "Bits of signal are not used: 'instr_rsp_struct'[2,0]"
+lint_off -rule UNUSED -file "*/cpu_subsystem.sv" -match "Bits of signal are not used: 'data_rsp_struct'[2,0]"
+lint_off -rule UNDRIVEN -file "*/relobi_decoder.sv" -match "Bits of signal are not driven: 'req_o'[2:0]"
+lint_off -rule UNUSED -file "*/relobi_decoder.sv" -match "Bits of signal are not used: 'rsp_i'[2,0]"
+lint_off -rule UNUSED -file "*/relobi_encoder.sv" -match "Bits of signal are not used: 'req_i'[2:0]"
+lint_off -rule UNDRIVEN -file "*/relobi_encoder.sv" -match "Bits of signal are not driven: 'rsp_o'[2,0]"
+lint_off -rule UNDRIVEN -file "*/relobi_encoder.sv" -match "Bits of signal are not driven: 'voter_errs'[3]"
+lint_off -rule UNUSEDSIGNAL -file "*/relobi_encoder.sv" -match "Bits of signal are not driven, nor used: 'hsiao_errs_gated'[7:4]"
+lint_off -rule UNUSEDPARAM -file "*/relobi_xbar.sv" -match "Parameter is not used: 'DecodeAbort'"
+lint_off -rule UNUSEDSIGNAL -file "*/relobi_xbar.sv" -match "Signal is not driven, nor used:*"
+lint_off -rule UNUSEDSIGNAL -file "*/relobi_xbar.sv" -match "Signal is not used:*"
+
+lint_off -rule UNUSEDSIGNAL -file "*/relobi_mux.sv" -match "Signal is not driven, nor used:*"
+lint_off -rule UNUSEDSIGNAL -file "*/relobi_mux.sv" -match "Signal is not used:*"
+
+lint_off -rule UNUSEDSIGNAL -file "*/rel_rr_arb_tree.sv" -match "Signal is not driven, nor used:*"
+lint_off -rule UNUSEDSIGNAL -file "*/rel_rr_arb_tree.sv" -match "Bits of signal are not used: 'data_in'[*]"
+lint_off -rule UNUSEDSIGNAL -file "*/rel_rr_arb_tree.sv" -match "Signal is not used:*"
+lint_off -rule UNSIGNED -file "*/rel_rr_arb_tree.sv" -match "Comparison is constant due to unsigned arithmetic"
+lint_off -rule SYNCASYNCNET -file "*rel_rr_arb_tree.sv" -match "Signal flopped as both synchronous and async:*rst_ni'"
+
+
+lint_off -rule UNUSEDSIGNAL -file "*/rel_fifo.sv" -match "Signal is not driven, nor used:*"
+lint_off -rule UNUSEDSIGNAL -file "*/rel_fifo.sv" -match "Signal is not used:*"
+lint_off -rule UNUSEDSIGNAL -file "*/rel_fifo.sv" -match "Bits of signal are not used: *"
+
+
+lint_off -rule UNOPTFLAT -file "*/relobi_demux.sv" -match "Signal unoptimizable: *ircular *logic:*.i_tmr_part__sbr_port_rsp_rvalid'"
+lint_off -rule UNOPTFLAT -file "*/relobi_demux.sv" -match "Signal unoptimizable: *ircular *logic:*.__VdfgRegularize_h4fcf706a_0_2'"
+lint_off -rule UNOPTFLAT -file "*/addr_decode.sv" -match "Signal unoptimizable: *ircular *logic:*.i_addr_decode.idx_o'"
 

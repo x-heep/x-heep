@@ -23,10 +23,7 @@ class XHeep:
     IL_COMPATIBLE_BUS_TYPES = [BusType.NtoM]
     """Constant set of bus types that support interleaved memory banks"""
 
-    def __init__(
-        self,
-        bus_type: BusType,
-    ):
+    def __init__(self, bus_type: BusType, reliability: bool = False):
         if not type(bus_type) is BusType:
             raise TypeError(
                 f"XHeep.bus_type should be of type BusType not {type(self._bus_type)}"
@@ -45,6 +42,8 @@ class XHeep:
         self._padring: PadRing = None
 
         self._extensions = {}
+
+        self.reliability = reliability
 
     # ------------------------------------------------------------
     # CPU

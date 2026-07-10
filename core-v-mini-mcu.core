@@ -390,6 +390,8 @@ targets:
           - '-CFLAGS "-Wall -fpermissive"'
           - '-LDFLAGS "-pthread -lutil -lelf"'
           - "-Wall"
+          - "-Wno-SYNCASYNCNET"
+          - "-Wno-MULTIDRIVEN"
 
   sim_sc:
     <<: *default_target

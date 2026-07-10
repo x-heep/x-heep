@@ -19,6 +19,8 @@ def get_verilator_major_version():
         )
         output = result.stdout
         match = re.search(r"rev v(\d+)\.\d+", output)
+        if not match:
+            match = re.search(r"Verilator (\d+)\.\d+", output)
 
         if not match:
             print(

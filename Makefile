@@ -22,15 +22,22 @@ VENVDIR?=$(WORKDIR)/.venv
 REQUIREMENTS_TXT ?= util/python-requirements.txt docs/python-requirements.txt
 include Makefile.venv
 
+# Decide: conda-style if conda OR pyenv is active
+PYTHON_PATH := $(shell which python 2>/dev/null)
+PYENV_USED := $(findstring .pyenv,$(PYTHON_PATH))
+USE_GLOBAL_ENV := $(strip \
+	$(or $(CONDA_DEFAULT_ENV),$(PYENV_USED)) \
+)
+
 # FUSESOC and Python values (default)
-ifndef CONDA_DEFAULT_ENV
+ifeq ($(USE_GLOBAL_ENV),)
 $(info USING VENV)
 FUSESOC 	= $(PWD)/$(VENV)/fusesoc
 PYTHON  	= $(PWD)/$(VENV)/python
 RV_PROFILE 	= $(PWD)/$(VENV)/rv_profile
 AREA_PLOT  	= $(PWD)/$(VENV)/area-plot
 else
-$(info USING MINICONDA $(CONDA_DEFAULT_ENV))
+$(info USING MINICONDA/PYENV $(shell which python))
 FUSESOC 	:= $(shell which fusesoc)
 PYTHON  	:= $(shell which python)
 RV_PROFILE  := $(shell which rv_profile)

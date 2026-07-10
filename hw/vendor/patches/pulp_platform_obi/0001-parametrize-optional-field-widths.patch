@@ -1,0 +1,48 @@
+diff --git a/include/obi/typedef.svh b/include/obi/typedef.svh
+index de7f0fae..412153b4 100644
+--- a/include/obi/typedef.svh
++++ b/include/obi/typedef.svh
+@@ -30,21 +30,21 @@
+ `define OBI_TYPEDEF_MINIMAL_A_OPTIONAL(a_optional_t) \
+   typedef logic a_optional_t;
+ 
+-`define OBI_TYPEDEF_ATOP_A_OPTIONAL(a_optional_t) \
+-  typedef struct packed {                         \
+-    obi_pkg::atop_t atop;                         \
++`define OBI_TYPEDEF_ATOP_A_OPTIONAL(a_optional_t, atop_t) \
++  typedef struct packed {                                 \
++    atop_t atop;                                          \
+   } a_optional_t;
+ 
+-`define OBI_TYPEDEF_ALL_A_OPTIONAL(a_optional_t, AUSER_WIDTH, WUSER_WIDTH, MID_WIDTH, ACHK_WIDTH) \
+-  typedef struct packed {                                                                         \
+-    logic [ AUSER_WIDTH-1:0] auser;                                                               \
+-    logic [ WUSER_WIDTH-1:0] wuser;                                                               \
+-    obi_pkg::atop_t          atop;                                                                \
+-    obi_pkg::memtype_t       memtype;                                                             \
+-    logic [   MID_WIDTH-1:0] mid;                                                                 \
+-    obi_pkg::prot_t          prot;                                                                \
+-    logic                    dbg;                                                                 \
+-    logic [  ACHK_WIDTH-1:0] achk;                                                                \
++`define OBI_TYPEDEF_ALL_A_OPTIONAL(a_optional_t, AUSER_WIDTH, WUSER_WIDTH, MID_WIDTH, ACHK_WIDTH, ATOP_WIDTH, MEMTTYPE_WIDTH, PROT_WIDTH) \
++  typedef struct packed {                                                                                                                 \
++    logic [   AUSER_WIDTH-1:0] auser;                                                                                                     \
++    logic [   WUSER_WIDTH-1:0] wuser;                                                                                                     \
++    logic [    ATOP_WIDTH-1:0] atop;                                                                                                      \
++    logic [MEMTTYPE_WIDTH-1:0] memtype;                                                                                                   \
++    logic [     MID_WIDTH-1:0] mid;                                                                                                       \
++    logic [    PROT_WIDTH-1:0] prot;                                                                                                      \
++    logic                      dbg;                                                                                                       \
++    logic [    ACHK_WIDTH-1:0] achk;                                                                                                      \
+   } a_optional_t;
+ 
+ `define OBI_TYPEDEF_R_CHAN_T(r_chan_t, RDATA_WIDTH, ID_WIDTH, r_optional_t) \
+@@ -112,7 +112,7 @@
+   } rsp_t;
+ 
+ `define OBI_TYPEDEF_ALL(obi_t, cfg)                                                                                                                              \
+-  `OBI_TYPEDEF_ALL_A_OPTIONAL(obi_t``_a_optional_t, cfg.OptionalCfg.AUserWidth, cfg.OptionalCfg.WUserWidth, cfg.OptionalCfg.MidWidth, cfg.OptionalCfg.AChkWidth) \
++  `OBI_TYPEDEF_ALL_A_OPTIONAL(obi_t``_a_optional_t, cfg.OptionalCfg.AUserWidth, cfg.OptionalCfg.WUserWidth, cfg.OptionalCfg.MidWidth, cfg.OptionalCfg.AChkWidth, cfg.OptionalCfg.UseAtop*cfg.OptionalCfg.ATopWidth, cfg.OptionalCfg.UseMemtype * cfg.OptionalCfg.MemtypeWidth, cfg.OptionalCfg.UseProt * cfg.OptionalCfg.ProtWidth) \
+   `OBI_TYPEDEF_A_CHAN_T(obi_t``_a_chan_t, cfg.AddrWidth, cfg.DataWidth, cfg.IdWidth, obi_t``_a_optional_t)                                                       \
+   `OBI_TYPEDEF_INTEGRITY_REQ_T(obi_t``_req_t, obi_t``_a_chan_t)                                                                                                  \
+   `OBI_TYPEDEF_ALL_R_OPTIONAL(obi_t``_r_optional_t, cfg.OptionalCfg.RUserWidth, cfg.OptionalCfg.RChkWidth)                                                       \

@@ -43,6 +43,12 @@ module obi_to_picorv32 #(
 
   logic [31:0] addr_buf, addr_buf_next, rdata_buf, rdata_buf_next;
 
+  logic gnt_r, rvalid_r;
+  assign obi_resp_o.gnt       = gnt_r;
+  assign obi_resp_o.rvalid    = rvalid_r;
+  assign obi_resp_o.gntpar    = ~gnt_r;
+  assign obi_resp_o.rvalidpar = ~rvalid_r;
+
 
   always_ff @(posedge clk_i or negedge rst_ni) begin : ram_valid_q
     if (!rst_ni) begin
@@ -65,21 +71,21 @@ module obi_to_picorv32 #(
     picorv32_req_o.addr = '0;
     picorv32_req_o.wdata = '0;
     picorv32_req_o.wstrb = READ_MEM;
-    obi_resp_o.gnt = 1'b0;
-    obi_resp_o.rvalid = 1'b0;
-    obi_resp_o.rdata = rdata_buf;
+    gnt_r = 1'b0;
+    rvalid_r = 1'b0;
+    obi_resp_o.r.rdata = rdata_buf;
     rdata_buf_next = picorv32_resp_i.rdata;
     // fsm
     case (state)
       IDLE: begin
         if (obi_req_i.req) begin
-          if (obi_req_i.we == 1'b1) begin
+          if (obi_req_i.a.we == 1'b1) begin
             state_next = WRITE;
-            obi_resp_o.gnt = 1'b1;
+            gnt_r = 1'b1;
           end else begin
             state_next = READ;
-            addr_buf_next = obi_req_i.addr;
-            obi_resp_o.gnt = 1'b1;
+            addr_buf_next = obi_req_i.a.addr;
+            gnt_r = 1'b1;
           end
         end
       end
@@ -93,12 +99,12 @@ module obi_to_picorv32 #(
       end
       WRITE: begin
         state_next = IDLE;
-        obi_resp_o.rvalid = 1'b1;
+        rvalid_r   = 1'b1;
         // Todo: add write.
       end
       GIVE_VALID: begin
         state_next = IDLE;
-        obi_resp_o.rvalid = 1'b1;
+        rvalid_r   = 1'b1;
       end
 
       default: begin

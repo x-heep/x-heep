@@ -34,6 +34,7 @@ filesets:
     - lint/serial_link.vlt
     - lint/axi.vlt
     - lint/quadrilatero.vlt
+    - lint/obi.vlt
     - lint/opentitan.vlt
     file_type: vlt
 

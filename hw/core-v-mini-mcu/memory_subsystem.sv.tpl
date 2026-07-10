@@ -42,7 +42,7 @@ module memory_subsystem #(
   p1 = bank.size().bit_length()-1 + bank.il_level()
   p2 = 2 + bank.il_level()
 %>
-  assign ram_req_addr_${i} = ram_req_i[${i}].addr[${p1}-1:${p2}];
+  assign ram_req_addr_${i} = ram_req_i[${i}].a.addr[${p1}-1:${p2}];
 % endfor
 
   for (genvar i = 0; i < NUM_BANKS; i++) begin : gen_sram
@@ -74,14 +74,14 @@ module memory_subsystem #(
       .clk_i(clk_cg[${i}]),
       .rst_ni(rst_ni),
       .req_i(ram_req_i[${i}].req),
-      .we_i(ram_req_i[${i}].we),
+      .we_i(ram_req_i[${i}].a.we),
       .addr_i(ram_req_addr_${i}),
-      .wdata_i(ram_req_i[${i}].wdata),
-      .be_i(ram_req_i[${i}].be),
+      .wdata_i(ram_req_i[${i}].a.wdata),
+      .be_i(ram_req_i[${i}].a.be),
       .pwrgate_ni(pwrgate_ni[${i}]),
       .pwrgate_ack_no(pwrgate_ack_no[${i}]),
       .set_retentive_ni(set_retentive_ni[${i}]),
-      .rdata_o(ram_resp_o[${i}].rdata)
+      .rdata_o(ram_resp_o[${i}].r.rdata)
   );
 
 %endfor

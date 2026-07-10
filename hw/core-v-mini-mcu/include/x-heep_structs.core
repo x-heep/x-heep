@@ -9,6 +9,8 @@ description: "structs for x-heep"
 
 filesets:
   files_rtl:
+    depend:
+    - pulp-platform.org::obi
     files:
     - addr_map_rule_pkg.sv
     - xheep_obi_pkg.sv

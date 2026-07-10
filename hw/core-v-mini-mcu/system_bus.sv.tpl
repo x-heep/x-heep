@@ -220,7 +220,7 @@ module system_bus
   always_ff @(posedge clk_i, negedge rst_ni) begin : check_out_of_bound
     if (rst_ni) begin
       if (error_slave_req.req) begin
-        $display("%t Out of bound memory access 0x%08x", $time, error_slave_req.addr);
+        $display("%t Out of bound memory access 0x%08x", $time, error_slave_req.a.addr);
         $stop;
       end
     end
@@ -228,8 +228,8 @@ module system_bus
 
   // show writes if requested
   always_ff @(posedge clk_i, negedge rst_ni) begin : verbose_writes
-    if ($test$plusargs("verbose") != 0 && core_data_req_i.req && core_data_req_i.we)
-      $display("write addr=0x%08x: data=0x%08x", core_data_req_i.addr, core_data_req_i.wdata);
+    if ($test$plusargs("verbose") != 0 && core_data_req_i.req && core_data_req_i.a.we)
+      $display("write addr=0x%08x: data=0x%08x", core_data_req_i.a.addr, core_data_req_i.a.wdata);
   end
 `endif
 

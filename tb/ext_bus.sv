@@ -138,10 +138,12 @@ module ext_bus #(
 `ifndef SYNTHESIS
   // show writes if requested
   always_ff @(posedge clk_i, negedge rst_ni) begin : verbose_writes
-    if ($test$plusargs("verbose") != 0 && heep_core_data_req_i.req && heep_core_data_req_i.we)
-      if ($test$plusargs("verbose") != 0 && heep_core_data_req_i.req && heep_core_data_req_i.we)
+    if ($test$plusargs("verbose") != 0 && heep_core_data_req_i.req && heep_core_data_req_i.a.we)
+      if ($test$plusargs("verbose") != 0 && heep_core_data_req_i.req && heep_core_data_req_i.a.we)
         $display(
-            "write addr=0x%08x: data=0x%08x", heep_core_data_req_i.addr, heep_core_data_req_i.wdata
+            "write addr=0x%08x: data=0x%08x",
+            heep_core_data_req_i.a.addr,
+            heep_core_data_req_i.a.wdata
         );
   end
 `endif

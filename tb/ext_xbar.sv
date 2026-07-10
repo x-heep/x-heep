@@ -71,7 +71,7 @@ module ext_xbar #(
             .addr_t(logic [31:0]),
             .rule_t(addr_map_rule_pkg::addr_map_rule_t)
         ) addr_decode_i (
-            .addr_i(master_req_i[i].addr),
+            .addr_i(master_req_i[i].a.addr),
             .addr_map_i(addr_map_i),
             .idx_o(pre_port_sel[i]),
             .dec_valid_o(),
@@ -84,11 +84,11 @@ module ext_xbar #(
       for (genvar j = 0; j < XBAR_NMASTER; j++) begin : gen_addr_napot
         always_comb begin
           port_sel[j] = pre_port_sel[j];
-          post_master_req_addr[j] = master_req_i[j].addr;
+          post_master_req_addr[j] = master_req_i[j].a.addr;
           if (pre_port_sel[j] == SLOW_MEMORY0_IDX[LOG_XBAR_NSLAVE-1:0]) begin
             port_sel[j] = SLOW_MEMORY0_IDX[LOG_XBAR_NSLAVE-1:0] +
-                $unsigned(master_req_i[j].addr[2:2]);
-            post_master_req_addr[j] = {master_req_i[j].addr[31:3], 3'h0};
+                $unsigned(master_req_i[j].a.addr[2:2]);
+            post_master_req_addr[j] = {master_req_i[j].a.addr[31:3], 3'h0};
           end
 
         end
@@ -98,16 +98,35 @@ module ext_xbar #(
       for (genvar i = 0; i < XBAR_NMASTER; i++) begin : gen_unroll_master
         assign master_req_req[i] = master_req_i[i].req;
         assign master_req_out_data[i] = {
-          master_req_i[i].we, master_req_i[i].be, post_master_req_addr[i], master_req_i[i].wdata
+          master_req_i[i].a.we,
+          master_req_i[i].a.be,
+          post_master_req_addr[i],
+          master_req_i[i].a.wdata
         };
-        assign master_resp_o[i].gnt = master_resp_gnt[i];
-        assign master_resp_o[i].rdata = master_resp_rdata[i];
-        assign master_resp_o[i].rvalid = master_resp_rvalid[i];
+        assign master_resp_o[i] = '{
+                gnt: master_resp_gnt[i],
+                rvalid: master_resp_rvalid[i],
+                r: '{rdata: master_resp_rdata[i], rid: '0, err: '0, r_optional: '0},
+                gntpar: ~master_resp_gnt[i],
+                rvalidpar: ~master_resp_rvalid[i]
+            };
       end
       for (genvar i = 0; i < XBAR_NSLAVE; i++) begin : gen_unroll_slave
-        assign slave_req_o[i].req = slave_req_req[i];
-        assign {slave_req_o[i].we, slave_req_o[i].be, slave_req_o[i].addr, slave_req_o[i].wdata} = slave_req_out_data[i];
-        assign slave_resp_rdata[i] = slave_resp_i[i].rdata;
+        assign slave_req_o[i] = '{
+                req: slave_req_req[i],
+                a: '{
+                    we: slave_req_out_data[i][REQ_AGG_DATA_WIDTH-1],
+                    be: slave_req_out_data[i][REQ_AGG_DATA_WIDTH-2-:4],
+                    addr: slave_req_out_data[i][32+:32],
+                    wdata: slave_req_out_data[i][31:0],
+                    aid: '0,
+                    a_optional: '0
+                },
+                rready: '1,
+                reqpar: ~slave_req_req[i],
+                rreadypar: '0
+            };
+        assign slave_resp_rdata[i] = slave_resp_i[i].r.rdata;
         assign slave_resp_gnt[i] = slave_resp_i[i].gnt;
         assign slave_resp_rvalid[i] = slave_resp_i[i].rvalid;
       end

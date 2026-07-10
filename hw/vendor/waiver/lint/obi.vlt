@@ -1,0 +1,19 @@
+// Copyright 2022 OpenHW Group
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+`verilator_config
+
+lint_off -rule ASCRANGE -file "*/xheep_obi_pkg.sv"
+
+// OBI integrity/rready fields (reqpar/rready/rreadypar/gntpar/rvalidpar) are part
+// of the relobi typedef but Integrity/UseRReady are disabled in xheep_obiCfg.
+// Leaf modules receive these bits on inputs and legitimately ignore them.
+lint_off -rule UNUSEDSIGNAL -file "*/cpu_subsystem.sv" -match "*'core_instr_resp_i'*"
+lint_off -rule UNUSEDSIGNAL -file "*/cpu_subsystem.sv" -match "*'core_data_resp_i'*"
+lint_off -rule UNUSEDSIGNAL -file "*/xbar_varlat_one_to_n.sv" -match "*'master_req_i'*"
+lint_off -rule UNUSEDSIGNAL -file "*/xbar_varlat_n_to_one.sv" -match "*'slave_resp_i'*"
+lint_off -rule UNUSEDSIGNAL -file "*/obi_to_picorv32.sv" -match "*'obi_req_i'*"
+lint_off -rule UNUSEDSIGNAL -file "*/xheep_obi_fifo.sv" -match "*'producer_req_i'*"
+lint_off -rule UNUSEDSIGNAL -file "*/xheep_obi_fifo.sv" -match "*'consumer_resp_i'*"
+lint_off -rule UNUSEDSIGNAL -file "*/ao_peripheral_subsystem.sv" -match "*'slave_fifoout_req'*"

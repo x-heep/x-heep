@@ -56,9 +56,19 @@ module cpu_subsystem
 
   assign fetch_enable = 1'b1;
 
-  assign core_instr_req_o.wdata = '0;
-  assign core_instr_req_o.we    = '0;
-  assign core_instr_req_o.be    = 4'b1111;
+  assign core_instr_req_o.a.wdata = '0;
+  assign core_instr_req_o.a.we    = '0;
+  assign core_instr_req_o.a.be    = 4'b1111;
+
+  logic core_instr_req, core_data_req;
+  assign core_instr_req_o.req        = core_instr_req;
+  assign core_instr_req_o.reqpar     = ~core_instr_req;
+  assign core_instr_req_o.rready     = 1'b1;
+  assign core_instr_req_o.rreadypar  = 1'b0;
+  assign core_data_req_o.req          = core_data_req;
+  assign core_data_req_o.reqpar       = ~core_data_req;
+  assign core_data_req_o.rready       = 1'b1;
+  assign core_data_req_o.rreadypar    = 1'b0;
 
 % if cpu.name == "cv32e20":
 
@@ -92,18 +102,18 @@ ${",\n".join(cv32e20_params)}
         .dm_exception_addr_i(32'h0),
         .dm_halt_addr_i(DM_HALTADDRESS),
 
-        .instr_addr_o  (core_instr_req_o.addr),
-        .instr_req_o   (core_instr_req_o.req),
-        .instr_rdata_i (core_instr_resp_i.rdata),
+        .instr_addr_o  (core_instr_req_o.a.addr),
+        .instr_req_o   (core_instr_req),
+        .instr_rdata_i (core_instr_resp_i.r.rdata),
         .instr_gnt_i   (core_instr_resp_i.gnt),
         .instr_rvalid_i(core_instr_resp_i.rvalid),
 
-        .data_addr_o  (core_data_req_o.addr),
-        .data_wdata_o (core_data_req_o.wdata),
-        .data_we_o    (core_data_req_o.we),
-        .data_req_o   (core_data_req_o.req),
-        .data_be_o    (core_data_req_o.be),
-        .data_rdata_i (core_data_resp_i.rdata),
+        .data_addr_o  (core_data_req_o.a.addr),
+        .data_wdata_o (core_data_req_o.a.wdata),
+        .data_we_o    (core_data_req_o.a.we),
+        .data_req_o   (core_data_req),
+        .data_be_o    (core_data_req_o.a.be),
+        .data_rdata_i (core_data_resp_i.r.rdata),
         .data_gnt_i   (core_data_resp_i.gnt),
         .data_rvalid_i(core_data_resp_i.rvalid),
 
@@ -168,29 +178,29 @@ ${",\n".join(cv32e40x_params)}
         .mtvec_addr_i(32'h0),
 
         // Instruction memory interface
-        .instr_req_o    (core_instr_req_o.req),
+        .instr_req_o    (core_instr_req),
         .instr_gnt_i    (core_instr_resp_i.gnt),
         .instr_rvalid_i (core_instr_resp_i.rvalid),
-        .instr_addr_o   (core_instr_req_o.addr),
+        .instr_addr_o   (core_instr_req_o.a.addr),
         .instr_memtype_o(),
         .instr_prot_o   (),
         .instr_dbg_o    (),
-        .instr_rdata_i  (core_instr_resp_i.rdata),
+        .instr_rdata_i  (core_instr_resp_i.r.rdata),
         .instr_err_i    (1'b0),
 
         // Data memory interface
-        .data_req_o    (core_data_req_o.req),
+        .data_req_o    (core_data_req),
         .data_gnt_i    (core_data_resp_i.gnt),
         .data_rvalid_i (core_data_resp_i.rvalid),
-        .data_addr_o   (core_data_req_o.addr),
-        .data_be_o     (core_data_req_o.be),
-        .data_we_o     (core_data_req_o.we),
-        .data_wdata_o  (core_data_req_o.wdata),
+        .data_addr_o   (core_data_req_o.a.addr),
+        .data_be_o     (core_data_req_o.a.be),
+        .data_we_o     (core_data_req_o.a.we),
+        .data_wdata_o  (core_data_req_o.a.wdata),
         .data_memtype_o(),
         .data_prot_o   (),
         .data_dbg_o    (),
         .data_atop_o   (),
-        .data_rdata_i  (core_data_resp_i.rdata),
+        .data_rdata_i  (core_data_resp_i.r.rdata),
         .data_err_i    (1'b0),
         .data_exokay_i (1'b1),
 
@@ -286,18 +296,18 @@ ${",\n".join(cv32e40px_params)}
         .hart_id_i,
         .dm_exception_addr_i(32'h0),
 
-        .instr_addr_o  (core_instr_req_o.addr),
-        .instr_req_o   (core_instr_req_o.req),
-        .instr_rdata_i (core_instr_resp_i.rdata),
+        .instr_addr_o  (core_instr_req_o.a.addr),
+        .instr_req_o   (core_instr_req),
+        .instr_rdata_i (core_instr_resp_i.r.rdata),
         .instr_gnt_i   (core_instr_resp_i.gnt),
         .instr_rvalid_i(core_instr_resp_i.rvalid),
 
-        .data_addr_o  (core_data_req_o.addr),
-        .data_wdata_o (core_data_req_o.wdata),
-        .data_we_o    (core_data_req_o.we),
-        .data_req_o   (core_data_req_o.req),
-        .data_be_o    (core_data_req_o.be),
-        .data_rdata_i (core_data_resp_i.rdata),
+        .data_addr_o  (core_data_req_o.a.addr),
+        .data_wdata_o (core_data_req_o.a.wdata),
+        .data_we_o    (core_data_req_o.a.we),
+        .data_req_o   (core_data_req),
+        .data_be_o    (core_data_req_o.a.be),
+        .data_rdata_i (core_data_resp_i.r.rdata),
         .data_gnt_i   (core_data_resp_i.gnt),
         .data_rvalid_i(core_data_resp_i.rvalid),
 
@@ -362,18 +372,18 @@ ${",\n".join(cv32e40p_params)}
         .hart_id_i,
         .dm_exception_addr_i(32'h0),
 
-        .instr_addr_o  (core_instr_req_o.addr),
-        .instr_req_o   (core_instr_req_o.req),
-        .instr_rdata_i (core_instr_resp_i.rdata),
+        .instr_addr_o  (core_instr_req_o.a.addr),
+        .instr_req_o   (core_instr_req),
+        .instr_rdata_i (core_instr_resp_i.r.rdata),
         .instr_gnt_i   (core_instr_resp_i.gnt),
         .instr_rvalid_i(core_instr_resp_i.rvalid),
 
-        .data_addr_o  (core_data_req_o.addr),
-        .data_wdata_o (core_data_req_o.wdata),
-        .data_we_o    (core_data_req_o.we),
-        .data_req_o   (core_data_req_o.req),
-        .data_be_o    (core_data_req_o.be),
-        .data_rdata_i (core_data_resp_i.rdata),
+        .data_addr_o  (core_data_req_o.a.addr),
+        .data_wdata_o (core_data_req_o.a.wdata),
+        .data_we_o    (core_data_req_o.a.we),
+        .data_req_o   (core_data_req),
+        .data_be_o    (core_data_req_o.a.be),
+        .data_rdata_i (core_data_resp_i.r.rdata),
         .data_gnt_i   (core_data_resp_i.gnt),
         .data_rvalid_i(core_data_resp_i.rvalid),
 

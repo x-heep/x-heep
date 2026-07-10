@@ -8,7 +8,8 @@ module pad_cell_input #(
     input logic [PADATTR-1:0] pad_attributes_i
 );
 
-    sg13g2_IOPadIn ihp_sg13g2_pad_in_inst (
+    (* keep *)
+    sg13g2_IOPadIn pad_cell_input (
         // `ifdef USE_POWER_PINS
         // .iovdd(),
         // .iovss(),
@@ -16,7 +17,7 @@ module pad_cell_input #(
         // .vss(),
         // `endif
         .pad(pad_io),
-        .p2c(pad_in_i)
+        .p2c(pad_out_o)
     );
 
 endmodule

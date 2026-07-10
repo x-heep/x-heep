@@ -109,6 +109,8 @@ def config(xheep: XHeep) -> PadRing:
             ["ddr_rcv_clk"],
             ["ddr_snd_clk"],
             ["gpio_0"],
+        ],
+        Side.LEFT: [
             ["gpio_1", "ddr_rcv_0"],
             ["gpio_2", "ddr_rcv_1"],
             ["gpio_3", "ddr_rcv_2"],
@@ -124,6 +126,8 @@ def config(xheep: XHeep) -> PadRing:
             ["gpio_13"],
             ["spi_flash_sck"],
             ["spi_flash_cs_0"],
+        ],
+        Side.BOTTOM: [
             ["spi_flash_cs_1"],
             ["spi_flash_sd_0"],
             ["spi_flash_sd_1"],
@@ -139,6 +143,8 @@ def config(xheep: XHeep) -> PadRing:
             ["spi_slave_sck", "gpio_14"],
             ["spi_slave_cs", "gpio_15"],
             ["spi_slave_miso", "gpio_16"],
+        ],
+        Side.RIGHT: [
             ["spi_slave_mosi", "gpio_17"],
             ["pdm2pcm_pdm", "gpio_18"],
             ["pdm2pcm_clk", "gpio_19"],

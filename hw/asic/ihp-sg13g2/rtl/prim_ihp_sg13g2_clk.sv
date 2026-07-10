@@ -10,6 +10,7 @@ module ihp_sg13g2_clk_gating (
   output logic clk_o
 );
 
+  (* keep *)
   sg13g2_slgcp_1 clk_gate_inst (
     .CLK(clk_i),
     .GATE(en_i),
@@ -24,6 +25,7 @@ module ihp_sg13g2_clk_inverter (
   output logic clk_o
 );
 
+  (* keep *)
   sg13g2_inv_1 clk_inv_inst (
     .A(clk_i),
     .Y(ckl_o)
@@ -38,6 +40,7 @@ module ihp_sg13g2_clk_mux2 (
   output logic clk_o
 );
 
+  (* keep *)
   sg13g2_mux2_1 clk_mux2_inst (
     .A0(clk0_i),
     .A1(clk1_i),
@@ -53,6 +56,7 @@ module ihp_sg13g2_clk_xor2 (
   output logic clk_o
 );
 
+  (* keep *)
   sg13g2_xor2_1 clk_xor2_inst (
     .A(clk0_i),
     .B(clk1_i),

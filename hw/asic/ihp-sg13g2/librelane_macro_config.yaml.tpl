@@ -1,25 +1,19 @@
-meta:
-  flow: Chip
-  substituting_steps:
-    # Disable Lint
-    Verilator.Lint: null
-    Checker.LintTimingConstructs: null
-    Checker.LintErrors: null
-    Checker.LintWarnings: null
-    # # Magic reports some overlaps which can be ignored
-    # Checker.IllegalOverlap: null
-    # # Disabling filler as it lead to OOM killer
-    # Klayout.Filler: null
-    # KLayout.Density: null
-    # Checker.KLayoutDensity: null
-    # # Remove Magic DRC (takes too long)
-    # Magic.DRC: null
-    # Checker.MagicDRC: null
+<%!
+    from pads.pin import Input, Output, Inout
+    from pads.pad import Pad
+    from pads.floorplan import Side
+    from memory_ss.memory_ss import MemorySS
+    from memory_ss.ram_bank import Bank
+%>
 
 # SystemVerilog support
 USE_SLANG: True
 SLANG_ARGUMENTS: ['--allow-use-before-declare', '--keep-hierarchy']
 
+# Macro Pins
+IO_PIN_ORDER_CFG: dir::librelane_macro_pin_order.cfg
+
+# SRAM Macros
 MACROS:
   RM_IHPSG13_1P_256x32_c2_bm_bist:
     gds:
@@ -69,3 +63,13 @@ MACROS:
         - pdk_dir::libs.ref/sg13g2_sram/lib/RM_IHPSG13_1P_8192x32_c4_fast_1p32V_m55C.lib
       "*_slow_1p08V_125C":
         - pdk_dir::libs.ref/sg13g2_sram/lib/RM_IHPSG13_1P_8192x32_c4_slow_1p08V_125C.lib
+##% if any((bank.size() == 32768) for bank in xheep.memory_ss().iter_ram_banks()):
+##    instances:
+##% for bank in xheep.memory_ss().iter_ram_banks():
+##% if bank.size() == 32768:
+##      x_heep_system_inst.core_v_mini_mcu_i.memory_subsystem_i.ram${bank.map_idx()-1}_i.genblk2.sram_inst:
+##        location: [${(bank.map_idx()-1)*1520.16+500}, 500]
+##        orientation: S
+##% endif
+##% endfor
+##% endif

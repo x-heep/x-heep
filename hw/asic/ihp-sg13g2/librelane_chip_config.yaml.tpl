@@ -21,7 +21,25 @@ IGNORE_DISCONNECTED_MODULES:
 
 # Power settings
 PDN_CORE_RING: True
-PDN_CFG: dir::librelane_pdf_cfg.tcl
+PDN_CORE_RING_CONNECT_TO_PADS: True     # Connect the pads to the core ring
+PDN_ENABLE_PINS: False                  # We only need the PDK power pins
+VDD_NETS:
+- VDD
+GND_NETS:
+- VSS
+## Maximum metal width without slotting: 30um
+#PDN_CORE_RING_VWIDTH: 15
+#PDN_CORE_RING_HWIDTH: 15
+## Ensure minimum spacing for long metals
+#PDN_CORE_RING_VSPACING: 5
+#PDN_CORE_RING_HSPACING: 5
+# Connect SRAMS to PDN
+PDN_MACRO_CONNECTIONS:
+% for bank in xheep.memory_ss().iter_ram_banks():
+- "x_heep_system_inst.core_v_mini_mcu_i.memory_subsystem_i.ram${bank.map_idx()-1}_i.genblk2.sram_inst VDD VSS VDDARRAY! VSS!"
+- "x_heep_system_inst.core_v_mini_mcu_i.memory_subsystem_i.ram${bank.map_idx()-1}_i.genblk2.sram_inst VDD VSS VDD! VSS!"
+% endfor
+
 
 # Pads
 PAD_NORTH: [
@@ -174,13 +192,3 @@ MACROS:
         - pdk_dir::libs.ref/sg13g2_sram/lib/RM_IHPSG13_1P_8192x32_c4_fast_1p32V_m55C.lib
       "*_slow_1p08V_125C":
         - pdk_dir::libs.ref/sg13g2_sram/lib/RM_IHPSG13_1P_8192x32_c4_slow_1p08V_125C.lib
-##% if any((bank.size() == 32768) for bank in xheep.memory_ss().iter_ram_banks()):
-##    instances:
-##% for bank in xheep.memory_ss().iter_ram_banks():
-##% if bank.size() == 32768:
-##      x_heep_system_inst.core_v_mini_mcu_i.memory_subsystem_i.ram${bank.map_idx()-1}_i.genblk2.sram_inst:
-##        location: [${(bank.map_idx()-1)*1520.16+500}, 500]
-##        orientation: S
-##% endif
-##% endfor
-##% endif

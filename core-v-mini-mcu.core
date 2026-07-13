@@ -611,24 +611,22 @@ targets:
         die_area: [0,0,5000,5000]
         core_area: [365,365,4635,4635]
 
-  # asic_librelane_macro_ihp:
-  #   <<: *default_target
-  #   default_tool: librelane
-  #   description: Librelane flow to get an X-Heep macro on IHP-SG13G2.
-  #   parameters:
-  #     - SYNTHESIS=true
-  #   filesets_append:
-  #     - asic-ihp-sg13g2
-  #     - x_heep_system
-  #   toplevel: [ihp_sg13g2_asic_x_heep_system_wrapper]
-  #   tools:
-  #     librelane:
-  #       flow: Classic
-  #       # remove_steps []
-  #       disable_variables:
-  #         - RUN_LINTER
-  #         - ERROR_ON_SYNTH_CHECKS
-  #       clock_port: clk_i
-  #       clock_period: 20
-  #       die_area: [0,0,5000,5000]
-  #       core_area: [200,200,4800,4800]
+  asic_librelane_macro_ihp:
+    <<: *default_target
+    default_tool: librelane
+    description: Librelane flow to get an X-Heep macro on IHP-SG13G2.
+    parameters:
+      - SYNTHESIS=true
+    filesets_append:
+      - asic-ihp-sg13g2
+      - x_heep_system
+    toplevel: [ihp_sg13g2_asic_x_heep_system_wrapper]
+    tools:
+      librelane:
+        flow: Classic
+        disable_variables:
+          - RUN_LINTER
+          - ERROR_ON_SYNTH_CHECKS
+        clock_port: clk_i
+        clock_period: 20
+        core_area: [0,0,4000,4000]

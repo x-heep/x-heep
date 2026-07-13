@@ -11,7 +11,7 @@ filesets:
     files:
       - librelane_chip_config.yaml         : { file_type: librelaneConfig }
       - librelane_chip_macro_placement.cfg : { file_type: macroPlacement }
-      - librelane_pdf_cfg.tcl              : { file_type: pdn }
+      - librelane_pdn_cfg.tcl              : { file_type: pdn }
       - rtl/prim_ihp_sg13g2_clk.sv
       - rtl/sram_wrapper_ihp_sg13g2.sv
       - rtl/pad_cell_inout_ihp_sg13g2.sv
@@ -23,10 +23,11 @@ filesets:
     files:
       - librelane_macro_config.yaml        : { file_type: librelaneConfig }
       - librelane_chip_macro_placement.cfg : { file_type: macroPlacement }  ### FIXME: IS IT THE SAME PLACEMENT BETWEEN MACRO AND CHIP ???????
-      - librelane_pdf_cfg.tcl              : { file_type: pdn }
+      - librelane_pdn_cfg.tcl              : { file_type: pdn }
       - librelane_macro_pin_order.cfg      : { file_type: pinOrder }
       - rtl/prim_ihp_sg13g2_clk.sv
       - rtl/sram_wrapper_ihp_sg13g2.sv
+      - rtl/ihp_sg13g2_asic_macro_x_heep_system_wrapper.sv
     file_type: systemVerilogSource
 
 

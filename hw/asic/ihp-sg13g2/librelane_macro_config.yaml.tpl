@@ -10,8 +10,18 @@
 USE_SLANG: True
 SLANG_ARGUMENTS: ['--allow-use-before-declare', '--keep-hierarchy']
 
-# Macro Pins
-IO_PIN_ORDER_CFG: dir::librelane_macro_pin_order.cfg
+# Power settings
+PDN_CORE_RING: True
+VDD_NETS:
+- VDD
+GND_NETS:
+- VSS
+# Connect SRAMS to PDN
+PDN_MACRO_CONNECTIONS:
+% for bank in xheep.memory_ss().iter_ram_banks():
+- "x_heep_system_inst.core_v_mini_mcu_i.memory_subsystem_i.ram${bank.map_idx()-1}_i.genblk2.sram_inst VDD VSS VDDARRAY! VSS!"
+- "x_heep_system_inst.core_v_mini_mcu_i.memory_subsystem_i.ram${bank.map_idx()-1}_i.genblk2.sram_inst VDD VSS VDD! VSS!"
+% endfor
 
 # SRAM Macros
 MACROS:
@@ -63,13 +73,3 @@ MACROS:
         - pdk_dir::libs.ref/sg13g2_sram/lib/RM_IHPSG13_1P_8192x32_c4_fast_1p32V_m55C.lib
       "*_slow_1p08V_125C":
         - pdk_dir::libs.ref/sg13g2_sram/lib/RM_IHPSG13_1P_8192x32_c4_slow_1p08V_125C.lib
-##% if any((bank.size() == 32768) for bank in xheep.memory_ss().iter_ram_banks()):
-##    instances:
-##% for bank in xheep.memory_ss().iter_ram_banks():
-##% if bank.size() == 32768:
-##      x_heep_system_inst.core_v_mini_mcu_i.memory_subsystem_i.ram${bank.map_idx()-1}_i.genblk2.sram_inst:
-##        location: [${(bank.map_idx()-1)*1520.16+500}, 500]
-##        orientation: S
-##% endif
-##% endfor
-##% endif

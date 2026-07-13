@@ -25,10 +25,19 @@ entry:
        lw      a0, POWER_MANAGER_RESTORE_ADDRESS_REG_OFFSET(a1)
        jalr    a0
 boot:
-       // Read boot sel register
+       // Read execute_from_ext register - takes priority over boot_select
        lui     a1, SOC_CTRL_START_ADDRESS_20bit
+       lbu     a0, SOC_CTRL_EXECUTE_FROM_EXT_REG_OFFSET(a1)
+       bnez    a0, _execute_from_ext
+
+       // Read boot sel register
        lbu     a0, SOC_CTRL_BOOT_SELECT_REG_OFFSET(a1)
        bnez    a0, _jump_to_flash
+       j       _jump_to_debug_rom
+
+_execute_from_ext:
+       lw     a1, SOC_CTRL_EXT_BOOT_ADDRESS_REG_OFFSET(a1)
+       jalr   a1
 
 _jump_to_debug_rom:
        lbu    a0, SOC_CTRL_BOOT_EXIT_LOOP_REG_OFFSET(a1)

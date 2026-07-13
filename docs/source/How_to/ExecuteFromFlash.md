@@ -4,24 +4,29 @@
 
 The microcontroller has a boot rom where the RISC-V CPU jumps to
 at reset time.
-The boot rom contains code for three different booting modesmodes:
+The boot rom contains code for four different booting modes:
 
 1. JTAG
 2. SPI Flash Execution
 3. SPI Flash Loading
+4. Execute from External Device
 
-These three modes are mainly controlled by the two inputs pins
-`boot_sel_i` and `execute_from_flash_i`.
+These modes are controlled by three input pins:
+`execute_from_ext_i`, `boot_sel_i` and `execute_from_flash_i`.
+`execute_from_ext_i` takes priority over the other two: whenever it is
+asserted, the CPU jumps straight to the external device regardless of
+`boot_sel_i`/`execute_from_flash_i`.
 
-| `boot_sel_i` | `execute_from_flash_i` | `boot procedure`     |
-| ------------ | ---------------------- | -------------------- |
-| 0			       | X				              | JTAG                 |
-| 1			       | 1				              | SPI Flash Execution  |
-| 1			       | 0				              | SPI Flash Loading    |
+| `execute_from_ext_i` | `boot_sel_i` | `execute_from_flash_i` | `boot procedure`            |
+| --------------------- | ------------ | ----------------------- | --------------------------- |
+| 1                      | X            | X                        | Execute from External Device |
+| 0                      | 0			      | X				                | JTAG                         |
+| 0                      | 1			      | 1				                | SPI Flash Execution          |
+| 0                      | 1			      | 0				                | SPI Flash Loading            |
 
 
-On the FPGA, such inputs are mapped to two switch buttons.
-Below, a description of the three modes is provided.
+On the FPGA, such inputs are mapped to switch buttons.
+Below, a description of the four modes is provided.
 
 ### JTAG Boot Procedure
 
@@ -143,3 +148,44 @@ If you are using FPGAs or ASIC, make sure to program the FLASH first (while in s
 
 Still as experimental and in draft mode, we also developed an HW peripheral that can be used to automatically control reading and writing operations from/to the FLASH, avoiding the execution of long software procedures.
 Such peripheral is called `w25q128jw_controller`. Once stable and tested further, this peripheral will replace the software functions as well as the `yosys` SPI module. In addition, the two booting modes that use the FLASH will be unified. Such peripheral has been only tested in simulation.
+
+### Execute from External Device Boot Procedure
+
+In this boot procedure, when the CPU enters the boot rom, it jumps directly
+to an external device connected on the `ext_slaves` bus. The jump target is
+read from the `EXT_BOOT_ADDRESS` SOC_CTRL register, which defaults to the
+`ext_slaves` base address but can be overridden if the external device's entry point lives elsewhere.
+
+To use this mode, set the `execute_from_ext_i` input to `1`. The external
+device is expected to hold a full application image starting at the address
+in `EXT_BOOT_ADDRESS` (the `ext_slaves` base address, by default).
+
+Currently, this mode is only modelled in simulation: the testbench provides
+an example external ROM (`hw/ip_examples/ext_rom`) wired into the
+testharness's external crossbar at the `ext_slaves` base address.
+
+To compile your SW and bake the compiled binary into the example external ROM model:
+
+```
+make app-ext-rom PROJECT=<app_name>
+```
+
+This builds the app with `LINKER=direct_ext` and regenerates
+`hw/ip_examples/ext_rom/rtl/ext_rom.sv` with the application embedded in it.
+Since the ROM content is compiled into the Verilator model, rebuild the
+simulator afterwards:
+
+```
+make verilator-build
+```
+
+Then, when launching the simulation, pass the argument `execute_from_ext=1`
+to set the `execute_from_ext_i` input to `1`:
+
+```
+make verilator-run SIM_ARGS="+execute_from_ext=1"
+```
+
+No `+firmware=` is needed in this mode, since no code is loaded into memory
+at simulation start; the application is already embedded in the external
+ROM model.

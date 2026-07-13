@@ -27,14 +27,15 @@ module tb_top #(
   // wire for inout connections
   wire clk_w, rst_n_w;
 
-  // Boot selection (0:jtag/rom, 1:flash)
+  // Boot selection (0:jtag or 1:flash)
   logic boot_sel;
-  // Execute-from-flash flag.
-  // When boot_sel=1: selects between flash-load (0) and flash-exec (1).
-  // When boot_sel=0: selects between JTAG/hex-load (0) and direct-ROM boot (1).
+  // SPI selection (0:ot-qspi or 1:memory mapped flash, only valid if boot_sel is 1)
   logic execute_from_flash;
+  // Execute from external device.(see hw/ip/boot_rom/boot_rom.S, _execute_from_ext).
+  // Independent of boot_sel/execute_from_flash: takes priority over both.
+  logic execute_from_ext;
   // wire for inout connections
-  wire boot_sel_w, execute_from_flash_w;
+  wire boot_sel_w, execute_from_flash_w, execute_from_ext_w;
 
   // cycle counter
   int unsigned        cycle_cnt_q;
@@ -61,21 +62,30 @@ module tb_top #(
   // we either load the provided firmware or execute a small test program that
   // doesn't do more than an infinite loop with some I/O
   initial begin : load_prog
-    automatic string firmware, arg_boot_sel, arg_execute_from_flash;
-    automatic logic firmware_provided;
-    automatic logic direct_rom_boot;
+    automatic string firmware, arg_boot_sel, arg_execute_from_flash, arg_execute_from_ext;
 
-    firmware_provided = $value$plusargs("firmware=%s", firmware);
-    if (firmware_provided) begin
+    execute_from_ext = 0;
+    if ($test$plusargs("execute_from_ext")) begin
+      $value$plusargs("execute_from_ext=%s", arg_execute_from_ext);
+      if (arg_execute_from_ext == "1") begin
+        $display("[TESTBENCH]: Executing from external device (ext_rom)");
+        execute_from_ext = 1;
+      end else if (arg_execute_from_ext == "0") begin
+        execute_from_ext = 0;
+      end else begin
+        $display("[TESTBENCH]: Wrong Execute From Ext Option specified (use 0 or 1) - using 0");
+        execute_from_ext = 0;
+      end
+    end
+
+    if ($value$plusargs("firmware=%s", firmware)) begin
       $display("[TESTBENCH]: loading firmware %0s", firmware);
     end else begin
       $display("[TESTBENCH]: no firmware specified");
+      if (JTAG_DPI == 0 && !execute_from_ext) begin
+        $finish;
+      end
     end
-
-    //   boot_sel=0, execute_from_flash=0 → JTAG/hex load (default)
-    //   boot_sel=0, execute_from_flash=1 → direct ROM boot (application in boot_rom.sv)
-    //   boot_sel=1, execute_from_flash=0 → flash load into RAM then execute
-    //   boot_sel=1, execute_from_flash=1 → execute directly from flash
 
     boot_sel = 0;
     if ($test$plusargs("boot_sel")) begin
@@ -97,38 +107,28 @@ module tb_top #(
     end
 
     execute_from_flash = 0;
-    if ($test$plusargs("execute_from_flash")) begin
-      $value$plusargs("execute_from_flash=%s", arg_execute_from_flash);
-      if (arg_execute_from_flash == "1") begin
-        if (boot_sel == 1) $display("[TESTBENCH]: Using YosysHQ memory mapped SPI");
-        execute_from_flash = 1;
-      end else if (arg_execute_from_flash == "0") begin
-        if (boot_sel == 1) $display("[TESTBENCH]: Using OpenTitan SPI");
-        execute_from_flash = 0;
+    if (boot_sel == 1) begin
+      if ($test$plusargs("execute_from_flash")) begin
+        $value$plusargs("execute_from_flash=%s", arg_execute_from_flash);
+        if (arg_execute_from_flash == "1") begin
+          $display("[TESTBENCH]: Using YosysHQ memory mapped SPI");
+          execute_from_flash = 1;
+        end else if (arg_execute_from_flash == "0") begin
+          $display("[TESTBENCH]: Using OpenTitan SPI");
+          execute_from_flash = 0;
+        end else begin
+          $display(
+              "[TESTBENCH]: Wrong SPI Option specified (execute from flash, load flash in-memory) - using execute from flash (execute_from_flash=1)");
+          execute_from_flash = 1;
+        end
       end else begin
         $display(
-            "[TESTBENCH]: Wrong SPI Option specified (execute from flash, load flash in-memory) - using execute from flash (execute_from_flash=1)");
-        execute_from_flash = 1;
-      end
-    end else begin
-      if (boot_sel == 1)
-        $display(
             "[TESTBENCH]: No SPI Option specified, using load from flash (execute_from_flash=0)");
+        execute_from_flash = 0;
+      end
     end
 
-    direct_rom_boot = (boot_sel == 1'b0) && (execute_from_flash == 1'b1);
-
-    if (direct_rom_boot) begin
-      $display(
-          "[TESTBENCH]: Direct ROM boot — application is in boot_rom.sv, no firmware needed");
-    end
-
-    if (!firmware_provided && JTAG_DPI == 0 && !direct_rom_boot) begin
-      $display("[TESTBENCH]: no firmware and not direct ROM boot - aborting");
-      $finish;
-    end
-
-    if (boot_sel == 1) begin
+    if (!execute_from_ext) begin
       testharness_i.load_flash_hex(firmware);
     end
 
@@ -139,9 +139,12 @@ module tb_top #(
       @(posedge clk);
     end
 
-    if (direct_rom_boot) begin
+    if (execute_from_ext) begin
+      // Application is baked into ext_rom.sv (see hw/ip_examples/ext_rom/Makefile);
+      // nothing to load, the CPU jumps there directly out of boot_rom.S.
       if ($test$plusargs("verbose"))
-        $display("[TESTBENCH] %t: direct ROM boot — waiting for exit_valid", $time);
+        $display("[TESTBENCH] %t: executing from external device — waiting for exit_valid",
+                 $time);
     end else if (JTAG_DPI == 0 && boot_sel == 0) begin
       testharness_i.tb_loadHEX(firmware);
       #CLK_PHASE_HI testharness_i.tb_set_exit_loop();
@@ -205,10 +208,11 @@ module tb_top #(
     end
   end
 
-  assign clk_w                = clk;
-  assign rst_n_w              = rst_n;
-  assign boot_sel_w           = boot_sel;
+  assign clk_w = clk;
+  assign rst_n_w = rst_n;
+  assign boot_sel_w = boot_sel;
   assign execute_from_flash_w = execute_from_flash;
+  assign execute_from_ext_w = execute_from_ext;
 
   // wrapper for riscv, the memory system and stdout peripheral
   testharness #(
@@ -220,6 +224,7 @@ module tb_top #(
       .rst_ni              (rst_n_w),
       .boot_select_i       (boot_sel_w),
       .execute_from_flash_i(execute_from_flash_w),
+      .execute_from_ext_i  (execute_from_ext_w),
       .exit_valid_o        (exit_valid),
       .exit_value_o        (exit_value),
       .jtag_tck_i          (jtag_tck),

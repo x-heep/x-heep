@@ -1,4 +1,3 @@
 *.bin
 *.elf
-*.img
-.direct_rom
+debug_rom.img

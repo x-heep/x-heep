@@ -418,6 +418,7 @@ module core_v_mini_mcu
       .xheep_instance_id_i,
       .boot_select_i,
       .execute_from_flash_i,
+      .execute_from_ext_i,
       .exit_valid_o,
       .exit_value_o,
       .spimemio_req_i(flash_mem_slave_req),

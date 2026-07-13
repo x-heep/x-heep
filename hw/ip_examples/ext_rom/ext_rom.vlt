@@ -1,0 +1,11 @@
+// Copyright EPFL contributors.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+
+`verilator_config
+
+// Read-only ROM: the write side of the OBI port is intentionally unused.
+lint_off -rule UNUSED -file "*/ext_rom/rtl/ext_rom.sv" -match "Signal is not used: 'we_i'*"
+lint_off -rule UNUSED -file "*/ext_rom/rtl/ext_rom.sv" -match "Signal is not used: 'wdata_i'*"
+lint_off -rule UNUSED -file "*/ext_rom/rtl/ext_rom.sv" -match "Signal is not used: 'be_i'*"
+lint_off -rule UNUSED -file "*/ext_rom/rtl/ext_rom.sv" -match "Bits of signal are not used: 'addr_i'*"

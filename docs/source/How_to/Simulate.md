@@ -213,7 +213,11 @@ You may pass additional simulation parameters to the generated simulation execut
   For example, `./Vtestharness +firmware=../../../sw/build/main.hex +boot_sel=1` will launch the Verilator simulation and instruct the bootrom to copy the firmware from the external flash to the main memory, then, the CPU will jump to SRAM and execute the code.
 
   When launching the simulation through the dedicated `make` target, like `make verilator-run`, the `+boot_sel` parameter can be be passed to the simulation executable via the `SIM_ARGS` command-line argument, e.g. `make verilator-run SIM_ARGS="+boot_sel=1"`.
-  
+
+- `+execute_from_ext=<val>`:
+  Runs the simulation booting from an external device connected on the `ext_slaves` bus (`val=1`), instead of the normal `boot_sel`-selected path. Takes priority over `+boot_sel`/`+execute_from_flash`. See [ExecuteFromFlash](./ExecuteFromFlash.md#execute-from-external-device-boot-procedure) for details and required build steps (`make app-execute-from-ext`).
+  For example, `make verilator-run SIM_ARGS="+execute_from_ext=1"` will launch the Verilator simulation and instruct the bootrom to jump directly to the external device model, which must already have an application baked into it.
+
 - `+max_sim_time=<time>`:
   Runs the simulation for a maximum of `<time>` clock cycles.
   This is useful in case your application gets stuck in a certain point and never finishes; this parameter will force the simulation to terminate after a certain time so that you can later analyze the generated `waveform.fst` (or `waveform.vcd` if using QuestaSim) file.

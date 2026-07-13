@@ -17,7 +17,7 @@ class XHEEP_CmdLineOptions // declare Calculator class
     std::string get_firmware();
     unsigned long long get_max_sim_time(bool& run_all);
     unsigned int get_boot_sel();
-    bool get_execute_from_flash();
+    bool get_execute_from_ext();
     int argc;
     char** argv;
 

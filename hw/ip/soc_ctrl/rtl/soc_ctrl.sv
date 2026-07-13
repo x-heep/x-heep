@@ -17,6 +17,7 @@ module soc_ctrl #(
 
     input logic boot_select_i,
     input logic execute_from_flash_i,
+    input logic execute_from_ext_i,
     output logic use_spimemio_o,
     input logic [31:0] xheep_instance_id_i,
 
@@ -49,11 +50,14 @@ module soc_ctrl #(
   assign hw2reg.boot_exit_loop.de = 1'b0;
 `endif
 
-  assign hw2reg.boot_select.de  = 1'b1;
-  assign hw2reg.boot_select.d   = boot_select_i;
+  assign hw2reg.boot_select.de = 1'b1;
+  assign hw2reg.boot_select.d = boot_select_i;
 
   assign hw2reg.use_spimemio.de = ~enable_spi_sel;
-  assign hw2reg.use_spimemio.d  = execute_from_flash_i;
+  assign hw2reg.use_spimemio.d = execute_from_flash_i;
+
+  assign hw2reg.execute_from_ext.de = 1'b1;
+  assign hw2reg.execute_from_ext.d = execute_from_ext_i;
 
   soc_ctrl_reg_top #(
       .reg_req_t(reg_req_t),

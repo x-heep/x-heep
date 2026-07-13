@@ -110,16 +110,17 @@ unsigned int XHEEP_CmdLineOptions::get_boot_sel()
   return boot_sel;
 }
 
-bool XHEEP_CmdLineOptions::get_execute_from_flash()
+bool XHEEP_CmdLineOptions::get_execute_from_ext()
 {
-  std::string arg = this->getCmdOption(this->argc, this->argv, "+execute_from_flash=");
+  std::string arg = this->getCmdOption(this->argc, this->argv, "+execute_from_ext=");
 
   if(arg.empty() || arg.compare("0") == 0) {
     return false;
   } else if(arg.compare("1") == 0) {
+    std::cout<<"[TESTBENCH]: Executing from external device (ext_rom)"<<std::endl;
     return true;
   } else {
-    std::cout<<"[TESTBENCH]: Wrong execute_from_flash value (use 0 or 1) - defaulting to 0"<<std::endl;
+    std::cout<<"[TESTBENCH]: Wrong execute_from_ext value (use 0 or 1) - defaulting to 0"<<std::endl;
     return false;
   }
 }

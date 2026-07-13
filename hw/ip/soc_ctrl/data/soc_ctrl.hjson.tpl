@@ -40,6 +40,23 @@
         { bits: "0", name: "BOOT_SELECT", desc: "Boot Select Reg" }
       ]
     }
+    { name:     "EXECUTE_FROM_EXT"
+      desc:     "Execute From External Device - Used to execute code from an external device"
+      swaccess: "ro"
+      hwaccess: "hrw"
+      fields: [
+        { bits: "0", name: "EXECUTE_FROM_EXT", desc: "Execute From Ext Reg" }
+      ]
+    }
+    { name:     "EXT_BOOT_ADDRESS"
+      desc:     "External Boot Address Value - Address the CPU jumps to when execute_from_ext is set."
+      resval:   "0x${ext_slave_start_address}"
+      swaccess: "rw"
+      hwaccess: "hro"
+      fields: [
+        { bits: "31:0", name: "EXT_BOOT_ADDRESS", desc: "External Boot Address Reg" }
+      ]
+    }
     { name:     "BOOT_EXIT_LOOP"
       desc:     "Boot Exit Loop Value - Set externally (e.g. JTAG, TESTBENCH, or another MASTER) to make the CPU jump to the main function entry"
       swaccess: "rw"

@@ -19,6 +19,10 @@ package soc_ctrl_reg_pkg;
 
   typedef struct packed {logic q;} soc_ctrl_reg2hw_boot_select_reg_t;
 
+  typedef struct packed {logic q;} soc_ctrl_reg2hw_execute_from_ext_reg_t;
+
+  typedef struct packed {logic [31:0] q;} soc_ctrl_reg2hw_ext_boot_address_reg_t;
+
   typedef struct packed {logic q;} soc_ctrl_reg2hw_boot_exit_loop_reg_t;
 
   typedef struct packed {logic [31:0] q;} soc_ctrl_reg2hw_boot_address_reg_t;
@@ -35,6 +39,11 @@ package soc_ctrl_reg_pkg;
   typedef struct packed {
     logic d;
     logic de;
+  } soc_ctrl_hw2reg_execute_from_ext_reg_t;
+
+  typedef struct packed {
+    logic d;
+    logic de;
   } soc_ctrl_hw2reg_boot_exit_loop_reg_t;
 
   typedef struct packed {
@@ -44,9 +53,11 @@ package soc_ctrl_reg_pkg;
 
   // Register -> HW type
   typedef struct packed {
-    soc_ctrl_reg2hw_exit_valid_reg_t exit_valid;  // [68:68]
-    soc_ctrl_reg2hw_exit_value_reg_t exit_value;  // [67:36]
-    soc_ctrl_reg2hw_boot_select_reg_t boot_select;  // [35:35]
+    soc_ctrl_reg2hw_exit_valid_reg_t exit_valid;  // [101:101]
+    soc_ctrl_reg2hw_exit_value_reg_t exit_value;  // [100:69]
+    soc_ctrl_reg2hw_boot_select_reg_t boot_select;  // [68:68]
+    soc_ctrl_reg2hw_execute_from_ext_reg_t execute_from_ext;  // [67:67]
+    soc_ctrl_reg2hw_ext_boot_address_reg_t ext_boot_address;  // [66:35]
     soc_ctrl_reg2hw_boot_exit_loop_reg_t boot_exit_loop;  // [34:34]
     soc_ctrl_reg2hw_boot_address_reg_t boot_address;  // [33:2]
     soc_ctrl_reg2hw_use_spimemio_reg_t use_spimemio;  // [1:1]
@@ -55,7 +66,8 @@ package soc_ctrl_reg_pkg;
 
   // HW -> register type
   typedef struct packed {
-    soc_ctrl_hw2reg_boot_select_reg_t boot_select;  // [5:4]
+    soc_ctrl_hw2reg_boot_select_reg_t boot_select;  // [7:6]
+    soc_ctrl_hw2reg_execute_from_ext_reg_t execute_from_ext;  // [5:4]
     soc_ctrl_hw2reg_boot_exit_loop_reg_t boot_exit_loop;  // [3:2]
     soc_ctrl_hw2reg_use_spimemio_reg_t use_spimemio;  // [1:0]
   } soc_ctrl_hw2reg_t;
@@ -64,20 +76,24 @@ package soc_ctrl_reg_pkg;
   parameter logic [BlockAw-1:0] SOC_CTRL_EXIT_VALID_OFFSET = 6'h0;
   parameter logic [BlockAw-1:0] SOC_CTRL_EXIT_VALUE_OFFSET = 6'h4;
   parameter logic [BlockAw-1:0] SOC_CTRL_BOOT_SELECT_OFFSET = 6'h8;
-  parameter logic [BlockAw-1:0] SOC_CTRL_BOOT_EXIT_LOOP_OFFSET = 6'hc;
-  parameter logic [BlockAw-1:0] SOC_CTRL_BOOT_ADDRESS_OFFSET = 6'h10;
-  parameter logic [BlockAw-1:0] SOC_CTRL_USE_SPIMEMIO_OFFSET = 6'h14;
-  parameter logic [BlockAw-1:0] SOC_CTRL_ENABLE_SPI_SEL_OFFSET = 6'h18;
-  parameter logic [BlockAw-1:0] SOC_CTRL_SYSTEM_FREQUENCY_HZ_OFFSET = 6'h1c;
-  parameter logic [BlockAw-1:0] SOC_CTRL_XHEEP_ID_OFFSET = 6'h20;
-  parameter logic [BlockAw-1:0] SOC_CTRL_XHEEP_AO_PERIPHERAL_CONFIG_OFFSET = 6'h24;
-  parameter logic [BlockAw-1:0] SOC_CTRL_XHEEP_PERIPHERAL_CONFIG_OFFSET = 6'h28;
+  parameter logic [BlockAw-1:0] SOC_CTRL_EXECUTE_FROM_EXT_OFFSET = 6'hc;
+  parameter logic [BlockAw-1:0] SOC_CTRL_EXT_BOOT_ADDRESS_OFFSET = 6'h10;
+  parameter logic [BlockAw-1:0] SOC_CTRL_BOOT_EXIT_LOOP_OFFSET = 6'h14;
+  parameter logic [BlockAw-1:0] SOC_CTRL_BOOT_ADDRESS_OFFSET = 6'h18;
+  parameter logic [BlockAw-1:0] SOC_CTRL_USE_SPIMEMIO_OFFSET = 6'h1c;
+  parameter logic [BlockAw-1:0] SOC_CTRL_ENABLE_SPI_SEL_OFFSET = 6'h20;
+  parameter logic [BlockAw-1:0] SOC_CTRL_SYSTEM_FREQUENCY_HZ_OFFSET = 6'h24;
+  parameter logic [BlockAw-1:0] SOC_CTRL_XHEEP_ID_OFFSET = 6'h28;
+  parameter logic [BlockAw-1:0] SOC_CTRL_XHEEP_AO_PERIPHERAL_CONFIG_OFFSET = 6'h2c;
+  parameter logic [BlockAw-1:0] SOC_CTRL_XHEEP_PERIPHERAL_CONFIG_OFFSET = 6'h30;
 
   // Register index
   typedef enum int {
     SOC_CTRL_EXIT_VALID,
     SOC_CTRL_EXIT_VALUE,
     SOC_CTRL_BOOT_SELECT,
+    SOC_CTRL_EXECUTE_FROM_EXT,
+    SOC_CTRL_EXT_BOOT_ADDRESS,
     SOC_CTRL_BOOT_EXIT_LOOP,
     SOC_CTRL_BOOT_ADDRESS,
     SOC_CTRL_USE_SPIMEMIO,
@@ -89,18 +105,20 @@ package soc_ctrl_reg_pkg;
   } soc_ctrl_id_e;
 
   // Register width information to check illegal writes
-  parameter logic [3:0] SOC_CTRL_PERMIT[11] = '{
+  parameter logic [3:0] SOC_CTRL_PERMIT[13] = '{
       4'b0001,  // index[ 0] SOC_CTRL_EXIT_VALID
       4'b1111,  // index[ 1] SOC_CTRL_EXIT_VALUE
       4'b0001,  // index[ 2] SOC_CTRL_BOOT_SELECT
-      4'b0001,  // index[ 3] SOC_CTRL_BOOT_EXIT_LOOP
-      4'b1111,  // index[ 4] SOC_CTRL_BOOT_ADDRESS
-      4'b0001,  // index[ 5] SOC_CTRL_USE_SPIMEMIO
-      4'b0001,  // index[ 6] SOC_CTRL_ENABLE_SPI_SEL
-      4'b1111,  // index[ 7] SOC_CTRL_SYSTEM_FREQUENCY_HZ
-      4'b1111,  // index[ 8] SOC_CTRL_XHEEP_ID
-      4'b0001,  // index[ 9] SOC_CTRL_XHEEP_AO_PERIPHERAL_CONFIG
-      4'b0011  // index[10] SOC_CTRL_XHEEP_PERIPHERAL_CONFIG
+      4'b0001,  // index[ 3] SOC_CTRL_EXECUTE_FROM_EXT
+      4'b1111,  // index[ 4] SOC_CTRL_EXT_BOOT_ADDRESS
+      4'b0001,  // index[ 5] SOC_CTRL_BOOT_EXIT_LOOP
+      4'b1111,  // index[ 6] SOC_CTRL_BOOT_ADDRESS
+      4'b0001,  // index[ 7] SOC_CTRL_USE_SPIMEMIO
+      4'b0001,  // index[ 8] SOC_CTRL_ENABLE_SPI_SEL
+      4'b1111,  // index[ 9] SOC_CTRL_SYSTEM_FREQUENCY_HZ
+      4'b1111,  // index[10] SOC_CTRL_XHEEP_ID
+      4'b0001,  // index[11] SOC_CTRL_XHEEP_AO_PERIPHERAL_CONFIG
+      4'b0011  // index[12] SOC_CTRL_XHEEP_PERIPHERAL_CONFIG
   };
 
 endpackage

@@ -7,7 +7,10 @@ ENTRY(_start)
 
 MEMORY
 {
-    rom  (rx)   : ORIGIN = 0x20010000, LENGTH = 0x00010000
+    /* External ROM reached through the execute_from_ext_i boot path (see
+     * hw/ip/boot_rom/boot_rom.S, _execute_from_ext). LENGTH must match
+     * EXT_ROM_SIZE in tb/testharness_pkg.sv.tpl. */
+    rom  (rx)   : ORIGIN = 0x${ext_slave_start_address}, LENGTH = 0x00010000
 % for i, section in enumerate(xheep.memory_ss().iter_linker_sections()):
     ram${i} (rwxai) : ORIGIN = ${f"{section.start:#08x}"}, LENGTH = ${f"{section.size:#08x}"}
 % endfor
@@ -15,13 +18,14 @@ MEMORY
 
 SECTIONS {
 
-    PROVIDE(__boot_address = 0x20010000);
+    PROVIDE(__boot_address = 0x${ext_slave_start_address});
 
     __stack_size = DEFINED(__stack_size) ? __stack_size : 0x${stack_size};
     PROVIDE(__stack_size = __stack_size);
     __heap_size = DEFINED(__heap_size) ? __heap_size : 0x${heap_size};
 
-    /* CPU reset vector is 0x20010000: _start must be the first instruction in ROM. */
+    /* _start must be the first instruction in ROM: boot_rom.S's
+     * _execute_from_ext jumps to the bare ROM origin with no offset. */
     .init (ORIGIN(rom)):
     {
         KEEP (*(SORT_NONE(.init)))

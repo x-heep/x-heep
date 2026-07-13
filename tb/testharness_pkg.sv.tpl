@@ -11,10 +11,10 @@ package testharness_pkg;
 
   % if user_peripheral_domain.contains_peripheral('serial_link'):
     localparam EXT_XBAR_NMASTER = 8;
-    localparam EXT_XBAR_NSLAVE = 3;
-  % else: 
+    localparam EXT_XBAR_NSLAVE = 4;
+  % else:
     localparam EXT_XBAR_NMASTER = 8;
-    localparam EXT_XBAR_NSLAVE = 2;
+    localparam EXT_XBAR_NSLAVE = 3;
   %endif
 
   //master idx
@@ -27,8 +27,14 @@ package testharness_pkg;
   localparam logic [31:0] EXT_MASTER6_IDX = 6;
   localparam logic [31:0] EXT_MASTER7_IDX = 7;
 
+  // external ROM - boot target of the execute_from_ext_i pin
+  localparam logic [31:0] EXT_ROM_START_ADDRESS = core_v_mini_mcu_pkg::EXT_SLAVE_START_ADDRESS;
+  localparam logic [31:0] EXT_ROM_SIZE = 32'h10000;
+  localparam logic [31:0] EXT_ROM_END_ADDRESS = EXT_ROM_START_ADDRESS + EXT_ROM_SIZE;
+  localparam logic [31:0] EXT_ROM_IDX = 32'd2;
+
   //slave mmap and idx of slow memory interleaved
-  localparam logic [31:0] SLOW_MEMORY_START_ADDRESS = core_v_mini_mcu_pkg::EXT_SLAVE_START_ADDRESS;
+  localparam logic [31:0] SLOW_MEMORY_START_ADDRESS = EXT_ROM_END_ADDRESS;
   localparam logic [31:0] SLOW_MEMORY_SIZE = 32'h400;
   localparam logic [31:0] SLOW_MEMORY_END_ADDRESS = SLOW_MEMORY_START_ADDRESS + SLOW_MEMORY_SIZE;
   localparam logic [31:0] SLOW_MEMORY0_IDX = 32'd0;
@@ -39,7 +45,7 @@ package testharness_pkg;
     localparam logic [31:0] SL_EXT_START_ADDRESS = SLOW_MEMORY_END_ADDRESS;
     localparam logic [31:0] SL_EXT_SIZE = 32'h200;
     localparam logic [31:0] SL_EXT_END_ADDRESS = SL_EXT_START_ADDRESS + SL_EXT_SIZE;
-    localparam logic [31:0] SL_EXT_IDX = 32'd2;
+    localparam logic [31:0] SL_EXT_IDX = 32'd3;
   %endif
 
   localparam addr_map_rule_t [EXT_XBAR_NSLAVE-1:0] EXT_XBAR_ADDR_RULES = '{
@@ -52,6 +58,11 @@ package testharness_pkg;
           idx: SLOW_MEMORY1_IDX,
           start_addr: SLOW_MEMORY_START_ADDRESS,
           end_addr: SLOW_MEMORY_END_ADDRESS
+      },
+      '{
+          idx: EXT_ROM_IDX,
+          start_addr: EXT_ROM_START_ADDRESS,
+          end_addr: EXT_ROM_END_ADDRESS
       }
       % if user_peripheral_domain.contains_peripheral('serial_link'):
       ,

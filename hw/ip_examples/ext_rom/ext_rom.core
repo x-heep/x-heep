@@ -1,0 +1,25 @@
+CAPI=2:
+
+name: "example:ip:ext_rom"
+description: "X-HEEP external ROM example, target of the execute_from_ext_i boot path"
+
+# Copyright EPFL contributors.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+filesets:
+  files_rtl:
+    files:
+    - rtl/ext_rom.sv
+    file_type: systemVerilogSource
+
+  verilator-waiver:
+    files:
+    - ext_rom.vlt
+    file_type: vlt
+
+targets:
+  default:
+    filesets:
+    - files_rtl
+    - tool_verilator ? (verilator-waiver)

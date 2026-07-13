@@ -23,12 +23,14 @@ module testharness #(
     input  wire         rst_ni,
     input  wire         boot_select_i,
     input  wire         execute_from_flash_i,
+    input  wire         execute_from_ext_i,
     output wire         exit_valid_o,
 `else  // VERILATOR
     inout  wire         clk_i,
     inout  wire         rst_ni,
     inout  wire         boot_select_i,
     inout  wire         execute_from_flash_i,
+    inout  wire         execute_from_ext_i,
     inout  wire         exit_valid_o,
 `endif  // VERILATOR
     output logic [31:0] exit_value_o,
@@ -90,6 +92,7 @@ module testharness #(
   wire rst_n;
   wire boot_select;
   wire execute_from_flash;
+  wire execute_from_ext;
   wire exit_valid;
 
   // UART
@@ -269,6 +272,7 @@ module testharness #(
   assign rst_n = rst_ni;
   assign boot_select = boot_select_i;
   assign execute_from_flash = execute_from_flash_i;
+  assign execute_from_ext = execute_from_ext_i;
   assign exit_valid_o = exit_valid;
 
   // X-HEEP system instance
@@ -287,6 +291,7 @@ module testharness #(
       .jtag_tdo_o(mux_jtag_tdo),
       .boot_select_i(boot_select),
       .execute_from_flash_i(execute_from_flash),
+      .execute_from_ext_i(execute_from_ext),
       .exit_valid_o(exit_valid),
       .uart_rx_i(uart_rx),
       .uart_tx_o(uart_tx),
@@ -481,7 +486,16 @@ module testharness #(
   assign slow_ram_slave_req[SLOW_MEMORY1_IDX] = ext_slave_req[SLOW_MEMORY1_IDX];
   assign ext_slave_resp[SLOW_MEMORY1_IDX]     = slow_ram_slave_resp[SLOW_MEMORY1_IDX];
 
-`else
+`endif
+
+  // External ROM example port - boot target of execute_from_ext_i
+  obi_req_t  ext_rom_slave_req;
+  obi_resp_t ext_rom_slave_resp;
+
+  assign ext_rom_slave_req           = ext_slave_req[EXT_ROM_IDX];
+  assign ext_slave_resp[EXT_ROM_IDX] = ext_rom_slave_resp;
+
+`ifdef SIM_SYSTEMC
 
   obi_req_t  ext_systemc_req;
   obi_resp_t ext_systemc_resp;
@@ -540,6 +554,23 @@ module testharness #(
           .rvalid_o(slow_ram_slave_resp[SLOW_MEMORY1_IDX].rvalid)
       );
 `endif
+
+      // External ROM example - boot target when execute_from_ext_i is asserted.
+      // Content is baked in at build time from an application binary, see
+      // hw/ip_examples/ext_rom/Makefile (`make direct APP_BIN=...`).
+      ext_rom ext_rom_i (
+          .clk_i,
+          .rst_ni,
+          .req_i(ext_rom_slave_req.req),
+          .we_i(ext_rom_slave_req.we),
+          .addr_i(ext_rom_slave_req.addr),
+          .wdata_i(ext_rom_slave_req.wdata),
+          .be_i(ext_rom_slave_req.be),
+          // output ports
+          .gnt_o(ext_rom_slave_resp.gnt),
+          .rdata_o(ext_rom_slave_resp.rdata),
+          .rvalid_o(ext_rom_slave_resp.rvalid)
+      );
 
       parameter DMA_TRIGGER_SLOT_NUM = 4;
 
@@ -823,6 +854,10 @@ module testharness #(
       assign slow_ram_slave_resp[1].gnt = '0;
       assign slow_ram_slave_resp[1].rdata = '0;
       assign slow_ram_slave_resp[1].rvalid = '0;
+
+      assign ext_rom_slave_resp.gnt = '0;
+      assign ext_rom_slave_resp.rdata = '0;
+      assign ext_rom_slave_resp.rvalid = '0;
 
       assign ext_periph_slv_req = '0;
       assign ext_periph_slv_rsp = '0;

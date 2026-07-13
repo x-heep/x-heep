@@ -11,6 +11,7 @@ filesets:
   files_examples:
     depend:
     - example:ip:slow_memory
+    - example:ip:ext_rom
     - example:ip:gpio_cnt
     - example:ip:pdm2pcm_dummy
     - example:ip:ams

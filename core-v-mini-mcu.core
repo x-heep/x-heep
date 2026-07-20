@@ -262,6 +262,10 @@ parameters:
     description: Turn off asserts for PULP common cells
     paramtype: vlogdefine
     default: false
+  ASIC_SYNTHESIS:
+    datatype: bool
+    paramtype: vlogdefine
+    default: false
 
 scripts:
   # Build utils
@@ -596,6 +600,7 @@ targets:
     description: Librelane flow to get an X-Heep chip on IHP-SG13G2.
     parameters:
       - SYNTHESIS=true
+      - ASIC_SYNTHESIS=true
     filesets_append:
       - asic-ihp-sg13g2
       - x_heep_system
@@ -603,9 +608,8 @@ targets:
     tools:
       librelane:
         flow: Chip
-        disable_variables:
-          - RUN_LINTER
-          - ERROR_ON_SYNTH_CHECKS
+        # disable_variables:
+        #   - ERROR_ON_SYNTH_CHECKS
         clock_port: clk_i
         clock_period: 20
         die_area: [0,0,5000,5000]
@@ -617,6 +621,7 @@ targets:
     description: Librelane flow to get an X-Heep macro on IHP-SG13G2.
     parameters:
       - SYNTHESIS=true
+      - ASIC_SYNTHESIS=true
     filesets_append:
       - asic-ihp-sg13g2
       - x_heep_system
@@ -624,9 +629,8 @@ targets:
     tools:
       librelane:
         flow: Classic
-        disable_variables:
-          - RUN_LINTER
-          - ERROR_ON_SYNTH_CHECKS
+        # disable_variables:
+        #   - ERROR_ON_SYNTH_CHECKS
         clock_port: clk_i
         clock_period: 20
-        core_area: [0,0,4000,4000]
+        die_area: [0,0,4000,4000]

@@ -6,7 +6,7 @@
   user_peripheral_domain = xheep.get_user_peripheral_domain()
 %>
 <%!
-    from pads.pin import Input, Output, Inout, PinDigital, Asignal
+    from pads.pin import Input, Output, Inout, PinDigital, Asignal, PinPower
 %>
 
 <%
@@ -38,7 +38,10 @@ module ihp_sg13g2_asic_x_heep_system_wrapper #(
     inout wire VSS,
     `endif
 
-    % for pad in xheep.get_padring().pad_list:
+    <%
+    power_pads = [ pad for pad in xheep.get_padring().pad_list if any(isinstance(pin, PinPower) for pin in pad.pins) ] 
+    %>
+    % for pad in [pad for pad in xheep.get_padring().pad_list if pad not in power_pads]:
       <%
       has_input_pin = any(isinstance(pin, Input) for pin in pad.pins)
       has_output_pin = any(isinstance(pin, Output) for pin in pad.pins)
@@ -77,6 +80,10 @@ module ihp_sg13g2_asic_x_heep_system_wrapper #(
   reg_req_t [AO_SPC_NUM_RND:0] unused_ext_ao_peripheral_req = '{default: '0};
   reg_rsp_t unused_ext_peripheral_slave_resp = '{default: '0};
   logic unused_cpu_subsystem_powergate_switch_ack_n = 1'b1;
+  logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] unused_ext_dma_slot_tx_i = '0;
+  logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] unused_ext_dma_slot_rx_i = '0;
+  logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] unused_ext_dma_stop_i    = '0;
+  logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] unused_hw_fifo_done_i    = '0;
   logic unused_peripheral_subsystem_powergate_switch_ack_n = 1'b1;
   logic [EXT_DOMAINS_RND-1:0] unused_external_subsystem_powergate_switch_ack_n = '1; // Set all bits high
   logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] unused_ext_dma_slot_tx = '0;
@@ -138,12 +145,12 @@ module ihp_sg13g2_asic_x_heep_system_wrapper #(
 
     // Power management
     .cpu_subsystem_powergate_switch_no              (),
-    .cpu_subsystem_powergate_switch_ack_ni          (unused_cpu_subsystem_powergate_switch_ack),
+    .cpu_subsystem_powergate_switch_ack_ni          (unused_cpu_subsystem_powergate_switch_ack_n),
     .peripheral_subsystem_powergate_switch_no       (),
-    .peripheral_subsystem_powergate_switch_ack_ni   (unused_peripheral_subsystem_powergate_switch_ack),
+    .peripheral_subsystem_powergate_switch_ack_ni   (unused_peripheral_subsystem_powergate_switch_ack_n),
 
     .external_subsystem_powergate_switch_no         (),
-    .external_subsystem_powergate_switch_ack_ni     (unused_external_subsystem_powergate_switch_ack),
+    .external_subsystem_powergate_switch_ack_ni     (unused_external_subsystem_powergate_switch_ack_n),
     .external_subsystem_powergate_iso_no            (),
     .external_subsystem_rst_no                      (),
     .external_ram_banks_set_retentive_no            (),
@@ -151,10 +158,10 @@ module ihp_sg13g2_asic_x_heep_system_wrapper #(
 
     .exit_value_o                           (),
 
-    .ext_dma_slot_tx_i                      (ext_dma_slot_tx_i),
-    .ext_dma_slot_rx_i                      (ext_dma_slot_rx_i),
-    .ext_dma_stop_i                         (ext_dma_stop_i),
-    .hw_fifo_done_i                         (hw_fifo_done_i),
+    .ext_dma_slot_tx_i                      (unused_ext_dma_slot_tx_i),
+    .ext_dma_slot_rx_i                      (unused_ext_dma_slot_rx_i),
+    .ext_dma_stop_i                         (unused_ext_dma_stop_i),
+    .hw_fifo_done_i                         (unused_hw_fifo_done_i),
 
     // eXtension Interface
     .xif_compressed_if                      (xif_compressed_if),
@@ -167,7 +174,14 @@ module ihp_sg13g2_asic_x_heep_system_wrapper #(
     // External SPC interface
     .dma_done_o                             (),
 
-    % for pad in xheep.get_padring().pad_list:
+    `ifdef USE_POWER_PINS
+    .iovdd_io(IOVDD),
+    .iovss_io(IOVSS),
+    .vdd_io(VDD),
+    .vss_io(VSS),
+    `endif
+
+    % for pad in [pad for pad in xheep.get_padring().pad_list if pad not in power_pads]:
       <%
       has_input_pin = any(isinstance(pin, Input) for pin in pad.pins)
       has_output_pin = any(isinstance(pin, Output) for pin in pad.pins)

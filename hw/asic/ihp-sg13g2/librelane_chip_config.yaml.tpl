@@ -48,12 +48,6 @@ PAD_NORTH: [
 if pad.side != Side.TOP:
     continue
 
-has_input_pin = any(isinstance(pin, Input) for pin in pad.pins)
-has_output_pin = any(isinstance(pin, Output) for pin in pad.pins)
-has_inout_pin = any(isinstance(pin, Inout) for pin in pad.pins)
-
-if not (has_input_pin or has_output_pin or has_inout_pin): 
-    continue
 pin0_name = pad.pins[0].rtl_name()
 if pin0_name[-1] == 'n':
     pin0_name = pin0_name[0:-1]
@@ -64,6 +58,14 @@ if pin0_name[-1] == 'n':
   "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_input",
   % elif pad.iocell.rtl_wrapper == "pad_cell_output":
   "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_output",
+  % elif pad.iocell.rtl_wrapper == "pad_cell_vdd":
+  "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_vdd",
+  % elif pad.iocell.rtl_wrapper == "pad_cell_vss":
+  "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_vss",
+  % elif pad.iocell.rtl_wrapper == "pad_cell_iovdd":
+  "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_iovdd",
+  % elif pad.iocell.rtl_wrapper == "pad_cell_iovss":
+  "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_iovss",
   % endif
 % endfor
 ]
@@ -74,15 +76,9 @@ PAD_WEST: [
 if pad.side != Side.LEFT:
     continue
 
-has_input_pin = any(isinstance(pin, Input) for pin in pad.pins)
-has_output_pin = any(isinstance(pin, Output) for pin in pad.pins)
-has_inout_pin = any(isinstance(pin, Inout) for pin in pad.pins)
-
-is_left = (pad.side == Side.LEFT)
-
-if not (has_input_pin or has_output_pin or has_inout_pin): 
-    continue
 pin0_name = pad.pins[0].rtl_name()
+if pin0_name[-1] == 'n':
+    pin0_name = pin0_name[0:-1]
 %>\
   % if pad.iocell.rtl_wrapper == "pad_cell_inout":
   "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_inout",
@@ -90,6 +86,14 @@ pin0_name = pad.pins[0].rtl_name()
   "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_input",
   % elif pad.iocell.rtl_wrapper == "pad_cell_output":
   "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_output",
+  % elif pad.iocell.rtl_wrapper == "pad_cell_vdd":
+  "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_vdd",
+  % elif pad.iocell.rtl_wrapper == "pad_cell_vss":
+  "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_vss",
+  % elif pad.iocell.rtl_wrapper == "pad_cell_iovdd":
+  "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_iovdd",
+  % elif pad.iocell.rtl_wrapper == "pad_cell_iovss":
+  "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_iovss",
   % endif
 % endfor
 ]
@@ -100,13 +104,9 @@ PAD_SOUTH: [
 if pad.side != Side.BOTTOM:
     continue
 
-has_input_pin = any(isinstance(pin, Input) for pin in pad.pins)
-has_output_pin = any(isinstance(pin, Output) for pin in pad.pins)
-has_inout_pin = any(isinstance(pin, Inout) for pin in pad.pins)
-
-if not (has_input_pin or has_output_pin or has_inout_pin): 
-    continue
 pin0_name = pad.pins[0].rtl_name()
+if pin0_name[-1] == 'n':
+    pin0_name = pin0_name[0:-1]
 %>\
   % if pad.iocell.rtl_wrapper == "pad_cell_inout":
   "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_inout",
@@ -114,6 +114,14 @@ pin0_name = pad.pins[0].rtl_name()
   "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_input",
   % elif pad.iocell.rtl_wrapper == "pad_cell_output":
   "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_output",
+  % elif pad.iocell.rtl_wrapper == "pad_cell_vdd":
+  "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_vdd",
+  % elif pad.iocell.rtl_wrapper == "pad_cell_vss":
+  "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_vss",
+  % elif pad.iocell.rtl_wrapper == "pad_cell_iovdd":
+  "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_iovdd",
+  % elif pad.iocell.rtl_wrapper == "pad_cell_iovss":
+  "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_iovss",
   % endif
 % endfor
 ]
@@ -124,13 +132,9 @@ PAD_EAST: [
 if pad.side != Side.RIGHT:
     continue
 
-has_input_pin = any(isinstance(pin, Input) for pin in pad.pins)
-has_output_pin = any(isinstance(pin, Output) for pin in pad.pins)
-has_inout_pin = any(isinstance(pin, Inout) for pin in pad.pins)
-
-if not (has_input_pin or has_output_pin or has_inout_pin): 
-    continue
 pin0_name = pad.pins[0].rtl_name()
+if pin0_name[-1] == 'n':
+    pin0_name = pin0_name[0:-1]
 %>\
   % if pad.iocell.rtl_wrapper == "pad_cell_inout":
   "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_inout",
@@ -138,6 +142,14 @@ pin0_name = pad.pins[0].rtl_name()
   "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_input",
   % elif pad.iocell.rtl_wrapper == "pad_cell_output":
   "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_output",
+  % elif pad.iocell.rtl_wrapper == "pad_cell_vdd":
+  "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_vdd",
+  % elif pad.iocell.rtl_wrapper == "pad_cell_vss":
+  "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_vss",
+  % elif pad.iocell.rtl_wrapper == "pad_cell_iovdd":
+  "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_iovdd",
+  % elif pad.iocell.rtl_wrapper == "pad_cell_iovss":
+  "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_iovss",
   % endif
 % endfor
 ]

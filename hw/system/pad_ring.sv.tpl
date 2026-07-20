@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
 <%!
-    from pads.pin import Input, Output, Inout, PinDigital, Asignal
+    from pads.pin import Input, Output, Inout, PinDigital, Asignal, PinVdd, PinVss, PinIoVdd, PinIoVss, PinPower
 %>
 
 <%
@@ -14,6 +14,7 @@
                 else 0
             )
     analog_signal_pads = [ pad for pad in xheep.get_padring().pad_list if any(isinstance(pin, Asignal) for pin in pad.pins) ] 
+    power_pads = [ pad for pad in xheep.get_padring().pad_list if any(isinstance(pin, PinPower) for pin in pad.pins) ] 
 %>
 
 module pad_ring (
@@ -47,6 +48,30 @@ module pad_ring (
             % endfor
         `endif
     %endif
+`ifdef ASIC_SYNTHESIS
+    % if len(power_pads) > 0:
+        `ifdef USE_POWER_PINS
+        <%
+        has_vdd = any(isinstance(pin, PinVdd) for pad in power_pads for pin in pad.pins)
+        has_vss = any(isinstance(pin, PinVss) for pad in power_pads for pin in pad.pins)
+        has_iovdd = any(isinstance(pin, PinIoVdd) for pad in power_pads for pin in pad.pins)
+        has_iovss = any(isinstance(pin, PinIoVss) for pad in power_pads for pin in pad.pins)
+        %>\
+        % if has_vdd:
+        inout wire vdd_io,
+        % endif
+        % if has_vss:
+        inout wire vss_io,
+        % endif
+        % if has_iovdd:
+        inout wire iovdd_io,
+        % endif
+        % if has_iovss:
+        inout wire iovss_io,
+        % endif
+        `endif
+    %endif
+`endif
 
     % if attribute_bits != None:
         input logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][${attribute_bits}] pad_attributes_i
@@ -103,5 +128,39 @@ module pad_ring (
         % endfor
     `endif
 % endif #len(analog_signal_pads) > 0:
+
+`ifdef ASIC_SYNTHESIS
+% if len(power_pads) > 0:
+        // POWER PADS
+        % for pad in power_pads:
+            <%
+            if has_vdd:
+                pad_vdd_io = "vdd_io"
+            else:
+                pad_vdd_io = ""
+            if has_vss:
+                pad_vss_io = "vss_io"
+            else:
+                pad_vss_io = ""
+            if has_iovdd:
+                pad_iovdd_io = "iovdd_io"
+            else:
+                pad_iovdd_io = ""
+            if has_iovss:
+                pad_iovss_io = "iovss_io"
+            else:
+                pad_iovss_io = ""
+            %>
+            ${pad.iocell.rtl_wrapper} u_pad_${pad.name}(
+                `ifdef USE_POWER_PINS
+                .iovdd(${pad_iovdd_io}),
+                .iovss(${pad_iovss_io}),
+                .vdd(${pad_vdd_io}),
+                .vss(${pad_vss_io})
+                `endif
+            );
+        % endfor
+% endif
+`endif
 
 endmodule //pad_ring

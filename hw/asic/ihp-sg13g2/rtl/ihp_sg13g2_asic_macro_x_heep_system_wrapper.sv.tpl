@@ -6,7 +6,7 @@
   user_peripheral_domain = xheep.get_user_peripheral_domain()
 %>
 <%!
-    from pads.pin import Input, Output, Inout, PinDigital, Asignal
+    from pads.pin import Input, Output, Inout, PinDigital, Asignal, PinPower
 %>
 
 <%
@@ -91,11 +91,35 @@ module ihp_sg13g2_asic_x_heep_system_wrapper #(
 
     output logic [31:0] exit_value_o,
 
+    // eXtension interface
+    output logic               xif_compressed_valid,
+    input  logic               xif_compressed_ready,
+    output x_compressed_req_t  xif_compressed_req,
+    input  x_compressed_resp_t xif_compressed_resp,
+    output logic               xif_issue_valid,
+    input  logic               xif_issue_ready,
+    output x_issue_req_t       xif_issue_req,
+    input  x_issue_resp_t      xif_issue_resp,
+    output logic               xif_commit_valid,
+    output x_commit_t          xif_commit,
+    input  logic               xif_mem_valid,
+    output logic               xif_mem_ready,
+    input  x_mem_req_t         xif_mem_req,
+    output x_mem_resp_t        xif_mem_resp,
+    output logic               xif_mem_result_valid,
+    output x_mem_result_t      xif_mem_result,
+    input  logic               xif_result_valid,
+    output logic               xif_result_ready,
+    input  x_result_t          xif_result,
+
     // External SPC interface
     input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_tx_i,
     input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_rx_i,
-    output logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_done_o
-    % for pad in xheep.get_padring().pad_list:
+    output logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_done_o,
+    <%
+    power_pads = [ pad for pad in xheep.get_padring().pad_list if any(isinstance(pin, PinPower) for pin in pad.pins) ] 
+    %>
+    % for pad in [pad for pad in xheep.get_padring().pad_list if pad not in power_pads]:
       <%
       has_input_pin = any(isinstance(pin, Input) for pin in pad.pins)
       has_output_pin = any(isinstance(pin, Output) for pin in pad.pins)
@@ -126,6 +150,75 @@ module ihp_sg13g2_asic_x_heep_system_wrapper #(
   if_xif xif_mem_result_if();
   if_xif xif_result_if();
 
+##  output logic [          15:0] xif_compressed_req_instr,
+##  output logic [           1:0] xif_compressed_req_mode,
+##  output logic [X_ID_WIDTH-1:0] xif_compressed_req_id,
+##  input  logic [          31:0] xif_compressed_resp_instr,
+##  input  logic                  xif_compressed_resp_accept,
+  // Compressed interface
+  assign               xif_compressed_valid = xif_compressed_if.compressed_valid;
+  assign xif_compressed_if.compressed_ready = xif_compressed_ready;
+  assign xif_compressed_req = xif_compressed_if.compressed_req;
+  assign xif_compressed_if.compressed_resp = xif_compressed_resp;
+##  assign           xif_compressed_req_instr = xif_compressed_if.compressed_req.instr;
+##  assign            xif_compressed_req_mode = xif_compressed_if.compressed_req.mode;
+##  assign              xif_compressed_req_id = xif_compressed_if.compressed_req.id;
+##  assign xif_compressed_resp_instr
+##  assign xif_compressed_resp_accept
+
+##  output x_issue_req_t       xif_issue_req_instr,
+##  output x_issue_req_t       xif_issue_req_mode,
+##  output x_issue_req_t       xif_issue_req_id,
+##  output x_issue_req_t       xif_issue_req_rs,
+##  output x_issue_req_t       xif_issue_req_rs_valid,
+##  output x_issue_req_t       xif_issue_req_ecs,
+##  output x_issue_req_t       xif_issue_req_ecs_valid,
+##  input  x_issue_resp_t      xif_issue_resp_accept,
+##  input  x_issue_resp_t      xif_issue_resp_writeback,
+##  input  x_issue_resp_t      xif_issue_resp_dualwrite,
+##  input  x_issue_resp_t      xif_issue_resp_dualread,
+##  input  x_issue_resp_t      xif_issue_resp_loadstore,
+##  input  x_issue_resp_t      xif_issue_resp_ecswrite,
+##  input  x_issue_resp_t      xif_issue_resp_exc,
+  // Issue interface
+  assign xif_issue_valid = xif_issue_if.issue_valid;
+  assign xif_issue_if.issue_ready = xif_issue_ready;
+  assign xif_issue_req = xif_issue_if.issue_req;
+  assign xif_issue_if.issue_resp = xif_issue_resp;
+
+  // Commit interface
+##  output x_commit_t          xif_commit_id,
+##  output x_commit_t          xif_commit_kill,
+  assign xif_commit_valid = xif_commit_if.commit_valid;
+  assign xif_commit = xif_commit_if.commit;
+
+  // Memory (request/response) interface
+##  input  x_mem_req_t         mem_req_id,
+##  input  x_mem_req_t         mem_req_addr,
+##  input  x_mem_req_t         mem_req_mode,
+##  input  x_mem_req_t         mem_req_we,
+##  input  x_mem_req_t         mem_req_size,
+##  input  x_mem_req_t         mem_req_be,
+##  input  x_mem_req_t         mem_req_attr,
+##  input  x_mem_req_t         mem_req_wdata,
+##  input  x_mem_req_t         mem_req_last,
+##  input  x_mem_req_t         mem_req_spec,
+##  output x_mem_resp_t        mem_resp_exc,
+##  output x_mem_resp_t        mem_resp_exccode,
+##  output x_mem_resp_t        mem_resp_dbg,
+  assign xif_mem_if.mem_valid = xif_mem_valid;
+  assign xif_mem_ready = xif_mem_if.mem_ready;
+  assign xif_mem_if.mem_req = xif_mem_req;
+  assign xif_mem_resp = xif_mem_if.mem_resp;
+  // Memory result interface
+  assign xif_mem_result_valid = xif_mem_result_if.mem_result_valid;
+  assign xif_mem_result = xif_mem_result_if.mem_result;
+  // Result interface
+  assign xif_result_if.result_valid = xif_result_valid;
+  assign xif_result_ready = xif_result_if.result_ready;
+  assign xif_result_if.result = xif_result;
+
+  // X-Heep system
   x_heep_system #(
     .XHEEP_INSTANCE_ID(0),
     .EXT_XBAR_NMASTER(0),

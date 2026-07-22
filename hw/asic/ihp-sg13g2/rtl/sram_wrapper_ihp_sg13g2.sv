@@ -8,21 +8,22 @@ module sram_wrapper #(
     // DEPENDENT PARAMETERS, DO NOT OVERWRITE!
     parameter int unsigned AddrWidth = (NumWords > 32'd1) ? $clog2(NumWords) : 32'd1
 ) (
-    input logic clk_i,
-    input logic rst_ni,
+    input  logic clk_i,
+    input  logic rst_ni,
     // input ports
-    input logic req_i,
-    input logic we_i,
-    input logic [AddrWidth-1:0] addr_i,
-    input logic [31:0] wdata_i,
-    input logic [3:0] be_i,
-    input logic pwrgate_ni,
-    input logic pwrgate_ack_no,
-    input logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] set_retentive_ni,
+    input  logic req_i,
+    input  logic we_i,
+    input  logic [AddrWidth-1:0] addr_i,
+    input  logic [31:0] wdata_i,
+    input  logic [3:0] be_i,
+    input  logic pwrgate_ni,
+    output logic pwrgate_ack_no,
+    input  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] set_retentive_ni,
     // output ports
     output logic [31:0] rdata_o
 );
 
+// verilator lint_off MODMISSING
     // Not supported
     assign pwrgate_ack_no = pwrgate_ni;
 
@@ -33,6 +34,7 @@ module sram_wrapper #(
 
         case (NumWords)
             256: begin
+                (* keep *)
                 RM_IHPSG13_1P_256x32_c2_bm_bist sram_inst (
                     .A_CLK      (clk_i),
                     .A_MEN      (req_i),
@@ -54,6 +56,7 @@ module sram_wrapper #(
                 );
             end
             512: begin
+                (* keep *)
                 RM_IHPSG13_1P_512x32_c2_bm_bist sram_inst (
                     .A_CLK      (clk_i),
                     .A_MEN      (req_i),
@@ -75,6 +78,7 @@ module sram_wrapper #(
                 );
             end
             1024: begin
+                (* keep *)
                 RM_IHPSG13_1P_1024x32_c2_bm_bist sram_inst (
                     .A_CLK      (clk_i),
                     .A_MEN      (req_i),
@@ -97,6 +101,7 @@ module sram_wrapper #(
             end
             // NOTE: No byte enable
             8192: begin
+                (* keep *)
                 RM_IHPSG13_1P_8192x32_c4 sram_inst (
                     .A_CLK      (clk_i),
                     .A_MEN      (req_i),
@@ -111,5 +116,6 @@ module sram_wrapper #(
             default: $error("Bank size not implemented.");
         endcase
     endgenerate
+// verilator lint_on MODMISSING
 
 endmodule

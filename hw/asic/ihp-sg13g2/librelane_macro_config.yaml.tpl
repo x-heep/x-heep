@@ -19,9 +19,11 @@ GND_NETS:
 # Connect SRAMS to PDN
 PDN_MACRO_CONNECTIONS:
 % for bank in xheep.memory_ss().iter_ram_banks():
-- "x_heep_system_inst.core_v_mini_mcu_i.memory_subsystem_i.ram${bank.map_idx()-1}_i.genblk2.sram_inst VDD VSS VDDARRAY! VSS!"
-- "x_heep_system_inst.core_v_mini_mcu_i.memory_subsystem_i.ram${bank.map_idx()-1}_i.genblk2.sram_inst VDD VSS VDD! VSS!"
+- "core_v_mini_mcu_i.memory_subsystem_i.ram${bank.map_idx()-1}_i.genblk2.sram_inst VDD VSS VDDARRAY! VSS!"
+- "core_v_mini_mcu_i.memory_subsystem_i.ram${bank.map_idx()-1}_i.genblk2.sram_inst VDD VSS VDD! VSS!"
 % endfor
+
+OPENROAD_THREADS: 32
 
 # SRAM Macros
 MACROS:

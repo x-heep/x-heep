@@ -9,9 +9,10 @@ description: "IHP-SG13G2 primitive wrappers"
 filesets:
   files_chip:
     files:
-      - librelane_chip_config.yaml         : { file_type: librelaneConfig }
-      - librelane_chip_macro_placement.cfg : { file_type: macroPlacement }
-      - librelane_pdn_cfg.tcl              : { file_type: pdn }
+      - librelane_chip_config.yaml              : { file_type: librelaneConfig }
+      - librelane_chip_macro_placement.cfg      : { file_type: macroPlacement }
+      - librelane_chip_pdn_cfg.tcl              : { file_type: pdn }
+      - librelane_chip_fallback_pnr_signoff.sdc : { file_type: SDC }
       - rtl/prim_ihp_sg13g2_clk.sv
       - rtl/sram_wrapper_ihp_sg13g2.sv
       - rtl/pad_cell_inout_ihp_sg13g2.sv
@@ -22,10 +23,12 @@ filesets:
     file_type: systemVerilogSource
   files_macro:
     files:
-      - librelane_macro_config.yaml        : { file_type: librelaneConfig }
-      - librelane_chip_macro_placement.cfg : { file_type: macroPlacement }  ### FIXME: IS IT THE SAME PLACEMENT BETWEEN MACRO AND CHIP ???????
-      - librelane_pdn_cfg.tcl              : { file_type: pdn }
-      - librelane_macro_pin_order.cfg      : { file_type: pinOrder }
+      - librelane_macro_config.yaml              : { file_type: librelaneConfig }
+      - librelane_macro_macro_placement.cfg      : { file_type: macroPlacement }
+      - librelane_macro_pdn_cfg.tcl              : { file_type: pdn }
+      - librelane_macro_pin_order.cfg            : { file_type: pinOrder }
+      - librelane_macro_fallback_pnr_signoff.sdc : { file_type: SDC }
+      - rtl/if_xif_structs_pkg.sv
       - rtl/prim_ihp_sg13g2_clk.sv
       - rtl/sram_wrapper_ihp_sg13g2.sv
       - rtl/ihp_sg13g2_asic_macro_x_heep_system_wrapper.sv

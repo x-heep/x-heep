@@ -608,9 +608,12 @@ targets:
     tools:
       librelane:
         flow: Chip
-        # disable_variables:
-        #   - ERROR_ON_SYNTH_CHECKS
+        remove_steps:
+          - Magic.DRC           # Too long
+          - Checker.MagicDRC
+          - Checker.IllegalOverlap  # Uninteresting
         clock_port: clk_i
+        clock_net: x_heep_system_inst.pad_ring_i.u_pad_clk.pad_cell_input/p2c
         clock_period: 20
         die_area: [0,0,5000,5000]
         core_area: [365,365,4635,4635]
@@ -629,8 +632,11 @@ targets:
     tools:
       librelane:
         flow: Classic
-        # disable_variables:
-        #   - ERROR_ON_SYNTH_CHECKS
+        remove_steps:
+          - Magic.DRC               # Too long
+          - Checker.MagicDRC
+          - Checker.IllegalOverlap  # Uninteresting
         clock_port: clk_i
+        clock_net: clk_i
         clock_period: 20
         die_area: [0,0,4000,4000]

@@ -30,7 +30,6 @@ filesets:
     - x-heep:ip:obi_spimemio
     - x-heep:ip:boot_rom
     - x-heep:ip:dma
-    - x-heep:ip:dma_subsystem
     - x-heep:ip:i2s
     - x-heep:ip:spi
     - x-heep:ip:cluster_interconnect
@@ -83,7 +82,6 @@ filesets:
     - hw/core-v-mini-mcu/core_v_mini_mcu.vlt
     - hw/ip/soc_ctrl/soc_ctrl.vlt
     - hw/ip/obi_spimemio/obi_spimemio.vlt
-    - hw/ip/dma_subsystem/dma_subsystem.vlt
     - hw/ip/pdm2pcm/pdm2pcm.vlt
     - hw/ip/power_manager/power_manager.vlt
     - hw/ip/fast_intr_ctrl/fast_intr_ctrl.vlt

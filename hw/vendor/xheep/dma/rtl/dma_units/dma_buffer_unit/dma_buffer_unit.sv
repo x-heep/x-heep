@@ -12,6 +12,9 @@ module dma_buffer_unit
   import dma_reg_pkg::*;
 #(
     parameter int FIFO_DEPTH = 4,
+    parameter bit DMA_ADDR_MODE_EN = 1'b0,
+    parameter bit DMA_HW_FIFO_MODE_EN = 1'b0,
+    parameter bit DMA_SUBADDR_MODE_EN = 1'b0,
     // OBI FIFO data types
     parameter type fifo_req_t = logic,
     parameter type fifo_resp_t = logic
@@ -34,8 +37,6 @@ module dma_buffer_unit
     input  fifo_resp_t hw_fifo_resp_i,
     output fifo_req_t  hw_fifo_req_o
 );
-  `include "dma_conf.svh"
-
   logic hw_fifo_mode;
 
   fifo_req_t read_fifo_req;
@@ -50,6 +51,8 @@ module dma_buffer_unit
 
   dma_buffer_fifos #(
       .FIFO_DEPTH(FIFO_DEPTH),
+      .DMA_ADDR_MODE_EN(DMA_ADDR_MODE_EN),
+      .DMA_HW_FIFO_MODE_EN(DMA_HW_FIFO_MODE_EN),
       .fifo_req_t(fifo_req_t),
       .fifo_resp_t(fifo_resp_t)
   ) dma_buffer_fifos_i (
@@ -72,7 +75,9 @@ module dma_buffer_unit
       .hw_fifo_req_o
   );
 
-  dma_buffer_control dma_buffer_control_i (
+  dma_buffer_control #(
+      .DMA_SUBADDR_MODE_EN(DMA_SUBADDR_MODE_EN)
+  ) dma_buffer_control_i (
       .clk_i,
       .rst_ni,
       .reg2hw_i,

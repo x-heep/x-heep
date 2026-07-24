@@ -12,6 +12,7 @@
 module dma_write_unit
   import dma_reg_pkg::*;
 #(
+    parameter bit DMA_ZERO_PADDING_EN = 1'b0
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -49,7 +50,6 @@ module dma_write_unit
 
   import dma_reg_pkg::*;
   import dma_pkg::*;
-  `include "dma_conf.svh"
 
   /*_________________________________________________________________________________________________________________________________ */
 
@@ -368,18 +368,20 @@ module dma_write_unit
   assign write_address = address_mode ? read_addr_buffer_output_i : write_ptr_reg;
 
   /* DMA transaction sizes */
-`ifdef ZERO_PADDING_EN
-  assign dma_size_d1 = {1'h0, reg2hw.size_d1.q} +
-                      {11'h0, reg2hw.pad_left.q} +
-                      {11'h0, reg2hw.pad_right.q};
+  generate
+    if (DMA_ZERO_PADDING_EN) begin : gen_zero_pad
+      assign dma_size_d1 = {1'h0, reg2hw.size_d1.q} +
+                          {11'h0, reg2hw.pad_left.q} +
+                          {11'h0, reg2hw.pad_right.q};
 
-  assign dma_size_d2 = {1'h0, reg2hw.size_d2.q} +
-                      {11'h0, reg2hw.pad_top.q} +
-                      {11'h0, reg2hw.pad_bottom.q};
-`else
-  assign dma_size_d1 = {1'h0, reg2hw.size_d1.q};
-  assign dma_size_d2 = {1'h0, reg2hw.size_d2.q};
-`endif
+      assign dma_size_d2 = {1'h0, reg2hw.size_d2.q} +
+                          {11'h0, reg2hw.pad_top.q} +
+                          {11'h0, reg2hw.pad_bottom.q};
+    end else begin : gen_no_zero_pad
+      assign dma_size_d1 = {1'h0, reg2hw.size_d1.q};
+      assign dma_size_d2 = {1'h0, reg2hw.size_d2.q};
+    end
+  endgenerate
 
   /* Renaming */
   assign dma_done_override = dma_done_override_i;

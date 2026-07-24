@@ -11,6 +11,7 @@ import UPF::*;
   user_peripheral_domain = xheep.get_user_peripheral_domain()
   xif = xheep.xif()
   th  = xheep.get_extension("testharness")
+  dma_obj = xheep.get_base_peripheral_domain().get_dma() if xheep.get_base_peripheral_domain().get_dma() else None
 %>
 
 module testharness #(
@@ -563,7 +564,11 @@ module testharness #(
           .obi_resp_t (obi_rsp_t),
           .fifo_resp_t(fifo_rsp_t),
           .fifo_req_t (fifo_req_t),
-          .SLOT_NUM   (DMA_TRIGGER_SLOT_NUM)
+          .SLOT_NUM   (DMA_TRIGGER_SLOT_NUM),
+          .DMA_ADDR_MODE_EN(1'b0),
+          .DMA_ZERO_PADDING_EN(1'b0),
+          .DMA_HW_FIFO_MODE_EN(1'b0),
+          .DMA_SUBADDR_MODE_EN(1'b0)
       ) dma_i (
           .clk_i,
           .rst_ni,
@@ -636,7 +641,8 @@ module testharness #(
 
       im2col_spc #(
         .reg_req_t(reg_req_t),
-        .reg_rsp_t(reg_rsp_t)
+        .reg_rsp_t(reg_rsp_t),
+        .DMA_ZERO_PADDING_EN(${1 if dma_obj and dma_obj.get_zero_padding() else 0})
       ) im2col_spc_i (
           .clk_i,
           .rst_ni,

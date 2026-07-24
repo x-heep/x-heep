@@ -51,7 +51,7 @@ module dma_read_unit
   import dma_reg_pkg::*;
   import dma_pkg::*;
 
-  `include "dma_conf.svh"
+  
   localparam int unsigned LastFifoUsage = RVALID_FIFO_DEPTH - 1;
   localparam int unsigned AddrFifoDepth = (RVALID_FIFO_DEPTH > 1) ? $clog2(RVALID_FIFO_DEPTH) : 1;
 

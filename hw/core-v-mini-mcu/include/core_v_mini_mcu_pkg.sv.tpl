@@ -25,6 +25,7 @@ package core_v_mini_mcu_pkg;
 
   import addr_map_rule_pkg::*;
   import power_manager_pkg::*;
+  import dma_pkg::*;
 
   typedef enum logic [1:0] {
     cv32e40p,
@@ -148,18 +149,6 @@ package core_v_mini_mcu_pkg;
 
   localparam AO_PERIPHERALS = ${len(base_peripheral_domain.get_peripherals())};
 
-  localparam int DMA_CH_NUM = ${dma.get_num_channels()};
-  localparam DMA_CH_SIZE = 32'h${hex(dma.get_ch_length())[2:]};
-  localparam int DMA_NUM_MASTER_PORTS = ${dma.get_num_master_ports()};
-
-% if dma.get_num_master_ports() > 1:
-  localparam int DMA_XBAR_MASTERS [DMA_NUM_MASTER_PORTS] = '{${dma.get_xbar_array()[::-1]}};
-% else:
-  localparam int DMA_XBAR_MASTERS [DMA_NUM_MASTER_PORTS] = '{${dma.get_xbar_array()}};
-% endif
-
-  localparam int DMA_FIFO_DEPTH = ${dma.get_fifo_depth()};
-
 % for peripheral in base_peripheral_domain.get_peripherals():
   localparam logic [31:0] ${peripheral.get_name().upper()}_START_ADDRESS = AO_PERIPHERAL_START_ADDRESS + 32'h${hex(peripheral.get_address())[2:]};
   localparam logic [31:0] ${peripheral.get_name().upper()}_SIZE = 32'h${hex(peripheral.get_length())[2:]};
@@ -188,8 +177,6 @@ package core_v_mini_mcu_pkg;
       '{ idx: DMA_CH${i}_IDX, start_addr: DMA_CH${i}_START_ADDRESS, end_addr: DMA_CH${i}_END_ADDRESS }${"," if not loop.last else ""}
 % endfor
   };
-  
-  localparam int unsigned DMA_CH_PORT_SEL_WIDTH = DMA_CH_NUM > 1 ? $clog2(DMA_CH_NUM) : 32'd1;
 
 ######################################################################
 ## Automatically add all user peripherals listed

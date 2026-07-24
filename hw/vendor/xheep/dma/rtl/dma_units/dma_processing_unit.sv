@@ -39,7 +39,6 @@ module dma_processing_unit
   /* Parameter definition */
 
   import dma_reg_pkg::*;
-  `include "dma_conf.svh"
 
   /*_________________________________________________________________________________________________________________________________ */
 

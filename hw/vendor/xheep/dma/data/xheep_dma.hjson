@@ -2,13 +2,7 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
-<%
-  dma = xheep.get_base_peripheral_domain().get_dma()
-  dma_addr_mode = dma.get_addr_mode() == 1
-  dma_subaddr_mode = dma.get_subaddr_mode() == 1
-  dma_hw_fifo_mode = dma.get_hw_fifo_mode() == 1
-  dma_zero_padding = dma.get_zero_padding() == 1
-%>
+
 
 { name: "dma"
   clock_primary: "clk_i"
@@ -33,7 +27,6 @@
         { bits: "31:0", name: "PTR_OUT", desc: "Output data pointer (word aligned)" }
       ]
     }
-    % if dma_addr_mode:
     { name:     "ADDR_PTR"
       desc:     "Addess data pointer (word aligned)"
       swaccess: "rw"
@@ -42,7 +35,6 @@
         { bits: "31:0", name: "PTR_ADDR", desc: "Address data pointer (word aligned) - used only in Address mode" }
       ]
     }
-    % endif
     { name:     "SIZE_D1"
       desc:     "Number of elements to copy from, defined with respect to the first dimension - Once a value is written, the copy starts"
       swaccess: "rw"
@@ -125,7 +117,7 @@
       ]
     }
     { name:     "SLOT"
-      desc:     '''The DMA will wait for the signal 
+      desc:     '''The DMA will wait for the signal
                    connected to the selected trigger_slots to be high
                    on the read and write side respectively'''
       swaccess: "rw"
@@ -209,11 +201,7 @@
     }
     { name:     "HW_FIFO_EN"
       desc:     '''Enable the HW FIFO mode'''
-    % if dma_hw_fifo_mode:
       swaccess: "rw"
-    % else:
-      swaccess: "ro"
-    % endif
       hwaccess: "hrw"
       resval:   0
       fields: [
@@ -228,7 +216,7 @@
       fields: [
         { bits: "0", name: "DMA_DIM", desc: "DMA transfer dimensionality"}
       ]
-    }                          
+    }
     { name:     "DIM_INV"
       desc:     '''DMA dimensionality inversion selector'''
       swaccess: "rw"
@@ -238,7 +226,6 @@
         { bits: "0", name: "SEL", desc: "DMA dimensionality inversion, used to perform transposition"}
       ]
     }
-    % if dma_zero_padding:
     { name:     "PAD_TOP"
       desc:     '''Set the top padding'''
       swaccess: "rw"
@@ -275,7 +262,6 @@
         { bits: "5:0", name: "PAD", desc: "Left margin padding (1D/2D)"}
       ]
     }
-    % endif
     { name:    "WINDOW_SIZE"
       desc:    '''Will trigger a every "WINDOW_SIZE" writes
                   Set to 0 to disable.'''
@@ -298,7 +284,7 @@
       ]
     }
     { name:    "INTERRUPT_EN"
-      desc:    '''Interrupt Enable Register 
+      desc:    '''Interrupt Enable Register
                   (Only the interrupt with the lowest id will be triggered)'''
       swaccess: "rw"
       hwaccess: "hrw"

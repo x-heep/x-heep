@@ -4,6 +4,7 @@
 
 <%
   base_peripheral_domain = xheep.get_base_peripheral_domain()
+  dma_obj = base_peripheral_domain.get_dma()
 %>
 
 
@@ -454,7 +455,11 @@ module ao_peripheral_subsystem
       .fifo_resp_t(fifo_rsp_t),
       .fifo_req_t (fifo_req_t),
       .GLOBAL_SLOT_NUM(DMA_GLOBAL_TRIGGER_SLOT_NUM),
-      .EXT_SLOT_NUM(DMA_EXT_TRIGGER_SLOT_NUM)
+      .EXT_SLOT_NUM(DMA_EXT_TRIGGER_SLOT_NUM),
+      .DMA_ADDR_MODE_EN(${1 if dma_obj.get_addr_mode() else 0}),
+      .DMA_ZERO_PADDING_EN(${1 if dma_obj.get_zero_padding() else 0}),
+      .DMA_HW_FIFO_MODE_EN(${1 if dma_obj.get_hw_fifo_mode() else 0}),
+      .DMA_SUBADDR_MODE_EN(${1 if dma_obj.get_subaddr_mode() else 0})
   ) dma_subsystem_i (
       .clk_i,
       .rst_ni,

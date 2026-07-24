@@ -121,7 +121,7 @@ extern "C" {
 % if not user_peripheral_domain.contains_peripheral('uart'):
 #define UART_START_ADDRESS 0
 % endif
-% if not user_peripheral_domain.contains_peripheral('serial_link'):
+% if not user_peripheral_domain.contains_peripheral('serial_link_reg'):
 #define SERIAL_LINK_REG_START_ADDRESS 0
 % endif
 // End of the section

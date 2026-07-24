@@ -163,7 +163,7 @@
             length:  0x00010000
             is_included: "yes"
         }
-        serial_link: {
+        serial_link_wrapper_mux: {
             offset:  0x00090000
             length:  0x00010000
             is_included: "yes"

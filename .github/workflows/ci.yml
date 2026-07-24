@@ -140,7 +140,7 @@ jobs:
         run: |
           make clean-all
           # Run the test script
-          python3 test/test_x_heep_gen/test_peripherals.py
+          PYTHONPATH=hw/vendor/xheep/dma/python${PYTHONPATH:+:$PYTHONPATH} python3 test/test_x_heep_gen/test_peripherals.py
 
   check-vendor:
     name: Vendor up-to-date

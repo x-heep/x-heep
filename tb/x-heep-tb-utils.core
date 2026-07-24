@@ -21,6 +21,7 @@ filesets:
     - example:ip:im2col_spc
     - example:ip:dlc
     - x-heep:ip:serial_link_xheep_wrapper
+    - x-heep:ip:dma
 
   files_verilator_waiver:
     files:

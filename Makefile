@@ -154,6 +154,7 @@ conda:
 ## @param X_HEEP_CFG=[configs/general.hjson(default),<path-to-config-file>]
 ## @param PYTHON_X_HEEP_CFG=[configs/general.py(default),<path-to-config-file>]
 mcu-gen:
+	PYTHONPATH="$(CURDIR)/hw/vendor/xheep/dma/python:$$PYTHONPATH" \
 	$(PYTHON) util/xheep_gen/mcu_gen.py --config $(X_HEEP_CFG) --python_config $(PYTHON_X_HEEP_CFG) --pads_cfg $(PADS_CFG) --outtpl "$(MCU_GEN_TEMPLATES)" --externaltpl "$(EXTERNAL_MCU_GEN_TEMPLATES)" --cpu $(CPU) --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL)
 
 	@echo "### MCU-GEN completed! Running FuseSoC register generators..."	
@@ -371,7 +372,7 @@ test:
 	$(RM) test/*.log
 	$(PYTHON) test/test_apps/test_apps.py $(TEST_FLAGS) 2>&1 | tee test/test_apps/test_apps.log
 	@echo "You can also find the output in test/test_apps/test_apps.log"
-	$(PYTHON) test/test_x_heep_gen/test_peripherals.py
+	PYTHONPATH="$(CURDIR)/hw/vendor/xheep/dma/python:$$PYTHONPATH" $(PYTHON) test/test_x_heep_gen/test_peripherals.py
 	@echo "You can also find the peripheral test outputs in test/test_x_heep_gen/outputs"
 
 ## Compares two mcu-gen runs and lists the differences in the generated files. 

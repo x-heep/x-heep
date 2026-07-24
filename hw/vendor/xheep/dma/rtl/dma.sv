@@ -12,6 +12,10 @@ module dma
     parameter int FIFO_DEPTH = 4,
     parameter int RVALID_FIFO_DEPTH = 1,
     parameter int unsigned SLOT_NUM = 0,
+    parameter bit DMA_ADDR_MODE_EN = 1'b0,
+    parameter bit DMA_ZERO_PADDING_EN = 1'b0,
+    parameter bit DMA_HW_FIFO_MODE_EN = 1'b0,
+    parameter bit DMA_SUBADDR_MODE_EN = 1'b0,
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic,
     parameter type obi_req_t = logic,
@@ -52,11 +56,12 @@ module dma
     output logic dma_done_o
 );
 
-  `include "dma_conf.svh"
-
   /*_________________________________________________________________________________________________________________________________ */
 
   /* Signals declaration */
+  /* Register interface signals */
+  reg_req_t reg_req_param;
+  reg_rsp_t reg_rsp_param;
 
   /* Gated clock */
   logic clk_cg;
@@ -182,6 +187,42 @@ module dma
   assign clk_cg = clk_i & clk_gate_en_ni;
 `endif
 
+
+  always_comb begin
+    reg_req_param = reg_req_i;
+    reg_rsp_o     = reg_rsp_param;
+    if (reg_req_i.valid) begin
+      case (reg_req_i.addr[dma_reg_pkg::BlockAw-1:0])
+        DMA_ADDR_PTR_OFFSET: begin
+          if (DMA_ADDR_MODE_EN == 1'b0) begin
+            reg_req_param   = 'b0;
+            reg_rsp_o.error = 1'b1;
+            reg_rsp_o.ready = 1'b1;
+            reg_rsp_o.rdata = 'b0;
+          end
+        end
+        DMA_PAD_TOP_OFFSET, DMA_PAD_BOTTOM_OFFSET,
+        DMA_PAD_RIGHT_OFFSET, DMA_PAD_LEFT_OFFSET: begin
+          if (DMA_ZERO_PADDING_EN == 1'b0) begin
+            reg_req_param   = 'b0;
+            reg_rsp_o.error = 1'b1;
+            reg_rsp_o.ready = 1'b1;
+            reg_rsp_o.rdata = 'b0;
+          end
+        end
+        DMA_HW_FIFO_EN_OFFSET: begin
+          if (DMA_HW_FIFO_MODE_EN == 1'b0) begin
+            reg_req_param   = 'b0;
+            reg_rsp_o.error = 1'b1;
+            reg_rsp_o.ready = 1'b1;
+            reg_rsp_o.rdata = 'b0;
+          end
+        end
+        default: ;
+      endcase
+    end
+  end
+
   /* Registers */
   dma_reg_top #(
       .reg_req_t(reg_req_t),
@@ -189,8 +230,8 @@ module dma
   ) dma_reg_top_i (
       .clk_i(clk_cg),
       .rst_ni,
-      .reg_req_i,
-      .reg_rsp_o,
+      .reg_req_i(reg_req_param),
+      .reg_rsp_o(reg_rsp_param),
       .reg2hw,
       .hw2reg,
       .devmode_i(1'b1)
@@ -201,6 +242,9 @@ module dma
   /* Buffer unit */
   dma_buffer_unit #(
       .FIFO_DEPTH(FIFO_DEPTH),
+      .DMA_ADDR_MODE_EN(DMA_ADDR_MODE_EN),
+      .DMA_HW_FIFO_MODE_EN(DMA_HW_FIFO_MODE_EN),
+      .DMA_SUBADDR_MODE_EN(DMA_SUBADDR_MODE_EN),
       .fifo_req_t(fifo_req_t),
       .fifo_resp_t(fifo_resp_t)
   ) dma_buffer_unit_i (
@@ -257,81 +301,87 @@ module dma
   );
 
   /* Read address unit */
-`ifdef ADDR_MODE_EN
-  dma_read_addr_unit dma_read_addr_unit_i (
-      .clk_i(clk_cg),
-      .rst_ni,
+  generate
+    if (DMA_ADDR_MODE_EN) begin : gen_addr_mode
+      dma_read_addr_unit dma_read_addr_unit_i (
+          .clk_i(clk_cg),
+          .rst_ni,
 
-      .reg2hw_i(reg2hw),
+          .reg2hw_i(reg2hw),
 
-      .dma_start_i(dma_start),
-      .dma_done_override_i(dma_write_done_override),
+          .dma_start_i(dma_start),
+          .dma_done_override_i(dma_write_done_override),
 
-      .read_addr_buffer_full_i(read_addr_buffer_full),
-      .read_addr_buffer_alm_full_i(read_addr_buffer_alm_full),
+          .read_addr_buffer_full_i(read_addr_buffer_full),
+          .read_addr_buffer_alm_full_i(read_addr_buffer_alm_full),
 
-      .data_addr_in_gnt_i (data_addr_in_gnt),
-      .data_addr_in_req_o (data_addr_in_req),
-      .data_addr_in_we_o  (data_addr_in_we),
-      .data_addr_in_be_o  (data_addr_in_be),
-      .data_addr_in_addr_o(data_addr_in_addr)
-  );
-`else
-  assign data_addr_in_req  = '0;
-  assign data_addr_in_we   = '0;
-  assign data_addr_in_be   = '0;
-  assign data_addr_in_addr = '0;
-`endif
+          .data_addr_in_gnt_i (data_addr_in_gnt),
+          .data_addr_in_req_o (data_addr_in_req),
+          .data_addr_in_we_o  (data_addr_in_we),
+          .data_addr_in_be_o  (data_addr_in_be),
+          .data_addr_in_addr_o(data_addr_in_addr)
+      );
+    end else begin : gen_no_addr_mode
+      assign data_addr_in_req  = '0;
+      assign data_addr_in_we   = '0;
+      assign data_addr_in_be   = '0;
+      assign data_addr_in_addr = '0;
+    end
+  endgenerate
 
 
   /* DMA processing unit */
-`ifdef ZERO_PADDING_EN
-  dma_processing_unit dma_processing_unit_i (
-      .clk_i(clk_cg),
-      .rst_ni,
+  generate
+    if (DMA_ZERO_PADDING_EN) begin : gen_proc_unit
+      dma_processing_unit dma_processing_unit_i (
+          .clk_i(clk_cg),
+          .rst_ni,
 
-      .reg2hw_i(reg2hw),
+          .reg2hw_i(reg2hw),
 
-      .dma_processing_unit_on_i(dma_processing_unit_on),
-      .dma_start_i(dma_start),
+          .dma_processing_unit_on_i(dma_processing_unit_on),
+          .dma_start_i(dma_start),
 
-      .read_buffer_empty_i(read_buffer_empty),
-      .write_buffer_full_i(write_buffer_full),
-      .write_buffer_alm_full_i(write_buffer_alm_full),
+          .read_buffer_empty_i(read_buffer_empty),
+          .write_buffer_full_i(write_buffer_full),
+          .write_buffer_alm_full_i(write_buffer_alm_full),
 
-      .read_buffer_output_i(read_buffer_output),
+          .read_buffer_output_i(read_buffer_output),
 
-      .write_buffer_push_o(write_buffer_push),
-      .read_buffer_pop_o  (read_buffer_pop),
+          .write_buffer_push_o(write_buffer_push),
+          .read_buffer_pop_o  (read_buffer_pop),
 
-      .write_buffer_input_o(write_buffer_input)
-  );
-`else
-  logic read_buffer_en;
-  logic write_buffer_en;
+          .write_buffer_input_o(write_buffer_input)
+      );
+    end else begin : gen_no_proc_unit
+      logic read_buffer_en;
+      logic write_buffer_en;
 
-  /* Read FIFO pop enable */
-  assign read_buffer_en  = (read_buffer_empty == 1'b0);
+      /* Read FIFO pop enable */
+      assign read_buffer_en  = (read_buffer_empty == 1'b0);
 
-  /* Write FIFO push enable */
-  assign write_buffer_en = (write_buffer_full == 1'b0 && write_buffer_alm_full == 1'b0);
+      /* Write FIFO push enable */
+      assign write_buffer_en = (write_buffer_full == 1'b0 && write_buffer_alm_full == 1'b0);
 
-  always_comb begin
-    if (read_buffer_en && write_buffer_en && dma_processing_unit_on == 1'b1) begin
-      write_buffer_input = read_buffer_output;
-      write_buffer_push  = 1'b1;
-      read_buffer_pop    = 1'b1;
-    end else begin
-      write_buffer_input = '0;
-      write_buffer_push  = 1'b0;
-      read_buffer_pop    = 1'b0;
+      always_comb begin
+        if (read_buffer_en && write_buffer_en && dma_processing_unit_on == 1'b1) begin
+          write_buffer_input = read_buffer_output;
+          write_buffer_push  = 1'b1;
+          read_buffer_pop    = 1'b1;
+        end else begin
+          write_buffer_input = '0;
+          write_buffer_push  = 1'b0;
+          read_buffer_pop    = 1'b0;
+        end
+      end
     end
-  end
-`endif
+  endgenerate
 
 
   /* Write unit */
-  dma_write_unit dma_write_unit_i (
+  dma_write_unit #(
+      .DMA_ZERO_PADDING_EN(DMA_ZERO_PADDING_EN)
+  ) dma_write_unit_i (
       .clk_i(clk_cg),
       .rst_ni,
 
@@ -497,11 +547,13 @@ module dma
   end
 
   /* HW FIFO done signal override logic */
-`ifdef HW_FIFO_MODE_EN
-  assign dma_write_done_override = (write_buffer_empty & hw_fifo_done_i & hw_fifo_mode) || ext_dma_stop_i;
-`else
-  assign dma_write_done_override = ext_dma_stop_i;
-`endif
+  generate
+    if (DMA_HW_FIFO_MODE_EN) begin : gen_hw_fifo_done
+      assign dma_write_done_override = (write_buffer_empty & hw_fifo_done_i & hw_fifo_mode) || ext_dma_stop_i;
+    end else begin : gen_no_hw_fifo_done
+      assign dma_write_done_override = ext_dma_stop_i;
+    end
+  endgenerate
 
   assign dma_read_done_override = ext_dma_stop_i;
 

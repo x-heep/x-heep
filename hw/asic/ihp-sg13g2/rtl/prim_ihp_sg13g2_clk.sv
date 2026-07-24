@@ -28,7 +28,7 @@ module ihp_sg13g2_clk_inverter (
   (* keep *)
   sg13g2_inv_1 clk_inv_inst (
     .A(clk_i),
-    .Y(ckl_o)
+    .Y(clk_o)
   );
 
 endmodule

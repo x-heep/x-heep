@@ -11,6 +11,8 @@ USE_SLANG: True
 SLANG_ARGUMENTS: ['--allow-use-before-declare', '--keep-hierarchy']
 
 # Bondpad
+# WARNING: You need to put the bondpads directly in the build folder
+# You can find it at (https://github.com/IHP-GmbH/ihp-sg13g2-librelane-template/tree/main/ip)
 PAD_BONDPAD_NAME: bondpad_70x70_novias
 EXTRA_GDS:
 - dir::ip/bondpad_70x70_novias/gds/bondpad_70x70_novias.gds
@@ -27,12 +29,6 @@ VDD_NETS:
 - VDD
 GND_NETS:
 - VSS
-## Maximum metal width without slotting: 30um
-#PDN_CORE_RING_VWIDTH: 15
-#PDN_CORE_RING_HWIDTH: 15
-## Ensure minimum spacing for long metals
-#PDN_CORE_RING_VSPACING: 5
-#PDN_CORE_RING_HSPACING: 5
 # Connect SRAMS to PDN
 PDN_MACRO_CONNECTIONS:
 % for bank in xheep.memory_ss().iter_ram_banks():

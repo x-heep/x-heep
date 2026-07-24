@@ -71,3 +71,43 @@ and add `sv2v` to the `PATH` variable.
 ```
 make openroad-sky130
 ```
+
+## RTL to GDSII flow with Librelane
+### Overview
+A Librelane integration of `x-heep` can perform a full ASIC open-source flow, thus not relying on any proprietary tools.
+
+The whole integration is based on the [ihp-sg13g2-librelane-template](https://github.com/IHP-GmbH/ihp-sg13g2-librelane-template). In particular, the pdn config files and sdc files are the one found in this repo, templated and adapted to `x-heep`.
+
+There are currently two Librelane implementations, targeting the IHP-SG13G2 PDK:
+- The `asic-librelane-chip-ihp` target whose goal is to implement the microcontroller itself as a full chip, without the external extensions (no CVXIF, no external peripherals, ...). This flow is based on the Librelane [`Chip`](https://librelane.readthedocs.io/en/latest/reference/flows.html#chip) flow. It is aimed at people wanting to use `x-heep` as a standalone microcontroller, without extending it beyond the already implemented peripherals.
+- The `asic-librelane-macro-ihp` target where all the extensions interfaces are kept, and the flow outputs a hardened macro of `x-heep` that can then be integrated in a chip. It is based on the Librelane [`Classic`](https://librelane.readthedocs.io/en/latest/reference/flows.html#classic) and is useful for people wanting to integrate and extend `x-heep` in a full chip.
+
+In order to run both flows, you will need to install Librelane as explained in its [documentation](https://librelane.readthedocs.io/en/latest/installation/index.html). The flows have been tested using the Nix installation method, but the other ones should probably also work.
+
+### Run commands
+Two targets are present in the Makefile, to run one of the two flow, simply run the corresponding command:
+```
+make librelane-setup-chip-ihp
+make librelane-setup-macro-ihp
+```
+
+These command will create the appropriate `Makefile` in the `build` folder. They only run the `fusesoc` setup step, as Librelane will probably not be installed on the same environment as the `x-heep` tools.
+
+In case you installed Librelane using Nix, enter the cloned Librelane repo, and type `nix-shell`. Then navigate to the generated folder inside `x-heep/build/.../asic_librelane_macro_ihp-librelane`.
+
+For the chip flow, you need to add the bondpad files as they are not yet part of the PDK files. To do so, copy the `ip/` folder from the [ihp-sg13g2-librelane-template](https://github.com/IHP-GmbH/ihp-sg13g2-librelane-template) repository inside the `asic_librelane_macro_ihp-librelane` folder.
+
+Then, simply execute `make` and the flow should start. If the flow ends correctly, you can find the results in the `runs/RUN.../final/` folder. You can also take a look at all the steps and their inputs/outputs inside the `runs/RUN.../NAME_OF_STEP`.
+
+For the macro flow, you can then integrate the macro in another design. To implement it on another Librelane design, you can follow the [provided user guide](https://librelane.readthedocs.io/en/latest/usage/using_macros.html).
+
+You can also perform gate level simulation by doing the setup by hand. This is not implemented in `x-heep` yet.
+
+### Troubleshooting
+You can find here some of the issues encountered when running the Librelane flows:
+- Be careful when your Librelane installation is not the same as the `x-heep` one. For example, if Librelane is installed using Nix, and `x-heep` using the Docker container, if some files are included with absolute paths, then there will be files in the `VERILOG_FILES` variable of the `librelane_config.yaml` files that will have `/workspace/...` paths, that don't exist outside the Docker container. Ensure all paths are relative to the `librelane_config.yaml`.
+- Some version of the IHP-SG13G2 PDK (especially older ones) were raising errors. For example, Magic complained about the 8192x32 SRAM macro not having a bounding box in its definition. The PDK version on which the flows were tested is `3b5a704ba6738aa686b08706187830e6284d2a10`. The PDK is evolving quite rapidly, and in case you encounter a similar issue you can try to run the flow by [enabling a different PDK version](https://github.com/fossi-foundation/ciel#downloading-and-enabling-pdks) with `ciel`.
+- There are some DRC errors raised by Klayout:
+    - The Metal 1 off-grid errors: These are errors inside the SRAMs macros, and [are known](https://github.com/IHP-GmbH/ihp-sg13g2-librelane-template/issues/16). They should not be an issue.
+    - For the chip target, there are some issues with the space between the IO pads and the bondpads if using the `dev` branch. This issue is not present when using the `main` branch of Librelane. However, at the time of writing this, it is needed to use the `dev` branch because [this commit](https://github.com/librelane/librelane/commit/0d7245d99a9eacb46f1ffabe6843747ee5836bfa) is not yet merged to `main`.
+- There are some antenna errors, however these are only reported by the `OpenROAD.CheckAntennas` step, and not by the later run `KLayout.Antenna` step. According to Librelane maintainers, the step that is more trustable is the KLayout one, as it performs the checks on the finished GDS, while the OpenROAD one does the checks on an abstract view of the design.

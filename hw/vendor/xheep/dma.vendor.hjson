@@ -7,12 +7,21 @@
 
   upstream: {
     url: "https://github.com/x-heep/xheep_dma.git",
-    rev: "90416566f63c94eeec4966f10db697b6128e27eb",
+    rev: "690664ca2de2d5ff8a65169f617412702fa4cf89",
   },
 
   exclude_from_upstream: [
     "vendor/xheep-common",                # already vendored in X-HEEP
     "vendor/xheep-common.vendor.hjson",   # ignore revision check until major changes are made
     "vendor/xheep-common.lock.hjson",     # ignore revision check until major changes are made
+    "python/vendor/peripherals",          # locally vendored in X-HEEP
+    "python/vendor/peripherals.vendor.hjson",   # ignore revision check until major changes are made
+    "python/vendor/peripherals.lock.hjson",     # ignore revision check until major changes are made
+    "util/vendor.py",                     # local copy of the vendor tool
+    "python/dma/__init__.py",
+    "python/vendor/__init__.py",
+    "python/dma_gen.py",              # local copy of the dma_gen tool
+    "Makefile",
+    "dma_example.hjson",
   ]
 }

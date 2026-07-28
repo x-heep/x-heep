@@ -11,6 +11,7 @@ filesets:
   files_rtl:
     depend:
       - pulp-platform.org::common_cells
+      - pulp-platform.org::register_interface
       - xheep:util:reg-generator
     files:
     - rtl/dma_pkg.sv
@@ -22,12 +23,15 @@ filesets:
     - rtl/dma_units/dma_buffer_unit/dma_buffer_control.sv
     - rtl/dma_units/dma_buffer_unit/dma_buffer_unit.sv
     - rtl/dma.sv
+    - rtl/dma_subsystem/dma_subsystem.sv
+    - rtl/dma_subsystem/dma_NtoM_xbar.sv
     file_type: systemVerilogSource
   
   headers:
     files:
     - data/dma_conf.svh: { is_include_file: true }
     file_type: systemVerilogSource
+
 
   files_verilator_waiver:
     files:

@@ -1,11 +1,14 @@
-from ..abstractions import BasePeripheral
 import math
+
+try:
+    from peripherals.abstractions import BasePeripheral
+except ImportError:
+    from vendor.peripherals.abstractions import BasePeripheral
 
 
 class DMA(BasePeripheral):
     """
     Direct Memory Access controller for efficient data transfer between memory and peripherals.
-
 
     :param int ch_length: The length of each channel in the DMA.
     :param int length: The length of the DMA.
@@ -125,11 +128,7 @@ class DMA(BasePeripheral):
         """
         if value not in ["yes", "no"]:
             raise ValueError("Invalid address mode. Must be 'yes' or 'no'.")
-
-        if value == "yes":
-            self._addr_mode = 1
-        else:
-            self._addr_mode = 0
+        self._addr_mode = 1 if value == "yes" else 0
 
     def get_addr_mode(self):
         """
@@ -143,11 +142,7 @@ class DMA(BasePeripheral):
         """
         if value not in ["yes", "no"]:
             raise ValueError("Invalid subaddress mode. Must be 'yes' or 'no'.")
-
-        if value == "yes":
-            self._subaddr_mode = 1
-        else:
-            self._subaddr_mode = 0
+        self._subaddr_mode = 1 if value == "yes" else 0
 
     def get_subaddr_mode(self):
         """
@@ -161,11 +156,7 @@ class DMA(BasePeripheral):
         """
         if value not in ["yes", "no"]:
             raise ValueError("Invalid hardware FIFO mode. Must be 'yes' or 'no'.")
-
-        if value == "yes":
-            self._hw_fifo_mode = 1
-        else:
-            self._hw_fifo_mode = 0
+        self._hw_fifo_mode = 1 if value == "yes" else 0
 
     def get_hw_fifo_mode(self):
         """
@@ -179,11 +170,7 @@ class DMA(BasePeripheral):
         """
         if value not in ["yes", "no"]:
             raise ValueError("Invalid zero padding mode. Must be 'yes' or 'no'.")
-
-        if value == "yes":
-            self._zero_padding = 1
-        else:
-            self._zero_padding = 0
+        self._zero_padding = 1 if value == "yes" else 0
 
     def get_zero_padding(self):
         """
@@ -196,7 +183,6 @@ class DMA(BasePeripheral):
         Get the DMA xbar array.
         """
         if self.get_num_master_ports() > 1:
-            # Computation of full_masters_xbars
             temp_full_masters_xbars = math.floor(
                 self.get_num_channels() / self.get_num_channels_per_master_port()
             )
@@ -210,10 +196,8 @@ class DMA(BasePeripheral):
                 full_masters_xbars = temp_full_masters_xbars
             last = self.get_num_channels_per_master_port() * full_masters_xbars
 
-            # Array initialization
             array_xbar_gen = [0] * self.get_num_master_ports()
 
-            # Computation of the number of xbar channels for each master port
             for i in range(self.get_num_master_ports()):
                 if i < full_masters_xbars:
                     array_xbar_gen[i] = self.get_num_channels_per_master_port()

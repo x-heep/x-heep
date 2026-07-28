@@ -36,37 +36,37 @@ module dma_NtoM_xbar #(
     output obi_req_t [XBAR_MSLAVE-1:0] slave_req_o,
     input  obi_rsp_t [XBAR_MSLAVE-1:0] slave_resp_i
 );
-  import core_v_mini_mcu_pkg::*;
+  import dma_pkg::*;
 
   /* Generation of the crossbars */
   generate
     xbar_varlat_n_to_one #(
-        .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_XBAR_MASTERS[0]),
+        .XBAR_NMASTER(DMA_XBAR_MASTERS[0]),
         .obi_req_t(obi_req_t),
         .obi_rsp_t(obi_rsp_t)
     ) xbar_i (
         .clk_i(clk_i),
         .rst_ni(rst_ni),
-        .master_req_i(master_req_i[core_v_mini_mcu_pkg::DMA_XBAR_MASTERS[0]-1:0]),
-        .master_resp_o(master_resp_o[core_v_mini_mcu_pkg::DMA_XBAR_MASTERS[0]-1:0]),
+        .master_req_i(master_req_i[DMA_XBAR_MASTERS[0]-1:0]),
+        .master_resp_o(master_resp_o[DMA_XBAR_MASTERS[0]-1:0]),
         .slave_req_o(slave_req_o[0]),
         .slave_resp_i(slave_resp_i[0])
     );
 
     for (genvar i = 1; i < XBAR_MSLAVE; i++) begin : gen_xbar
-      if (core_v_mini_mcu_pkg::DMA_XBAR_MASTERS[i] == 1) begin : gen_xbar_single_channel
-        assign slave_req_o[i] = master_req_i[i+core_v_mini_mcu_pkg::DMA_XBAR_MASTERS[0]-1];
-        assign master_resp_o[i+core_v_mini_mcu_pkg::DMA_XBAR_MASTERS[0]-1] = slave_resp_i[i];
+      if (DMA_XBAR_MASTERS[i] == 1) begin : gen_xbar_single_channel
+        assign slave_req_o[i] = master_req_i[i+DMA_XBAR_MASTERS[0]-1];
+        assign master_resp_o[i+DMA_XBAR_MASTERS[0]-1] = slave_resp_i[i];
       end else begin : gen_xbar_multi_channel
         xbar_varlat_n_to_one #(
-            .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_XBAR_MASTERS[i]),
+            .XBAR_NMASTER(DMA_XBAR_MASTERS[i]),
             .obi_req_t(obi_req_t),
             .obi_rsp_t(obi_rsp_t)
         ) xbar_i (
             .clk_i(clk_i),
             .rst_ni(rst_ni),
-            .master_req_i(master_req_i[core_v_mini_mcu_pkg::DMA_XBAR_MASTERS[i] + core_v_mini_mcu_pkg::DMA_XBAR_MASTERS[i-1]-1:core_v_mini_mcu_pkg::DMA_XBAR_MASTERS[i-1]]),
-            .master_resp_o(master_resp_o[core_v_mini_mcu_pkg::DMA_XBAR_MASTERS[i] + core_v_mini_mcu_pkg::DMA_XBAR_MASTERS[i-1]-1:core_v_mini_mcu_pkg::DMA_XBAR_MASTERS[i-1]]),
+            .master_req_i(master_req_i[DMA_XBAR_MASTERS[i] + DMA_XBAR_MASTERS[i-1]-1:DMA_XBAR_MASTERS[i-1]]),
+            .master_resp_o(master_resp_o[DMA_XBAR_MASTERS[i] + DMA_XBAR_MASTERS[i-1]-1:DMA_XBAR_MASTERS[i-1]]),
             .slave_req_o(slave_req_o[i]),
             .slave_resp_i(slave_resp_i[i])
         );

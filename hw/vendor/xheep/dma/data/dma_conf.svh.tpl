@@ -10,7 +10,6 @@
  */
 
 <% 
-    dma = xheep.get_base_peripheral_domain().get_dma()
     dma_addr_mode = dma.get_addr_mode()
     dma_zero_padding = dma.get_zero_padding()
     dma_subaddr_mode = dma.get_subaddr_mode()

@@ -143,8 +143,10 @@ module dma_subsystem
 
         /* Read, write & address mode operations xbar*/
         dma_NtoM_xbar #(
+            .obi_req_t(obi_req_t),
+            .obi_rsp_t(obi_rsp_t),
             .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_CH_NUM),
-            .XBAR_MSLAVE (core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS)
+            .XBAR_MSLAVE(core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS)
         ) xbar_read_i (
             .clk_i(clk_i),
             .rst_ni(rst_ni),

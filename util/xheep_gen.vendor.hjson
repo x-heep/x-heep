@@ -10,6 +10,8 @@
     rev: "95efdefe2b8d38d9752fa9ba59666dbe5faf212e",
   },
 
+  patch_dir: "patches/xheep_gen",
+
   exclude_from_upstream: [
     ".gitignore"
   ],

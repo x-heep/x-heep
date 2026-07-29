@@ -10,6 +10,7 @@ description: "core-v-mini-mcu dma peripheral"
 filesets:
   files_rtl:
     depend:
+      - x-heep::packages
       - pulp-platform.org::common_cells
     files:
     - rtl/dma_subsystem.sv

@@ -26,8 +26,8 @@ module ao_peripheral_subsystem
     input logic clk_i,
     input logic rst_ni,
 
-    input  reg_req_t slave_req_i,
-    output reg_rsp_t slave_resp_o,
+    input  obi_req_t slave_req_i,
+    output obi_rsp_t slave_resp_o,
 
     input  reg_req_t [AO_SPC_NUM_RND:0] spc2ao_req_i,
     output reg_rsp_t [AO_SPC_NUM_RND:0] ao2spc_resp_o,
@@ -232,19 +232,25 @@ module ao_peripheral_subsystem
       .clk_i,
       .rst_ni,
       .req_i(slave_fifoout_req.req),
-      .add_i(slave_fifoout_req.addr),
-      .wen_i(~slave_fifoout_req.we),
-      .wdata_i(slave_fifoout_req.wdata),
-      .be_i(slave_fifoout_req.be),
+      .add_i(slave_fifoout_req.a.addr),
+      .wen_i(~slave_fifoout_req.a.we),
+      .wdata_i(slave_fifoout_req.a.wdata),
+      .be_i(slave_fifoout_req.a.be),
       .id_i('0),
-      .gnt_o(slave_fifoout_resp.gnt),
-      .r_rdata_o(slave_fifoout_resp.rdata),
+      .gnt_o(slave_fifoout_gnt),
+      .r_rdata_o(slave_fifoout_resp.r.rdata),
       .r_opc_o(),
       .r_id_o(),
-      .r_valid_o(slave_fifoout_resp.rvalid),
+      .r_valid_o(slave_fifoout_rvalid),
       .reg_req_o(peripheral_req),
       .reg_rsp_i(peripheral_rsp)
   );
+
+  logic slave_fifoout_gnt, slave_fifoout_rvalid;
+  assign slave_fifoout_resp.gnt       = slave_fifoout_gnt;
+  assign slave_fifoout_resp.rvalid    = slave_fifoout_rvalid;
+  assign slave_fifoout_resp.gntpar    = ~slave_fifoout_gnt;
+  assign slave_fifoout_resp.rvalidpar = ~slave_fifoout_rvalid;
 
   /* SPC crossbar & FIFOs */
   generate

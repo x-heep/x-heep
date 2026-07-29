@@ -12,7 +12,9 @@ module sram_wrapper #(
     parameter int unsigned NumWords = 32'd1024,  // Number of Words in data array
     parameter int unsigned DataWidth = 32'd32,  // Data signal width
     // DEPENDENT PARAMETERS, DO NOT OVERWRITE!
-    parameter int unsigned AddrWidth = (NumWords > 32'd1) ? $clog2(NumWords) : 32'd1
+    parameter int unsigned AddrWidth = (NumWords > 32'd1) ? $clog2(NumWords) : 32'd1,
+    parameter int unsigned PhysicalByteWidth = (DataWidth % 32'd8 == 0) ? 32'd8 : DataWidth,
+    parameter int unsigned BeWidth = (DataWidth + PhysicalByteWidth - 32'd1) / PhysicalByteWidth
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -21,7 +23,7 @@ module sram_wrapper #(
     input logic we_i,
     input logic [AddrWidth-1:0] addr_i,
     input logic [DataWidth-1:0] wdata_i,
-    input logic [DataWidth/8-1:0] be_i,
+    input logic [BeWidth-1:0] be_i,
     // power manager signals that goes to the ASIC macros
     input logic pwrgate_ni,
     output logic pwrgate_ack_no,
@@ -35,6 +37,7 @@ module sram_wrapper #(
   tc_sram #(
       .NumWords (NumWords),
       .DataWidth(DataWidth),
+      .ByteWidth(PhysicalByteWidth),
       .NumPorts (32'd1)
   ) tc_ram_i (
       .clk_i  (clk_i),

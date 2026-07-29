@@ -8,6 +8,7 @@ from peripherals.abstractions import PeripheralDomain
 from peripherals.base_peripherals_domain import BasePeripheralDomain
 from peripherals.user_peripherals_domain import UserPeripheralDomain
 from pads.pad_ring import PadRing
+from reliability import Reliability
 
 
 class XHeep:
@@ -23,10 +24,7 @@ class XHeep:
     IL_COMPATIBLE_BUS_TYPES = [BusType.NtoM]
     """Constant set of bus types that support interleaved memory banks"""
 
-    def __init__(
-        self,
-        bus_type: BusType,
-    ):
+    def __init__(self, bus_type: BusType, reliability: Reliability = None):
         if not type(bus_type) is BusType:
             raise TypeError(
                 f"XHeep.bus_type should be of type BusType not {type(self._bus_type)}"
@@ -45,6 +43,16 @@ class XHeep:
         self._padring: PadRing = None
 
         self._extensions = {}
+
+        if reliability is None:
+            reliability = Reliability()
+        elif not isinstance(reliability, Reliability):
+            raise TypeError(
+                "XHeep.reliability should be of type Reliability, "
+                f"not {type(reliability)}"
+            )
+
+        self.reliability = reliability
 
     # ------------------------------------------------------------
     # CPU

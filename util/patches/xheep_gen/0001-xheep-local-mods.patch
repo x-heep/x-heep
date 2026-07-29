@@ -1,0 +1,97 @@
+diff --git a/reliability.py b/reliability.py
+new file mode 100644
+index 0000000..a3f62c5
+--- /dev/null
++++ b/reliability.py
+@@ -0,0 +1,50 @@
++from enum import Enum
++
++
++class ReliabilityMode(Enum):
++    """Reliability combinations currently supported by X-HEEP."""
++
++    NONE = "none"
++    BUS_REDUNDANT = "bus_redundant"
++    MEMORY_ECC = "memory_ecc"
++    BUS_AND_MEMORY_ECC = "bus_and_memory_ecc"
++
++
++class Reliability:
++    """Reliability configuration for an X-HEEP system.
++
++    The mode describes the supported bus/memory combinations.  Future tuning
++    options (for example peripheral or core TMR) can be added to this class
++    without changing the XHeep constructor or passing unrelated flags to it.
++    """
++
++    def __init__(self, mode=ReliabilityMode.NONE):
++        if not isinstance(mode, ReliabilityMode):
++            raise TypeError(
++                "Reliability.mode should be of type ReliabilityMode, "
++                f"not {type(mode)}"
++            )
++        self._mode = mode
++
++    @property
++    def mode(self) -> ReliabilityMode:
++        return self._mode
++
++    @property
++    def bus_redundant(self) -> bool:
++        return self.mode in (
++            ReliabilityMode.BUS_REDUNDANT,
++            ReliabilityMode.BUS_AND_MEMORY_ECC,
++        )
++
++    @property
++    def memory_ecc(self) -> bool:
++        return self.mode in (
++            ReliabilityMode.MEMORY_ECC,
++            ReliabilityMode.BUS_AND_MEMORY_ECC,
++        )
++
++    def __bool__(self) -> bool:
++        """Keep aggregate checks safe while templates migrate to properties."""
++
++        return self.mode is not ReliabilityMode.NONE
+diff --git a/xheep.py b/xheep.py
+index ee96bde..af27d67 100644
+--- a/xheep.py
++++ b/xheep.py
+@@ -8,6 +8,7 @@ from peripherals.abstractions import PeripheralDomain
+ from peripherals.base_peripherals_domain import BasePeripheralDomain
+ from peripherals.user_peripherals_domain import UserPeripheralDomain
+ from pads.pad_ring import PadRing
++from reliability import Reliability
+ 
+ 
+ class XHeep:
+@@ -23,10 +24,7 @@ class XHeep:
+     IL_COMPATIBLE_BUS_TYPES = [BusType.NtoM]
+     """Constant set of bus types that support interleaved memory banks"""
+ 
+-    def __init__(
+-        self,
+-        bus_type: BusType,
+-    ):
++    def __init__(self, bus_type: BusType, reliability: Reliability = None):
+         if not type(bus_type) is BusType:
+             raise TypeError(
+                 f"XHeep.bus_type should be of type BusType not {type(self._bus_type)}"
+@@ -46,6 +44,16 @@ class XHeep:
+ 
+         self._extensions = {}
+ 
++        if reliability is None:
++            reliability = Reliability()
++        elif not isinstance(reliability, Reliability):
++            raise TypeError(
++                "XHeep.reliability should be of type Reliability, "
++                f"not {type(reliability)}"
++            )
++
++        self.reliability = reliability
++
+     # ------------------------------------------------------------
+     # CPU
+     # ------------------------------------------------------------

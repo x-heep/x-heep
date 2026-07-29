@@ -1,0 +1,48 @@
+From 813ee7ccce1c1a1ee002721eb563e0efcd3ff1b5 Mon Sep 17 00:00:00 2001
+From: Michael Rogenmoser <michael@rogenmoser.us>
+Date: Fri, 7 Jul 2023 14:45:02 +0200
+Subject: [PATCH] Update SECDED Encoder modules to prevent circular
+ dependancies
+
+---
+ secded_gen.py | 12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
+
+diff --git a/secded_gen.py b/secded_gen.py
+index 24056ce3d..1d1c6afbc 100755
+--- a/secded_gen.py
++++ b/secded_gen.py
+@@ -128,9 +128,9 @@ def print_fn(n, k, m, codes, suffix, codetype):
+ 
+ 
+ def print_enc(n, k, m, codes):
+-    outstr = "    out = {}'(in);\n".format(n)
+-    format_str = "    out[{}] = ^(out & " + str(n) + "'h{:0" + str(
+-        (n + 3) // 4) + "X});\n"
++    outstr = "    out[{}:0] = in;\n".format(k-1)
++    format_str = "    out[{}] = ^(in & " + str(k) + "'h{:0" + str(
++        (k + 3) // 4) + "X});\n"
+     # Print parity computation
+     for j, mask in enumerate(calc_bitmasks(k, m, codes, False)):
+         outstr += format_str.format(j + k, mask)
+@@ -412,16 +412,12 @@ def hamming_code(k, m):
+                     pos, parity_pos, parity_chk))
+ 
+                 # valid for inclusion or final parity bit that includes everything
+-                if is_odd(parity_chk) or p == m - 1:
++                if is_odd(parity_chk) or (p == m - 1 and (len(code) % 2) == 0):
+                     code = code + (p, )
+                     log.info("add {} to tuple {}".format(p, code))
+ 
+             codes.append(code)
+ 
+-    # final parity bit includes all ECC bits
+-    for p in range(m - 1):
+-        codes.append((m - 1, ))
+-
+     log.info("Hamming codes {}".format(codes))
+     return codes
+ 
+-- 
+2.31.1
+

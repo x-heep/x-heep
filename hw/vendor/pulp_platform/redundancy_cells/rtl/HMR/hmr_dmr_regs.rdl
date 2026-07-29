@@ -1,0 +1,59 @@
+// Copyright 2025 ETH Zurich and University of Bologna.
+// Copyright and related rights are licensed under the Solderpad Hardware
+// License, Version 0.51 (the "License"); you may not use this file except in
+// compliance with the License.  You may obtain a copy of the License at
+// http://solderpad.org/licenses/SHL-0.51. Unless required by applicable law
+// or agreed to in writing, software, hardware and materials distributed under
+// this License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+// CONDITIONS OF ANY KIND, either express or implied. See the License for the
+// specific language governing permissions and limitations under the License.
+
+addrmap hmr_dmr {
+    reg dmr_enable {
+        name = "dmr_enable";
+        desc = "DMR Configuration Enable";
+        field {
+            name = "enable";
+            desc = "Enable DMR mode";
+            sw = rw;
+            hw = rw;
+            // swmod = true;
+            we = true;
+        } dmr_enable[0:0] = 0x0;
+    };
+    reg dmr_config {
+        name = "dmr_config";
+        desc = "DMR Configuration Register";
+        field {
+            name = "rapid_recovery";
+            desc = "Enable rapid recovery using an additional register file.";
+            sw = rw;
+            hw = rw;
+            // swmod = true;
+            we = true;
+        } rapid_recovery[0:0] = 0x0;
+        field {
+            name = "force_recovery";
+            desc = "Forces recovery routine (if rapid_recovery is available).";
+            sw = rw;
+            hw = rw;
+            // swmod = true;
+            we = true;
+        } force_recovery[1:1] = 0x0;
+    };
+    reg checkpoint_addr {
+        name = "checkpoint_addr";
+        desc = "Address for the last checkpoint.";
+        field {
+            name = "checkpoint_addr";
+            desc = "Address for the last checkpoint.";
+            sw = rw;
+            hw = rw;
+            // swmod = true;
+        } checkpoint_addr[31:0] = 0x0;
+    };
+
+    dmr_enable dmr_enable;
+    dmr_config dmr_config;
+    checkpoint_addr checkpoint_addr;
+};

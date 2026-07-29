@@ -23,7 +23,9 @@ module core_v_mini_mcu #(
     parameter type reg_req_t = xheep_reg_pkg::xheep_reg_req_t,
     parameter type reg_rsp_t = xheep_reg_pkg::xheep_reg_rsp_t,
     parameter type fifo_req_t = xheep_fifo_pkg::xheep_fifo_req_t,
-    parameter type fifo_rsp_t = xheep_fifo_pkg::xheep_fifo_rsp_t
+    parameter type fifo_rsp_t = xheep_fifo_pkg::xheep_fifo_rsp_t,
+    parameter xheep_obi_pkg::obi_cfg_t ObiCfg = xheep_obi_pkg::xheep_obiCfg
+
 ) (
 
     input  logic rst_ni,
@@ -248,9 +250,8 @@ module core_v_mini_mcu #(
     if_xif.cpu_result     xif_result_if,
 
     output reg_req_t pad_req_o,
-    input  reg_rsp_t pad_resp_i,
-
-    input  obi_req_t [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_req_i,
+    input reg_rsp_t pad_resp_i,
+    input obi_req_t [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_req_i,
     output obi_rsp_t [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_resp_o,
 
     input  reg_req_t [AO_SPC_NUM_RND:0] ext_ao_peripheral_slave_req_i,
@@ -281,7 +282,6 @@ module core_v_mini_mcu #(
 
     output logic [EXT_HARTS_RND-1:0] ext_debug_req_o,
     output logic ext_debug_reset_no,
-
     // PLIC external interrupts
     input logic [NEXT_INT_RND-1:0] intr_vector_ext_i,
     // FIC external interrupt
@@ -301,12 +301,13 @@ module core_v_mini_mcu #(
     output logic [EXT_DOMAINS_RND-1:0] external_ram_banks_set_retentive_no,
     output logic [EXT_DOMAINS_RND-1:0] external_subsystem_clkgate_en_no,
 
-    output logic [31:0] exit_value_o,
-
     // External SPC interface
     input  logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_tx_i,
     input  logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_rx_i,
-    output logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_done_o
+    output logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_done_o,
+
+    output logic [31:0] exit_value_o
+
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -332,6 +333,8 @@ module core_v_mini_mcu #(
   obi_rsp_t core_instr_resp;
   obi_req_t core_data_req;
   obi_rsp_t core_data_resp;
+  obi_req_t [core_v_mini_mcu_pkg::NUM_BANKS-1:0] ram_slave_req;
+  obi_rsp_t [core_v_mini_mcu_pkg::NUM_BANKS-1:0] ram_slave_resp;
   obi_req_t debug_master_req;
   obi_rsp_t debug_master_resp;
   obi_req_t [1:0] dma_read_req;
@@ -342,8 +345,6 @@ module core_v_mini_mcu #(
   obi_rsp_t [1:0] dma_addr_resp;
 
   // ram signals
-  obi_req_t [core_v_mini_mcu_pkg::NUM_BANKS-1:0] ram_slave_req;
-  obi_rsp_t [core_v_mini_mcu_pkg::NUM_BANKS-1:0] ram_slave_resp;
 
   // w25q128jw controller signals
   logic w25q128jw_controller_intr;
@@ -358,10 +359,12 @@ module core_v_mini_mcu #(
   obi_req_t peripheral_slave_req;
   obi_rsp_t peripheral_slave_resp;
 
+
   // signals to debug unit
   logic debug_core_req;
   logic debug_reset_n;
   logic [NRHARTS-1:0] debug_req;
+
   // core
   logic core_sleep;
 
@@ -511,9 +514,7 @@ module core_v_mini_mcu #(
   debug_subsystem #(
       .NRHARTS    (NRHARTS),
       .JTAG_IDCODE(JTAG_IDCODE),
-      .SPI_SLAVE  (1),
-      .obi_req_t  (obi_req_t),
-      .obi_rsp_t  (obi_rsp_t)
+      .SPI_SLAVE  (1)
   ) debug_subsystem_i (
       .clk_i,
       .rst_ni,
@@ -535,11 +536,12 @@ module core_v_mini_mcu #(
       .debug_master_resp_i(debug_master_resp)
   );
 
+
   system_bus #(
-      .NUM_BANKS(core_v_mini_mcu_pkg::NUM_BANKS),
-      .EXT_XBAR_NMASTER(EXT_XBAR_NMASTER),
       .obi_req_t(obi_req_t),
-      .obi_rsp_t(obi_rsp_t)
+      .obi_rsp_t(obi_rsp_t),
+      .NUM_BANKS(core_v_mini_mcu_pkg::NUM_BANKS),
+      .EXT_XBAR_NMASTER(EXT_XBAR_NMASTER)
   ) system_bus_i (
       .clk_i,
       .rst_ni(rst_ni && debug_reset_n),
@@ -581,8 +583,15 @@ module core_v_mini_mcu #(
       .ext_dma_addr_resp_i(ext_dma_addr_resp_i)
   );
 
+  //-----------------
+  // Memory Subsystem
+  //-----------------
+
+
   memory_subsystem #(
       .NUM_BANKS(core_v_mini_mcu_pkg::NUM_BANKS),
+      .ObiCfg(ObiCfg),
+      .DATA_WIDTH(ObiCfg.DataWidth),
       .obi_req_t(obi_req_t),
       .obi_rsp_t(obi_rsp_t)
   ) memory_subsystem_i (
@@ -595,6 +604,7 @@ module core_v_mini_mcu #(
       .pwrgate_ack_no(memory_subsystem_banks_powergate_switch_ack_n),
       .set_retentive_ni(memory_subsystem_banks_set_retentive_n)
   );
+
 
   ao_peripheral_subsystem #(
       .AO_SPC_NUM(AO_SPC_NUM),

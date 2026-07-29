@@ -1,0 +1,6 @@
+# Copyright 2024 ETH Zurich and University of Bologna.
+# Solderpad Hardware License, Version 0.51, see LICENSE for details.
+# SPDX-License-Identifier: SHL-0.51
+
+waive --rule=explicit-parameter-storage-type --location="./rtl/ecc_wrap/ecc_sram.sv"
+waive --rule=module-filename --location="./rtl/HMR/recovery_rf_latch.sv"

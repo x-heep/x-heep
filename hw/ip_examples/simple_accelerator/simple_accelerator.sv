@@ -95,22 +95,32 @@ module simple_accelerator #(
       dma_write_fsm_state, dma_write_fsm_n_state;
 
   assign acc_read_ch0_req_o.req = data_in_req;
-  assign acc_read_ch0_req_o.we = data_in_we;
-  assign acc_read_ch0_req_o.be = data_in_be;
-  assign acc_read_ch0_req_o.addr = data_in_addr;
-  assign acc_read_ch0_req_o.wdata = 32'h0;
+  assign acc_read_ch0_req_o.reqpar = ~data_in_req;
+  assign acc_read_ch0_req_o.rready = '1;
+  assign acc_read_ch0_req_o.rreadypar = '0;
+  assign acc_read_ch0_req_o.a.we = data_in_we;
+  assign acc_read_ch0_req_o.a.be = data_in_be;
+  assign acc_read_ch0_req_o.a.addr = data_in_addr;
+  assign acc_read_ch0_req_o.a.wdata = 32'h0;
+  assign acc_read_ch0_req_o.a.aid = '0;
+  assign acc_read_ch0_req_o.a.a_optional = '0;
 
   assign data_in_gnt = acc_read_ch0_resp_i.gnt;
   assign data_in_rvalid = acc_read_ch0_resp_i.rvalid;
-  assign data_in_rdata = acc_read_ch0_resp_i.rdata;
+  assign data_in_rdata = acc_read_ch0_resp_i.r.rdata;
 
   assign acc_write_ch0_req_o.req = data_out_req;
-  assign acc_write_ch0_req_o.we = data_out_we;
-  assign acc_write_ch0_req_o.be = data_out_be;
-  assign acc_write_ch0_req_o.addr = data_out_addr;
+  assign acc_write_ch0_req_o.reqpar = ~data_out_req;
+  assign acc_write_ch0_req_o.rready = '1;
+  assign acc_write_ch0_req_o.rreadypar = '0;
+  assign acc_write_ch0_req_o.a.we = data_out_we;
+  assign acc_write_ch0_req_o.a.be = data_out_be;
+  assign acc_write_ch0_req_o.a.addr = data_out_addr;
+  assign acc_write_ch0_req_o.a.aid = '0;
+  assign acc_write_ch0_req_o.a.a_optional = '0;
 
   //complete the function
-  assign acc_write_ch0_req_o.wdata = data_out_wdata > threshold_q ? data_out_wdata : threshold_q;
+  assign acc_write_ch0_req_o.a.wdata = data_out_wdata > threshold_q ? data_out_wdata : threshold_q;
   //assign acc_write_ch0_req_o.wdata = data_out_wdata;
 
   assign data_out_gnt = acc_write_ch0_resp_i.gnt;

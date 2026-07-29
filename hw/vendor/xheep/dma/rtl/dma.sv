@@ -516,34 +516,43 @@ module dma
 
   /* OBI signals */
   assign dma_read_req_o.req = data_in_req;
-  assign dma_read_req_o.we = data_in_we;
-  assign dma_read_req_o.be = data_in_be;
-  assign dma_read_req_o.addr = data_in_addr;
-  assign dma_read_req_o.wdata = 32'h0;
+  assign dma_read_req_o.a.we = data_in_we;
+  assign dma_read_req_o.a.be = data_in_be;
+  assign dma_read_req_o.a.addr = data_in_addr;
+  assign dma_read_req_o.a.wdata = 32'h0;
+  assign dma_read_req_o.reqpar = ~data_in_req;
+  assign dma_read_req_o.rready = 1'b1;
+  assign dma_read_req_o.rreadypar = 1'b0;
 
   assign data_in_gnt = dma_read_resp_i.gnt;
   assign data_in_rvalid = dma_read_resp_i.rvalid;
-  assign data_in_rdata = dma_read_resp_i.rdata;
+  assign data_in_rdata = dma_read_resp_i.r.rdata;
 
   assign dma_addr_req_o.req = data_addr_in_req;
-  assign dma_addr_req_o.we = data_addr_in_we;
-  assign dma_addr_req_o.be = data_addr_in_be;
-  assign dma_addr_req_o.addr = data_addr_in_addr;
-  assign dma_addr_req_o.wdata = 32'h0;
+  assign dma_addr_req_o.a.we = data_addr_in_we;
+  assign dma_addr_req_o.a.be = data_addr_in_be;
+  assign dma_addr_req_o.a.addr = data_addr_in_addr;
+  assign dma_addr_req_o.a.wdata = 32'h0;
+  assign dma_addr_req_o.reqpar = ~data_addr_in_req;
+  assign dma_addr_req_o.rready = 1'b1;
+  assign dma_addr_req_o.rreadypar = 1'b0;
 
   assign data_addr_in_gnt = dma_addr_resp_i.gnt;
   assign data_addr_in_rvalid = dma_addr_resp_i.rvalid;
-  assign data_addr_in_rdata = dma_addr_resp_i.rdata;
+  assign data_addr_in_rdata = dma_addr_resp_i.r.rdata;
 
   assign dma_write_req_o.req = data_out_req;
-  assign dma_write_req_o.we = data_out_we;
-  assign dma_write_req_o.be = data_out_be;
-  assign dma_write_req_o.addr = data_out_addr;
-  assign dma_write_req_o.wdata = data_out_wdata;
+  assign dma_write_req_o.a.we = data_out_we;
+  assign dma_write_req_o.a.be = data_out_be;
+  assign dma_write_req_o.a.addr = data_out_addr;
+  assign dma_write_req_o.a.wdata = data_out_wdata;
+  assign dma_write_req_o.reqpar = ~data_out_req;
+  assign dma_write_req_o.rready = 1'b1;
+  assign dma_write_req_o.rreadypar = 1'b0;
 
   assign data_out_gnt = dma_write_resp_i.gnt;
   assign data_out_rvalid = dma_write_resp_i.rvalid;
-  assign data_out_rdata = dma_write_resp_i.rdata;
+  assign data_out_rdata = dma_write_resp_i.r.rdata;
 
   /* FIFO signals */
   assign read_buffer_req.push = data_in_rvalid;

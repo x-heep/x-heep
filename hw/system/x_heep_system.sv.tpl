@@ -24,12 +24,14 @@ module x_heep_system #(
     parameter EXT_DOMAINS_RND = core_v_mini_mcu_pkg::EXTERNAL_DOMAINS == 0 ? 1 : core_v_mini_mcu_pkg::EXTERNAL_DOMAINS,
     parameter NEXT_INT_RND = core_v_mini_mcu_pkg::NEXT_INT == 0 ? 1 : core_v_mini_mcu_pkg::NEXT_INT,
     // OBI and register interface data types
-    parameter type obi_req_t  = xheep_obi_pkg::xheep_obi_req_t,
-    parameter type obi_rsp_t  = xheep_obi_pkg::xheep_obi_rsp_t,
-    parameter type reg_req_t  = xheep_reg_pkg::xheep_reg_req_t,
-    parameter type reg_rsp_t  = xheep_reg_pkg::xheep_reg_rsp_t,
-    parameter type fifo_req_t = xheep_fifo_pkg::xheep_fifo_req_t,
-    parameter type fifo_rsp_t = xheep_fifo_pkg::xheep_fifo_rsp_t
+    parameter type rel_obi_req_t  = xheep_obi_pkg::xheep_rel_obi_req_t,
+    parameter type rel_obi_rsp_t  = xheep_obi_pkg::xheep_rel_obi_rsp_t,
+    parameter type obi_req_t      = xheep_obi_pkg::xheep_obi_req_t,
+    parameter type obi_rsp_t      = xheep_obi_pkg::xheep_obi_rsp_t,
+    parameter type reg_req_t      = xheep_reg_pkg::xheep_reg_req_t,
+    parameter type reg_rsp_t      = xheep_reg_pkg::xheep_reg_rsp_t,
+    parameter type fifo_req_t     = xheep_fifo_pkg::xheep_fifo_req_t,
+    parameter type fifo_rsp_t     = xheep_fifo_pkg::xheep_fifo_rsp_t
 ) (
     // IDs
     input logic [31:0] hart_id_i,

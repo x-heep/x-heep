@@ -1,0 +1,18 @@
+CAPI=2:
+name: "x-heep:ip:ecc_sram_xheep_wrapper"
+# Copyright 2025 EPFL
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+filesets:
+
+  rtl:
+    depend:
+    - pulp-platform.org::redundancy_cells
+    files:
+    - rtl/ecc_sram_xheep_wrapper.sv
+    file_type: systemVerilogSource
+
+targets:
+  default:
+    filesets : 
+    - rtl

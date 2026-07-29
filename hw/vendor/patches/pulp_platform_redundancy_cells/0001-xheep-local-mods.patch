@@ -1,0 +1,49 @@
+diff --git b/rtl/hsiao_ecc/hsiao_ecc_pkg.sv a/rtl/hsiao_ecc/hsiao_ecc_pkg.sv
+index 96acdcf5..384f164b 100644
+--- b/rtl/hsiao_ecc/hsiao_ecc_pkg.sv
++++ a/rtl/hsiao_ecc/hsiao_ecc_pkg.sv
+@@ -33,14 +33,14 @@ package hsiao_ecc_pkg;
+   /// Maximum allowed result for n_choose_k to limit excessive array sizes (20 choose 3).
+   localparam int unsigned MaxChoose = 1140;
+ 
+-  function automatic int unsigned max_vec(int unsigned vec[MaxParityWidth], int unsigned size);
++  function automatic int unsigned max_vec(bit [MaxParityWidth-1:0][31:0] vec, int unsigned size);
+     max_vec = 0;
+     for (int unsigned i = 0; i < size; i++) begin
+       max_vec = vec[i] > max_vec ? vec[i] : max_vec;
+     end
+   endfunction
+ 
+-  function automatic int unsigned min_vec(int unsigned vec[MaxParityWidth], int unsigned size);
++  function automatic int unsigned min_vec(bit [MaxParityWidth-1:0][31:0] vec, int unsigned size);
+     min_vec = vec[0];
+     for (int unsigned i = 0; i < size; i++) begin
+       min_vec = vec[i] < min_vec ? vec[i] : min_vec;
+@@ -96,7 +96,10 @@ package hsiao_ecc_pkg;
+   /// Then message times matrix => original message with parity
+   function automatic parity_vec_t hsiao_matrix(int unsigned k, int unsigned m);
+     parity_vec_t existing;
+-    int unsigned combs[MaxChoose*MaxParityWidth];
++    // Packed instead of unpacked: functionally identical (2-state, 32-bit unsigned,
++    // small values) but dodges a Verilator 5.040 const-eval ICE on unpacked-array
++    // writes inside nested loops (V3Ast.cpp:453 "Adding to non-empty, non-list op1").
++    bit [MaxChoose*MaxParityWidth-1:0][31:0] combs;
+     int unsigned total_combinations;
+ 
+     int unsigned needed = k;
+@@ -104,11 +107,12 @@ package hsiao_ecc_pkg;
+     int unsigned count_index = 0;
+     bit comb_added = 0;
+     int unsigned tmp_sum = 0;
+-    int unsigned existing_fanins[MaxParityWidth];
+-    int unsigned tmp_fanins[MaxParityWidth];
++    // Packed (see combs comment above) to dodge the same Verilator const-eval ICE.
++    bit [MaxParityWidth-1:0][31:0] existing_fanins;
++    bit [MaxParityWidth-1:0][31:0] tmp_fanins;
+     int unsigned min_fanin         = 0;
+     int unsigned work_fanin        = 0;
+-    bit comb_used[MaxChoose];
++    bit [MaxChoose-1:0] comb_used;
+ 
+     if (k > MaxDataWidth)
+       $fatal(1, "Data Width too large, please adjust package or ECC parameters");

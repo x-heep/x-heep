@@ -1,0 +1,18 @@
+# Copyright 2022 ETH Zurich and University of Bologna.
+# Solderpad Hardware License, Version 0.51, see LICENSE for details.
+# SPDX-License-Identifier: SHL-0.51
+
+# Author: Michael Rogenmoser <michaero@iis.ee.ethz.ch>
+
+stages:
+  - test
+
+test:
+  variables:
+    VSIM: "questa-2023.4 vsim"
+  stage: test
+  script: ./run_tests.sh
+  artifacts:
+    paths:
+      - vcom.log
+      - vsim.log

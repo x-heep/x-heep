@@ -1,0 +1,94 @@
+diff --git a/src/relobi_sram_shim.sv b/src/relobi_sram_shim.sv
+index 6ed39a6..de00f62 100644
+--- a/src/relobi_sram_shim.sv
++++ b/src/relobi_sram_shim.sv
+@@ -17,6 +17,7 @@ module relobi_sram_shim #(
+   parameter bit                EnableScrubber = 1'b0,
+   parameter int unsigned       ScrubberMemWords = 256,
+   parameter bit                ScrubberCorrectRead = 1'b1,
++  parameter int unsigned       AddrOffset = 0, // Default is 0, set to a different value to support interleaved mem banks with correct truncation
+   parameter int unsigned       AddrWidth = EnableScrubber ? $clog2(ScrubberMemWords) : ObiCfg.AddrWidth
+ ) (
+   input  logic                          clk_i,
+@@ -46,6 +47,7 @@ module relobi_sram_shim #(
+   if (ObiCfg.OptionalCfg.UseMemtype) $warning("Memtype not checked!");
+ 
+   logic [7:0] voter_errs;
++  logic [2:0] int_voter_errs;
+   logic [11:0][1:0] hsiao_errs;
+   logic [1:0][11:0] hsiao_errs_transpose;
+ 
+@@ -72,7 +74,7 @@ module relobi_sram_shim #(
+   logic [2:0][relobi_pkg::relobi_r_other_ecc_width(ObiCfg)-1:0] other_ecc;
+   logic [2:0][ObiCfg.DataWidth+hsiao_ecc_pkg::min_ecc(ObiCfg.DataWidth)-1:0] rmw_wdata_tmr;
+   logic [ObiCfg.DataWidth+hsiao_ecc_pkg::min_ecc(ObiCfg.DataWidth)-1:0] wdata_buffer, rmw_wdata, scrub_wdata, scrub_rdata;
+-  logic [ObiCfg.AddrWidth+hsiao_ecc_pkg::min_ecc(ObiCfg.AddrWidth)-1:0] addr_buffer;
++  logic [2:0][ObiCfg.AddrWidth-1:0] addr_buffer;
+   logic [2:0] r_gnt;
+   logic [2:0] scrub_gnt;
+   logic [2:0][ObiCfg.AddrWidth-1:0] addr_decoded;
+@@ -195,11 +197,12 @@ module relobi_sram_shim #(
+       .addr_buffer(addr_buffer),
+       .addr_o(addr_decoded[i]),
+       .hsiao_errs(hsiao_errs[4*i+:4]),
+-      .voter_err(voter_errs[3])
++      .voter_err(int_voter_errs[i])
+     );
+-    assign addr_decoded_trimmed[i] = addr_decoded[i][AddrWidth-1+$clog2(ObiCfg.AddrWidth/8):$clog2(ObiCfg.AddrWidth/8)];
++    //assign addr_decoded_trimmed[i] = addr_decoded[i][AddrWidth-1+$clog2(ObiCfg.AddrWidth/8):$clog2(ObiCfg.AddrWidth/8)];
++    assign addr_decoded_trimmed[i] = addr_decoded[i][AddrWidth-1+$clog2(ObiCfg.DataWidth/8)+AddrOffset : $clog2(ObiCfg.DataWidth/8)+AddrOffset];
+   end
+-
++  assign voter_errs[4] = |int_voter_errs;
+   TMR_voter_fail i_we_vote (
+     .a_i        (we_scrubbed[0]),
+     .b_i        (we_scrubbed[1]),
+@@ -311,6 +314,8 @@ module relobi_sram_shim_tmr_part #(
+ 
+   logic [ObiCfg.DataWidth-1:0] wdata_rmw_dec, ldata_rmw_dec;
+   logic [ObiCfg.DataWidth-1:0] be_selector;
++  logic [2:0][ObiCfg.AddrWidth-1:0] addr_selected;
++  logic addr_voter_err, rid_voter_err;
+   logic a_we_int;
+ 
+   relobi_a_other_decoder #(
+@@ -367,14 +372,20 @@ module relobi_sram_shim_tmr_part #(
+     .out       ( wdata_modified )
+   );
+ 
+-  // hsiao_ecc_dec #(
+-  //   .DataWidth ( ObiCfg.AddrWidth )
+-  // ) i_addr_dec (
+-  //   .in        ( use_buffered[0] ? addr_buffer : a_addr_i ),
+-  //   .out       ( addr_o     ),
+-  //   .syndrome_o(),
+-  //   .err_o     (hsiao_errs[3])
+-  // );
++  for (genvar i = 0; i < 3; i++) begin : gen_addr_selected
++    assign addr_selected[i] = use_buffered[0] ? addr_buffer[i] : a_addr_i[i];
++  end
++
++  bitwise_TMR_voter_fail #(
++    .DataWidth( ObiCfg.AddrWidth )
++  ) i_addr_vote (
++    .a_i        (addr_selected[0]),
++    .b_i        (addr_selected[1]),
++    .c_i        (addr_selected[2]),
++    .majority_o (addr_o),
++    .fault_detected_o(addr_voter_err)
++  );
++  assign hsiao_errs[3] = '0;
+ 
+ 
+   bitwise_TMR_voter_fail #(
+@@ -384,8 +395,9 @@ module relobi_sram_shim_tmr_part #(
+     .b_i        (rid_tmr_i[1]),
+     .c_i        (rid_tmr_i[2]),
+     .majority_o (rid_o),
+-    .fault_detected_o(voter_err)
++    .fault_detected_o(rid_voter_err)
+   );
++  assign voter_err = addr_voter_err | rid_voter_err;
+ 
+   always_comb begin
+     req_o = req_i;

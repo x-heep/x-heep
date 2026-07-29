@@ -1,0 +1,63 @@
+// Copyright 2025 ETH Zurich and University of Bologna.
+// Copyright and related rights are licensed under the Solderpad Hardware
+// License, Version 0.51 (the "License"); you may not use this file except in
+// compliance with the License.  You may obtain a copy of the License at
+// http://solderpad.org/licenses/SHL-0.51. Unless required by applicable law
+// or agreed to in writing, software, hardware and materials distributed under
+// this License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+// CONDITIONS OF ANY KIND, either express or implied. See the License for the
+// specific language governing permissions and limitations under the License.
+
+addrmap hmr_core {
+    reg current_mode {
+        name = "current_mode";
+        desc = "Value to determine wich redundancy mode the core with that ID is in.";
+        field {
+            name = "independent";
+            desc = "1 if in independent mode";
+            sw = r;
+            hw = rw;
+        } independent[0:0] = 0x1;
+        field {
+            name = "dual";
+            desc = "1 if in dual/DMR mode";
+            sw = r;
+            hw = rw;
+        } dual[1:1] = 0x0;
+        field {
+            name = "triple";
+            desc = "1 if in triple/TMR mode";
+            sw = r;
+            hw = rw;
+        } triple[2:2] = 0x0;
+    };
+
+    reg mismatches {
+        name = "mismatches";
+        desc = "Number of mismatches detected in the core.";
+        field {
+            name = "mismatches";
+            desc = "Number of mismatches detected in the core.";
+            sw = rw;
+            hw = rw;
+            woclr;
+            we = true;
+        } mismatches[31:0] = 0x0;
+    };
+
+    reg sp_store {
+        name = "sp_store";
+        desc = "Stack pointer storage register.";
+        field {
+            name = "sp_store";
+            desc = "Stack Pointer";
+            sw = rw;
+            hw = r;
+            swmod = true;
+        } sp_store[31:0] = 0x0;
+    };
+
+    external current_mode current_mode;
+    mismatches mismatches;
+    sp_store sp_store;
+};

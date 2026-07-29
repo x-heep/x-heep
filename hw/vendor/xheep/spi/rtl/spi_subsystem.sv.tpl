@@ -255,7 +255,7 @@ module spi_subsystem #(
 `ifndef SYNTHESIS
 
   always_ff @(posedge clk_i) begin : yosys_spi_write
-    if (spimemio_req_i.req && spimemio_req_i.we) begin
+    if (spimemio_req_i.req && spimemio_req_i.a.we) begin
       $error("%t: Writing to Yosys OBI SPI port", $time);
       $finish;
     end

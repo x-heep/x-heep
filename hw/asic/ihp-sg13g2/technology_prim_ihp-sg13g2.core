@@ -1,0 +1,58 @@
+CAPI=2:
+
+# Copyright 2022 OpenHW Group
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+name: "technology::prim_ihp-sg13g2"
+description: "IHP-SG13G2 primitive wrappers"
+filesets:
+  pdk_std_cells:
+    files:
+      - rtl/cells/prim_ihp_sg13g2_clk.sv
+      - rtl/cells/sram_wrapper_ihp_sg13g2.sv
+    file_type: systemVerilogSource
+
+  pdk_io_cells:
+    files:
+      - rtl/cells/pad_cell_inout_ihp_sg13g2.sv
+      - rtl/cells/pad_cell_input_ihp_sg13g2.sv
+      - rtl/cells/pad_cell_output_ihp_sg13g2.sv
+      - rtl/cells/pad_cell_power_ihp_sg13g2.sv
+    file_type: systemVerilogSource
+
+  files_chip:
+    depend:
+      - x-heep:ip:pad_control
+    files:
+      - librelane_chip_config.yaml              : { file_type: librelaneConfig }
+      - librelane_chip_macro_placement.cfg      : { file_type: macroPlacement }
+      - librelane_chip_pdn_cfg.tcl              : { file_type: pdn }
+      - librelane_chip_fallback_pnr_signoff.sdc : { file_type: SDC }
+      - rtl/pad_ring.sv
+      - rtl/ihp_sg13g2_asic_chip_x_heep_system_wrapper.sv
+    file_type: systemVerilogSource
+
+  files_macro:
+    depend:
+      - x-heep:ip:cv32e40px # To make sure the CVXIF signals will be included before the other files
+      - x-heep:ip:pad_control
+    files:
+      - librelane_macro_config.yaml              : { file_type: librelaneConfig }
+      - librelane_macro_macro_placement.cfg      : { file_type: macroPlacement }
+      - librelane_macro_pdn_cfg.tcl              : { file_type: pdn }
+      - librelane_macro_pin_order.cfg            : { file_type: pinOrder }
+      - librelane_macro_fallback_pnr_signoff.sdc : { file_type: SDC }
+      - rtl/ihp_sg13g2_asic_macro_x_heep_system_wrapper.sv
+    file_type: systemVerilogSource
+
+
+targets:
+  default:
+    filesets:
+      - target_asic_librelane_chip_ihp ? (pdk_std_cells)
+      - target_asic_librelane_chip_ihp ? (pdk_io_cells)
+      - target_asic_librelane_chip_ihp ? (files_chip)
+
+      - target_asic_librelane_macro_ihp ? (pdk_std_cells)
+      - target_asic_librelane_macro_ihp ? (files_macro)

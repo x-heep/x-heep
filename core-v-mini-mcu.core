@@ -117,6 +117,10 @@ filesets:
     files:
       - hw/asic/sky130/sky130_sram_4kbyte_1rw_32x1024_8_TT_1p8V_25C.lib : { copyto: lib/sky130_sram_4kbyte_1rw_32x1024_8_TT_1p8V_25C.lib }
 
+  asic-ihp-sg13g2:
+    depend:
+    - technology::prim_ihp-sg13g2
+
   # Scripts for hooks
   post_build_modelsim_scripts:
     files:
@@ -585,3 +589,46 @@ targets:
       openroad:
         flow_path: flow/OpenROAD-flow-scripts/flow
         make_target: synth
+
+  asic_librelane_chip_ihp:
+    <<: *default_target
+    default_tool: librelane
+    description: Librelane flow to get an X-Heep chip on IHP-SG13G2.
+    parameters:
+      - SYNTHESIS=true
+    filesets_append:
+      - asic-ihp-sg13g2
+    toplevel: [ihp_sg13g2_asic_x_heep_system_wrapper]
+    tools:
+      librelane:
+        flow: Chip
+        remove_steps:
+          - Magic.DRC           # Too long
+          - Checker.MagicDRC
+          - Checker.IllegalOverlap  # Uninteresting
+        clock_port: clk_i
+        clock_net: pad_ring_i.u_pad_clk.pad_cell_input/p2c
+        clock_period: 20
+        die_area: [0,0,5000,5000]
+        core_area: [365,365,4635,4635]
+
+  asic_librelane_macro_ihp:
+    <<: *default_target
+    default_tool: librelane
+    description: Librelane flow to get an X-Heep macro on IHP-SG13G2.
+    parameters:
+      - SYNTHESIS=true
+    filesets_append:
+      - asic-ihp-sg13g2
+    toplevel: [ihp_sg13g2_asic_x_heep_system_wrapper]
+    tools:
+      librelane:
+        flow: Classic
+        remove_steps:
+          - Magic.DRC               # Too long
+          - Checker.MagicDRC
+          - Checker.IllegalOverlap  # Uninteresting
+        clock_port: clk_i
+        clock_net: clk_i
+        clock_period: 20
+        die_area: [0,0,4000,4000]

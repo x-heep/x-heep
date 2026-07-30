@@ -84,6 +84,7 @@ class Cell:
 
 bondpad_a = Cell(name="BONDPAD_ANALOG", width=20, height=30)
 bondpad_d = Cell(name="BONDPAD_DIGITAL", width=20, height=30)
+bondpad_p = Cell(name="BONDPAD_POWER", width=20, height=30)
 
 iocell_d = Cell(
     name="IOCELL_DIGITAL", width=25, height=32
@@ -96,3 +97,5 @@ iocell_a = Cell(
     rtl_wrapper="pad_cell_analog",
     connections=["io"],
 )
+
+iocell_p = Cell(name="IOCELL_POWER", width=25, height=32)

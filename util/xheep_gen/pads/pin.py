@@ -112,3 +112,54 @@ class Asignal(Pin):
         super().__init__(name, module, attributes)
         self.iocell = iocell_a.copy()
         self.bondpad = bondpad_a.copy()
+
+
+class PinPower(Pin):
+    """
+    Represents a power pin.
+    """
+
+    def __init__(self, name, module=None, attributes=None):
+        super().__init__(name, module, attributes)
+        self.iocell = iocell_p.copy()
+        self.bondpad = bondpad_p.copy()
+
+
+class PinVdd(PinPower):
+    """
+    Represents a VDD/VPWR power pin.
+    """
+
+    def __init__(self, name, module=None, attributes=None):
+        super().__init__(name, module, attributes)
+        self.iocell.rtl_wrapper = "pad_cell_vdd"
+
+
+class PinVss(PinPower):
+    """
+    Represents a VSS/VGND power pin.
+    """
+
+    def __init__(self, name, module=None, attributes=None):
+        super().__init__(name, module, attributes)
+        self.iocell.rtl_wrapper = "pad_cell_vss"
+
+
+class PinIoVdd(PinPower):
+    """
+    Represents a IOVDD power pin.
+    """
+
+    def __init__(self, name, module=None, attributes=None):
+        super().__init__(name, module, attributes)
+        self.iocell.rtl_wrapper = "pad_cell_iovdd"
+
+
+class PinIoVss(PinPower):
+    """
+    Represents a IOVSS power pin.
+    """
+
+    def __init__(self, name, module=None, attributes=None):
+        super().__init__(name, module, attributes)
+        self.iocell.rtl_wrapper = "pad_cell_iovss"

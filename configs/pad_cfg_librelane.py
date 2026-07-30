@@ -8,7 +8,7 @@
 from xheep import XHeep
 from pads.pad_ring import PadRing
 from pads.floorplan import Side
-from pads.pin import Input, Output, Inout
+from pads.pin import Input, Output, Inout, PinVdd, PinVss, PinIoVdd, PinIoVss
 
 
 def config(xheep: XHeep) -> PadRing:
@@ -77,6 +77,19 @@ def config(xheep: XHeep) -> PadRing:
         Output("ddr_snd_3"),
     ]
 
+    ##############################################
+    # DEFINE ALL THE AVAILABLE PINS (POWER)
+    power_pins = [
+        PinVdd("vdd0"),
+        PinVdd("vdd1"),
+        PinVss("vss0"),
+        PinVss("vss1"),
+        PinIoVdd("iovdd0"),
+        PinIoVdd("iovdd1"),
+        PinIoVss("iovss0"),
+        PinIoVss("iovss1"),
+    ]
+
     # Add all gpios at once
     for i in range(32):
         digital_pins.append(Inout(f"gpio_{i}", attributes={"priority": 0}))
@@ -84,6 +97,8 @@ def config(xheep: XHeep) -> PadRing:
     # Generate a pin dict with all these pins
     pin_dict = {}
     for pin in digital_pins:
+        pin_dict.update({pin.name: pin})
+    for pin in power_pins:
         pin_dict.update({pin.name: pin})
 
     ##############################################
@@ -109,6 +124,10 @@ def config(xheep: XHeep) -> PadRing:
             ["ddr_rcv_clk"],
             ["ddr_snd_clk"],
             ["gpio_0"],
+            ["vdd0"],
+            ["vss0"],
+        ],
+        Side.LEFT: [
             ["gpio_1", "ddr_rcv_0"],
             ["gpio_2", "ddr_rcv_1"],
             ["gpio_3", "ddr_rcv_2"],
@@ -124,6 +143,12 @@ def config(xheep: XHeep) -> PadRing:
             ["gpio_13"],
             ["spi_flash_sck"],
             ["spi_flash_cs_0"],
+            ["iovdd0"],
+            ["iovss0"],
+        ],
+        Side.BOTTOM: [
+            ["vdd1"],
+            ["vss1"],
             ["spi_flash_cs_1"],
             ["spi_flash_sd_0"],
             ["spi_flash_sd_1"],
@@ -139,6 +164,10 @@ def config(xheep: XHeep) -> PadRing:
             ["spi_slave_sck", "gpio_14"],
             ["spi_slave_cs", "gpio_15"],
             ["spi_slave_miso", "gpio_16"],
+        ],
+        Side.RIGHT: [
+            ["iovdd1"],
+            ["iovss1"],
             ["spi_slave_mosi", "gpio_17"],
             ["pdm2pcm_pdm", "gpio_18"],
             ["pdm2pcm_clk", "gpio_19"],

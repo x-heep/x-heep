@@ -21,7 +21,7 @@
 %>
 
 module ihp_sg13g2_asic_x_heep_system_wrapper
-import if_xif_structs_pkg::*;
+import cv32e40px_core_v_xif_pkg::*;
 #(
     parameter logic [31:0] XHEEP_INSTANCE_ID = 0,
     parameter EXT_XBAR_NMASTER = 0,

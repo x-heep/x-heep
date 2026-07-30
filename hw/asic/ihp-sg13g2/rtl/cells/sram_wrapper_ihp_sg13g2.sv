@@ -34,7 +34,7 @@ module sram_wrapper #(
 
         case (NumWords)
             256: begin
-                (* keep *)
+                (* keep, blackbox *)
                 RM_IHPSG13_1P_256x32_c2_bm_bist sram_inst (
                     .A_CLK      (clk_i),
                     .A_MEN      (req_i),
@@ -56,7 +56,7 @@ module sram_wrapper #(
                 );
             end
             512: begin
-                (* keep *)
+                (* keep, blackbox *)
                 RM_IHPSG13_1P_512x32_c2_bm_bist sram_inst (
                     .A_CLK      (clk_i),
                     .A_MEN      (req_i),
@@ -78,7 +78,7 @@ module sram_wrapper #(
                 );
             end
             1024: begin
-                (* keep *)
+                (* keep, blackbox *)
                 RM_IHPSG13_1P_1024x32_c2_bm_bist sram_inst (
                     .A_CLK      (clk_i),
                     .A_MEN      (req_i),
@@ -101,7 +101,7 @@ module sram_wrapper #(
             end
             // NOTE: No byte enable
             8192: begin
-                (* keep *)
+                (* keep, blackbox *)
                 RM_IHPSG13_1P_8192x32_c4 sram_inst (
                     .A_CLK      (clk_i),
                     .A_MEN      (req_i),

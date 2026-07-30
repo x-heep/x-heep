@@ -32,8 +32,8 @@ GND_NETS:
 # Connect SRAMS to PDN
 PDN_MACRO_CONNECTIONS:
 % for bank in xheep.memory_ss().iter_ram_banks():
-- "x_heep_system_inst.core_v_mini_mcu_i.memory_subsystem_i.ram${bank.map_idx()-1}_i.genblk2.sram_inst VDD VSS VDDARRAY! VSS!"
-- "x_heep_system_inst.core_v_mini_mcu_i.memory_subsystem_i.ram${bank.map_idx()-1}_i.genblk2.sram_inst VDD VSS VDD! VSS!"
+- "core_v_mini_mcu_i.memory_subsystem_i.ram${bank.map_idx()-1}_i.genblk2.sram_inst VDD VSS VDDARRAY! VSS!"
+- "core_v_mini_mcu_i.memory_subsystem_i.ram${bank.map_idx()-1}_i.genblk2.sram_inst VDD VSS VDD! VSS!"
 % endfor
 
 OPENROAD_THREADS: 32
@@ -50,19 +50,19 @@ if pin0_name[-1] == 'n':
     pin0_name = pin0_name[0:-1]
 %>\
   % if pad.iocell.rtl_wrapper == "pad_cell_inout":
-  "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_inout",
+  "pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_inout",
   % elif pad.iocell.rtl_wrapper == "pad_cell_input":
-  "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_input",
+  "pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_input",
   % elif pad.iocell.rtl_wrapper == "pad_cell_output":
-  "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_output",
+  "pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_output",
   % elif pad.iocell.rtl_wrapper == "pad_cell_vdd":
-  "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_vdd",
+  "pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_vdd",
   % elif pad.iocell.rtl_wrapper == "pad_cell_vss":
-  "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_vss",
+  "pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_vss",
   % elif pad.iocell.rtl_wrapper == "pad_cell_iovdd":
-  "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_iovdd",
+  "pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_iovdd",
   % elif pad.iocell.rtl_wrapper == "pad_cell_iovss":
-  "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_iovss",
+  "pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_iovss",
   % endif
 % endfor
 ]
@@ -78,19 +78,19 @@ if pin0_name[-1] == 'n':
     pin0_name = pin0_name[0:-1]
 %>\
   % if pad.iocell.rtl_wrapper == "pad_cell_inout":
-  "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_inout",
+  "pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_inout",
   % elif pad.iocell.rtl_wrapper == "pad_cell_input":
-  "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_input",
+  "pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_input",
   % elif pad.iocell.rtl_wrapper == "pad_cell_output":
-  "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_output",
+  "pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_output",
   % elif pad.iocell.rtl_wrapper == "pad_cell_vdd":
-  "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_vdd",
+  "pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_vdd",
   % elif pad.iocell.rtl_wrapper == "pad_cell_vss":
-  "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_vss",
+  "pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_vss",
   % elif pad.iocell.rtl_wrapper == "pad_cell_iovdd":
-  "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_iovdd",
+  "pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_iovdd",
   % elif pad.iocell.rtl_wrapper == "pad_cell_iovss":
-  "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_iovss",
+  "pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_iovss",
   % endif
 % endfor
 ]
@@ -106,19 +106,19 @@ if pin0_name[-1] == 'n':
     pin0_name = pin0_name[0:-1]
 %>\
   % if pad.iocell.rtl_wrapper == "pad_cell_inout":
-  "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_inout",
+  "pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_inout",
   % elif pad.iocell.rtl_wrapper == "pad_cell_input":
-  "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_input",
+  "pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_input",
   % elif pad.iocell.rtl_wrapper == "pad_cell_output":
-  "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_output",
+  "pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_output",
   % elif pad.iocell.rtl_wrapper == "pad_cell_vdd":
-  "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_vdd",
+  "pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_vdd",
   % elif pad.iocell.rtl_wrapper == "pad_cell_vss":
-  "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_vss",
+  "pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_vss",
   % elif pad.iocell.rtl_wrapper == "pad_cell_iovdd":
-  "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_iovdd",
+  "pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_iovdd",
   % elif pad.iocell.rtl_wrapper == "pad_cell_iovss":
-  "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_iovss",
+  "pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_iovss",
   % endif
 % endfor
 ]
@@ -134,19 +134,19 @@ if pin0_name[-1] == 'n':
     pin0_name = pin0_name[0:-1]
 %>\
   % if pad.iocell.rtl_wrapper == "pad_cell_inout":
-  "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_inout",
+  "pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_inout",
   % elif pad.iocell.rtl_wrapper == "pad_cell_input":
-  "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_input",
+  "pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_input",
   % elif pad.iocell.rtl_wrapper == "pad_cell_output":
-  "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_output",
+  "pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_output",
   % elif pad.iocell.rtl_wrapper == "pad_cell_vdd":
-  "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_vdd",
+  "pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_vdd",
   % elif pad.iocell.rtl_wrapper == "pad_cell_vss":
-  "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_vss",
+  "pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_vss",
   % elif pad.iocell.rtl_wrapper == "pad_cell_iovdd":
-  "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_iovdd",
+  "pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_iovdd",
   % elif pad.iocell.rtl_wrapper == "pad_cell_iovss":
-  "x_heep_system_inst.pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_iovss",
+  "pad_ring_i.u_pad_${pin0_name[0:-1]}.pad_cell_iovss",
   % endif
 % endfor
 ]

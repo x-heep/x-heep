@@ -1,9 +1,14 @@
 // Copyright 2022 EPFL
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+//
+// MODIFICATION NOTICE:
+// This file has been modified by Nathan Chandanson on 31/07/2026.
+// Brief description of changes: Add the power pins/pads for ASIC flow.
+//
 
 <%!
-    from pads.pin import Input, Output, Inout, PinDigital, Asignal
+    from pads.pin import Input, Output, Inout, PinDigital, Asignal, PinVdd, PinVss, PinIoVdd, PinIoVss, PinPower
 %>
 
 <%
@@ -14,6 +19,7 @@
                 else 0
             )
     analog_signal_pads = [ pad for pad in xheep.get_padring().pad_list if any(isinstance(pin, Asignal) for pin in pad.pins) ] 
+    power_pads = [ pad for pad in xheep.get_padring().pad_list if any(isinstance(pin, PinPower) for pin in pad.pins) ] 
 %>
 
 module pad_ring (
@@ -47,6 +53,13 @@ module pad_ring (
             % endfor
         `endif
     %endif
+
+    `ifdef USE_POWER_PINS
+    inout wire vdd_io,
+    inout wire vss_io,
+    inout wire iovdd_io,
+    inout wire iovss_io,
+    `endif
 
     % if attribute_bits != None:
         input logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][${attribute_bits}] pad_attributes_i
@@ -103,5 +116,30 @@ module pad_ring (
         % endfor
     `endif
 % endif #len(analog_signal_pads) > 0:
+
+% if len(power_pads) > 0:
+        // POWER PADS
+        % for pad in power_pads:
+            <%
+            has_vdd = any(isinstance(pin, PinVdd) for pad in power_pads for pin in pad.pins)
+            has_vss = any(isinstance(pin, PinVss) for pad in power_pads for pin in pad.pins)
+            has_iovdd = any(isinstance(pin, PinIoVdd) for pad in power_pads for pin in pad.pins)
+            has_iovss = any(isinstance(pin, PinIoVss) for pad in power_pads for pin in pad.pins)
+
+            pad_vdd_io = "vdd_io"
+            pad_vss_io = "vss_io"
+            pad_iovdd_io = "iovdd_io"
+            pad_iovss_io = "iovss_io"
+            %>
+            ${pad.iocell.rtl_wrapper} u_pad_${pad.name}(
+                `ifdef USE_POWER_PINS
+                .iovdd(${pad_iovdd_io}),
+                .iovss(${pad_iovss_io}),
+                .vdd(${pad_vdd_io}),
+                .vss(${pad_vss_io})
+                `endif
+            );
+        % endfor
+% endif
 
 endmodule //pad_ring

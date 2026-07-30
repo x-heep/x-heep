@@ -6,13 +6,12 @@
   user_peripheral_domain = xheep.get_user_peripheral_domain()
 %>
 <%!
-    from pads.pin import Input, Output, Inout, PinDigital, Asignal, PinVdd, PinVss, PinIoVdd, PinIoVss, PinPower
+    from pads.pin import Input, Output, Inout, PinDigital, Asignal
 %>
 
 <%
     attribute_bits = xheep.get_padring().attributes.get("bits")
     any_muxed_pads = xheep.get_padring().num_muxed_pads() > 0
-    power_pads = [ pad for pad in xheep.get_padring().pad_list if any(isinstance(pin, PinPower) for pin in pad.pins) ]
 %>
 
 module x_heep_system #(
@@ -96,35 +95,7 @@ module x_heep_system #(
     // External SPC interface
     output logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_done_o,
 
-`ifdef ASIC_SYNTHESIS
-    % if power_pads:
-        `ifdef USE_POWER_PINS
-        <%
-        has_vdd = any(isinstance(pin, PinVdd) for pad in power_pads for pin in pad.pins)
-        has_vss = any(isinstance(pin, PinVss) for pad in power_pads for pin in pad.pins)
-        has_iovdd = any(isinstance(pin, PinIoVdd) for pad in power_pads for pin in pad.pins)
-        has_iovss = any(isinstance(pin, PinIoVss) for pad in power_pads for pin in pad.pins)
-        %>
-        % if has_vdd:
-        inout wire vdd_io,
-        % endif
-        % if has_vss:
-        inout wire vss_io,
-        % endif
-        % if has_iovdd:
-        inout wire iovdd_io,
-        % endif
-        % if has_iovss:
-        inout wire iovss_io,
-        % endif
-        `endif
-    % endif
-`endif
-
-    <%
-    power_pads = [ pad for pad in xheep.get_padring().pad_list if any(isinstance(pin, PinPower) for pin in pad.pins) ] 
-    %>
-    % for pad in [pad for pad in xheep.get_padring().pad_list if pad not in power_pads]:
+    % for pad in xheep.get_padring().pad_list:
       <%
       has_input_pin = any(isinstance(pin, Input) for pin in pad.pins)
       has_output_pin = any(isinstance(pin, Output) for pin in pad.pins)
@@ -292,25 +263,6 @@ analog_signal_pads = [ pad for pad in xheep.get_padring().pad_list if any(isinst
         % endfor
       `endif
     %endif
-
-`ifdef ASIC_SYNTHESIS
-    % if len(power_pads) > 0:
-        `ifdef USE_POWER_PINS
-        % if has_vdd:
-        .vdd_io,
-        % endif
-        % if has_vss:
-        .vss_io,
-        % endif
-        % if has_iovdd:
-        .iovdd_io,
-        % endif
-        % if has_iovss:
-        .iovss_io,
-        % endif
-        `endif
-    %endif
-`endif
 
     % if attribute_bits != None:
       .pad_attributes_i(pad_attributes)

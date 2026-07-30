@@ -80,7 +80,9 @@ power_pads = [ pad for pad in xheep.get_padring().pad_list if any(isinstance(pin
     continue
   pin0_name = pad.pins[0].rtl_name()
   %>\
+  % if has_inout_pin:
     ${pin0_name}oe
+  %endif
     ${pin0_name}o
 % endfor
 }] 

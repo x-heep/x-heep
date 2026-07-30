@@ -205,9 +205,9 @@ define_pdn_grid \
 <% banks = list(xheep.memory_ss().iter_ram_banks()) %>\
 % for i in range(len(banks)):
 % if i != len(banks)-1:
-x_heep_system_inst.core_v_mini_mcu_i.memory_subsystem_i.ram${banks[i].map_idx()-1}_i.genblk2.sram_inst \ 
+core_v_mini_mcu_i.memory_subsystem_i.ram${banks[i].map_idx()-1}_i.genblk2.sram_inst \ 
 % else:
-x_heep_system_inst.core_v_mini_mcu_i.memory_subsystem_i.ram${banks[i].map_idx()-1}_i.genblk2.sram_inst" \ 
+core_v_mini_mcu_i.memory_subsystem_i.ram${banks[i].map_idx()-1}_i.genblk2.sram_inst" \ 
 % endif
 % endfor
     -name fabric_sram \ 

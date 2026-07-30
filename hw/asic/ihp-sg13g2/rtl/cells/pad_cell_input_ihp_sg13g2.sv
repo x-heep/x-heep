@@ -1,5 +1,5 @@
 module pad_cell_input #(
-    parameter PADATTR = 16
+    parameter PADATTR = 0
 ) (
     input logic pad_in_i,
     input logic pad_oe_i,

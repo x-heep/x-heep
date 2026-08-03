@@ -57,7 +57,7 @@ module system_bus
     % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
     // Serial Link direct write master port
     input  obi_req_t  serial_link_direct_write_req_i,
-    output obi_resp_t serial_link_direct_write_resp_o,
+    output obi_rsp_t serial_link_direct_write_resp_o,
     % endif
 
     // External master ports
@@ -83,7 +83,7 @@ module system_bus
 
     % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
     output obi_req_t  serial_link_slave_req_o,
-    input  obi_resp_t serial_link_slave_resp_i,
+    input  obi_rsp_t serial_link_slave_resp_i,
     % endif
 
     // External slave ports

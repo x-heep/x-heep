@@ -128,8 +128,8 @@ module core_v_mini_mcu #(
     output logic [31:0] exit_value_o,
     % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
       //Serial Link
-      output obi_pkg::obi_req_t  serial_link_direct_write_req_o,   
-      input  obi_pkg::obi_resp_t serial_link_direct_write_resp_i, 
+      output obi_req_t  serial_link_direct_write_req_o,   
+      input  obi_rsp_t serial_link_direct_write_resp_i, 
     %endif
 
     // External SPC interface
@@ -171,9 +171,9 @@ module core_v_mini_mcu #(
   obi_rsp_t  [${dma_obi_msb}:0]dma_addr_resp;
 
   % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
-  obi_pkg::obi_resp_t serial_link_direct_write_resp;
+  obi_rsp_t serial_link_direct_write_resp;
   obi_req_t serial_link_slave_req;
-  obi_resp_t serial_link_slave_resp;
+  obi_rsp_t serial_link_slave_resp;
   % endif
 
   // ram signals

@@ -81,8 +81,8 @@ module x_heep_system #(
 
     % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
     //Serial Link
-    output obi_pkg::obi_req_t  serial_link_direct_write_req_o,   
-    input  obi_pkg::obi_resp_t serial_link_direct_write_resp_i,  
+    output obi_req_t  serial_link_direct_write_req_o,   
+    input  obi_rsp_t serial_link_direct_write_resp_i,  
     %endif
 
     input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_tx_i,

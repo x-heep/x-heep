@@ -98,10 +98,10 @@ module peripheral_subsystem #(
     output logic ddr_snd_2_o,
     output logic ddr_snd_3_o,
     % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
-      output obi_pkg::obi_req_t  serial_link_direct_write_req_o,
-      input  obi_pkg::obi_resp_t serial_link_direct_write_resp_i,
-      input  obi_pkg::obi_req_t  serial_link_slave_req_i,
-      output obi_pkg::obi_resp_t serial_link_slave_resp_o,
+      output obi_req_t  serial_link_direct_write_req_o,
+      input  obi_rsp_t serial_link_direct_write_resp_i,
+      input  obi_req_t  serial_link_slave_req_i,
+      output obi_rsp_t serial_link_slave_resp_o,
     %endif
 
     // PDM2PCM Interface

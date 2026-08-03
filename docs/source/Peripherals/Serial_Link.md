@@ -99,7 +99,7 @@ Set the PYNQ-Z2 switches before powering on:
 **Step 1 : Program Board A (sender):**
 
 
-In `sw/applications/example_serial_link_direct_write/main.c`, set:
+In `sw/applications/example_serial_link_direct_write/example_serial_link_direct_write.h`, set:
 ```c
 #define FPGA_RECEIVE 0
 ```
@@ -119,7 +119,7 @@ Board A must be powered by DC power supply (not Micro USB) so it stays powered w
 **Step 2 : Program Board B (receiver):**
 
 
-In `sw/applications/example_serial_link_direct_write/main.c`, set:
+In `sw/applications/example_serial_link_direct_write/example_serial_link_direct_write.h`, set:
 ```c
 #define FPGA_RECEIVE 1
 ```
@@ -222,12 +222,13 @@ and:
 picocom -b 9600 -r -l --imap lfcrlf /dev/serial/by-path/pci-0000:00:14.0-usb-0:8:1.2-port0
 ```
 
-To exit picocom, use:
+Whenever you are done use:
 
 ```text
 Ctrl-a Ctrl-x
 ```
 
+to exit (close) picocom interface.
 ---
 
 ### Step 6: Reset the Boards in the Correct Order

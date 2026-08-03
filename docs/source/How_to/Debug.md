@@ -1,4 +1,4 @@
-#  Debug
+# Debug
 
 ## Prerequisite
 
@@ -15,9 +15,9 @@ sudo apt install gcc-10 g++-10
 sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 100 --slave /usr/bin/g++ g++ /usr/bin/g++-10 --slave /usr/bin/gcov gcov /usr/bin/gcov-10
 ```
 
-2. Install openOCD
+2. Install OpenOCD
 
-Download `openOCD` from https://sourceforge.net/projects/openocd/files/openocd/
+Download `OpenOCD` from https://sourceforge.net/projects/openocd/files/openocd/
 Version 0.11.0-rc2.
 After extracting the files,
 
@@ -27,7 +27,7 @@ cd openocd-0.11.0-rc2
 make install
 ```
 
-Add to `PATH` `openOCD`:
+Add to `PATH` `OpenOCD`:
 
 ```
 export PATH=/home/$USER/tools/openocd/bin:$PATH
@@ -244,9 +244,9 @@ and by executing `dmesg --time-format iso | grep FTDI` you should see something 
 The date and time will of course be different, and the tty device number may also be different (ttyUBS1, ttyUSB2, etc).
 
 
-### Run openOCD
+### Run OpenOCD
 
-Now run `openOCD` with the its the configuration file specific for the HS2 cable:
+Now run `OpenOCD` with its configuration file specific for the HS2 cable:
 
 ```
 openocd -f ./tb/core-v-mini-mcu-nexsys-hs2.cfg

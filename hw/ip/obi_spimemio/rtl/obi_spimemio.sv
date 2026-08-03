@@ -4,10 +4,14 @@
 *  SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 */
 
-module obi_spimemio
-  import obi_pkg::*;
-  import reg_pkg::*;
-(
+module obi_spimemio #(
+    // NOTE: OBI and register data types below must have the same data and
+    // address width.
+    parameter type obi_req_t = logic,
+    parameter type obi_rsp_t = logic,
+    parameter type reg_req_t = logic,
+    parameter type reg_rsp_t = logic
+) (
     input  logic clk_i,
     input  logic rst_ni,
     output logic flash_csb_o,
@@ -31,8 +35,8 @@ module obi_spimemio
     input  reg_req_t reg_req_i,
     output reg_rsp_t reg_rsp_o,
 
-    input  obi_req_t  spimemio_req_i,
-    output obi_resp_t spimemio_resp_o
+    input  obi_req_t spimemio_req_i,
+    output obi_rsp_t spimemio_resp_o
 );
 
   import picorv32_pkg::*;
@@ -48,7 +52,10 @@ module obi_spimemio
 
   obi_spimemio_reg2hw_t reg2hw;
 
-  obi_to_picorv32 obi_to_picorv32_i (
+  obi_to_picorv32 #(
+      .obi_req_t(obi_req_t),
+      .obi_rsp_t(obi_rsp_t)
+  ) obi_to_picorv32_i (
       .clk_i(clk_i),
       .rst_ni(rst_ni),
       .picorv32_req_o(picorv32_req),

@@ -9,10 +9,10 @@
 /* verilator lint_off UNUSED */
 /* verilator lint_off MULTIDRIVEN */
 
-module memory_subsystem
-  import obi_pkg::*;
-#(
-    parameter NUM_BANKS = 2
+module memory_subsystem #(
+    parameter NUM_BANKS = 2,
+    parameter type obi_req_t = xheep_obi_pkg::xheep_obi_req_t,
+    parameter type obi_rsp_t = xheep_obi_pkg::xheep_obi_rsp_t
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -21,7 +21,7 @@ module memory_subsystem
     input logic [NUM_BANKS-1:0] clk_gate_en_ni,
 
     input  obi_req_t  [NUM_BANKS-1:0] ram_req_i,
-    output obi_resp_t [NUM_BANKS-1:0] ram_resp_o,
+    output obi_rsp_t  [NUM_BANKS-1:0] ram_resp_o,
 
     // power manager signals that goes to the ASIC macros
     input logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] pwrgate_ni,
@@ -58,7 +58,7 @@ module memory_subsystem
       if (!rst_ni) begin
         ram_valid_q[i] <= '0;
       end else begin
-        ram_valid_q[i] <= ram_resp_o[i].gnt;
+        ram_valid_q[i] <= ram_resp_o[i].gnt & ram_req_i[i].req;;
       end
     end
 

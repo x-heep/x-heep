@@ -14,7 +14,11 @@ package testharness_pkg;
     localparam EXT_XBAR_NSLAVE = 3;
   % else: 
     localparam EXT_XBAR_NMASTER = 8;
+`ifdef SIM_SYSTEMC
+    localparam EXT_XBAR_NSLAVE = 1;
+`else
     localparam EXT_XBAR_NSLAVE = 2;
+`endif
   %endif
 
   //master idx
@@ -27,10 +31,16 @@ package testharness_pkg;
   localparam logic [31:0] EXT_MASTER6_IDX = 6;
   localparam logic [31:0] EXT_MASTER7_IDX = 7;
 
+`ifdef SIM_SYSTEMC
+  localparam logic [31:0] SLOW_MEMORY_START_ADDRESS = core_v_mini_mcu_pkg::EXT_SLAVE_START_ADDRESS;
+  localparam logic [31:0] SLOW_MEMORY_SIZE = 32'h400;
+  localparam logic [31:0] SLOW_MEMORY_END_ADDRESS = SLOW_MEMORY_START_ADDRESS + SLOW_MEMORY_SIZE;
+`else
   //slave mmap and idx of slow memory interleaved
   localparam logic [31:0] SLOW_MEMORY_START_ADDRESS = core_v_mini_mcu_pkg::EXT_SLAVE_START_ADDRESS;
   localparam logic [31:0] SLOW_MEMORY_SIZE = 32'h400;
   localparam logic [31:0] SLOW_MEMORY_END_ADDRESS = SLOW_MEMORY_START_ADDRESS + SLOW_MEMORY_SIZE;
+`endif
   localparam logic [31:0] SLOW_MEMORY0_IDX = 32'd0;
   localparam logic [31:0] SLOW_MEMORY1_IDX = 32'd1;
 
@@ -48,12 +58,15 @@ package testharness_pkg;
           idx: SLOW_MEMORY0_IDX,
           start_addr: SLOW_MEMORY_START_ADDRESS,
           end_addr: SLOW_MEMORY_END_ADDRESS
-      },
+      }
+`ifndef SIM_SYSTEMC
+      ,
       '{
           idx: SLOW_MEMORY1_IDX,
           start_addr: SLOW_MEMORY_START_ADDRESS,
           end_addr: SLOW_MEMORY_END_ADDRESS
       }
+`endif
       % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
       ,
       '{idx: SL_EXT_IDX, start_addr: SL_EXT_START_ADDRESS, end_addr: SL_EXT_END_ADDRESS}

@@ -12,10 +12,9 @@
  *       the input tensor to use the GEMM library.
  */
 
-module im2col_spc
-  import obi_pkg::*;
-  import reg_pkg::*;
-#(
+module im2col_spc #(
+    parameter type reg_req_t = logic,
+    parameter type reg_rsp_t = logic
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -172,7 +171,10 @@ module im2col_spc
   );
 
   /* Register interface control FSM */
-  im2col_spc_regintfc_controller im2col_spc_regintfc_controller_i (
+  im2col_spc_regintfc_controller #(
+      .reg_req_t(reg_req_t),
+      .reg_rsp_t(reg_rsp_t)
+  ) im2col_spc_regintfc_controller_i (
       .clk_i,
       .rst_ni,
       .addr_i(dma_addr),

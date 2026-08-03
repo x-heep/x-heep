@@ -15,7 +15,7 @@ module dma_subsystem
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic,
     parameter type obi_req_t = logic,
-    parameter type obi_resp_t = logic,
+    parameter type obi_rsp_t = logic,
     parameter type fifo_resp_t = logic,
     parameter type fifo_req_t = logic,
     parameter int unsigned GLOBAL_SLOT_NUM = 0,
@@ -28,14 +28,14 @@ module dma_subsystem
     input  reg_req_t reg_req_i,
     output reg_rsp_t reg_rsp_o,
 
-    output obi_req_t  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_read_req_o,
-    input  obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_read_resp_i,
+    output obi_req_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_read_req_o,
+    input  obi_rsp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_read_resp_i,
 
-    output obi_req_t  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_write_req_o,
-    input  obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_write_resp_i,
+    output obi_req_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_write_req_o,
+    input  obi_rsp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_write_resp_i,
 
-    output obi_req_t  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_addr_req_o,
-    input  obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_addr_resp_i,
+    output obi_req_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_addr_req_o,
+    input  obi_rsp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_addr_resp_i,
 
     output fifo_req_t  [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_req_o,
     input  fifo_resp_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_resp_i,
@@ -72,9 +72,9 @@ module dma_subsystem
   obi_req_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] xbar_address_req;
 
   /* Masters response from the bus*/
-  obi_resp_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] xbar_write_resp;
-  obi_resp_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] xbar_read_resp;
-  obi_resp_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] xbar_address_resp;
+  obi_rsp_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] xbar_write_resp;
+  obi_rsp_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] xbar_read_resp;
+  obi_rsp_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] xbar_address_resp;
 
   /* Interrupt signals */
   logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_trans_done;
@@ -95,7 +95,7 @@ module dma_subsystem
           .reg_req_t(reg_req_t),
           .reg_rsp_t(reg_rsp_t),
           .obi_req_t(obi_req_t),
-          .obi_resp_t(obi_resp_t),
+          .obi_resp_t(obi_rsp_t),
           .fifo_resp_t(fifo_resp_t),
           .fifo_req_t(fifo_req_t),
           .SLOT_NUM(GLOBAL_SLOT_NUM + 2),
@@ -192,7 +192,9 @@ module dma_subsystem
       end else begin : xbar_n_to_1_gen
         /* Read, write & address mode operations xbar*/
         xbar_varlat_n_to_one #(
-            .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_CH_NUM)
+            .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_CH_NUM),
+            .obi_req_t(obi_req_t),
+            .obi_rsp_t(obi_rsp_t)
         ) xbar_read_i (
             .clk_i        (clk_i),
             .rst_ni       (rst_ni),
@@ -203,7 +205,9 @@ module dma_subsystem
         );
 
         xbar_varlat_n_to_one #(
-            .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_CH_NUM)
+            .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_CH_NUM),
+            .obi_req_t(obi_req_t),
+            .obi_rsp_t(obi_rsp_t)
         ) xbar_write_i (
             .clk_i        (clk_i),
             .rst_ni       (rst_ni),
@@ -214,7 +218,9 @@ module dma_subsystem
         );
 
         xbar_varlat_n_to_one #(
-            .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_CH_NUM)
+            .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_CH_NUM),
+            .obi_req_t(obi_req_t),
+            .obi_rsp_t(obi_rsp_t)
         ) xbar_address_i (
             .clk_i        (clk_i),
             .rst_ni       (rst_ni),

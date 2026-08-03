@@ -7,7 +7,7 @@
  *
  */
 
-package obi_pkg;
+package xheep_obi_pkg;
 
   typedef struct packed {
     logic        req;
@@ -15,12 +15,12 @@ package obi_pkg;
     logic [3:0]  be;
     logic [31:0] addr;
     logic [31:0] wdata;
-  } obi_req_t;
+  } xheep_obi_req_t;
 
   typedef struct packed {
     logic        gnt;
     logic        rvalid;
     logic [31:0] rdata;
-  } obi_resp_t;
+  } xheep_obi_rsp_t;
 
 endpackage

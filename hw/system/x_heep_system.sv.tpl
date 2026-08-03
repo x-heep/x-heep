@@ -14,11 +14,7 @@
     any_muxed_pads = xheep.get_padring().num_muxed_pads() > 0
 %>
 
-module x_heep_system
-  import obi_pkg::*;
-  import reg_pkg::*;
-  import fifo_pkg::*;
-#(
+module x_heep_system #(
     parameter logic [31:0] XHEEP_INSTANCE_ID = 0,
     parameter EXT_XBAR_NMASTER = 0,
     parameter AO_SPC_NUM = 0,
@@ -26,7 +22,14 @@ module x_heep_system
     parameter AO_SPC_NUM_RND = AO_SPC_NUM == 0 ? 0 : AO_SPC_NUM - 1,
     parameter EXT_XBAR_NMASTER_RND = EXT_XBAR_NMASTER == 0 ? 1 : EXT_XBAR_NMASTER,
     parameter EXT_DOMAINS_RND = core_v_mini_mcu_pkg::EXTERNAL_DOMAINS == 0 ? 1 : core_v_mini_mcu_pkg::EXTERNAL_DOMAINS,
-    parameter NEXT_INT_RND = core_v_mini_mcu_pkg::NEXT_INT == 0 ? 1 : core_v_mini_mcu_pkg::NEXT_INT
+    parameter NEXT_INT_RND = core_v_mini_mcu_pkg::NEXT_INT == 0 ? 1 : core_v_mini_mcu_pkg::NEXT_INT,
+    // OBI and register interface data types
+    parameter type obi_req_t  = xheep_obi_pkg::xheep_obi_req_t,
+    parameter type obi_rsp_t  = xheep_obi_pkg::xheep_obi_rsp_t,
+    parameter type reg_req_t  = xheep_reg_pkg::xheep_reg_req_t,
+    parameter type reg_rsp_t  = xheep_reg_pkg::xheep_reg_rsp_t,
+    parameter type fifo_req_t = xheep_fifo_pkg::xheep_fifo_req_t,
+    parameter type fifo_rsp_t = xheep_fifo_pkg::xheep_fifo_rsp_t
 ) (
     // IDs
     input logic [31:0] hart_id_i,
@@ -35,27 +38,27 @@ module x_heep_system
     input logic [NEXT_INT_RND-1:0] intr_vector_ext_i,
     input logic intr_ext_peripheral_i,
 
-    input  obi_req_t  [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_req_i,
-    output obi_resp_t [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_resp_o,
+    input  obi_req_t [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_req_i,
+    output obi_rsp_t [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_resp_o,
 
     // External slave ports
-    output obi_req_t  ext_core_instr_req_o,
-    input  obi_resp_t ext_core_instr_resp_i,
-    output obi_req_t  ext_core_data_req_o,
-    input  obi_resp_t ext_core_data_resp_i,
-    output obi_req_t  ext_debug_master_req_o,
-    input  obi_resp_t ext_debug_master_resp_i,
-    output obi_req_t  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_read_req_o,
-    input  obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_read_resp_i,
-    output obi_req_t  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_write_req_o,
-    input  obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_write_resp_i,
-    output obi_req_t  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_addr_req_o,
-    input  obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_addr_resp_i,
+    output obi_req_t ext_core_instr_req_o,
+    input  obi_rsp_t ext_core_instr_resp_i,
+    output obi_req_t ext_core_data_req_o,
+    input  obi_rsp_t ext_core_data_resp_i,
+    output obi_req_t ext_debug_master_req_o,
+    input  obi_rsp_t ext_debug_master_resp_i,
+    output obi_req_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_read_req_o,
+    input  obi_rsp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_read_resp_i,
+    output obi_req_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_write_req_o,
+    input  obi_rsp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_write_resp_i,
+    output obi_req_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_addr_req_o,
+    input  obi_rsp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_addr_resp_i,
 
     output fifo_req_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_req_o,
-    input fifo_resp_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_resp_i,
+    input fifo_rsp_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_resp_i,
 
-    input reg_req_t  [AO_SPC_NUM_RND:0] ext_ao_peripheral_req_i,
+    input  reg_req_t [AO_SPC_NUM_RND:0] ext_ao_peripheral_req_i,
     output reg_rsp_t [AO_SPC_NUM_RND:0] ext_ao_peripheral_resp_o,
     
     output reg_req_t ext_peripheral_slave_req_o,
@@ -315,8 +318,8 @@ analog_signal_pads = [ pad for pad in xheep.get_padring().pad_list if any(isinst
 % endfor
 
   pad_control #(
-      .reg_req_t(reg_pkg::reg_req_t),
-      .reg_rsp_t(reg_pkg::reg_rsp_t),
+      .reg_req_t(xheep_reg_pkg::xheep_reg_req_t),
+      .reg_rsp_t(xheep_reg_pkg::xheep_reg_rsp_t),
       .NUM_PAD  (core_v_mini_mcu_pkg::NUM_PAD)
   ) pad_control_i (
       .clk_i(clk_in_x),

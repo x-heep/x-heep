@@ -8,16 +8,20 @@
 // Description: Digital Level Crossing Block
 
 module dlc #(
-    parameter int RW_FIFO_DEPTH_W = 4
+    parameter int  RW_FIFO_DEPTH_W = 4,
+    parameter type reg_req_t,
+    parameter type reg_rsp_t,
+    parameter type fifo_req_t,
+    parameter type fifo_rsp_t
 ) (
     input logic clk_i,
     input logic rst_ni,
     // Register interface (connected to the external peripheral bus)
-    input reg_pkg::reg_req_t reg_req_i,
-    output reg_pkg::reg_rsp_t reg_rsp_o,
+    input reg_req_t reg_req_i,
+    output reg_rsp_t reg_rsp_o,
     // hw fifo interface (connected to the DMA)
-    input fifo_pkg::fifo_req_t hw_fifo_req_i,
-    output fifo_pkg::fifo_resp_t hw_fifo_resp_o,
+    input fifo_req_t hw_fifo_req_i,
+    output fifo_rsp_t hw_fifo_resp_o,
     // done signal
     output logic dlc_done_o,
     // LC signals
@@ -212,9 +216,6 @@ module dlc #(
   );
 
   // ------------------------- Registers
-
-  parameter type reg_req_t = reg_pkg::reg_req_t;
-  parameter type reg_rsp_t = reg_pkg::reg_rsp_t;
   dlc_reg_top #(
       .reg_req_t(reg_req_t),
       .reg_rsp_t(reg_rsp_t)

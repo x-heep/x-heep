@@ -10,9 +10,11 @@
 
 module dma_buffer_unit
   import dma_reg_pkg::*;
-  import fifo_pkg::*;
 #(
-    parameter int FIFO_DEPTH = 4
+    parameter int FIFO_DEPTH = 4,
+    // OBI FIFO data types
+    parameter type fifo_req_t = logic,
+    parameter type fifo_resp_t = logic
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -47,7 +49,9 @@ module dma_buffer_unit
   logic [31:0] read_buffer_output;
 
   dma_buffer_fifos #(
-      .FIFO_DEPTH(FIFO_DEPTH)
+      .FIFO_DEPTH(FIFO_DEPTH),
+      .fifo_req_t(fifo_req_t),
+      .fifo_resp_t(fifo_resp_t)
   ) dma_buffer_fifos_i (
       .clk_i,
       .rst_ni,

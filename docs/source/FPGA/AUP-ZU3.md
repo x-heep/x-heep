@@ -36,7 +36,7 @@ These instructions assume that you have already generated the bitstream and inst
 
 ## Programming the Board
 
-The steps for programming the board are the same as for pynq board, the only modification you has to do is to change the **TARGET**.
+The steps for programming the board are the same as for pynq board, the only modification you have to do is to change the **TARGET**.
 
 5. **Compile the App and program the flash**
    Refer to the [Compile the Apps Documentation](./../How_to/CompileApps.md)

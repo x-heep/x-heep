@@ -2,12 +2,12 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
-module debug_subsystem
-  import obi_pkg::*;
-#(
+module debug_subsystem #(
     parameter NRHARTS = 1,
     parameter JTAG_IDCODE = 32'h10001c05,
-    parameter SPI_SLAVE = 0
+    parameter SPI_SLAVE = 0,
+    parameter type obi_req_t = xheep_obi_pkg::xheep_obi_req_t,
+    parameter type obi_rsp_t = xheep_obi_pkg::xheep_obi_rsp_t
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -29,10 +29,10 @@ module debug_subsystem
     output logic debug_ndmreset_no,
     output logic [NRHARTS-1:0] debug_core_req_o,
 
-    input  obi_req_t  debug_slave_req_i,
-    output obi_resp_t debug_slave_resp_o,
-    output obi_req_t  debug_master_req_o,
-    input  obi_resp_t debug_master_resp_i
+    input  obi_req_t debug_slave_req_i,
+    output obi_rsp_t debug_slave_resp_o,
+    output obi_req_t debug_master_req_o,
+    input  obi_rsp_t debug_master_resp_i
 
 );
 
@@ -63,12 +63,12 @@ module debug_subsystem
   logic          ndmreset;
 
   obi_req_t dm_req, spi_slave_req;
-  obi_resp_t dm_resp, spi_slave_resp;
+  obi_rsp_t dm_resp, spi_slave_resp;
 
   obi_req_t tofifo_req;
-  obi_resp_t tofifo_resp;
+  obi_rsp_t tofifo_resp;
   obi_req_t [2-1:0] dbg_spi_req;
-  obi_resp_t [2-1:0] dbg_spi_resp;
+  obi_rsp_t [2-1:0] dbg_spi_resp;
 
   assign debug_ndmreset_no = ~ndmreset;
 
@@ -166,7 +166,9 @@ module debug_subsystem
 
     // 2-to-1 crossbar
     xbar_varlat_n_to_one #(
-        .XBAR_NMASTER(2)
+        .XBAR_NMASTER(2),
+        .obi_req_t(obi_req_t),
+        .obi_rsp_t(obi_rsp_t)
     ) xbar_varlat_n_to_one_i (
         .clk_i,
         .rst_ni,
@@ -176,7 +178,10 @@ module debug_subsystem
         .slave_resp_i (tofifo_resp)
     );
 
-    obi_fifo obi_fifo_i (
+    xheep_obi_fifo #(
+        .obi_req_t(obi_req_t),
+        .obi_rsp_t(obi_rsp_t)
+    ) obi_fifo_i (
         .clk_i,
         .rst_ni,
         .producer_req_i (tofifo_req),

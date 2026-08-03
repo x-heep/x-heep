@@ -38,7 +38,7 @@ generate:
   dma:
     generator: regtool
     parameters:
-      config:           data/dma.hjson
+      config:           data/xheep_dma.hjson
       name:             dma
       rtl_dir:          rtl
       sw_path:          sw/dma_regs.h

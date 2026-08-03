@@ -15,7 +15,6 @@
  */
 
 module serial_link_xheep_wrapper
-  import obi_pkg::*;
   import serial_link_minimum_axi_pkg::*;
   import axi_pkg::*;
   import serial_link_xheep_wrapper_reg_pkg::*;
@@ -23,7 +22,12 @@ module serial_link_xheep_wrapper
     parameter int MaxClkDiv = 1024,
     parameter int AddrWidth = 32,
     parameter int DataWidth = 32,
-    parameter logic [31:0] AxiAddrOffset = 32'h0
+    parameter logic [31:0] AxiAddrOffset = 32'h0,
+    // OBI and Register Interface data types
+    parameter type obi_req_t = xheep_obi_pkg::xheep_obi_req_t,
+    parameter type obi_rsp_t = xheep_obi_pkg::xheep_obi_rsp_t,
+    parameter type reg_req_t = xheep_reg_pkg::xheep_reg_req_t,
+    parameter type reg_rsp_t = xheep_reg_pkg::xheep_reg_rsp_t
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -31,20 +35,20 @@ module serial_link_xheep_wrapper
     input logic rst_reg_ni,
     input logic testmode_i,
 
-    input  obi_pkg::obi_req_t  writer_req_i,
-    output obi_pkg::obi_resp_t writer_rsp_i,
+    input  obi_req_t writer_req_i,
+    output obi_rsp_t writer_rsp_i,
 
-    input  obi_pkg::obi_req_t  reader_req_i,
-    output obi_pkg::obi_resp_t reader_resp_o,
+    input  obi_req_t reader_req_i,
+    output obi_rsp_t reader_resp_o,
 
-    input  reg_pkg::reg_req_t cfg_req_i,
-    output reg_pkg::reg_rsp_t cfg_rsp_o,
+    input  reg_req_t cfg_req_i,
+    output reg_rsp_t cfg_rsp_o,
 
-    input  reg_pkg::reg_req_t wrapper_cfg_req_i,
-    output reg_pkg::reg_rsp_t wrapper_cfg_rsp_o,
+    input  reg_req_t wrapper_cfg_req_i,
+    output reg_rsp_t wrapper_cfg_rsp_o,
 
-    output obi_pkg::obi_req_t  direct_write_req_o,
-    input  obi_pkg::obi_resp_t direct_write_resp_i,
+    output obi_req_t direct_write_req_o,
+    input  obi_rsp_t direct_write_resp_i,
 
     input logic [serial_link_minimum_axi_pkg::NumChannels-1:0] ddr_rcv_clk_i,
     output logic [serial_link_minimum_axi_pkg::NumChannels-1:0] ddr_snd_clk_o,
@@ -69,8 +73,8 @@ module serial_link_xheep_wrapper
   serial_link_xheep_wrapper_reg_pkg::serial_link_xheep_wrapper_reg2hw_t reg2hw;
 
   serial_link_xheep_wrapper_reg_top #(
-      .reg_req_t(reg_pkg::reg_req_t),
-      .reg_rsp_t(reg_pkg::reg_rsp_t)
+      .reg_req_t(reg_req_t),
+      .reg_rsp_t(reg_rsp_t)
   ) i_serial_link_xheep_wrapper_reg_top (
       .clk_i,
       .rst_ni,
@@ -213,8 +217,8 @@ module serial_link_xheep_wrapper
         .b_chan_t   (serial_link_minimum_axi_pkg::axi_b_t),
         .ar_chan_t  (serial_link_minimum_axi_pkg::axi_ar_t),
         .r_chan_t   (serial_link_minimum_axi_pkg::axi_r_t),
-        .cfg_req_t  (reg_pkg::reg_req_t),
-        .cfg_rsp_t  (reg_pkg::reg_rsp_t),
+        .cfg_req_t  (reg_req_t),
+        .cfg_rsp_t  (reg_rsp_t),
         .hw2reg_t   (serial_link_reg_pkg::serial_link_hw2reg_t),
         .reg2hw_t   (serial_link_reg_pkg::serial_link_reg2hw_t),
         .NumChannels(serial_link_minimum_axi_pkg::NumChannels),
@@ -252,8 +256,8 @@ module serial_link_xheep_wrapper
         .b_chan_t   (serial_link_minimum_axi_pkg::axi_b_t),
         .ar_chan_t  (serial_link_minimum_axi_pkg::axi_ar_t),
         .r_chan_t   (serial_link_minimum_axi_pkg::axi_r_t),
-        .cfg_req_t  (reg_pkg::reg_req_t),
-        .cfg_rsp_t  (reg_pkg::reg_rsp_t),
+        .cfg_req_t  (reg_req_t),
+        .cfg_rsp_t  (reg_rsp_t),
         .hw2reg_t   (serial_link_single_channel_reg_pkg::serial_link_single_channel_hw2reg_t),
         .reg2hw_t   (serial_link_single_channel_reg_pkg::serial_link_single_channel_reg2hw_t),
         .NumChannels(serial_link_minimum_axi_pkg::NumChannels),

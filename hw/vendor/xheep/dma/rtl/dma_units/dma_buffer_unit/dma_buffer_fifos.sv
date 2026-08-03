@@ -12,10 +12,11 @@
  *       will behave as usual, as well as the processing unit.
  */
 
-module dma_buffer_fifos
-  import fifo_pkg::*;
-#(
-    parameter int FIFO_DEPTH = 4
+module dma_buffer_fifos #(
+    parameter int FIFO_DEPTH = 4,
+    // OBI FIFO data types
+    parameter type fifo_req_t = logic,
+    parameter type fifo_resp_t = logic
 ) (
     input logic clk_i,
     input logic rst_ni,

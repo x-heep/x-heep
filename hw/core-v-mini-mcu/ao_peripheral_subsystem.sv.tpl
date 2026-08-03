@@ -8,16 +8,20 @@
 
 
 module ao_peripheral_subsystem
-  import obi_pkg::*;
-  import reg_pkg::*;
   import power_manager_pkg::*;
-  import fifo_pkg::*;
 #(
     parameter AO_SPC_NUM = 0,
     //do not touch these parameters
     parameter AO_SPC_NUM_RND = AO_SPC_NUM == 0 ? 0 : AO_SPC_NUM - 1,
     parameter EXT_DOMAINS_RND = core_v_mini_mcu_pkg::EXTERNAL_DOMAINS == 0 ? 1 : core_v_mini_mcu_pkg::EXTERNAL_DOMAINS,
-    parameter NEXT_INT_RND = core_v_mini_mcu_pkg::NEXT_INT == 0 ? 1 : core_v_mini_mcu_pkg::NEXT_INT
+    parameter NEXT_INT_RND = core_v_mini_mcu_pkg::NEXT_INT == 0 ? 1 : core_v_mini_mcu_pkg::NEXT_INT,
+    // OBI and register interface data types
+    parameter type obi_req_t = xheep_obi_pkg::xheep_obi_req_t,
+    parameter type obi_rsp_t = xheep_obi_pkg::xheep_obi_rsp_t,
+    parameter type reg_req_t = xheep_reg_pkg::xheep_reg_req_t,
+    parameter type reg_rsp_t = xheep_reg_pkg::xheep_reg_rsp_t,
+    parameter type fifo_req_t = xheep_fifo_pkg::xheep_fifo_req_t,
+    parameter type fifo_rsp_t = xheep_fifo_pkg::xheep_fifo_rsp_t
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -37,7 +41,7 @@ module ao_peripheral_subsystem
 
     // Memory Map SPI Region
     input  obi_req_t  spimemio_req_i,
-    output obi_resp_t spimemio_resp_o,
+    output obi_rsp_t  spimemio_resp_o,
 
     // SPI Interface to flash (YosysHW SPI and OpenTitan SPI multiplexed)
     output logic                               spi_flash_sck_o,
@@ -78,16 +82,16 @@ module ao_peripheral_subsystem
 
     // DMA
     output obi_req_t  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_read_req_o,
-    input  obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_read_resp_i,
+    input  obi_rsp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_read_resp_i,
     output obi_req_t  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_write_req_o,
-    input  obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_write_resp_i,
+    input  obi_rsp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_write_resp_i,
     output obi_req_t  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_addr_req_o,
-    input  obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_addr_resp_i,
+    input  obi_rsp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_addr_resp_i,
     output logic                                                      dma_done_intr_o,
     output logic                                                      dma_window_intr_o,
 
     output fifo_req_t  [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_req_o,
-    input  fifo_resp_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_resp_i,
+    input  fifo_rsp_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_resp_i,
 
     // External PADs
     output reg_req_t pad_req_o,
@@ -132,10 +136,10 @@ module ao_peripheral_subsystem
   /* NOTE: Additional xbars signals defined in the xbar generate statement */
 
   /* Peripheral register inteface */
-  reg_pkg::reg_req_t peripheral_req;
-  reg_pkg::reg_rsp_t peripheral_rsp;
-  reg_pkg::reg_req_t [core_v_mini_mcu_pkg::AO_PERIPHERALS-1:0] ao_peripheral_slv_req;
-  reg_pkg::reg_rsp_t [core_v_mini_mcu_pkg::AO_PERIPHERALS-1:0] ao_peripheral_slv_rsp;
+  reg_req_t peripheral_req;
+  reg_rsp_t peripheral_rsp;
+  reg_req_t [core_v_mini_mcu_pkg::AO_PERIPHERALS-1:0] ao_peripheral_slv_req;
+  reg_rsp_t [core_v_mini_mcu_pkg::AO_PERIPHERALS-1:0] ao_peripheral_slv_rsp;
   logic [AO_PERIPHERALS_PORT_SEL_WIDTH-1:0] peripheral_select;
 
   tlul_pkg::tl_h2d_t rv_timer_tl_h2d;
@@ -156,8 +160,8 @@ module ao_peripheral_subsystem
   power_manager_out_t dma_subsystem_pwr_ctrl[core_v_mini_mcu_pkg::DMA_CH_NUM-1:0];
   logic [DMA_GLOBAL_TRIGGER_SLOT_NUM-1:0] dma_global_trigger_slots;
   logic [DMA_EXT_TRIGGER_SLOT_NUM-1:0] dma_ext_trigger_slots;
-  obi_pkg::obi_req_t slave_fifoout_req;
-  obi_pkg::obi_resp_t slave_fifoout_resp;
+  obi_req_t slave_fifoout_req;
+  obi_rsp_t slave_fifoout_resp;
   reg_req_t perconv2regdemux_req;
   reg_rsp_t regdemux2perconv_resp;
   dma_reg_pkg::dma_hw2reg_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] external_dma_hw2reg;
@@ -207,7 +211,10 @@ module ao_peripheral_subsystem
   /* Module instantiation */
 
   /* System bus to AO OBI FIFO */
-  obi_fifo obi_fifo_i (
+  xheep_obi_fifo #(
+    .obi_req_t(obi_req_t),
+    .obi_rsp_t(obi_rsp_t)
+  ) obi_fifo_i (
       .clk_i,
       .rst_ni,
       .producer_req_i (slave_req_i),
@@ -218,8 +225,8 @@ module ao_peripheral_subsystem
 
   /* Peripheral to register interface converter*/
   periph_to_reg #(
-      .req_t(reg_pkg::reg_req_t),
-      .rsp_t(reg_pkg::reg_rsp_t),
+      .req_t(reg_req_t),
+      .rsp_t(reg_rsp_t),
       .IW(1)
   ) periph_to_reg_i (
       .clk_i,
@@ -256,8 +263,8 @@ module ao_peripheral_subsystem
 
       reg_mux #(
           .NoPorts(AO_SPC_NUM + 1),
-          .req_t  (reg_pkg::reg_req_t),
-          .rsp_t  (reg_pkg::reg_rsp_t),
+          .req_t  (reg_req_t),
+          .rsp_t  (reg_rsp_t),
           .AW     (32),
           .DW     (32)
       ) reg_mux_i (
@@ -295,8 +302,8 @@ module ao_peripheral_subsystem
   /* Register demux */
   reg_demux #(
       .NoPorts(core_v_mini_mcu_pkg::AO_PERIPHERALS),
-      .req_t  (reg_pkg::reg_req_t),
-      .rsp_t  (reg_pkg::reg_rsp_t)
+      .req_t  (reg_req_t),
+      .rsp_t  (reg_rsp_t)
   ) reg_demux_i (
       .clk_i,
       .rst_ni,
@@ -308,8 +315,8 @@ module ao_peripheral_subsystem
   );
 
   soc_ctrl #(
-      .reg_req_t(reg_pkg::reg_req_t),
-      .reg_rsp_t(reg_pkg::reg_rsp_t)
+      .reg_req_t(reg_req_t),
+      .reg_rsp_t(reg_rsp_t)
   ) soc_ctrl_i (
       .clk_i,
       .rst_ni,
@@ -324,14 +331,23 @@ module ao_peripheral_subsystem
   );
 
   /* Boot ROM */
-  boot_rom boot_rom_i (
+  boot_rom #(
+    .reg_req_t(reg_req_t),
+    .reg_rsp_t(reg_rsp_t)
+  ) boot_rom_i (
       .reg_req_i(ao_peripheral_slv_req[core_v_mini_mcu_pkg::BOOTROM_IDX]),
       .reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::BOOTROM_IDX])
   );
 
 % if base_peripheral_domain.contains_peripheral('spi_flash'):
   /* SPI subsystem */
-  spi_subsystem spi_subsystem_i (
+  spi_subsystem #(
+    .DMA_CH_NUM(core_v_mini_mcu_pkg::DMA_CH_NUM),
+    .obi_req_t(obi_req_t),
+    .obi_rsp_t(obi_rsp_t),
+    .reg_req_t(reg_req_t),
+    .reg_rsp_t(reg_rsp_t)
+  ) spi_subsystem_i (
       .clk_i,
       .rst_ni,
       .use_spimemio_i(use_spimemio),
@@ -381,8 +397,8 @@ module ao_peripheral_subsystem
 
   /* Power manager */
   power_manager #(
-      .reg_req_t(reg_pkg::reg_req_t),
-      .reg_rsp_t(reg_pkg::reg_rsp_t)
+      .reg_req_t(reg_req_t),
+      .reg_rsp_t(reg_rsp_t)
   ) power_manager_i (
       .clk_i,
       .rst_ni,
@@ -403,8 +419,8 @@ module ao_peripheral_subsystem
   );
 
   reg_to_tlul #(
-      .req_t(reg_pkg::reg_req_t),
-      .rsp_t(reg_pkg::reg_rsp_t),
+      .req_t(reg_req_t),
+      .rsp_t(reg_rsp_t),
       .tl_h2d_t(tlul_pkg::tl_h2d_t),
       .tl_d2h_t(tlul_pkg::tl_d2h_t),
       .tl_a_user_t(tlul_pkg::tl_a_user_t),
@@ -431,12 +447,12 @@ module ao_peripheral_subsystem
 % if base_peripheral_domain.contains_peripheral('dma') and xheep.get_base_peripheral_domain().get_dma().get_is_included():
 
   dma_subsystem #(
-      .reg_req_t(reg_pkg::reg_req_t),
-      .reg_rsp_t(reg_pkg::reg_rsp_t),
-      .obi_req_t(obi_pkg::obi_req_t),
-      .obi_resp_t(obi_pkg::obi_resp_t),
-      .fifo_resp_t(fifo_pkg::fifo_resp_t),
-      .fifo_req_t(fifo_pkg::fifo_req_t),
+      .reg_req_t  (reg_req_t),
+      .reg_rsp_t  (reg_rsp_t),
+      .obi_req_t  (obi_req_t),
+      .obi_rsp_t  (obi_rsp_t),
+      .fifo_resp_t(fifo_rsp_t),
+      .fifo_req_t (fifo_req_t),
       .GLOBAL_SLOT_NUM(DMA_GLOBAL_TRIGGER_SLOT_NUM),
       .EXT_SLOT_NUM(DMA_EXT_TRIGGER_SLOT_NUM)
   ) dma_subsystem_i (
@@ -476,8 +492,8 @@ module ao_peripheral_subsystem
 % endif
 
   fast_intr_ctrl #(
-      .reg_req_t(reg_pkg::reg_req_t),
-      .reg_rsp_t(reg_pkg::reg_rsp_t)
+      .reg_req_t(reg_req_t),
+      .reg_rsp_t(reg_rsp_t)
   ) fast_intr_ctrl_i (
       .clk_i,
       .rst_ni,
@@ -490,8 +506,8 @@ module ao_peripheral_subsystem
 % if base_peripheral_domain.contains_peripheral('gpio_ao'):
   /* GPIO subsystem */
   gpio #(
-      .reg_req_t(reg_pkg::reg_req_t),
-      .reg_rsp_t(reg_pkg::reg_rsp_t)
+      .reg_req_t(reg_req_t),
+      .reg_rsp_t(reg_rsp_t)
   ) gpio_ao_i (
       .clk_i,
       .rst_ni,

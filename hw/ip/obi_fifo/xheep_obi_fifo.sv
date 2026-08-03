@@ -5,17 +5,19 @@
 //This module relies on the fact that the variable latency XBAR does not rise a new REQ if the previous one has not been granted
 
 
-module obi_fifo
-  import obi_pkg::*;
-(
+module xheep_obi_fifo #(
+    // OBI data types
+    parameter type obi_req_t = logic,
+    parameter type obi_rsp_t = logic
+) (
     input logic clk_i,
     input logic rst_ni,
 
-    input  obi_req_t  producer_req_i,
-    output obi_resp_t producer_resp_o,
+    input  obi_req_t producer_req_i,
+    output obi_rsp_t producer_resp_o,
 
-    output obi_req_t  consumer_req_o,
-    input  obi_resp_t consumer_resp_i
+    output obi_req_t consumer_req_o,
+    input  obi_rsp_t consumer_resp_i
 );
 
   typedef enum logic {

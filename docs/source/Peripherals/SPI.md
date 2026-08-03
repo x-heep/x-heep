@@ -7,9 +7,11 @@
 There are three instances of the _SPI Host IP_ in the X-HEEP platform. These will
 be defined throughout the documentation as:
 
-- SPI Host 1
-- SPI Host 2
-- SPI Flash
+- SPI Host 1 (in the peripheral subsystem)
+- SPI Host 2 (in the peripheral subsystem)
+- SPI Flash   (in the always-on peripheral subsystem)
+
+For more details on the power domain organization, see the [Architecture section](../index.html#architecture).
 
 ## Preliminary Definitions
 

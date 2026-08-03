@@ -11,9 +11,9 @@ filesets:
   files_rtl:
     files:
     - addr_map_rule_pkg.sv
-    - obi_pkg.sv
-    - reg_pkg.sv
-    - fifo_pkg.sv
+    - xheep_obi_pkg.sv
+    - xheep_reg_pkg.sv
+    - xheep_fifo_pkg.sv
     file_type: systemVerilogSource
 
 targets:

@@ -4,20 +4,23 @@
 *  SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 */
 
-module obi_to_picorv32
-  import obi_pkg::*;
-  import picorv32_pkg::*;
-(
+module obi_to_picorv32 #(
+    parameter type obi_req_t = logic,
+    parameter type obi_rsp_t = logic
+) (
     input logic clk_i,
     input logic rst_ni,
 
-    input  obi_req_t  obi_req_i,
-    output obi_resp_t obi_resp_o,
+    input  obi_req_t obi_req_i,
+    output obi_rsp_t obi_resp_o,
 
-    output picorv32_req_t  picorv32_req_o,
-    input  picorv32_resp_t picorv32_resp_i
+    output picorv32_pkg::picorv32_req_t  picorv32_req_o,
+    input  picorv32_pkg::picorv32_resp_t picorv32_resp_i
 
 );
+  // Package with type definitions
+  import picorv32_pkg::*;
+
   typedef enum logic [3:0] {
     READ_MEM = 4'b0000,
     WRITE_WORD = 4'b1111,

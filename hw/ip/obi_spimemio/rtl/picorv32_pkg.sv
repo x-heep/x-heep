@@ -19,4 +19,3 @@ package picorv32_pkg;
   } picorv32_resp_t;
 
 endpackage
-

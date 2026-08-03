@@ -4,7 +4,7 @@
 
 The microcontroller has a boot rom where the RISC-V CPU jumps to
 at reset time.
-The boot rom contains code for three different booting modesmodes:
+The boot rom contains code for three different booting modes:
 
 1. JTAG
 2. SPI Flash Execution

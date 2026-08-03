@@ -5,8 +5,8 @@
 
 
 module xilinx_core_v_mini_mcu_wrapper
-  import obi_pkg::*;
-  import reg_pkg::*;
+  import xheep_obi_pkg::*;
+  import xheep_reg_pkg::*;
 #(
     parameter CLK_LED_COUNT_LENGTH = 27
 ) (

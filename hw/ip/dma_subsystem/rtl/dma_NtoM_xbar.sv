@@ -20,26 +20,30 @@
 
 module dma_NtoM_xbar #(
     parameter int unsigned XBAR_NMASTER = 4,
-    parameter int unsigned XBAR_MSLAVE  = 2
+    parameter int unsigned XBAR_MSLAVE = 2,
+    // OBI data types
+    parameter type obi_req_t = xheep_obi_pkg::xheep_obi_req_t,
+    parameter type obi_rsp_t = xheep_obi_pkg::xheep_obi_rsp_t
 ) (
     input logic clk_i,
     input logic rst_ni,
 
     // Master ports
-    input  obi_pkg::obi_req_t  [XBAR_NMASTER-1:0] master_req_i,
-    output obi_pkg::obi_resp_t [XBAR_NMASTER-1:0] master_resp_o,
+    input  obi_req_t [XBAR_NMASTER-1:0] master_req_i,
+    output obi_rsp_t [XBAR_NMASTER-1:0] master_resp_o,
 
     // slave ports
-    output obi_pkg::obi_req_t  [XBAR_MSLAVE-1:0] slave_req_o,
-    input  obi_pkg::obi_resp_t [XBAR_MSLAVE-1:0] slave_resp_i
+    output obi_req_t [XBAR_MSLAVE-1:0] slave_req_o,
+    input  obi_rsp_t [XBAR_MSLAVE-1:0] slave_resp_i
 );
-  import obi_pkg::*;
   import core_v_mini_mcu_pkg::*;
 
   /* Generation of the crossbars */
   generate
     xbar_varlat_n_to_one #(
-        .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_XBAR_MASTERS[0])
+        .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_XBAR_MASTERS[0]),
+        .obi_req_t(obi_req_t),
+        .obi_rsp_t(obi_rsp_t)
     ) xbar_i (
         .clk_i(clk_i),
         .rst_ni(rst_ni),
@@ -55,7 +59,9 @@ module dma_NtoM_xbar #(
         assign master_resp_o[i+core_v_mini_mcu_pkg::DMA_XBAR_MASTERS[0]-1] = slave_resp_i[i];
       end else begin : gen_xbar_multi_channel
         xbar_varlat_n_to_one #(
-            .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_XBAR_MASTERS[i])
+            .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_XBAR_MASTERS[i]),
+            .obi_req_t(obi_req_t),
+            .obi_rsp_t(obi_rsp_t)
         ) xbar_i (
             .clk_i(clk_i),
             .rst_ni(rst_ni),

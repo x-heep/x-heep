@@ -16,7 +16,14 @@ import UPF::*;
 module testharness #(
     parameter bit JTAG_DPI                    = 0,
     parameter bit USE_EXTERNAL_DEVICE_EXAMPLE = 1,
-    parameter     CLK_FREQUENCY               = 'd100_000  //KHz
+    parameter     CLK_FREQUENCY               = 'd100_000,  //KHz
+    // OBI and Register Interface data types
+    parameter type obi_req_t = xheep_obi_pkg::xheep_obi_req_t,
+    parameter type obi_rsp_t = xheep_obi_pkg::xheep_obi_rsp_t,
+    parameter type reg_req_t = xheep_reg_pkg::xheep_reg_req_t,
+    parameter type reg_rsp_t = xheep_reg_pkg::xheep_reg_rsp_t,
+    parameter type fifo_req_t = xheep_fifo_pkg::xheep_fifo_req_t,
+    parameter type fifo_rsp_t = xheep_fifo_pkg::xheep_fifo_rsp_t
 ) (
 `ifdef VERILATOR
     input  wire         clk_i,
@@ -54,9 +61,6 @@ module testharness #(
 
   `include "tb_util.svh"
 
-  import obi_pkg::*;
-  import reg_pkg::*;
-  import fifo_pkg::*;
   import testharness_pkg::*;
   import addr_map_rule_pkg::*;
   import core_v_mini_mcu_pkg::*;
@@ -145,27 +149,27 @@ module testharness #(
   logic [EXT_PERIPHERALS_PORT_SEL_WIDTH-1:0] ext_periph_select;
   obi_req_t [EXT_XBAR_NMASTER_RND-1:0] ext_master_req;
   obi_req_t [EXT_XBAR_NMASTER_RND-1:0] heep_slave_req;
-  obi_resp_t [EXT_XBAR_NMASTER_RND-1:0] ext_master_resp;
-  obi_resp_t [EXT_XBAR_NMASTER_RND-1:0] heep_slave_resp;
+  obi_rsp_t [EXT_XBAR_NMASTER_RND-1:0] ext_master_resp;
+  obi_rsp_t [EXT_XBAR_NMASTER_RND-1:0] heep_slave_resp;
   obi_req_t heep_core_instr_req;
-  obi_resp_t heep_core_instr_resp;
+  obi_rsp_t heep_core_instr_resp;
   obi_req_t heep_core_data_req;
-  obi_resp_t heep_core_data_resp;
+  obi_rsp_t heep_core_data_resp;
   obi_req_t heep_debug_master_req;
-  obi_resp_t heep_debug_master_resp;
+  obi_rsp_t heep_debug_master_resp;
   obi_req_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_read_req;
-  obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_read_resp;
+  obi_rsp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_read_resp;
   obi_req_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_write_req;
-  obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_write_resp;
+  obi_rsp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_write_resp;
   obi_req_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_addr_req;
-  obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_addr_resp;
+  obi_rsp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] heep_dma_addr_resp;
   obi_req_t [EXT_XBAR_NSLAVE-1:0] ext_slave_req;
-  obi_resp_t [EXT_XBAR_NSLAVE-1:0] ext_slave_resp;
+  obi_rsp_t [EXT_XBAR_NSLAVE-1:0] ext_slave_resp;
   reg_req_t periph_slave_req;
   reg_rsp_t periph_slave_rsp;
 
   fifo_req_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_req;
-  fifo_resp_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_resp;
+  fifo_rsp_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_resp;
 
   wire [serial_link_single_channel_reg_pkg::NumChannels-1:0] ddr_clk_o_xheep;
   wire [serial_link_single_channel_reg_pkg::NumChannels-1:0] ddr_clk_i_xheep;
@@ -183,8 +187,8 @@ module testharness #(
   assign gpio[6] = ddr_i_xheep[0][3];
   %endif
 
-  reg_pkg::reg_req_t [testharness_pkg::EXT_NPERIPHERALS-1:0] ext_periph_slv_req;
-  reg_pkg::reg_rsp_t [testharness_pkg::EXT_NPERIPHERALS-1:0] ext_periph_slv_rsp;
+  reg_req_t [testharness_pkg::EXT_NPERIPHERALS-1:0] ext_periph_slv_req;
+  reg_rsp_t [testharness_pkg::EXT_NPERIPHERALS-1:0] ext_periph_slv_rsp;
 
   // External interrupts
   logic [NEXT_INT_RND-1:0] intr_vector_ext;
@@ -273,7 +277,13 @@ module testharness #(
   // X-HEEP system instance
   x_heep_system #(
       .EXT_XBAR_NMASTER(HEEP_EXT_XBAR_NMASTER),
-      .AO_SPC_NUM(AO_SPC_NUM)
+      .AO_SPC_NUM(AO_SPC_NUM),
+      .obi_req_t(obi_req_t),
+      .obi_rsp_t(obi_rsp_t),
+      .reg_req_t(reg_req_t),
+      .reg_rsp_t(reg_rsp_t),
+      .fifo_req_t(fifo_req_t),
+      .fifo_rsp_t(fifo_rsp_t)
   ) x_heep_system_i (
       .clk_i(clk),
       .rst_ni(rst_n),
@@ -394,7 +404,9 @@ module testharness #(
   // the corresponding X-HEEP slave port (to the internal system bus).
   ext_bus #(
       .EXT_XBAR_NMASTER(EXT_XBAR_NMASTER),
-      .EXT_XBAR_NSLAVE (EXT_XBAR_NSLAVE)
+      .EXT_XBAR_NSLAVE (EXT_XBAR_NSLAVE),
+      .obi_req_t(obi_req_t),
+      .obi_rsp_t(obi_rsp_t)
   ) ext_bus_i (
       .clk_i                   (clk_i),
       .rst_ni                  (rst_ni),
@@ -475,7 +487,7 @@ module testharness #(
 
   // External xbar slave example port
   obi_req_t  [EXT_XBAR_NSLAVE-1:0] slow_ram_slave_req;
-  obi_resp_t [EXT_XBAR_NSLAVE-1:0] slow_ram_slave_resp;
+  obi_rsp_t [EXT_XBAR_NSLAVE-1:0] slow_ram_slave_resp;
 
 `ifndef SIM_SYSTEMC
 
@@ -488,7 +500,7 @@ module testharness #(
 `else
 
   obi_req_t  ext_systemc_req;
-  obi_resp_t ext_systemc_resp;
+  obi_rsp_t ext_systemc_resp;
 
   assign ext_systemc_req_req_o            = ext_systemc_req.req;
   assign ext_systemc_req_we_o             = ext_systemc_req.we;
@@ -549,13 +561,13 @@ module testharness #(
 
       // External peripheral example with master port to access memory
       dma #(
-          .reg_req_t (reg_pkg::reg_req_t),
-          .reg_rsp_t (reg_pkg::reg_rsp_t),
-          .obi_req_t (obi_pkg::obi_req_t),
-          .obi_resp_t(obi_pkg::obi_resp_t),
-          .fifo_resp_t(fifo_pkg::fifo_resp_t),
-          .fifo_req_t(fifo_pkg::fifo_req_t),
-          .SLOT_NUM  (DMA_TRIGGER_SLOT_NUM)
+          .reg_req_t  (reg_req_t),
+          .reg_rsp_t  (reg_rsp_t),
+          .obi_req_t  (obi_req_t),
+          .obi_resp_t (obi_rsp_t),
+          .fifo_resp_t(fifo_rsp_t),
+          .fifo_req_t (fifo_req_t),
+          .SLOT_NUM   (DMA_TRIGGER_SLOT_NUM)
       ) dma_i (
           .clk_i,
           .rst_ni,
@@ -580,7 +592,12 @@ module testharness #(
           .dma_done_o()
       );
 
-      dlc dlc_i (
+      dlc #(
+        .reg_req_t (reg_req_t),
+        .reg_rsp_t (reg_rsp_t),
+        .fifo_req_t(fifo_req_t),
+        .fifo_rsp_t(fifo_rsp_t)
+      ) dlc_i (
           .clk_i(clk_i),
           .rst_ni(rst_ni),
           .dlc_done_o(dlc_done),
@@ -606,10 +623,10 @@ module testharness #(
       end
 
       simple_accelerator #(
-          .reg_req_t (reg_pkg::reg_req_t),
-          .reg_rsp_t (reg_pkg::reg_rsp_t),
-          .obi_req_t (obi_pkg::obi_req_t),
-          .obi_resp_t(obi_pkg::obi_resp_t)
+          .reg_req_t (reg_req_t),
+          .reg_rsp_t (reg_rsp_t),
+          .obi_req_t (obi_req_t),
+          .obi_rsp_t(obi_rsp_t)
       ) simple_accelerator_i (
           .clk_i(simple_acc_clk),
           .rst_ni(simple_acc_rst_n),
@@ -621,7 +638,10 @@ module testharness #(
           .acc_write_ch0_resp_i(ext_master_resp[testharness_pkg::EXT_MASTER3_IDX])
       );
 
-      im2col_spc im2col_spc_i (
+      im2col_spc #(
+        .reg_req_t(reg_req_t),
+        .reg_rsp_t(reg_rsp_t)
+      ) im2col_spc_i (
           .clk_i,
           .rst_ni,
 
@@ -637,8 +657,8 @@ module testharness #(
 
       // AMS external peripheral
       ams #(
-          .reg_req_t(reg_pkg::reg_req_t),
-          .reg_rsp_t(reg_pkg::reg_rsp_t)
+          .reg_req_t(reg_req_t),
+          .reg_rsp_t(reg_rsp_t)
       ) ams_i (
           .clk_i,
           .rst_ni,
@@ -648,8 +668,8 @@ module testharness #(
 
       // InterFaced FIFO (IFFIFO) external peripheral
       iffifo #(
-          .reg_req_t(reg_pkg::reg_req_t),
-          .reg_rsp_t(reg_pkg::reg_rsp_t)
+          .reg_req_t(reg_req_t),
+          .reg_rsp_t(reg_rsp_t)
       ) iffifo_i (
           .clk_i,
           .rst_ni,
@@ -679,8 +699,8 @@ module testharness #(
 
       reg_demux #(
           .NoPorts(testharness_pkg::EXT_NPERIPHERALS),
-          .req_t  (reg_pkg::reg_req_t),
-          .rsp_t  (reg_pkg::reg_rsp_t)
+          .req_t  (reg_req_t),
+          .rsp_t  (reg_rsp_t)
       ) reg_demux_i (
           .clk_i,
           .rst_ni,
@@ -760,7 +780,9 @@ module testharness #(
       // ------------
       if ((core_v_mini_mcu_pkg::CpuType == cv32e40x || core_v_mini_mcu_pkg::CpuType == cv32e40px || core_v_mini_mcu_pkg::CpuType == cv32e20) && ${"1" if xif != None else "0"} && (QUADRILATERO != 0)) begin: gen_quadrilatero_wrapper
         quadrilatero_wrapper #(
-            .MATRIX_FPU(0)
+            .MATRIX_FPU(0),
+            .obi_req_t (obi_req_t),
+            .obi_resp_t(obi_rsp_t)
         ) quadrilatero_wrapper_i (
             .clk_i,
             .rst_ni,

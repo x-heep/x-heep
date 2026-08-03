@@ -7,7 +7,7 @@ module simple_accelerator #(
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic,
     parameter type obi_req_t = logic,
-    parameter type obi_resp_t = logic
+    parameter type obi_rsp_t = logic
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -15,11 +15,11 @@ module simple_accelerator #(
     input  reg_req_t reg_req_i,
     output reg_rsp_t reg_rsp_o,
 
-    output obi_req_t  acc_read_ch0_req_o,
-    input  obi_resp_t acc_read_ch0_resp_i,
+    output obi_req_t acc_read_ch0_req_o,
+    input  obi_rsp_t acc_read_ch0_resp_i,
 
-    output obi_req_t  acc_write_ch0_req_o,
-    input  obi_resp_t acc_write_ch0_resp_i
+    output obi_req_t acc_write_ch0_req_o,
+    input  obi_rsp_t acc_write_ch0_resp_i
 
 );
 

@@ -200,7 +200,9 @@ module dma
 
   /* Buffer unit */
   dma_buffer_unit #(
-      .FIFO_DEPTH(FIFO_DEPTH)
+      .FIFO_DEPTH(FIFO_DEPTH),
+      .fifo_req_t(fifo_req_t),
+      .fifo_resp_t(fifo_resp_t)
   ) dma_buffer_unit_i (
       .clk_i(clk_cg),
       .rst_ni,

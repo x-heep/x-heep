@@ -13,7 +13,8 @@ using namespace std;
 #include "tlm_utils/simple_target_socket.h"
 
 
-// Target module representing a simple direct mapped cache
+// MainMemory: the TLM-2 target behind the cache -- a plain word-addressable RAM
+// reached over b_transport by CacheMemoryController on a miss/bypass/writeback.
 SC_MODULE(MainMemory)
 {
   // TLM-2 socket, defaults to 32-bits wide, base protocol

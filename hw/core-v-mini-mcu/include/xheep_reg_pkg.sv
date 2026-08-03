@@ -13,7 +13,7 @@
  *
  */
 
-package reg_pkg;
+package xheep_reg_pkg;
 
   typedef struct packed {
     logic        valid;
@@ -21,12 +21,12 @@ package reg_pkg;
     logic [3:0]  wstrb;
     logic [31:0] addr;
     logic [31:0] wdata;
-  } reg_req_t;
+  } xheep_reg_req_t;
 
   typedef struct packed {
     logic        error;
     logic        ready;
     logic [31:0] rdata;
-  } reg_rsp_t;
+  } xheep_reg_rsp_t;
 
 endpackage

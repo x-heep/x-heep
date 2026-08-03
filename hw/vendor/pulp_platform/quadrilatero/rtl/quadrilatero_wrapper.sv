@@ -11,11 +11,12 @@
 module quadrilatero_wrapper
   import quadrilatero_pkg::*;
   import xif_pkg::*;
-  import obi_pkg::*;
 #(
     parameter INPUT_BUFFER_DEPTH = 4,
     parameter RES_IF_FIFO_DEPTH  = 4,
-    parameter MATRIX_FPU         = 1
+    parameter MATRIX_FPU         = 1,
+    parameter type obi_req_t = logic,
+    parameter type obi_resp_t = logic
 ) (
     // Clock and Reset
     input logic clk_i,
@@ -29,7 +30,7 @@ module quadrilatero_wrapper
     if_xif.coproc_mem_result xif_mem_result_if,
     if_xif.coproc_result     xif_result_if,
 
-    // OBI signals 
+    // OBI signals
     output obi_req_t  quadrilatero_ch0_req_o,
     input  obi_resp_t quadrilatero_ch0_resp_i,
     output obi_req_t  quadrilatero_ch1_req_o,
@@ -104,7 +105,10 @@ module quadrilatero_wrapper
 
 
   // Bridge to OBI
-  quadrilatero_to_obi bridge_inst (
+  quadrilatero_to_obi #(
+    .obi_req_t(obi_req_t),
+    .obi_resp_t(obi_resp_t)
+  ) bridge_inst (
       // Clock and Reset
       .clk_i,
       .rst_ni,

@@ -8,18 +8,20 @@
 // Description: N-to-1 crossbar
 
 module xbar_varlat_n_to_one #(
-    parameter int unsigned XBAR_NMASTER = 2
+    parameter int unsigned XBAR_NMASTER = 2,
+    parameter type         obi_req_t    = logic,
+    parameter type         obi_rsp_t    = logic
 ) (
     input logic clk_i,
     input logic rst_ni,
 
     // Master ports
-    input  obi_pkg::obi_req_t  [XBAR_NMASTER-1:0] master_req_i,
-    output obi_pkg::obi_resp_t [XBAR_NMASTER-1:0] master_resp_o,
+    input  obi_req_t [XBAR_NMASTER-1:0] master_req_i,
+    output obi_rsp_t [XBAR_NMASTER-1:0] master_resp_o,
 
     // Slave port
-    output obi_pkg::obi_req_t  slave_req_o,
-    input  obi_pkg::obi_resp_t slave_resp_i
+    output obi_req_t slave_req_o,
+    input  obi_rsp_t slave_resp_i
 );
   // ARCHITECTURE
   // ------------

@@ -19,7 +19,6 @@ filesets:
     - pulp-platform.org::axi:0.39.8
     - pulp-platform.org::riscv_dbg
     - pulp-platform.org::register_interface
-    - pulp-platform.org::serial_link
     - openhwgroup.org:ip:soc_ctrl
     - lowrisc:ip:uart:0.1
     - lowrisc:ip:rv_plic_example:0.1
@@ -407,6 +406,8 @@ targets:
     - USE_UPF
     - REMOVE_OBI_FIFO
     - SIM_SYSTEMC=true
+    - COMMON_CELLS_ASSERTS_OFF
+    - ASSERTS_OFF
     hooks:
       pre_run:
         - remove_uart_log
@@ -418,14 +419,13 @@ targets:
         verilator_options:
           - '--sc'
           - '--trace'
-          - '--trace-fst'
           - '--trace-structs'
           - '--trace-params'
           - '--trace-max-array 1024'
           - '--x-assign unique'
           - '--x-initial unique'
           - '--exe tb_sc_top.cpp'
-          - '-CFLAGS "-Wall -fpermissive"'
+          - '-CFLAGS "-Wall -std=c++14 -fpermissive"'
           - '-LDFLAGS "-pthread -lutil -lelf"'
           - "-Wall"
 

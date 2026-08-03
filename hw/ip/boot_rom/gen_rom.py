@@ -41,9 +41,10 @@ license = """\
 """
 
 module = """\
-module $filename
-  import reg_pkg::*;
-(
+module $filename #(
+  parameter type reg_req_t = logic,
+  parameter type reg_rsp_t = logic
+) (
   input  reg_req_t     reg_req_i,
   output reg_rsp_t     reg_rsp_o
 );

@@ -22,35 +22,37 @@
 %>
 
 module system_bus
-  import obi_pkg::*;
   import addr_map_rule_pkg::*;
 #(
     parameter NUM_BANKS = 2,
     parameter EXT_XBAR_NMASTER = 0,
     //do not touch these parameters
-    parameter EXT_XBAR_NMASTER_RND = EXT_XBAR_NMASTER == 0 ? 1 : EXT_XBAR_NMASTER
+    parameter EXT_XBAR_NMASTER_RND = EXT_XBAR_NMASTER == 0 ? 1 : EXT_XBAR_NMASTER,
+    // OBI and data types
+    parameter type obi_req_t = xheep_obi_pkg::xheep_obi_req_t,
+    parameter type obi_rsp_t = xheep_obi_pkg::xheep_obi_rsp_t
 ) (
     input logic clk_i,
     input logic rst_ni,
 
     // Internal master ports
-    input  obi_req_t  core_instr_req_i,
-    output obi_resp_t core_instr_resp_o,
+    input  obi_req_t core_instr_req_i,
+    output obi_rsp_t core_instr_resp_o,
 
-    input  obi_req_t  core_data_req_i,
-    output obi_resp_t core_data_resp_o,
+    input  obi_req_t core_data_req_i,
+    output obi_rsp_t core_data_resp_o,
 
-    input  obi_req_t  debug_master_req_i,
-    output obi_resp_t debug_master_resp_o,
+    input  obi_req_t debug_master_req_i,
+    output obi_rsp_t debug_master_resp_o,
 
-    input  obi_req_t  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_read_req_i,
-    output obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_read_resp_o,
+    input  obi_req_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_read_req_i,
+    output obi_rsp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_read_resp_o,
 
-    input  obi_req_t  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_write_req_i,
-    output obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_write_resp_o,
+    input  obi_req_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_write_req_i,
+    output obi_rsp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_write_resp_o,
 
-    input  obi_req_t  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_addr_req_i,
-    output obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_addr_resp_o,
+    input  obi_req_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_addr_req_i,
+    output obi_rsp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_addr_resp_o,
 
     % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
     // Serial Link direct write master port
@@ -59,25 +61,25 @@ module system_bus
     % endif
 
     // External master ports
-    input  obi_req_t  [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_req_i,
-    output obi_resp_t [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_resp_o,
+    input  obi_req_t [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_req_i,
+    output obi_rsp_t [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_resp_o,
 
     // Internal slave ports
-    output obi_req_t  [NUM_BANKS-1:0] ram_req_o,
-    input  obi_resp_t [NUM_BANKS-1:0] ram_resp_i,
+    output obi_req_t [NUM_BANKS-1:0] ram_req_o,
+    input  obi_rsp_t [NUM_BANKS-1:0] ram_resp_i,
 
-    output obi_req_t  debug_slave_req_o,
-    input  obi_resp_t debug_slave_resp_i,
+    output obi_req_t debug_slave_req_o,
+    input  obi_rsp_t debug_slave_resp_i,
 
-    output obi_req_t  ao_peripheral_slave_req_o,
-    input  obi_resp_t ao_peripheral_slave_resp_i,
+    output obi_req_t ao_peripheral_slave_req_o,
+    input  obi_rsp_t ao_peripheral_slave_resp_i,
 
 
-    output obi_req_t  peripheral_slave_req_o,
-    input  obi_resp_t peripheral_slave_resp_i,
+    output obi_req_t peripheral_slave_req_o,
+    input  obi_rsp_t peripheral_slave_resp_i,
 
-    output obi_req_t  flash_mem_slave_req_o,
-    input  obi_resp_t flash_mem_slave_resp_i,
+    output obi_req_t flash_mem_slave_req_o,
+    input  obi_rsp_t flash_mem_slave_resp_i,
 
     % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
     output obi_req_t  serial_link_slave_req_o,
@@ -85,46 +87,46 @@ module system_bus
     % endif
 
     // External slave ports
-    output obi_req_t  ext_core_instr_req_o,
-    input  obi_resp_t ext_core_instr_resp_i,
+    output obi_req_t ext_core_instr_req_o,
+    input  obi_rsp_t ext_core_instr_resp_i,
 
-    output obi_req_t  ext_core_data_req_o,
-    input  obi_resp_t ext_core_data_resp_i,
+    output obi_req_t ext_core_data_req_o,
+    input  obi_rsp_t ext_core_data_resp_i,
 
-    output obi_req_t  ext_debug_master_req_o,
-    input  obi_resp_t ext_debug_master_resp_i,
+    output obi_req_t ext_debug_master_req_o,
+    input  obi_rsp_t ext_debug_master_resp_i,
 
-    output obi_req_t  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_read_req_o,
-    input  obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_read_resp_i,
+    output obi_req_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_read_req_o,
+    input  obi_rsp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_read_resp_i,
 
-    output obi_req_t  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_write_req_o,
-    input  obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_write_resp_i,
+    output obi_req_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_write_req_o,
+    input  obi_rsp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_write_resp_i,
 
-    output obi_req_t  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_addr_req_o,
-    input  obi_resp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_addr_resp_i
+    output obi_req_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_addr_req_o,
+    input  obi_rsp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] ext_dma_addr_resp_i
 );
 
   import core_v_mini_mcu_pkg::*;
 
   // Internal master ports
   obi_req_t [core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER-1:0] int_master_req;
-  obi_resp_t [core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER-1:0] int_master_resp;
+  obi_rsp_t [core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER-1:0] int_master_resp;
 
   // Internal + external master ports
   obi_req_t [core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER+EXT_XBAR_NMASTER-1:0] master_req;
-  obi_resp_t [core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER+EXT_XBAR_NMASTER-1:0] master_resp;
+  obi_rsp_t [core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER+EXT_XBAR_NMASTER-1:0] master_resp;
 
   // Internal slave ports
   obi_req_t [core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE-1:0] int_slave_req;
-  obi_resp_t [core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE-1:0] int_slave_resp;
+  obi_rsp_t [core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE-1:0] int_slave_resp;
 
   // Error slave ports  
   obi_req_t error_slave_req;
-  obi_resp_t error_slave_resp;
+  obi_rsp_t error_slave_resp;
 
   // Forward crossbars ports
   obi_req_t [core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER-1:0][1:0] demux_xbar_req;
-  obi_resp_t [core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER-1:0][1:0] demux_xbar_resp;
+  obi_rsp_t [core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER-1:0][1:0] demux_xbar_resp;
 
   // Dummy external master port (to prevent unused warning)
   obi_req_t [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_req_unused;
@@ -265,7 +267,9 @@ module system_bus
     for (genvar i = 0; unsigned'(i) < SYSTEM_XBAR_NMASTER; i++) begin : gen_demux_xbar
       xbar_varlat_one_to_n #(
           .XBAR_NSLAVE (32'd2), // internal crossbar + external crossbar
-          .NUM_RULES   (32'd1) // only the external address space is defined
+          .NUM_RULES   (32'd1), // only the external address space is defined
+          .obi_req_t     (obi_req_t),
+          .obi_rsp_t     (obi_rsp_t)
       ) demux_xbar_i (
           .clk_i        (clk_i),
           .rst_ni       (rst_ni),
@@ -283,7 +287,9 @@ module system_bus
   // ------------------------
   system_xbar #(
       .XBAR_NMASTER(core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER + EXT_XBAR_NMASTER),
-      .XBAR_NSLAVE (core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE)
+      .XBAR_NSLAVE (core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE),
+      .obi_req_t(obi_req_t),
+      .obi_rsp_t(obi_rsp_t)
   ) system_xbar_i (
       .clk_i(clk_i),
       .rst_ni(rst_ni),

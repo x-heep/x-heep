@@ -9,9 +9,11 @@
  * Info: Register interface ontroller to comunicate with the AOPB.
  */
 
-module im2col_spc_regintfc_controller
-  import reg_pkg::*;
-(
+module im2col_spc_regintfc_controller #(
+    // Register interface data types
+    parameter type reg_req_t = logic,
+    parameter type reg_rsp_t = logic
+) (
     input logic clk_i,
     input logic rst_ni,
     input logic [31:0] addr_i,

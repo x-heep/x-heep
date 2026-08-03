@@ -6,12 +6,14 @@
   user_peripheral_domain = xheep.get_user_peripheral_domain()
 %>
 
-module peripheral_subsystem
-  import obi_pkg::*;
-  import reg_pkg::*;
-#(
+module peripheral_subsystem #(
     //do not touch these parameters
-    parameter NEXT_INT_RND         = core_v_mini_mcu_pkg::NEXT_INT == 0 ? 1 : core_v_mini_mcu_pkg::NEXT_INT
+    parameter NEXT_INT_RND         = core_v_mini_mcu_pkg::NEXT_INT == 0 ? 1 : core_v_mini_mcu_pkg::NEXT_INT,
+    // OBI and Register Interface data types
+    parameter type obi_req_t = xheep_obi_pkg::xheep_obi_req_t,
+    parameter type obi_rsp_t = xheep_obi_pkg::xheep_obi_rsp_t,
+    parameter type reg_req_t = xheep_reg_pkg::xheep_reg_req_t,
+    parameter type reg_rsp_t = xheep_reg_pkg::xheep_reg_rsp_t
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -20,7 +22,7 @@ module peripheral_subsystem
     input logic clk_gate_en_ni,
 
     input  obi_req_t  slave_req_i,
-    output obi_resp_t slave_resp_o,
+    output obi_rsp_t slave_resp_o,
 
     //PLIC
     input  logic [NEXT_INT_RND-1:0] intr_vector_ext_i,
@@ -112,11 +114,11 @@ module peripheral_subsystem
   import tlul_pkg::*;
   import rv_plic_reg_pkg::*;
 
-  reg_pkg::reg_req_t peripheral_req;
-  reg_pkg::reg_rsp_t peripheral_rsp;
+  reg_req_t peripheral_req;
+  reg_rsp_t peripheral_rsp;
 
-  reg_pkg::reg_req_t [core_v_mini_mcu_pkg::PERIPHERALS_RND-1:0] peripheral_slv_req;
-  reg_pkg::reg_rsp_t [core_v_mini_mcu_pkg::PERIPHERALS_RND-1:0] peripheral_slv_rsp;
+  reg_req_t [core_v_mini_mcu_pkg::PERIPHERALS_RND-1:0] peripheral_slv_req;
+  reg_rsp_t [core_v_mini_mcu_pkg::PERIPHERALS_RND-1:0] peripheral_slv_rsp;
 
   tlul_pkg::tl_h2d_t plic_tl_h2d;
   tlul_pkg::tl_d2h_t plic_tl_d2h;
@@ -209,8 +211,8 @@ module peripheral_subsystem
   //Address Decoder
   logic [PERIPHERALS_PORT_SEL_WIDTH-1:0] peripheral_select;
 
-  obi_pkg::obi_req_t slave_fifo_req_sel;
-  obi_pkg::obi_resp_t slave_fifo_resp_sel;
+  obi_req_t slave_fifo_req_sel;
+  obi_rsp_t slave_fifo_resp_sel;
 
   // Clock-gating
   logic clk_cg;
@@ -229,13 +231,16 @@ module peripheral_subsystem
 
 `else
 
-  obi_pkg::obi_req_t slave_fifoin_req;
-  obi_pkg::obi_resp_t slave_fifoin_resp;
+  obi_req_t slave_fifoin_req;
+  obi_rsp_t slave_fifoin_resp;
 
-  obi_pkg::obi_req_t slave_fifoout_req;
-  obi_pkg::obi_resp_t slave_fifoout_resp;
+  obi_req_t slave_fifoout_req;
+  obi_rsp_t slave_fifoout_resp;
 
-  obi_fifo obi_fifo_i (
+  xheep_obi_fifo #(
+    .obi_req_t(obi_req_t),
+    .obi_rsp_t(obi_rsp_t)
+  ) obi_fifo_i (
       .clk_i(clk_cg),
       .rst_ni,
       .producer_req_i (slave_fifoin_req),
@@ -252,8 +257,8 @@ module peripheral_subsystem
 `endif
 
   periph_to_reg #(
-      .req_t(reg_pkg::reg_req_t),
-      .rsp_t(reg_pkg::reg_rsp_t),
+      .req_t(reg_req_t),
+      .rsp_t(reg_rsp_t),
       .IW(1)
   ) periph_to_reg_i (
       .clk_i(clk_cg),
@@ -290,8 +295,8 @@ module peripheral_subsystem
 
   reg_demux #(
       .NoPorts(core_v_mini_mcu_pkg::PERIPHERALS_RND),
-      .req_t  (reg_pkg::reg_req_t),
-      .rsp_t  (reg_pkg::reg_rsp_t)
+      .req_t  (reg_req_t),
+      .rsp_t  (reg_rsp_t)
   ) reg_demux_i (
       .clk_i(clk_cg),
       .rst_ni,
@@ -304,8 +309,8 @@ module peripheral_subsystem
 
 % if user_peripheral_domain.contains_peripheral('rv_plic'):
   reg_to_tlul #(
-      .req_t(reg_pkg::reg_req_t),
-      .rsp_t(reg_pkg::reg_rsp_t),
+      .req_t(reg_req_t),
+      .rsp_t(reg_rsp_t),
       .tl_h2d_t(tlul_pkg::tl_h2d_t),
       .tl_d2h_t(tlul_pkg::tl_d2h_t),
       .tl_a_user_t(tlul_pkg::tl_a_user_t),
@@ -343,8 +348,8 @@ module peripheral_subsystem
 
 % if user_peripheral_domain.contains_peripheral('spi_host'):
   spi_host #(
-      .reg_req_t(reg_pkg::reg_req_t),
-      .reg_rsp_t(reg_pkg::reg_rsp_t)
+      .reg_req_t(reg_req_t),
+      .reg_rsp_t(reg_rsp_t)
   ) spi_host_dma_i (
       .clk_i(clk_cg),
       .rst_ni,
@@ -381,8 +386,8 @@ module peripheral_subsystem
 
 % if user_peripheral_domain.contains_peripheral('gpio'):
   gpio #(
-      .reg_req_t(reg_pkg::reg_req_t),
-      .reg_rsp_t(reg_pkg::reg_rsp_t)
+      .reg_req_t(reg_req_t),
+      .reg_rsp_t(reg_rsp_t)
   ) gpio_i (
       .clk_i(clk_cg),
       .rst_ni,
@@ -403,8 +408,8 @@ module peripheral_subsystem
 
 % if user_peripheral_domain.contains_peripheral('i2c'):
   reg_to_tlul #(
-      .req_t(reg_pkg::reg_req_t),
-      .rsp_t(reg_pkg::reg_rsp_t),
+      .req_t(reg_req_t),
+      .rsp_t(reg_rsp_t),
       .tl_h2d_t(tlul_pkg::tl_h2d_t),
       .tl_d2h_t(tlul_pkg::tl_d2h_t),
       .tl_a_user_t(tlul_pkg::tl_a_user_t),
@@ -473,8 +478,8 @@ module peripheral_subsystem
 
 % if user_peripheral_domain.contains_peripheral('rv_timer'):
   reg_to_tlul #(
-      .req_t(reg_pkg::reg_req_t),
-      .rsp_t(reg_pkg::reg_rsp_t),
+      .req_t(reg_req_t),
+      .rsp_t(reg_rsp_t),
       .tl_h2d_t(tlul_pkg::tl_h2d_t),
       .tl_d2h_t(tlul_pkg::tl_d2h_t),
       .tl_a_user_t(tlul_pkg::tl_a_user_t),
@@ -505,8 +510,8 @@ module peripheral_subsystem
 
 % if user_peripheral_domain.contains_peripheral('spi2'):
   spi_host #(
-      .reg_req_t(reg_pkg::reg_req_t),
-      .reg_rsp_t(reg_pkg::reg_rsp_t)
+      .reg_req_t(reg_req_t),
+      .reg_rsp_t(reg_rsp_t)
   ) spi2_host (
       .clk_i(clk_cg),
       .rst_ni,
@@ -541,8 +546,8 @@ module peripheral_subsystem
 
 % if user_peripheral_domain.contains_peripheral('pdm2pcm'):
   pdm2pcm #(
-      .reg_req_t(reg_pkg::reg_req_t),
-      .reg_rsp_t(reg_pkg::reg_rsp_t)
+      .reg_req_t(reg_req_t),
+      .reg_rsp_t(reg_rsp_t)
   ) pdm2pcm_i (
       .clk_i(clk_cg),
       .rst_ni,
@@ -559,8 +564,8 @@ module peripheral_subsystem
 
 % if user_peripheral_domain.contains_peripheral('i2s'):
   i2s #(
-      .reg_req_t(reg_pkg::reg_req_t),
-      .reg_rsp_t(reg_pkg::reg_rsp_t)
+      .reg_req_t(reg_req_t),
+      .reg_rsp_t(reg_rsp_t)
   ) i2s_i (
       .clk_i(clk_cg),
       .rst_ni,
@@ -595,8 +600,8 @@ module peripheral_subsystem
 % if user_peripheral_domain.contains_peripheral('uart'):
 
   reg_to_tlul #(
-      .req_t(reg_pkg::reg_req_t),
-      .rsp_t(reg_pkg::reg_rsp_t),
+      .req_t(reg_req_t),
+      .rsp_t(reg_rsp_t),
       .tl_h2d_t(tlul_pkg::tl_h2d_t),
       .tl_d2h_t(tlul_pkg::tl_d2h_t),
       .tl_a_user_t(tlul_pkg::tl_a_user_t),

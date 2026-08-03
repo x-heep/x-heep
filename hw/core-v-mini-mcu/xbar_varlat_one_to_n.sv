@@ -10,7 +10,9 @@
 module xbar_varlat_one_to_n #(
     parameter int unsigned XBAR_NSLAVE = 2,
     parameter int unsigned NUM_RULES = XBAR_NSLAVE,  // number of ranges in the address map
-    parameter int unsigned AGGREGATE_GNT = 32'd0, // the master port is not aggregating multiple masters
+    parameter int unsigned AGGREGATE_GNT = 32'd0, // the master port is not aggregating multiple masters,
+    parameter type obi_req_t = logic,
+    parameter type obi_rsp_t = logic,
     // Dependent parameters: do not override!
     localparam int unsigned IdxWidth = cf_math_pkg::idx_width(XBAR_NSLAVE)
 ) (
@@ -24,15 +26,13 @@ module xbar_varlat_one_to_n #(
     input logic [IdxWidth-1:0] default_idx_i,
 
     // Master port
-    input  obi_pkg::obi_req_t  master_req_i,
-    output obi_pkg::obi_resp_t master_resp_o,
+    input  obi_req_t master_req_i,
+    output obi_rsp_t master_resp_o,
 
     // slave ports
-    output obi_pkg::obi_req_t  [XBAR_NSLAVE-1:0] slave_req_o,
-    input  obi_pkg::obi_resp_t [XBAR_NSLAVE-1:0] slave_resp_i
+    output obi_req_t [XBAR_NSLAVE-1:0] slave_req_o,
+    input  obi_rsp_t [XBAR_NSLAVE-1:0] slave_resp_i
 );
-  import obi_pkg::*;
-
   // ARCHITECTURE
   // ------------
   //                ,---- SLAVE[0]

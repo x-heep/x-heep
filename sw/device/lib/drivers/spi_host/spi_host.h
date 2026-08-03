@@ -39,7 +39,6 @@
 #include <stdbool.h>
 
 #include "fast_intr_ctrl.h"
-#include "rv_plic.h"
 
 #include "spi_host_regs.h"       // Generated
 #include "spi_host_structs.h"    // Generated

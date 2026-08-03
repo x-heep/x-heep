@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
 #include "verilated.h"
-#include <verilated_fst_sc.h>
+#include <verilated_vcd_sc.h>
 #include "Vtestharness.h"
 #include "Vtestharness__Syms.h"
 #include "systemc.h"
@@ -13,75 +13,9 @@
 #include "XHEEP_CmdLineOptions.hh"
 
 sc_event reset_done_event;
-sc_event obi_new_gnt;
-sc_event obi_new_rvalid;
-sc_event obi_new_req;
 
 
-#include "systemc_tb/MemoryRequest.h"
-#include "systemc_tb/MainMemory.h"
-
-
-SC_MODULE(external_memory)
-{
-  MemoryRequest *memory_request;
-  MainMemory    *memory;
-
-  sc_in<bool>          clk_i;
-  sc_in<bool>          ext_systemc_req_req_i;
-  sc_in<bool>          ext_systemc_req_we_i;
-  sc_in<uint32_t>      ext_systemc_req_be_i;
-  sc_in<uint32_t>      ext_systemc_req_addr_i;
-  sc_in<uint32_t>      ext_systemc_req_wdata_i;
-  sc_out<bool>         ext_systemc_resp_gnt_o;
-  sc_out<bool>         ext_systemc_resp_rvalid_o;
-  sc_out<uint32_t>     ext_systemc_resp_rdata_o;
-
-  void notify_obi_transaction () {
-    if(ext_systemc_req_req_i) {
-      obi_new_req.notify();
-      memory_request->we_i    = ext_systemc_req_we_i;
-      memory_request->be_i    = ext_systemc_req_be_i;
-      memory_request->addr_i  = ext_systemc_req_addr_i;
-      memory_request->rwdata_io = ext_systemc_req_wdata_i;
-    }
-  }
-
-  void give_gnt_back () {
-    while (true) {
-      ext_systemc_resp_gnt_o.write(false);
-      wait(obi_new_gnt);
-      ext_systemc_resp_gnt_o.write(true);
-      wait();
-    }
-  }
-
-  void give_rvalid_rdata_back () {
-    while (true) {
-      ext_systemc_resp_rvalid_o.write(false);
-      wait(obi_new_rvalid);
-      ext_systemc_resp_rvalid_o.write(true);
-      ext_systemc_resp_rdata_o.write(memory_request->rwdata_io);
-      wait();
-    }
-  }
-
-  SC_CTOR(external_memory)
-  {
-    // Instantiate components
-    memory_request = new MemoryRequest("memory_request");
-    memory         = new MainMemory   ("main_memory");
-
-    SC_METHOD(notify_obi_transaction);
-    sensitive << ext_systemc_req_req_i;
-
-    SC_CTHREAD(give_gnt_back, clk_i.pos());
-    SC_CTHREAD(give_rvalid_rdata_back, clk_i.pos());
-
-    // Bind memory_request socket to target socket
-    memory_request->socket.bind( memory->socket );
-  }
-};
+#include "systemc_tb/ObiMemorySlave.h"
 
 
 SC_MODULE(testbench)
@@ -227,7 +161,7 @@ int sc_main (int argc, char * argv[])
 
   Vtestharness dut("TOP");
   testbench tb("testbench");
-  external_memory ext_mem("external_memory");
+  ObiMemorySlave ext_mem_obislave("obi_memory_slave");
 
   svSetScope(svGetScopeFromName("TOP.testharness"));
   svScope scope = svGetScope();
@@ -297,15 +231,15 @@ int sc_main (int argc, char * argv[])
   dut.ext_systemc_resp_rvalid_i(ext_systemc_resp_rvalid);
   dut.ext_systemc_resp_rdata_i(ext_systemc_resp_rdata);
 
-  ext_mem.clk_i(clk);
-  ext_mem.ext_systemc_req_req_i(ext_systemc_req_req);
-  ext_mem.ext_systemc_req_we_i(ext_systemc_req_we);
-  ext_mem.ext_systemc_req_be_i(ext_systemc_req_be);
-  ext_mem.ext_systemc_req_addr_i(ext_systemc_req_addr);
-  ext_mem.ext_systemc_req_wdata_i(ext_systemc_req_wdata);
-  ext_mem.ext_systemc_resp_gnt_o(ext_systemc_resp_gnt);
-  ext_mem.ext_systemc_resp_rdata_o(ext_systemc_resp_rdata);
-  ext_mem.ext_systemc_resp_rvalid_o(ext_systemc_resp_rvalid);
+  ext_mem_obislave.clk_i(clk);
+  ext_mem_obislave.ext_systemc_req_req_i(ext_systemc_req_req);
+  ext_mem_obislave.ext_systemc_req_we_i(ext_systemc_req_we);
+  ext_mem_obislave.ext_systemc_req_be_i(ext_systemc_req_be);
+  ext_mem_obislave.ext_systemc_req_addr_i(ext_systemc_req_addr);
+  ext_mem_obislave.ext_systemc_req_wdata_i(ext_systemc_req_wdata);
+  ext_mem_obislave.ext_systemc_resp_gnt_o(ext_systemc_resp_gnt);
+  ext_mem_obislave.ext_systemc_resp_rdata_o(ext_systemc_resp_rdata);
+  ext_mem_obislave.ext_systemc_resp_rvalid_o(ext_systemc_resp_rvalid);
 
 
 
@@ -314,24 +248,34 @@ int sc_main (int argc, char * argv[])
   sc_start(1, SC_NS);
 
 
-  VerilatedFstSc* tfp = nullptr;
-  tfp = new VerilatedFstSc;
+  VerilatedVcdSc* tfp = nullptr;
+  tfp = new VerilatedVcdSc;
   dut.trace(tfp, 99);  // Trace 99 levels of hierarchy
-  tfp->open("waveform.fst");
+  tfp->open("waveform.vcd");
 
-  // Simulate until $finish
-  while (!Verilated::gotFinish() && exit_valid !=1 ) {
+  // Simulate until $finish, exit_valid, or max_sim_time
+  sc_time max_sc_time((double)max_sim_time, SC_PS);
+  while (!Verilated::gotFinish() && exit_valid != 1) {
       // Flush the wave files each cycle so we can immediately see the output
       // Don't do this in "real" programs, do it in an abort() handler instead
       if (tfp) tfp->flush();
       // Simulate 1ns
       sc_start(1, SC_NS);
+      if (!run_all && sc_time_stamp() >= max_sc_time) break;
   }
 
+  vluint64_t sim_cycles = (vluint64_t)(sc_time_stamp().to_seconds() * 1e12 / CLK_PERIOD_ps);
+  std::cout << "Simulation finished after " << sim_cycles << " clock cycles" << std::endl;
+
+  // This should be the last message printed so that the scripts like test-all can catch the exit value properly.
+  // The return value should be the last character (in case it is 0)
   if(exit_valid == 1) {
     std::cout<<"Program Finished with value "<< exit_value <<std::endl;
     exit_val = EXIT_SUCCESS;
-  } else exit_val = EXIT_FAILURE;
+  } else {
+    std::cout<<"Simulation was terminated before program finished"<<std::endl;
+    exit_val = 2;
+  }
 
   // Final model cleanup
   dut.final();

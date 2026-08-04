@@ -42,6 +42,7 @@ make -C util/docker docker-run
 # 3. Inside the container, generate the MCU and run hello world
 make mcu-gen
 make app
+make verilator-build
 make verilator-run
 ```
 

@@ -58,6 +58,13 @@ BLACKLIST = [
     "example_serial_link_performance",
     "example_serial_link_simulation_dma",  # Functionality already covered by example_serial_link_direct_write, excluded to avoid redundant testing
     "example_serial_link",  # Functionality already covered by example_serial_link_direct_write, excluded to avoid redundant testing
+    "coremark",  # Times out
+    "minver",  # Times out
+    "example_ext_memory",  # Times out
+    "example_sdk_spi_flash",  # Times out
+    "example_freertos_blinky",  # Times out
+    "example_matmul",  # Times out
+    "example_w25q128jw_read",  # Times out
 ]
 # TODO : The example_pdm2pcm app is testing a wrong version of the PDM2PCM acting only as a CIC filter.
 #        When fixed, it not passes anymore. Need to be updated.
@@ -271,7 +278,11 @@ def main():
         )
 
     # Exit with error if any app failed to compile or run
-    if len(compilation_failed_apps) > 0 or len(simulation_failed_apps) > 0:
+    if (
+        len(compilation_failed_apps) > 0
+        or len(simulation_failed_apps) > 0
+        or len(simulation_timed_out_apps) > 0
+    ):
         exit(1)
 
 

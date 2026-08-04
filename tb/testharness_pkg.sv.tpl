@@ -9,17 +9,12 @@ package testharness_pkg;
   import addr_map_rule_pkg::*;
   import core_v_mini_mcu_pkg::*;
 
-  % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
-    localparam EXT_XBAR_NMASTER = 8;
-    localparam EXT_XBAR_NSLAVE = 3;
-  % else: 
-    localparam EXT_XBAR_NMASTER = 8;
+  localparam EXT_XBAR_NMASTER = 8;
 `ifdef SIM_SYSTEMC
-    localparam EXT_XBAR_NSLAVE = 1;
+  localparam EXT_XBAR_NSLAVE = 1;
 `else
-    localparam EXT_XBAR_NSLAVE = 2;
+  localparam EXT_XBAR_NSLAVE = 2 + (1 if user_peripheral_domain.contains_peripheral('serial_link_reg') else 0);
 `endif
-  %endif
 
   //master idx
   localparam logic [31:0] EXT_MASTER0_IDX = 0;
@@ -47,11 +42,10 @@ package testharness_pkg;
   % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
     //slave sl
     localparam logic [31:0] SL_EXT_START_ADDRESS = SLOW_MEMORY_END_ADDRESS;
-    //localparam logic [31:0] SL_EXT_SIZE = 32'h200;
     localparam logic [31:0] SL_EXT_SIZE = 32'h10000;
     localparam logic [31:0] SL_EXT_END_ADDRESS = SL_EXT_START_ADDRESS + SL_EXT_SIZE;
     localparam logic [31:0] SL_EXT_IDX = 32'd2;
-  %endif
+  % endif
 
   localparam addr_map_rule_t [EXT_XBAR_NSLAVE-1:0] EXT_XBAR_ADDR_RULES = '{
       '{

@@ -51,10 +51,10 @@ package core_v_mini_mcu_pkg;
   localparam logic [31:0] DMA_ADDR_P0_IDX = 5;
  
   % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
-  localparam SYSTEM_XBAR_NMASTER = ${3 + int(dma.get_num_master_ports())*3 + 1};
-  localparam SL_DIRECT_WRITE_MASTER_IDX = ${3 + int(dma.get_num_master_ports())*3};
+    localparam SYSTEM_XBAR_NMASTER = ${3 + int(dma.get_num_master_ports()) * 3 + 1};
+    localparam SL_DIRECT_WRITE_MASTER_IDX = ${3 + int(dma.get_num_master_ports()) * 3};
   % else:
-  localparam SYSTEM_XBAR_NMASTER = ${3 + int(dma.get_num_master_ports())*3};
+    localparam SYSTEM_XBAR_NMASTER = ${3 + int(dma.get_num_master_ports()) * 3};
   % endif
 
   // Internal slave memory map and index
@@ -62,7 +62,7 @@ package core_v_mini_mcu_pkg;
   //must be power of two
   localparam int unsigned MEM_SIZE = 32'h${f'{memory_ss.ram_size_address():08X}'};
 
- localparam SYSTEM_XBAR_NSLAVE = ${memory_ss.ram_numbanks() + 5 + (1 if user_peripheral_domain.contains_peripheral('serial_link_reg') else 0)};
+  localparam int unsigned SYSTEM_XBAR_NSLAVE = ${memory_ss.ram_numbanks() + 5 + (1 if user_peripheral_domain.contains_peripheral('serial_link_reg') else 0)};
 
   localparam int unsigned LOG_SYSTEM_XBAR_NMASTER = SYSTEM_XBAR_NMASTER > 1 ? $clog2(SYSTEM_XBAR_NMASTER) : 32'd1;
   localparam int unsigned LOG_SYSTEM_XBAR_NSLAVE = SYSTEM_XBAR_NSLAVE > 1 ? $clog2(SYSTEM_XBAR_NSLAVE) : 32'd1;
@@ -76,19 +76,19 @@ package core_v_mini_mcu_pkg;
   localparam logic[31:0] ERROR_END_ADDRESS = ERROR_START_ADDRESS + ERROR_SIZE;
   localparam logic[31:0] ERROR_IDX = 32'd0;
 
-% for bank in memory_ss.iter_ram_banks():
-  localparam logic [31:0] RAM${bank.name()}_IDX = 32'd${bank.map_idx()};
-  localparam logic [31:0] RAM${bank.name()}_SIZE = 32'h${f'{bank.size():08X}'};
-  localparam logic [31:0] RAM${bank.name()}_START_ADDRESS = 32'h${f'{bank.start_address():08X}'};
-  localparam logic [31:0] RAM${bank.name()}_END_ADDRESS = 32'h${f'{bank.end_address():08X}'};
-% endfor
+  % for bank in memory_ss.iter_ram_banks():
+    localparam logic [31:0] RAM${bank.name()}_IDX = 32'd${bank.map_idx()};
+    localparam logic [31:0] RAM${bank.name()}_SIZE = 32'h${f'{bank.size():08X}'};
+    localparam logic [31:0] RAM${bank.name()}_START_ADDRESS = 32'h${f'{bank.start_address():08X}'};
+    localparam logic [31:0] RAM${bank.name()}_END_ADDRESS = 32'h${f'{bank.end_address():08X}'};
+  % endfor
 
-% for i, group in enumerate(memory_ss.iter_il_groups()):
-  localparam logic [31:0] RAM_IL${i}_START_ADDRESS = 32'h${f'{group.start:08X}'};
-  localparam logic [31:0] RAM_IL${i}_SIZE = 32'h${f'{group.size:08X}'};
-  localparam logic [31:0] RAM_IL${i}_END_ADDRESS = RAM_IL${i}_START_ADDRESS + RAM_IL${i}_SIZE;
-  localparam logic [31:0] RAM_IL${i}_IDX = RAM${group.id}_IDX;
-% endfor
+  % for i, group in enumerate(memory_ss.iter_il_groups()):
+    localparam logic [31:0] RAM_IL${i}_START_ADDRESS = 32'h${f'{group.start:08X}'};
+    localparam logic [31:0] RAM_IL${i}_SIZE = 32'h${f'{group.size:08X}'};
+    localparam logic [31:0] RAM_IL${i}_END_ADDRESS = RAM_IL${i}_START_ADDRESS + RAM_IL${i}_SIZE;
+    localparam logic [31:0] RAM_IL${i}_IDX = RAM${group.id}_IDX;
+  % endfor
 
   localparam logic[31:0] DEBUG_START_ADDRESS = 32'h${debug_start_address};
   localparam logic[31:0] DEBUG_SIZE = 32'h${debug_size_address};
@@ -111,23 +111,23 @@ package core_v_mini_mcu_pkg;
   localparam logic[31:0] FLASH_MEM_IDX = 32'd${memory_ss.ram_numbanks() + 4};
 
   % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
-  localparam logic[31:0] SERIAL_LINK_START_ADDRESS = 32'h${serial_link_start_address};
-  localparam logic[31:0] SERIAL_LINK_SIZE = 32'h${serial_link_size_address};
-  localparam logic[31:0] SERIAL_LINK_END_ADDRESS = SERIAL_LINK_START_ADDRESS + SERIAL_LINK_SIZE;
-  localparam logic[31:0] SERIAL_LINK_IDX = 32'd${memory_ss.ram_numbanks() + 5};
+    localparam logic[31:0] SERIAL_LINK_START_ADDRESS = 32'h${serial_link_start_address};
+    localparam logic[31:0] SERIAL_LINK_SIZE = 32'h${serial_link_size_address};
+    localparam logic[31:0] SERIAL_LINK_END_ADDRESS = SERIAL_LINK_START_ADDRESS + SERIAL_LINK_SIZE;
+    localparam logic[31:0] SERIAL_LINK_IDX = 32'd${memory_ss.ram_numbanks() + 5};
   % endif
 
   localparam addr_map_rule_t [SYSTEM_XBAR_NSLAVE-1:0] XBAR_ADDR_RULES = '{
       '{ idx: ERROR_IDX, start_addr: ERROR_START_ADDRESS, end_addr: ERROR_END_ADDRESS },
-% for bank in memory_ss.iter_ram_banks():
-      '{ idx: RAM${bank.name()}_IDX, start_addr: RAM${bank.name()}_START_ADDRESS, end_addr: RAM${bank.name()}_END_ADDRESS },
-% endfor
+      % for bank in memory_ss.iter_ram_banks():
+        '{ idx: RAM${bank.name()}_IDX, start_addr: RAM${bank.name()}_START_ADDRESS, end_addr: RAM${bank.name()}_END_ADDRESS },
+      % endfor
       '{ idx: DEBUG_IDX, start_addr: DEBUG_START_ADDRESS, end_addr: DEBUG_END_ADDRESS },
       '{ idx: AO_PERIPHERAL_IDX, start_addr: AO_PERIPHERAL_START_ADDRESS, end_addr: AO_PERIPHERAL_END_ADDRESS },
       '{ idx: PERIPHERAL_IDX, start_addr: PERIPHERAL_START_ADDRESS, end_addr: PERIPHERAL_END_ADDRESS },
       '{ idx: FLASH_MEM_IDX, start_addr: FLASH_MEM_START_ADDRESS, end_addr: FLASH_MEM_END_ADDRESS }
       % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
-      , '{ idx: SERIAL_LINK_IDX, start_addr: SERIAL_LINK_START_ADDRESS, end_addr: SERIAL_LINK_END_ADDRESS }
+        , '{ idx: SERIAL_LINK_IDX, start_addr: SERIAL_LINK_START_ADDRESS, end_addr: SERIAL_LINK_END_ADDRESS }
       % endif
   };
 

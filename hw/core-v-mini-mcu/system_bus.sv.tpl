@@ -55,9 +55,9 @@ module system_bus
     output obi_rsp_t [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0] dma_addr_resp_o,
 
     % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
-    // Serial Link direct write master port
-    input  obi_req_t  serial_link_direct_write_req_i,
-    output obi_rsp_t serial_link_direct_write_resp_o,
+      // Serial Link direct write master port
+      input  obi_req_t serial_link_direct_write_req_i,
+      output obi_rsp_t serial_link_direct_write_resp_o,
     % endif
 
     // External master ports
@@ -82,8 +82,8 @@ module system_bus
     input  obi_rsp_t flash_mem_slave_resp_i,
 
     % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
-    output obi_req_t  serial_link_slave_req_o,
-    input  obi_rsp_t serial_link_slave_resp_i,
+      output obi_req_t serial_link_slave_req_o,
+      input  obi_rsp_t serial_link_slave_resp_i,
     % endif
 
     // External slave ports
@@ -177,7 +177,7 @@ module system_bus
   % endfor
 
   % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
-  assign serial_link_direct_write_resp_o = int_master_resp[core_v_mini_mcu_pkg::SL_DIRECT_WRITE_MASTER_IDX];
+    assign serial_link_direct_write_resp_o = int_master_resp[core_v_mini_mcu_pkg::SL_DIRECT_WRITE_MASTER_IDX];
   % endif
   
   // External master responses
@@ -191,9 +191,9 @@ module system_bus
 
   // Internal slave requests
   assign error_slave_req = int_slave_req[core_v_mini_mcu_pkg::ERROR_IDX];
-% for bank in memory_ss.iter_ram_banks():
-  assign ram_req_o[${bank.name()}] = int_slave_req[core_v_mini_mcu_pkg::RAM${bank.name()}_IDX];
-% endfor
+  % for bank in memory_ss.iter_ram_banks():
+    assign ram_req_o[${bank.name()}] = int_slave_req[core_v_mini_mcu_pkg::RAM${bank.name()}_IDX];
+  % endfor
   assign debug_slave_req_o = int_slave_req[core_v_mini_mcu_pkg::DEBUG_IDX];
   assign ao_peripheral_slave_req_o = int_slave_req[core_v_mini_mcu_pkg::AO_PERIPHERAL_IDX];
   assign peripheral_slave_req_o = int_slave_req[core_v_mini_mcu_pkg::PERIPHERAL_IDX];
@@ -218,15 +218,15 @@ module system_bus
 
   // Internal slave responses
   assign int_slave_resp[core_v_mini_mcu_pkg::ERROR_IDX] = error_slave_resp;
-% for bank in memory_ss.iter_ram_banks():
-  assign int_slave_resp[core_v_mini_mcu_pkg::RAM${bank.name()}_IDX] = ram_resp_i[${bank.name()}];
-% endfor
+  % for bank in memory_ss.iter_ram_banks():
+    assign int_slave_resp[core_v_mini_mcu_pkg::RAM${bank.name()}_IDX] = ram_resp_i[${bank.name()}];
+  % endfor
   assign int_slave_resp[core_v_mini_mcu_pkg::DEBUG_IDX] = debug_slave_resp_i;
   assign int_slave_resp[core_v_mini_mcu_pkg::AO_PERIPHERAL_IDX] = ao_peripheral_slave_resp_i;
   assign int_slave_resp[core_v_mini_mcu_pkg::PERIPHERAL_IDX] = peripheral_slave_resp_i;
   assign int_slave_resp[core_v_mini_mcu_pkg::FLASH_MEM_IDX] = flash_mem_slave_resp_i;
   % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
-  assign int_slave_resp[core_v_mini_mcu_pkg::SERIAL_LINK_IDX] = serial_link_slave_resp_i;
+    assign int_slave_resp[core_v_mini_mcu_pkg::SERIAL_LINK_IDX] = serial_link_slave_resp_i;
   % endif
 
   // External slave responses

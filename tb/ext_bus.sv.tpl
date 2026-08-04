@@ -1,7 +1,3 @@
-<%
-  user_peripheral_domain = xheep.get_user_peripheral_domain()
-%>
-
 // Copyright 2022 EPFL and Politecnico di Torino.
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
@@ -10,6 +6,10 @@
 // Author: Michele Caon
 // Date: 19/05/2023
 // Description: external peripheral bus for X-HEEP testbench
+
+<%
+  user_peripheral_domain = xheep.get_user_peripheral_domain()
+%>
 
 module ext_bus #(
     parameter int unsigned EXT_XBAR_NMASTER = 1,

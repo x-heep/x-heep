@@ -1,4 +1,4 @@
-// Copyright(// Copyright) 2022 OpenHW Group
+// Copyright 2022 OpenHW Group
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
@@ -21,7 +21,7 @@ module peripheral_subsystem #(
     // Clock-gating signal
     input logic clk_gate_en_ni,
 
-    input  obi_req_t  slave_req_i,
+    input  obi_req_t slave_req_i,
     output obi_rsp_t slave_resp_o,
 
     //PLIC
@@ -98,11 +98,11 @@ module peripheral_subsystem #(
     output logic ddr_snd_2_o,
     output logic ddr_snd_3_o,
     % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
-      output obi_req_t  serial_link_direct_write_req_o,
+      output obi_req_t serial_link_direct_write_req_o,
       input  obi_rsp_t serial_link_direct_write_resp_i,
-      input  obi_req_t  serial_link_slave_req_i,
+      input  obi_req_t serial_link_slave_req_i,
       output obi_rsp_t serial_link_slave_resp_o,
-    %endif
+    % endif
 
     // PDM2PCM Interface
     output logic pdm2pcm_clk_o,
@@ -677,7 +677,7 @@ module peripheral_subsystem #(
     .cfg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SERIAL_LINK_REG_IDX]),
     .wrapper_cfg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SERIAL_LINK_WRAPPER_REG_IDX]),
     .wrapper_cfg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SERIAL_LINK_WRAPPER_REG_IDX]),
-    .direct_write_req_o (serial_link_direct_write_req_o),
+    .direct_write_req_o(serial_link_direct_write_req_o),
     .direct_write_resp_i(serial_link_direct_write_resp_i),
     .ddr_rcv_clk_i,         
     .ddr_i,                   

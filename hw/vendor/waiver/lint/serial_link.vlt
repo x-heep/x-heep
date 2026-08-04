@@ -30,5 +30,3 @@ lint_off -rule UNSUPPORTED -file "*/pulp_platform/serial_link/src/serial_link.sv
 lint_off -rule UNUSED -file "*/pulp_platform/serial_link/src/serial_link_network.sv" -match "*"
 lint_off -rule VARHIDDEN -file "*/pulp_platform/serial_link/src/channel_allocator/serial_link_channel_allocator.sv" -match "*"
 lint_off -rule UNOPTFLAT -file "*/pulp_platform/serial_link/src/serial_link.sv" -match "*"
-
-

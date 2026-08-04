@@ -13,7 +13,7 @@ package testharness_pkg;
 `ifdef SIM_SYSTEMC
   localparam EXT_XBAR_NSLAVE = 1;
 `else
-  localparam EXT_XBAR_NSLAVE = 2 + (1 if user_peripheral_domain.contains_peripheral('serial_link_reg') else 0);
+  localparam EXT_XBAR_NSLAVE = ${2 + (1 if user_peripheral_domain.contains_peripheral('serial_link_reg') else 0)};
 `endif
 
   //master idx

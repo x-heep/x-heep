@@ -11,6 +11,9 @@ The serial link wrapper (`serial_link_xheep_wrapper`) extends the base PULP Seri
 - **FIFO mode** (default): Incoming data is stored in a memory-mapped FIFO, which the CPU reads via polling or DMA.
 - **Direct write mode**: Incoming bus transactions are routed directly into the receiving X-HEEP's memory space, bypassing the FIFO entirely.
 
+```{note}
+This documentation describes the minimal configuration and usage of the Serial Link peripheral within X-HEEP. For advanced features and customizations, refer to the original vendor documentation.
+```
 
 ## Features
 
@@ -46,6 +49,10 @@ The serial link wrapper (`serial_link_xheep_wrapper`) extends the base PULP Seri
 
 - A software driver for the wrapper has been implemented in `sw/device/lib/drivers/serial_link/serial_link_xheep_wrapper_driver`. All functions are documented in the corresponding `.h` file.
 - Use `sl_init` to initialize the peripheral and program all required registers before transmitting data.
+
+```{warning}
+If you are using `verilator 4.210`, make sure to disable the Serial Link (not include it) because it is not capable of compiling it. Use `verilator 5.040` instead.
+```
 
 ### Usage FIFO Mode
 1. Call `sl_init` to program the serial link registers.
@@ -222,13 +229,12 @@ and:
 picocom -b 9600 -r -l --imap lfcrlf /dev/serial/by-path/pci-0000:00:14.0-usb-0:8:1.2-port0
 ```
 
-Whenever you are done use:
+Whenever you are done you can exit the picocom interface with:
 
 ```text
 Ctrl-a Ctrl-x
 ```
 
-to exit (close) picocom interface.
 ---
 
 ### Step 6: Reset the Boards in the Correct Order
@@ -313,10 +319,3 @@ or:
 ```
 
 After changing `FPGA_RECEIVE`, rebuild the application before flashing.
-```
-
----
-
-**Note:** This documentation describes the minimal configuration and usage of the Serial Link peripheral within X-HEEP. For advanced features and customizations, refer to the original vendor documentation.
-
-**Note:** If you are using `verilator 4.210`, make sure to disable the Serial Link (not include it) because it is not capable of compiling it. Use `verilator 5.040` instead.

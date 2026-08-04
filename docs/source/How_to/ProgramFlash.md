@@ -130,7 +130,7 @@ Windows/WSL2 users can also use this tutorial, but need to forward the USB conne
    Follow the instructions in the [official guide](https://learn.microsoft.com/en-us/windows/wsl/connect-usb).
 
 2. **Add Auto-Bind Policies**  
-   Configure USBIP policies to automatically bind supported hardware:  
+   Configure USBIP policies to automatically bind supported hardware in PowerShell:
 
    - **For ZCU104 and EPFL programmer** (which share the same hardware ID):  
      ```sh
@@ -141,6 +141,12 @@ Windows/WSL2 users can also use this tutorial, but need to forward the USB conne
      usbipd policy add --effect Allow --operation AutoBind --hardware-id 0403:6010
      ```
     For more information, please refer to [USBIPD Policy Configuration](https://github.com/dorssel/usbipd-win/wiki/New-design:-policies).
+
+   This can be done manually by listing the devices with `usbipd list` and then attaching the device with the correct busid with:
+
+   ```sh
+   usbipd attach --wsl --busid 1-4
+   ```
 
 3. **Using VS Code for USB Control**  
    If you're using **VS Code**, you can manage USB attach/detach more conveniently using the **[USBIP Connect](https://marketplace.visualstudio.com/items?itemName=thecreativedodo.usbip-connect)** extension.

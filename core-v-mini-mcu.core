@@ -389,6 +389,9 @@ targets:
           - '-CFLAGS "-Wall -fpermissive"'
           - '-LDFLAGS "-pthread -lutil -lelf"'
           - "-Wall"
+        make_options:
+          # Use the number of available cores (up to a max of 8) for parallel compilation, with a fallback to 4 if nproc is not available
+          - '-j$(shell N=$$(nproc 2>/dev/null || echo 4); [ "$$N" -le 8 ] && echo "$$N" || echo 8)'
 
   sim_sc:
     <<: *default_target

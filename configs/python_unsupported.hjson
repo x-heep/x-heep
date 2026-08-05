@@ -8,27 +8,6 @@
 
 {
 
-    debug: {
-        address: 0x10000000
-        length:  0x00100000
-        has_spi_slave: "yes"
-    }
-
-    flash_mem: {
-        address: 0x40000000
-        length:  0x01000000
-    }
-
-    serial_link: {
-        address: 0x50000000
-        length:  0x01000000
-    }
-
-    ext_slaves: {
-        address: 0xF0000000
-        length:  0x01000000
-    }
-
     interrupts: {
         number: 64 // Do not change this number!
         list: {

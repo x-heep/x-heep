@@ -1,4 +1,10 @@
-# Base Peripherals (mandatory peripherals)
+# Copyright 2026 EPFL
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Author(s): Pacsort17, marinPh, David Mallasén
+# Description: Base Peripherals (mandatory, always-on peripherals)
+
 from .abstractions import BasePeripheral, PeripheralDomain
 from copy import deepcopy
 
@@ -12,20 +18,12 @@ from .base_peripherals import (
     RV_timer_ao,
     Fast_intr_ctrl,
     Ext_peripheral,
-    Pad_control,
-    GPIO_ao,
 )
-
-
-# Base Peripherals Classes
 
 
 class BasePeripheralDomain(PeripheralDomain):
     """
     Domain for base peripherals. All base peripherals must be added.
-
-    Start address : 0x20000000
-    Length :       0x00100000
     """
 
     # List of all base peripherals names
@@ -41,18 +39,14 @@ class BasePeripheralDomain(PeripheralDomain):
         Ext_peripheral(),
     ]
 
-    def __init__(self, start_address: int = 0x20000000, length: int = 0x00100000):
+    def __init__(self):
         """
         Initialize the base peripheral domain.
-        Start address : 0x20000000
-        Length :       0x00100000
 
-        At the beginning, there is no base peripheral. All non-added peripherals will be added during build().
+        At the beginning, there are no base peripherals. All missing peripherals will be added during build().
         """
         super().__init__(
             name="Base",
-            start_address=start_address,
-            length=length,
         )
 
     def add_peripheral(self, peripheral: BasePeripheral):
@@ -132,10 +126,12 @@ class BasePeripheralDomain(PeripheralDomain):
 
         raise ValueError("No Power_manager peripheral found")
 
-    def validate(self):
+    def validate(self, address_length: int):
         """
         Validate the base peripheral domain. Checks if all base peripherals are added, if they don't
         overlap and if their configuration paths are valid. Checks also if dmas are valid.
+
+        :param int address_length: The length of the address space of the peripheral domain.
         """
         for dma in self.get_all_dmas():
             dma.validate()
@@ -156,4 +152,4 @@ class BasePeripheralDomain(PeripheralDomain):
                 f"[MCU-GEN - BasePeripheralDomain] ERROR: Missing base peripherals in domain {self._name}: {', '.join(missing)}"
             )
 
-        super().validate()
+        super().validate(address_length)

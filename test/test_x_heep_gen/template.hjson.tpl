@@ -7,6 +7,7 @@
     pdm2pcm = user_peripheral_domain.get_pdm2pcm()
     cpu = xheep.cpu()
     external_domains = base_peripheral_domain.get_power_manager().get_external_domains()
+    address_map = xheep.address_map()
 %>
 
 {
@@ -22,8 +23,8 @@
 
     // Memory map
     debug: {
-        address: "${debug_start_address}"
-        length: "${debug_size_address}"
+        address: "${hex(address_map.get_region("debug").get_start_address())}"
+        length: "${hex(address_map.get_region("debug").get_length())}"
     }
 
     // AO Peripherals
@@ -75,12 +76,12 @@
 
     // External Slaves and Flash Memory
     ext_slaves: {
-        address: "${ext_slave_start_address}"
-        length: "${ext_slave_size_address}"
+        address: "${address_map.get_region("ext_slaves").get_start_address()}"
+        length: "${address_map.get_region("ext_slaves").get_length()}"
     }
     flash_mem: {
-        address: "${flash_mem_start_address}"
-        length: "${flash_mem_size_address}"
+        address: "${address_map.get_region("flash_mem").get_start_address()}"
+        length: "${address_map.get_region("flash_mem").get_length()}"
     }
 
     // Memory Configuration

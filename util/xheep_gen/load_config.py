@@ -1,13 +1,23 @@
+# Copyright 2026 EPFL
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Author(s): mBornand, Pacsort17, Davide Schiavone, marinPh, David Mallasén
+# Description: Configuration loader to create the abstraction of the MCU.
+
 import importlib
 from pathlib import PurePath
 from typing import List, Union
 import hjson
 
+from address_map.address_map import AddressMap
+from address_map.address_region import AddressRegion
 from cpu.cpu import CPU
 from cpu.cv32e20 import cv32e20
 from cpu.cv32e40p import cv32e40p
 from cpu.cv32e40px import cv32e40px
 from cpu.cv32e40x import cv32e40x
+from debug_ss.debug_ss import DebugSS
 from memory_ss.memory_ss import MemorySS
 from memory_ss.linker_section import LinkerSection
 from memory_ss.linker_subsection import LinkerSubsection
@@ -281,6 +291,8 @@ def load_cfg_hjson(src: str) -> XHeep:
 
     cpu_type_config = None
     cpu_features_config = hjson.OrderedDict()
+    address_map = AddressMap()
+    debug_ss = DebugSS()
 
     for key, value in config.items():
         if key == "ram_banks":
@@ -295,6 +307,43 @@ def load_cfg_hjson(src: str) -> XHeep:
             cpu_type_config = value
         elif key == "cpu_features":
             cpu_features_config = value
+        elif key == "debug":
+            address_map.add_region(
+                AddressRegion(
+                    name="debug",
+                    start_address=int(value["address"], 16),
+                    length=int(value["length"], 16),
+                )
+            )
+            try:
+                has_spi_slave = 1 if value["has_spi_slave"] == "yes" else 0
+            except KeyError:
+                has_spi_slave = 0
+            debug_ss.set_spi_slave(has_spi_slave)
+        elif key == "flash_mem":
+            address_map.add_region(
+                AddressRegion(
+                    name="flash_mem",
+                    start_address=int(value["address"], 16),
+                    length=int(value["length"], 16),
+                )
+            )
+        elif key == "serial_link":
+            address_map.add_region(
+                AddressRegion(
+                    name="serial_link",
+                    start_address=int(value["address"], 16),
+                    length=int(value["length"], 16),
+                )
+            )
+        elif key == "ext_slaves":
+            address_map.add_region(
+                AddressRegion(
+                    name="ext_slaves",
+                    start_address=int(value["address"], 16),
+                    length=int(value["length"], 16),
+                )
+            )
 
     if mem_config is None:
         raise RuntimeError("No memory configuration found")
@@ -317,7 +366,10 @@ def load_cfg_hjson(src: str) -> XHeep:
 
     load_cpu_config(system, cpu_type_config, cpu_features_config)
 
-    load_peripherals_config(system, config)
+    load_peripherals_config(system, config, address_map)
+
+    system.set_debug_ss(debug_ss)
+    system.set_address_map(address_map)
 
     return system
 

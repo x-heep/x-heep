@@ -1,9 +1,14 @@
 # Copyright 2026 EPFL
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
+#
+# Author(s): Pacsort17, marinPh, David Mallasén
+# Description: Loading peripherals configuration from hjson files.
 
 import hjson
 
+from address_map.address_map import AddressMap
+from address_map.address_region import AddressRegion
 from peripherals.base_peripherals_domain import BasePeripheralDomain
 from peripherals.user_peripherals_domain import UserPeripheralDomain
 from peripherals.base_peripherals import (
@@ -36,12 +41,13 @@ from .user_peripherals import (
 )
 
 
-def load_peripherals_config(system, config: hjson.OrderedDict):
+def load_peripherals_config(system, config: hjson.OrderedDict, address_map: AddressMap):
     """
     Load peripheral configurations from HJSON and add them to the system.
 
     :param System system: The system to which peripherals will be added
     :param hjson.OrderedDict config: The HJSON configuration dictionary
+    :param AddressMap address_map: The address map for the system
     """
 
     # Define peripheral factory maps
@@ -89,6 +95,13 @@ def load_peripherals_config(system, config: hjson.OrderedDict):
                 are_configured_check=system.are_base_peripherals_configured,
                 get_domain_attr=lambda: system._base_peripheral_domain,
             )
+            address_map.add_region(
+                AddressRegion(
+                    name="base_peripheral_domain",
+                    start_address=int(fields["address"], 16),
+                    length=int(fields["length"], 16),
+                )
+            )
 
         # User Peripherals (User Domain)
         elif name == "peripherals":
@@ -100,6 +113,13 @@ def load_peripherals_config(system, config: hjson.OrderedDict):
                 domain_constructor=UserPeripheralDomain,
                 are_configured_check=system.are_user_peripherals_configured,
                 get_domain_attr=lambda: system._user_peripheral_domain,
+            )
+            address_map.add_region(
+                AddressRegion(
+                    name="user_peripheral_domain",
+                    start_address=int(fields["address"], 16),
+                    length=int(fields["length"], 16),
+                )
             )
 
 
@@ -215,11 +235,7 @@ def _load_domain_peripherals(
     """
 
     # Create peripheral domain if not already configured
-    domain = (
-        domain_constructor(int(fields["address"], 16), int(fields["length"], 16))
-        if not are_configured_check()
-        else None
-    )
+    domain = domain_constructor() if not are_configured_check() else None
 
     if domain is None:
         return

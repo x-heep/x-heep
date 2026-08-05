@@ -2,7 +2,7 @@
 
 # Activate the conda environment
 source /opt/conda/etc/profile.d/conda.sh
-conda activate core-v-mini-mcu
+conda activate x-heep
 
 # Functions to initialize SW build environment
 # NOTE: we don't use aliases as they would not be picked up by the non-interactive

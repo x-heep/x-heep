@@ -1,8 +1,8 @@
-name: core-v-mini-mcu
+name: x-heep
 channels:
   - conda-forge
 dependencies:
-  - python=3.8
+  - python=3.12
   - pip
   - pip:
     - -r python-requirements.txt

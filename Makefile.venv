@@ -104,7 +104,7 @@ NULL_STDERR=2>NUL
 endif
 
 ifndef PY
-_PY_OPTION:=python3.8
+_PY_OPTION:=python3.12
 ifeq (ok,$(shell $(_PY_OPTION) -c "print('ok')" $(NULL_STDERR)))
 PY=$(_PY_OPTION)
 endif

@@ -62,7 +62,7 @@ Choose between `2.a` or `2.b` to setup your environment.
 
 #### 2.a Miniconda
 
-Install [Miniconda](https://www.anaconda.com/docs/getting-started/miniconda/install#quickstart-install-instructions) Python 3.8 version by downloading an older version and selecting the latest `py38` version [here](https://repo.anaconda.com/miniconda/). Then, create the Conda environment from inside the x-heep folder:
+Install [Miniconda](https://www.anaconda.com/docs/getting-started/miniconda/install#quickstart-install-instructions) Python 3.12 version by downloading an older version and selecting the latest `py312` version [here](https://repo.anaconda.com/miniconda/). Then, create the Conda environment from inside the x-heep folder:
 
 ```bash
 make conda
@@ -71,14 +71,14 @@ make conda
 You need to do it only the first time, then just activate the environment every time you work with `X-HEEP` as
 
 ```bash
-conda activate core-v-mini-mcu
+conda activate x-heep
 ```
 or put the command directly in the `~/.bashrc` file.
 
 #### 2.b Virtual Environment
 
 ```{note}
-The Python environment has only been tested on Python 3.8.
+The Python environment has been updated to Python 3.12. Other versions may or may not work.
 ```
 
 Install the Python virtual environment just as:

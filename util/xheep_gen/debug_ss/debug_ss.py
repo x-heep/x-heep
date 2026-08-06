@@ -14,14 +14,14 @@ class DebugSS:
     """
 
     def __init__(self, has_spi_slave: int = 0):
-        self.has_spi_slave = has_spi_slave
+        self._has_spi_slave = has_spi_slave
 
     def has_spi_slave(self) -> int:
         """
         :return: Whether the debug subsystem has an SPI slave interface.
         :rtype: int
         """
-        return self.has_spi_slave
+        return self._has_spi_slave
 
     def set_spi_slave(self, has_spi_slave: int):
         """
@@ -29,4 +29,4 @@ class DebugSS:
 
         :param int has_spi_slave: Whether the debug subsystem has an SPI slave interface.
         """
-        self.has_spi_slave = has_spi_slave
+        self._has_spi_slave = has_spi_slave

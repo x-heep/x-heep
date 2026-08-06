@@ -13,7 +13,6 @@
   dma = xheep.get_base_peripheral_domain().get_dma()
   memory_ss = xheep.memory_ss()
   dma_obi_msb = dma.get_num_master_ports() - 1
-  debug_ss = xheep.get_debug_ss()
 
   clk_module = next((p for p in xheep.get_padring().get_connected_pins() if p.name in ["clk", "ref_clk"] ), None).module
   rst_module = next((p for p in xheep.get_padring().get_connected_pins() if p.name == "rst"), None).module
@@ -344,7 +343,7 @@ module core_v_mini_mcu #(
   debug_subsystem #(
       .NRHARTS    (NRHARTS),
       .JTAG_IDCODE(JTAG_IDCODE),
-      .SPI_SLAVE(${debug_ss.has_spi_slave()}),
+      .SPI_SLAVE(${xheep.debug_ss().has_spi_slave()}),
       .obi_req_t(obi_req_t),
       .obi_rsp_t(obi_rsp_t)
   ) debug_subsystem_i (

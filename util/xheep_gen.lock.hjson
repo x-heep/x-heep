@@ -9,6 +9,6 @@
   upstream:
   {
     url: https://github.com/x-heep/xheep_gen.git
-    rev: fc97a19e98a1d550a1cbdf76cb8336e979661033
+    rev: 7c5451bcf2b13c021cb0be9d801153f506f4910e
   }
 }

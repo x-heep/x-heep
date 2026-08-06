@@ -40,6 +40,7 @@ module dma_write_unit
     output logic [31:0] data_out_addr_o,
     output logic [31:0] data_out_wdata_o,
 
+    output logic write_buffer_pop_o,
     output logic dma_done_o
 );
 
@@ -70,6 +71,7 @@ module dma_write_unit
   }
       dma_write_unit_state, dma_write_unit_n_state;
 
+  dma_pkg::dma_data_type_t src_data_type;
   dma_pkg::dma_data_type_t dst_data_type;
 
   logic data_req_cond, data_req_cond_preobi;
@@ -92,6 +94,9 @@ module dma_write_unit
 
   logic [16:0] dma_size_d1;
   logic [16:0] dma_size_d2;
+
+  logic [1:0] byte_pos_q, byte_pos_d;
+  logic [31:0] shifted_src_data;
 
   logic wait_for_tx;
 
@@ -135,10 +140,12 @@ module dma_write_unit
       obi_data_req_q <= OBI_DATA_REQ;
       wait_for_tx_state_q <= WAIT_FOR_OUTSTANDING_IDLE;
       slot_wait_counter_q <= '0;
+      byte_pos_q <= '0;
     end else begin
       obi_data_req_q <= obi_data_req_d;
       wait_for_tx_state_q <= wait_for_tx_state_d;
       slot_wait_counter_q <= slot_wait_counter_d;
+      byte_pos_q <= byte_pos_d;
       if (dma_start == 1'b1) begin
         dma_dst_cnt_d1 <= dma_size_d1;
         dma_dst_cnt_d2 <= dma_size_d2;
@@ -188,6 +195,57 @@ module dma_write_unit
       end
     endcase
     ;  // case (dst_data_type)
+  end
+
+  /* Track byte position within word (byte_pos_q) and flush when all data has been transfered */
+  always_comb begin
+    byte_pos_d = byte_pos_q;
+    write_buffer_pop_o = 1'b0;
+
+    if (dma_start == 1'b1) begin
+      byte_pos_d = 2'h0;
+    end else if ((data_out_gnt && data_out_req)) begin
+      case (src_data_type)
+
+        DMA_DATA_TYPE_WORD: begin
+          case (dst_data_type)
+            DMA_DATA_TYPE_BYTE, DMA_DATA_TYPE_BYTE_: begin
+              if (byte_pos_q != 2'h3) begin
+                byte_pos_d = byte_pos_d + 2'h1;
+              end else begin
+                // Pop when all bytes have been processed
+                write_buffer_pop_o = 1'b1;
+                byte_pos_d = 2'h0;
+              end
+            end
+
+            default: write_buffer_pop_o = 1'b1;
+          endcase
+        end
+
+        default: write_buffer_pop_o = 1'b1;
+      endcase
+    end
+  end
+
+  /* Extract correct data from the buffer */
+  always_comb begin
+    shifted_src_data = write_buffer_data;
+
+    case (src_data_type)
+
+      DMA_DATA_TYPE_WORD: begin
+        case (dst_data_type)
+          DMA_DATA_TYPE_BYTE, DMA_DATA_TYPE_BYTE_: begin
+            shifted_src_data = write_buffer_data >> ({byte_pos_q, 3'b000});
+          end
+
+          default:;
+        endcase
+      end
+
+      default:;
+    endcase
   end
 
   /* Store output data pointer and increment everytime write request is granted */
@@ -266,31 +324,31 @@ module dma_write_unit
 
     case (byte_enable_out)
       (4'b0011): begin
-        data_out_wdata[15:0] = write_buffer_data[15:0];
+        data_out_wdata[15:0] = shifted_src_data[15:0];
       end
 
       (4'b1100): begin
-        data_out_wdata[31:16] = write_buffer_data[15:0];
+        data_out_wdata[31:16] = shifted_src_data[15:0];
       end
 
       (4'b0001): begin
-        data_out_wdata[7:0] = write_buffer_data[7:0];
+        data_out_wdata[7:0] = shifted_src_data[7:0];
       end
 
       (4'b0010): begin
-        data_out_wdata[15:8] = write_buffer_data[7:0];
+        data_out_wdata[15:8] = shifted_src_data[7:0];
       end
 
       (4'b0100): begin
-        data_out_wdata[23:16] = write_buffer_data[7:0];
+        data_out_wdata[23:16] = shifted_src_data[7:0];
       end
 
       (4'b1000): begin
-        data_out_wdata[31:24] = write_buffer_data[7:0];
+        data_out_wdata[31:24] = shifted_src_data[7:0];
       end
 
       (4'b1111): begin
-        data_out_wdata = write_buffer_data;
+        data_out_wdata = shifted_src_data;
       end
 
       default: ;
@@ -388,6 +446,7 @@ module dma_write_unit
   assign data_out_gnt = data_out_gnt_i;
   assign data_out_rvalid = data_out_rvalid_i;
   assign dma_done_o = dma_done;
+  assign src_data_type = dma_data_type_t'(reg2hw.src_data_type.q);
   assign dst_data_type = dma_data_type_t'(reg2hw.dst_data_type.q);
   assign data_out_wdata_o = data_out_wdata;
   assign write_buffer_empty = write_buffer_empty_i;

@@ -142,6 +142,7 @@ module dma
   logic write_buffer_empty;
   logic write_buffer_alm_full;
   logic write_buffer_push;
+  logic write_buffer_pop;
   logic [31:0] write_buffer_output;
   logic [31:0] write_buffer_input;
 
@@ -358,7 +359,9 @@ module dma
       .data_out_we_o(data_out_we),
       .data_out_be_o(data_out_be),
       .data_out_addr_o(data_out_addr),
-      .data_out_wdata_o(data_out_wdata)
+      .data_out_wdata_o(data_out_wdata),
+
+      .write_buffer_pop_o(write_buffer_pop)
   );
 
   /*_________________________________________________________________________________________________________________________________ */
@@ -567,7 +570,7 @@ module dma
   assign read_addr_buffer_output = read_addr_buffer_resp.data;
 
   assign write_buffer_req.push = write_buffer_push;
-  assign write_buffer_req.pop = (dma_state_q == DMA_RUNNING) & data_out_gnt;
+  assign write_buffer_req.pop = (dma_state_q == DMA_RUNNING) & write_buffer_pop;
   assign write_buffer_req.flush = general_buffer_flush;
   assign write_buffer_req.data = write_buffer_input;
 

@@ -30,7 +30,7 @@ uint8_t w25q128jw_sector_data_buffer[FLASH_SECTOR_SIZE];
 uint32_t w25q128jw_controller_is_ready_polling()
 {
     /* The transaction READY bit is read from the status register*/
-    uint32_t ret = ( w25q128jw_controller_peri->STATUS & (1<<W25Q128JW_CONTROLLER_STATUS_READY_BIT) ); 
+    uint32_t ret = ( w25q128jw_controller_peri->STATUS & (1<<W25Q128JW_CONTROLLER_STATUS_READY_BIT) );
 
     // Tell the DMA to do not accept write operations from w25q128jw_controller in HW anymore
     if (ret) dma_set_hw_configuration_mode(0,0);
@@ -62,6 +62,25 @@ void w25q128jw_controller_clear_status_register()
 void w25q128jw_controller_enable_interrupt(uint32_t intr_enable)
 {
    w25q128jw_controller_peri->INTR_ENABLE = intr_enable;
+
+   if (intr_enable) {
+      // Clear HW regs before starting operation
+      w25q128jw_controller_clear_status_register();
+      // Clear SW flag of ISR before starting operation
+      w25q128jw_controller_clear_done_flag();
+
+      // Activate interrupt in PLIC
+      plic_Init();
+      plic_irq_set_priority(W25Q128JW_CONTROLLER_INTR_EVENT, 1);
+      plic_irq_set_enabled(W25Q128JW_CONTROLLER_INTR_EVENT, kPlicToggleEnabled);
+
+      // Activate global CPU interrupts
+      //
+      // Global interrupt enable for machine mode (MIE) bit in Machine Status Registers
+      CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
+      // Machine External Interrupt Enable (MEIE) bit in Machine Interrupt Pending Register
+      CSR_SET_BITS(CSR_REG_MIE, (1 << 11));
+   }
 }
 
 __attribute__((weak, optimize("O0"))) void handler_irq_w25q128jw_controller(uint32_t id)
@@ -85,18 +104,21 @@ __attribute__((weak, optimize("O0"))) void handler_irq_w25q128jw_controller(uint
  *
  * @param rnw Read (1) or Write (0) operation. Read Not Write.
  * @param quad SPI mode (1 for quad SPI, 0 for standard SPI).
+ * @param interrupts Enable (1) or disable (0) interrupts for this operation.
  * @param length_bytes Number of bytes to transfer. Byte precision for read operation and word precision for write operation.
  * @param flash_address Target address in flash memory.
  * @param ram_buffer Pointer to RAM buffer for read operation/sector save for write operation.
  * @param ram_w_new_data Pointer to RAM buffer containing data to write into flash memory.
  */
-
 void w25q128jw_controller_rnw(  uint32_t rnw,
                                 uint32_t quad,
+                                uint32_t interrupts,
                                 size_t length_bytes,
                                 void* flash_address,
                                 void* ram_buffer,
                                 void* ram_w_new_data) {
+    w25q128jw_controller_enable_interrupt(interrupts);
+
     // Send flash address to controller
     w25q128jw_controller_peri->F_ADDRESS = (uint32_t)flash_address;
     // Send RAM buffer address to controller
@@ -117,26 +139,39 @@ void w25q128jw_controller_rnw(  uint32_t rnw,
     w25q128jw_controller_peri->CONTROL &= ~(1 << W25Q128JW_CONTROLLER_CONTROL_START_BIT);
     w25q128jw_controller_peri->CONTROL |= (0x1 << W25Q128JW_CONTROLLER_CONTROL_START_BIT);
 
+    if (interrupts) {
+        // Wait for interrupt
+        while(!w25q128jw_controller_is_ready_intr()) {
+            asm volatile("wfi");  // Wait For Interrupt - CPU sleeps
+        }
+    } else {
+        while(!w25q128jw_controller_is_ready_polling());
+    }
+
+    //reset flag
+    w25q128jw_controller_clear_done_flag();
 }
 
 /**
  * @param dest Pointer to the on-chip SRAM
  * @param src  Pointer to the Flash
  * @param length_bytes Number of bytes to transfer.
+ * @param interrupts Enable (1) or disable (0) interrupts for this operation.
  * @param quad SPI mode (1 for quad SPI, 0 for standard SPI).
  */
-void w25q128jw_controller_read(void* dest, void* src, size_t length_bytes, uint32_t quad) {
-    w25q128jw_controller_rnw(1, quad, length_bytes, src, dest, NULL);
+void w25q128jw_controller_read(void* dest, void* src, size_t length_bytes, uint32_t interrupts, uint32_t quad) {
+    w25q128jw_controller_rnw(1, quad, interrupts, length_bytes, src, dest, NULL);
 }
 
 /**
  * @param dest Pointer to the Flash
  * @param src  Pointer to the on-chip SRAM
  * @param length_bytes Number of bytes to transfer.
+ * @param interrupts Enable (1) or disable (0) interrupts for this operation.
  * @param quad SPI mode (1 for quad SPI, 0 for standard SPI).
  */
-void w25q128jw_controller_write(void* dest, void* src, size_t length_bytes, uint32_t quad) {
-    w25q128jw_controller_rnw(0, quad, length_bytes, dest, w25q128jw_sector_data_buffer, src);
+void w25q128jw_controller_write(void* dest, void* src, size_t length_bytes, uint32_t interrupts, uint32_t quad) {
+    w25q128jw_controller_rnw(0, quad, interrupts, length_bytes, dest, w25q128jw_sector_data_buffer, src);
 }
 
 /**

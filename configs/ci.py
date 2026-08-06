@@ -82,10 +82,14 @@ def config():
         AddressRegion("debug", start_address=0x10000000, length=0x00100000)
     )
     address_map.add_region(
-        AddressRegion("base_peripheral_domain", start_address=0x20000000, length=0x00100000)
+        AddressRegion(
+            "base_peripheral_domain", start_address=0x20000000, length=0x00100000
+        )
     )
     address_map.add_region(
-        AddressRegion("user_peripheral_domain", start_address=0x30000000, length=0x00100000)
+        AddressRegion(
+            "user_peripheral_domain", start_address=0x30000000, length=0x00100000
+        )
     )
     address_map.add_region(
         AddressRegion("flash_mem", start_address=0x40000000, length=0x01000000)

@@ -18,7 +18,7 @@ Every peripheral has at least an offset and a length, which represent its positi
 
 ## Adding a custom configuration
 
-An example is shown in [configs/general.py](https://github.com/x-heep/x-heep/blob/main/configs/general.py). First, both domains must be created. If a domain is not created, X-HEEP will be built with the provided HJSON configuration. Base Peripheral domain starts from 0x20000000, User peripheral domain starts from 0x30000000, and each fills 1MB.
+An example is shown in [configs/general.py](https://github.com/x-heep/x-heep/blob/main/configs/general.py). First, both domains must be created. If a domain is not created, X-HEEP will be built with the provided HJSON configuration. Each peripheral domain must be included in the system's [address map](./AddressMap). 
 
 Each peripheral has its own class, that must be imported from `peripherals.base_peripherals.py`or `peripherals.user_peripherals.py`.
 

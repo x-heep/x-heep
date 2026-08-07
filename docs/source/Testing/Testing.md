@@ -67,15 +67,7 @@ This workflow ensures the stability and integrity of the codebase by running a s
         *   Runs `make mcu-gen` to regenerate all hardware files.
         *   Uses `util/git-diff.py` to check for any differences between the working directory and the git HEAD. The job fails if any differences are found.
 
-5.  **`gen-peripherals`**:
-    *   **Purpose**: Tests the Python-based peripheral generation scripts and templates.
-    *   **Dependencies**: Depends on `determine-image-tag`.
-    *   **Environment**: Runs inside the `x-heep-toolchain` Docker container.
-    *   **Steps**:
-        *   Runs `make clean-all` to ensure a clean state.
-        *   Executes `test/test_x_heep_gen/test_peripherals.py`.
-
-6.  **`check-vendor`**:
+5.  **`check-vendor`**:
     *   **Purpose**: Verifies that all third-party vendored dependencies are up-to-date.
     *   **Environment**: Runs inside a `ubuntu-latest` VM.
     *   **Steps**:
@@ -83,7 +75,7 @@ This workflow ensures the stability and integrity of the codebase by running a s
         *   Runs the `util/vendor.py` script for all `.vendor.hjson` files to re-vendor all dependencies.
         *   Uses `util/git-diff.py` to check for any differences, ensuring that any changes to vendored repositories are properly committed.
 
-7.  **`black-formatter`**:
+6.  **`black-formatter`**:
     *   **Purpose**: Checks that all Python code adheres to the `black` formatting standard.
     *   **Environment**: Runs inside a `ubuntu-latest` VM.
     *   **Steps**:

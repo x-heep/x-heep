@@ -16,7 +16,7 @@ filesets:
     - openhwgroup:cve2:cve2_top
     - pulp-platform.org:ip:gpio
     - pulp-platform.org::common_cells
-    - pulp-platform.org::axi:0.39.8
+    - pulp-platform.org::axi:0.39.9
     - pulp-platform.org::riscv_dbg
     - pulp-platform.org::register_interface
     - openhwgroup.org:ip:soc_ctrl

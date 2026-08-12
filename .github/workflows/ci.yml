@@ -46,7 +46,7 @@ jobs:
   compile-apps:
     name: Compile All Apps
     runs-on: ubuntu-latest
-    needs: [determine-image-tag, lint, check-vendor, black-formatter]
+    needs: [determine-image-tag]
     container:
       image: ghcr.io/x-heep/x-heep/x-heep-toolchain:${{ needs.determine-image-tag.outputs.tag }}
     steps:
@@ -63,7 +63,7 @@ jobs:
   simulate-apps:
     name: Simulate All Apps
     runs-on: ubuntu-latest
-    needs: [determine-image-tag, lint, check-vendor, black-formatter]
+    needs: [determine-image-tag]
     container:
       image: ghcr.io/x-heep/x-heep/x-heep-toolchain:${{ needs.determine-image-tag.outputs.tag }}
     steps:
@@ -80,7 +80,7 @@ jobs:
   test-rv-profile:
     name: Test RV Profile
     runs-on: ubuntu-latest
-    needs: [determine-image-tag, lint, check-vendor, black-formatter]
+    needs: [determine-image-tag]
     container:
       image: ghcr.io/x-heep/x-heep/x-heep-toolchain:${{ needs.determine-image-tag.outputs.tag }}
     steps:

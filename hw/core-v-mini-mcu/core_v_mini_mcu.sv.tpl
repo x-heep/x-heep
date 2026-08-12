@@ -340,6 +340,17 @@ module core_v_mini_mcu #(
       .core_sleep_o(core_sleep)
   );
 
+  % if xheep.debug_ss().has_spi_slave() == 0:
+    logic spi_slave_sck_i;
+    assign spi_slave_sck_i = 0;
+    logic spi_slave_cs_i;
+    assign spi_slave_cs_i = 0;
+    logic spi_slave_miso_o;
+    logic spi_slave_miso_oe_o;
+    logic spi_slave_mosi_i;
+    assign spi_slave_mosi_i = 0;
+  % endif
+
   debug_subsystem #(
       .NRHARTS    (NRHARTS),
       .JTAG_IDCODE(JTAG_IDCODE),
@@ -366,17 +377,6 @@ module core_v_mini_mcu #(
       .debug_master_req_o(debug_master_req),
       .debug_master_resp_i(debug_master_resp)
   );
-
-  % if xheep.debug_ss().has_spi_slave() == 0:
-    logic spi_slave_sck_i;
-    assign spi_slave_sck_i = 0;
-    logic spi_slave_cs_i;
-    assign spi_slave_cs_i = 0;
-    logic spi_slave_miso_o;
-    logic spi_slave_miso_oe_o;
-    logic spi_slave_mosi_i;
-    assign spi_slave_mosi_i = 0;
-  % endif
 
   system_bus #(
       .NUM_BANKS(core_v_mini_mcu_pkg::NUM_BANKS),

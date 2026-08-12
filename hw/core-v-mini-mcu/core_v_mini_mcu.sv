@@ -520,6 +520,7 @@ module core_v_mini_mcu #(
       .core_sleep_o(core_sleep)
   );
 
+
   debug_subsystem #(
       .NRHARTS    (NRHARTS),
       .JTAG_IDCODE(JTAG_IDCODE),
@@ -546,7 +547,6 @@ module core_v_mini_mcu #(
       .debug_master_req_o(debug_master_req),
       .debug_master_resp_i(debug_master_resp)
   );
-
 
   system_bus #(
       .NUM_BANKS(core_v_mini_mcu_pkg::NUM_BANKS),

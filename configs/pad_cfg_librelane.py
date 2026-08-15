@@ -4,11 +4,20 @@
 #
 # Author(s): Juan Sapriza, David Mallasen
 # Description: Pad configuration for X-HEEP
+#
+# Modified on the 05/08/2026 by Nathan Chandanson to implement an ASIC padring.
+#
+import sys, os
+
+sys.path.append(
+    os.path.join(os.path.dirname(__file__), "..", "hw", "asic", "ihp-sg13g2")
+)
 
 from xheep import XHeep
 from pads.pad_ring import PadRing
 from pads.floorplan import Side
-from pads.pin import Input, Output, Inout, PinVdd, PinVss, PinIoVdd, PinIoVss
+from pads.pin import Input, Output, Inout
+from pad_definition import PinVdd, PinVss, PinIoVdd, PinIoVss
 
 
 def config(xheep: XHeep) -> PadRing:

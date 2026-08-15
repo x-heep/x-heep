@@ -16,6 +16,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+<%
+    if impl_target != "asic_ihp":
+        return STOP_RENDERING
+%>
 <%!
     from memory_ss.memory_ss import MemorySS
     from memory_ss.ram_bank import Bank

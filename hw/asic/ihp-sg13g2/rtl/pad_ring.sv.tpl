@@ -7,8 +7,13 @@
 // Brief description of changes: Add the power pins/pads for ASIC flow.
 //
 
+<%
+    if impl_target != "asic_ihp":
+        return STOP_RENDERING
+%>
 <%!
-    from pads.pin import Input, Output, Inout, PinDigital, Asignal, PinVdd, PinVss, PinIoVdd, PinIoVss, PinPower
+    from pads.pin import Input, Output, Inout, PinDigital, Asignal
+    from pad_definition import PinVdd, PinVss, PinIoVdd, PinIoVss, PinPower
 %>
 
 <%
@@ -100,6 +105,12 @@ module pad_ring (
     ${pad.iocell.rtl_wrapper} #(
         .PADATTR(${num_attribute_bits})
     ) u_pad_${pad.name} (
+        `ifdef USE_POWER_PINS
+        .iovdd(iovdd_io),
+        .iovss(iovss_io),
+        .vdd(vdd_io),
+        .vss(vss_io),
+        `endif
         .pad_in_i(${pad_in_i}),
         .pad_oe_i(${pad_oe_i}),
         .pad_out_o(${pad_out_o}),

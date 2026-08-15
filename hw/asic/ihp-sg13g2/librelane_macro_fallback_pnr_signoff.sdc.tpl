@@ -1,6 +1,11 @@
 # NOTE: This file is based on the IHP-GmbH/ihp-sg13g2-librelane-template (https://github.com/IHP-GmbH/ihp-sg13g2-librelane-template) github repo
+<%
+    if impl_target != "asic_ihp":
+        return STOP_RENDERING
+%>
 <%!
-    from pads.pin import Input, Output, Inout, PinPower
+    from pads.pin import Input, Output, Inout
+    from pad_definition import PinPower
 %>
 current_design $::env(DESIGN_NAME)
 set_units -time ns

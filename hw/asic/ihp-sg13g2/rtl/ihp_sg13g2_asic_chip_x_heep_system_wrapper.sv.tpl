@@ -8,10 +8,15 @@
 //
 
 <%
+    if impl_target != "asic_ihp":
+        return STOP_RENDERING
+%>
+<%
   user_peripheral_domain = xheep.get_user_peripheral_domain()
 %>
 <%!
-    from pads.pin import Input, Output, Inout, PinDigital, Asignal, PinVdd, PinVss, PinIoVdd, PinIoVss, PinPower
+    from pads.pin import Input, Output, Inout, PinDigital, Asignal
+    from pad_definition import PinVdd, PinVss, PinIoVdd, PinIoVss, PinPower
 %>
 
 <%

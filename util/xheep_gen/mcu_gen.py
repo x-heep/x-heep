@@ -17,6 +17,7 @@ from mako.template import Template
 import load_config
 from xheep import BusType
 from cpu.cpu import CPU
+import os
 
 
 # ANSI color codes for pretty printing
@@ -145,6 +146,9 @@ def generate_xheep(args):
             + " bytes."
         )
 
+    # Extract the target environment variable
+    impl_target = os.getenv("TARGET")
+
     kwargs = {
         "xheep": xheep,
         "debug_start_address": debug_start_address,
@@ -159,6 +163,7 @@ def generate_xheep(args):
         "plic_used_n_interrupts": plic_used_n_interrupts,
         "plit_n_interrupts": plit_n_interrupts,
         "interrupts": interrupts,
+        "impl_target": impl_target,
     }
 
     return kwargs

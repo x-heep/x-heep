@@ -152,7 +152,6 @@ def config(xheep: XHeep) -> PadRing:
         floorplan_dimensions=None,  # or FloorplanDimensions object for ASIC
         pin_list=list(pin_dict.values()),
         mapping=mapping,
-        attributes={},  # Optional custom attributes
     )
 
     # Print summary for verification
@@ -223,6 +222,22 @@ padring = PadRing(
 
 # Per-pin/per-pad attribute to lock the pad attribute
 gpio = Inout("gpio_0", attributes={"constant_attribute": True})
+```
+
+### Custom Pad Ring RTL
+
+You can add custom RTL code to the PadRing by providing a string to the `custom_rtl` argument when creating the PadRing. This allows you to include additional logic or modules in the generated pad ring RTL.
+
+```python
+padring = PadRing(
+    floorplan_dimensions=None,
+    pin_list=list(pin_dict.values()),
+    mapping=mapping,
+    custom_rtl="""
+        logic custom_signal;
+        assign custom_signal = 1'b0;
+    """,
+)
 ```
 
 ### Spacing Pads by Pitch

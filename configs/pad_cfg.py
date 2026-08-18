@@ -182,7 +182,6 @@ def config(xheep: XHeep) -> PadRing:
         floorplan_dimensions=None,
         pin_list=list(pin_dict.values()),
         mapping=mapping,
-        attributes={},
     )
 
     # Check the pins attached to each pad so you can do a visual-sanity check

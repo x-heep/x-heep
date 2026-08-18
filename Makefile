@@ -435,7 +435,7 @@ clean: clean-app
 
 ## Leave the repository in a clean state, removing all generated files. For now, it just calls clean.
 .PHONY: clean-all
-clean-all: clean
+clean-all: clean vendor-clean
 
 ## @section Utilities
 # Check if a program is available in PATH

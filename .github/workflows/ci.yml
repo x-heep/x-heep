@@ -14,9 +14,46 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Detect whether this PR changes files that affect the Docker image.
+  # Only when this is true do we build and use a PR-specific image.
+  check-docker-changes:
+    name: Check Docker-Related Changes
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.filter.outputs.changed }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for Docker-relevant changes
+        id: filter
+        run: |
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          BASE="${{ github.event.pull_request.base.sha }}"
+          HEAD="${{ github.event.pull_request.head.sha }}"
+          CHANGED_FILES=$(git diff --name-only "$BASE" "$HEAD" -- \
+            util/docker/ \
+            util/conda_environment.yml \
+            util/python-requirements.txt \
+            docs/python-requirements.txt || true)
+          if [ -n "$CHANGED_FILES" ]; then
+            echo "Docker-relevant changes detected:"
+            echo "$CHANGED_FILES"
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "No Docker-relevant changes detected."
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+
   determine-image-tag:
     name: Determine Image Tag
     runs-on: ubuntu-latest
+    needs: check-docker-changes
     outputs:
       tag: ${{ steps.get-tag.outputs.tag }}
     steps:
@@ -43,12 +80,61 @@ jobs:
           echo "Detected tag: $TAG_NAME"
           echo "tag=$TAG_NAME" >> $GITHUB_OUTPUT
 
+  # Build a PR-specific Docker image only when Docker-relevant files changed.
+  build-ci-image:
+    name: Build CI Docker Image
+    runs-on: ubuntu-latest
+    needs: [check-docker-changes, determine-image-tag]
+    if: needs.check-docker-changes.outputs.changed == 'true'
+    permissions:
+      packages: write
+      contents: read
+    environment: ci-docker-image-build
+    outputs:
+      tag: pr-${{ github.event.number }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download latest toolchain tarball
+        run: |
+          set -e
+          URL=$(curl -s https://api.github.com/repos/x-heep/x-heep/releases/latest \
+            | grep -o 'https://[^"]*ubuntu2204.tar.gz' | head -n 1)
+          echo "Downloading toolchain from $URL"
+          wget -q "$URL" -O toolchain.tar.gz
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/x-heep/x-heep/x-heep-toolchain
+          tags: |
+            type=raw,value=pr-${{ github.event.number }}
+
+      - name: Build and push CI image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./util/docker/dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          build-args: |
+            toolchain_path=toolchain.tar.gz
+
   compile-apps:
     name: Compile All Apps
     runs-on: ubuntu-latest
-    needs: [determine-image-tag, lint, gen-peripherals, check-vendor, black-formatter]
+    needs: [determine-image-tag, build-ci-image, lint, gen-peripherals, check-vendor, black-formatter]
     container:
-      image: ghcr.io/x-heep/x-heep/x-heep-toolchain:${{ needs.determine-image-tag.outputs.tag }}
+      image: ghcr.io/x-heep/x-heep/x-heep-toolchain:${{ needs.build-ci-image.outputs.tag || needs.determine-image-tag.outputs.tag }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -63,9 +149,9 @@ jobs:
   simulate-apps:
     name: Simulate All Apps
     runs-on: ubuntu-latest
-    needs: [determine-image-tag, lint, gen-peripherals, check-vendor, black-formatter]
+    needs: [determine-image-tag, build-ci-image, lint, gen-peripherals, check-vendor, black-formatter]
     container:
-      image: ghcr.io/x-heep/x-heep/x-heep-toolchain:${{ needs.determine-image-tag.outputs.tag }}
+      image: ghcr.io/x-heep/x-heep/x-heep-toolchain:${{ needs.build-ci-image.outputs.tag || needs.determine-image-tag.outputs.tag }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -80,9 +166,9 @@ jobs:
   test-rv-profile:
     name: Test RV Profile
     runs-on: ubuntu-latest
-    needs: [determine-image-tag, lint, gen-peripherals, check-vendor, black-formatter]
+    needs: [determine-image-tag, build-ci-image, lint, gen-peripherals, check-vendor, black-formatter]
     container:
-      image: ghcr.io/x-heep/x-heep/x-heep-toolchain:${{ needs.determine-image-tag.outputs.tag }}
+      image: ghcr.io/x-heep/x-heep/x-heep-toolchain:${{ needs.build-ci-image.outputs.tag || needs.determine-image-tag.outputs.tag }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -107,9 +193,9 @@ jobs:
   lint:
     name: Lint Generated Files
     runs-on: ubuntu-latest
-    needs: determine-image-tag
+    needs: [determine-image-tag, build-ci-image]
     container:
-      image: ghcr.io/x-heep/x-heep/x-heep-toolchain:${{ needs.determine-image-tag.outputs.tag }}
+      image: ghcr.io/x-heep/x-heep/x-heep-toolchain:${{ needs.build-ci-image.outputs.tag || needs.determine-image-tag.outputs.tag }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -127,9 +213,9 @@ jobs:
   gen-peripherals:
     name: Test Peripherals Generation
     runs-on: ubuntu-latest
-    needs: determine-image-tag
+    needs: [determine-image-tag, build-ci-image]
     container:
-      image: ghcr.io/x-heep/x-heep/x-heep-toolchain:${{ needs.determine-image-tag.outputs.tag }}
+      image: ghcr.io/x-heep/x-heep/x-heep-toolchain:${{ needs.build-ci-image.outputs.tag || needs.determine-image-tag.outputs.tag }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

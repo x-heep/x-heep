@@ -37,6 +37,18 @@ make docker-build
 
 This target will first pull the latest version of the toolchain from the [X-HEEP GitHub Releases](https://github.com/x-heep/x-heep/releases), and then build the Docker image using that toolchain. If you want to experiment with a different toolchain, you need to update the [`dockerfile`](./dockerfile) accordingly.
 
+### Testing Docker Changes in Pull Requests
+
+When a pull request modifies files that affect the Docker image (e.g. `util/docker/dockerfile`, `util/conda_environment.yml`, `util/python-requirements.txt`, or `docs/python-requirements.txt`), the CI workflow builds a PR-specific image and uses it for the containerized jobs.
+
+This build job is gated by the `ci-docker-image-build` GitHub environment, which must be configured to require approval from maintainers. A maintainer must approve the job before the image is built and pushed. The resulting image is tagged as:
+
+```
+ghcr.io/x-heep/x-heep/x-heep-toolchain:pr-<number>
+```
+
+and is automatically used by the downstream CI jobs for that PR. PRs that do not touch Docker-related files continue to use the existing published image.
+
 ### Publishing an Updated Image
 There is no need to push the container manually. The container is automatically built and pushed to the [GHCR registry](https://ghcr.io/x-heep/x-heep/x-heep-toolchain:latest) by the [`create-release.yml`](/.github/workflows/create-release.yml) GitHub workflow. This must be launched manually from the [GitHub Actions tab](https://github.com/x-heep/x-heep/actions). Remember to specify the release tag when doing so.
 

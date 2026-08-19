@@ -33,49 +33,63 @@ This workflow ensures the stability and integrity of the codebase by running a s
 
 **Triggers:**
 
-*   Push to any branch (`push: branches: [ "**" ]`).
-*   Pull request to the `main` branch (`pull_request: branches: [ "main" ]`).
+*   Push to the `main` branch (`push: branches: [ "main" ]`).
+*   Pull request to any branch (`pull_request: branches: [ "**" ]`).
 
 **Jobs:**
 
-1.  **`determine-image-tag`**:
-    *   **Purpose**: Determines the Docker image tag to be used by subsequent jobs.
+1.  **`check-docker-changes`**:
+    *   **Purpose**: Detects whether a pull request modifies files that affect the CI Docker image.
+    *   **Details**: It compares the PR head against the base and checks for changes in `util/docker/`, `util/conda_environment.yml`, `util/python-requirements.txt`, and `docs/python-requirements.txt`. It outputs `changed=true` only when Docker-relevant files are modified.
+
+2.  **`determine-image-tag`**:
+    *   **Purpose**: Determines the Docker image tag to be used by subsequent jobs when no PR-specific image is built.
     *   **Details**: It checks the Git history for the most recent tag. If no tag is found in the current branch, it looks for one in the `main` branch. If no tags are found at all, it defaults to `latest`. This ensures that the CI always uses a relevant toolchain version.
 
-2.  **`compile-apps`**:
+3.  **`build-ci-image`** (conditional):
+    *   **Purpose**: Builds a PR-specific Docker image when Docker-relevant files are changed.
+    *   **Condition**: Only runs when `check-docker-changes` detects modifications to Docker-related files.
+    *   **Approval**: This job targets the `ci-docker-image-build` GitHub environment, which must be configured to require approval from maintainers before it runs.
+    *   **Details**: It downloads the latest published toolchain tarball from GitHub Releases, builds the Docker image from the PR's `util/docker/dockerfile`, and pushes it to GHCR as `ghcr.io/x-heep/x-heep/x-heep-toolchain:pr-<number>`.
+
+4.  **`compile-apps`**:
     *   **Purpose**: Compiles all software applications with both GCC and Clang to ensure they build correctly.
-    *   **Dependencies**: Depends on `determine-image-tag` to select the correct Docker image.
-    *   **Environment**: Runs inside the `ghcr.io/x-heep/x-heep/x-heep-toolchain` Docker container.
+    *   **Dependencies**: Depends on `determine-image-tag` and conditionally on `build-ci-image`.
+    *   **Environment**: Runs inside the `ghcr.io/x-heep/x-heep/x-heep-toolchain` Docker container, using the PR-specific image when available and falling back to the release tag otherwise.
     *   **Steps**:
         *   Generates the MCU configuration using `make mcu-gen X_HEEP_CFG=configs/ci.hjson`.
         *   Executes `test/test_apps/test_apps.py` with the `--compile-only` flag to build all applications, without simulating them. This is done to offer a quick feedback about the apps' integrity, before their runtime behaviour is checked in RTL simulation.
 
-3.  **`simulate-apps`**:
+5.  **`simulate-apps`**:
     *   **Purpose**: Runs Verilator RTL simulations for all applications (except the blacklisted ones) to verify their runtime behavior.
-    *   **Condition**: This job only runs on pull requests to `main`.
-    *   **Dependencies**: Depends on `determine-image-tag`.
-    *   **Environment**: Runs inside the `x-heep-toolchain` Docker container.
+    *   **Dependencies**: Depends on `determine-image-tag` and conditionally on `build-ci-image`.
+    *   **Environment**: Runs inside the `x-heep-toolchain` Docker container, using the PR-specific image when available.
     *   **Steps**:
         *   Generates the MCU configuration using `make mcu-gen X_HEEP_CFG=configs/ci.hjson`.
         *   Executes `test/test_apps/test_apps.py` to compile and simulate all applications.
 
-4.  **`lint`**:
+6.  **`test-rv-profile`**:
+    *   **Purpose**: Compiles and runs the RV profile test to verify the profiling flow.
+    *   **Dependencies**: Depends on `determine-image-tag` and conditionally on `build-ci-image`.
+    *   **Environment**: Runs inside the `x-heep-toolchain` Docker container, using the PR-specific image when available.
+
+7.  **`lint`**:
     *   **Purpose**: Checks that all auto-generated hardware files are up-to-date and have been formatted .
-    *   **Dependencies**: Depends on `determine-image-tag`.
-    *   **Environment**: Runs inside the `x-heep-toolchain` Docker container.
+    *   **Dependencies**: Depends on `determine-image-tag` and conditionally on `build-ci-image`.
+    *   **Environment**: Runs inside the `x-heep-toolchain` Docker container, using the PR-specific image when available.
     *   **Steps**:
         *   Runs `make mcu-gen` to regenerate all hardware files.
         *   Uses `util/git-diff.py` to check for any differences between the working directory and the git HEAD. The job fails if any differences are found.
 
-5.  **`gen-peripherals`**:
+8.  **`gen-peripherals`**:
     *   **Purpose**: Tests the Python-based peripheral generation scripts and templates.
-    *   **Dependencies**: Depends on `determine-image-tag`.
-    *   **Environment**: Runs inside the `x-heep-toolchain` Docker container.
+    *   **Dependencies**: Depends on `determine-image-tag` and conditionally on `build-ci-image`.
+    *   **Environment**: Runs inside the `x-heep-toolchain` Docker container, using the PR-specific image when available.
     *   **Steps**:
         *   Runs `make clean-all` to ensure a clean state.
         *   Executes `test/test_x_heep_gen/test_peripherals.py`.
 
-6.  **`check-vendor`**:
+9.  **`check-vendor`**:
     *   **Purpose**: Verifies that all third-party vendored dependencies are up-to-date.
     *   **Environment**: Runs inside a `ubuntu-latest` VM.
     *   **Steps**:
@@ -83,7 +97,7 @@ This workflow ensures the stability and integrity of the codebase by running a s
         *   Runs the `util/vendor.py` script for all `.vendor.hjson` files to re-vendor all dependencies.
         *   Uses `util/git-diff.py` to check for any differences, ensuring that any changes to vendored repositories are properly committed.
 
-7.  **`black-formatter`**:
+10. **`black-formatter`**:
     *   **Purpose**: Checks that all Python code adheres to the `black` formatting standard.
     *   **Environment**: Runs inside a `ubuntu-latest` VM.
     *   **Steps**:

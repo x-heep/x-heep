@@ -228,6 +228,7 @@ def load_linker_script_config(system: XHeep, config: hjson.OrderedDict):
         LinkerScript(stack_size=stack_size, heap_size=heap_size)
     )
 
+
 def load_interrupts_config(system: XHeep, config: hjson.OrderedDict):
     """
     Reads the interrupts configuration.
@@ -251,6 +252,7 @@ def load_interrupts_config(system: XHeep, config: hjson.OrderedDict):
                     f"Number of interrupts should be {interrupts.PLIC_NUM_INTERRUPTS}"
                 )
     system.set_interrupts(interrupts)
+
 
 def load_cpu_config(
     system: XHeep, cpu_type_config: str, cpu_features_config: hjson.OrderedDict

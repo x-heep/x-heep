@@ -146,7 +146,7 @@ extern "C" {
 #define SERIAL_LINK_SIZE 0x${f'{address_map.get_region("serial_link").get_length():08X}'}
 #define SERIAL_LINK_END_ADDRESS (SERIAL_LINK_START_ADDRESS + SERIAL_LINK_SIZE)
 
-#define QTY_INTR interrupts.PLIC_NUM_INTERRUPTS
+#define QTY_INTR ${interrupts.PLIC_NUM_INTERRUPTS}
 % for key, value in interrupts.get_interrupts().items():
 #define ${key.upper()} ${value}
 % endfor

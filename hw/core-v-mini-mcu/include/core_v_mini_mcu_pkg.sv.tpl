@@ -20,7 +20,7 @@
   external_domains = base_peripheral_domain.get_power_manager().get_external_domains()
   memory_ss = xheep.memory_ss()
   address_map = xheep.address_map()
-  interupts = xheep.get_interrupts()
+  interrupts = xheep.get_interrupts()
 %>
 
 package core_v_mini_mcu_pkg;

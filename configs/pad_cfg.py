@@ -24,15 +24,17 @@ def config(xheep: XHeep) -> PadRing:
         Input("clk"),
         Input("rst", module="x_heep_system", attributes={"active": "low"}),
         Input("boot_select"),
-        Input("execute_from_flash"),
+        Output("exit_valid"),
+        # JTAG
         Input("jtag_tck"),
         Input("jtag_tms"),
         Input("jtag_trst", attributes={"active": "low"}),
         Input("jtag_tdi"),
         Output("jtag_tdo"),
+        # UART
         Input("uart_rx"),
         Output("uart_tx"),
-        Output("exit_valid"),
+        # SPI Flash
         Inout("spi_flash_sck"),
         Inout("spi_flash_cs_0"),
         Inout("spi_flash_cs_1"),
@@ -40,6 +42,7 @@ def config(xheep: XHeep) -> PadRing:
         Inout("spi_flash_sd_1"),
         Inout("spi_flash_sd_2"),
         Inout("spi_flash_sd_3"),
+        # SPI Host
         Inout("spi_sck"),
         Inout("spi_cs_0"),
         Inout("spi_cs_1"),
@@ -47,15 +50,20 @@ def config(xheep: XHeep) -> PadRing:
         Inout("spi_sd_1"),
         Inout("spi_sd_2"),
         Inout("spi_sd_3"),
+        # SPI Slave
+        # In the debug_ss. If the debug_ss does not have an SPI slave, these pins should be removed.
         Input("spi_slave_sck"),
         Input("spi_slave_cs"),
         Inout("spi_slave_miso"),
         Input("spi_slave_mosi"),
+        # PDM2PCM
         Inout("pdm2pcm_pdm"),
         Inout("pdm2pcm_clk"),
+        # I2S
         Inout("i2s_sck"),
         Inout("i2s_ws"),
         Inout("i2s_sd"),
+        # SPI2
         Inout("spi2_cs_0"),
         Inout("spi2_cs_1"),
         Inout("spi2_sck"),
@@ -63,8 +71,10 @@ def config(xheep: XHeep) -> PadRing:
         Inout("spi2_sd_1"),
         Inout("spi2_sd_2"),
         Inout("spi2_sd_3"),
+        # I2C
         Inout("i2c_scl"),
         Inout("i2c_sda"),
+        # Serial link DDR
         Input("ddr_rcv_clk"),
         Output("ddr_snd_clk"),
         Input("ddr_rcv_0"),
@@ -97,7 +107,6 @@ def config(xheep: XHeep) -> PadRing:
             ["clk"],
             ["rst"],
             ["boot_select"],
-            ["execute_from_flash"],
             ["jtag_tck"],
             ["jtag_tms"],
             ["jtag_trst"],
@@ -173,7 +182,6 @@ def config(xheep: XHeep) -> PadRing:
         floorplan_dimensions=None,
         pin_list=list(pin_dict.values()),
         mapping=mapping,
-        attributes={},
     )
 
     # Check the pins attached to each pad so you can do a visual-sanity check

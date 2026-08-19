@@ -116,8 +116,8 @@ or follow the [ExecuteFromFlash](./../How_to/ExecuteFromFlash.md) guide if you h
 
 Do not forget that the `pynq-z2` board requires you to have the ethernet cable attached to the board while running.
 
-For example, if you want to run your application using flash_exec, do as follow:
-compile your application, e.g. `make app PROJECT=example_matfadd TARGET=pynq-z2 ARCH=rv32imfc LINKER=flash_exec`
+For example, if you want to run your application using flash_load, do as follow:
+compile your application, e.g. `make app PROJECT=example_matfadd TARGET=pynq-z2 ARCH=rv32imfc LINKER=flash_load`
 and then follow the [ExecuteFromFlash](./../How_to/ExecuteFromFlash.md) to program the flash and set the boot buttons on the FPGA correctly.
 To look at the output of your printf, run in another terminal:
 `picocom -b 9600 -r -l --imap lfcrlf /dev/ttyUSB2`

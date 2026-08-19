@@ -56,7 +56,6 @@ set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets rst_i_IBUF]
 
 ## Slide Switches (8 inputs)
 
-set_property PACKAGE_PIN AB1 [get_ports {execute_from_flash_i}]
 set_property PACKAGE_PIN AF1 [get_ports {boot_select_i}]
 
 # set_property PACKAGE_PIN AE3 [get_ports {PL_USER_SW[2]}]
@@ -217,7 +216,7 @@ set_property IOSTANDARD LVCMOS12 [get_ports {rst_led_o clk_led_o exit_valid_o ex
 set_property IOSTANDARD LVCMOS12 [get_ports {rst_i}]
 
 # SWITCHES
-set_property IOSTANDARD LVCMOS12 [get_ports {execute_from_flash_i boot_select_i}]
+set_property IOSTANDARD LVCMOS12 [get_ports {boot_select_i}]
 
 # QSPI PMOD-A
 set_property IOSTANDARD LVCMOS33 [get_ports {spi_flash_sck_o spi_flash_sd_io[0] spi_flash_sd_io[1] spi_flash_sd_io[2] spi_flash_sd_io[3] spi_flash_csb_o}]

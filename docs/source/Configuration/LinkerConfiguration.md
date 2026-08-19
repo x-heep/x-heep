@@ -255,3 +255,59 @@ The generated linker section will look like this:
 `LinkerSubsection` is currently a Python-configuration feature. The HJSON `linker_sections` parser does not accept a `subsections` field,
 since we'll discontinue the HJSON system this feature will remain a Python exclusive.
 ```
+
+## Linker script configuration
+
+The linker script configuration is used to configure the heap and stack sizes for runtime code execution. These settings only affect how the linker organizes the `data` section, and do not modify the hardware configuration.
+
+
+### HJSON linker script configuration
+
+In an HJSON configuration file, use the top-level `linker_script` object:
+
+```{code} js
+linker_script: {
+    stack_size: 0x800
+    heap_size: 0x800
+}
+```
+
+Both fields are sizes in bytes. Each value must be a strictly positive integer. The value can be written as an
+integer literal, including hexadecimal notation.
+
+If one of the fields is omitted, X-HEEP infers it from the size of the `data` linker region:
+
+```{code} js
+linker_script: {
+    stack_size: 0x800
+}
+```
+
+In this example, `heap_size` is inferred as half of the remaining `data` region after reserving the configured
+stack size. If both `stack_size` and `heap_size` are omitted, X-HEEP reserves one quarter of the `data` region for
+the stack and one quarter for the heap, leaving the remaining half available for static data and BSS. Inferred
+sizes are aligned down to 16 bytes.
+
+### Python linker script configuration
+
+In a Python configuration file, create a `LinkerScript` instance and attach it to the `XHeep` object:
+
+```{code} python
+from linker_script.linker_script import LinkerScript
+
+system.set_linker_script_config(LinkerScript(stack_size=0x800, heap_size=0x800))
+```
+
+Either argument can be omitted to let X-HEEP infer the missing value:
+
+```{code} python
+system.set_linker_script_config(LinkerScript(stack_size=0x800))
+```
+
+The `LinkerScript` object is built after the memory subsystem is built, because the inference and validation use
+the final size of the `data` linker region. A Python configuration must set a linker script configuration before
+generation, even if the stack and heap sizes are left for inference:
+
+```{code} python
+system.set_linker_script_config(LinkerScript())
+```

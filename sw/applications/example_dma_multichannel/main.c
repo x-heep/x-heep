@@ -55,8 +55,8 @@
  *     This test can only be performed on FPGA boards or using QuestaSim, by setting the correct macro (SIM_QUESTASIM).
  *     When executing on QuestaSim, make sure to compile in the correct way:
  *     - Include LINKER=flash_load in "make app ..."
- *     - Add boot_sel and execute_from_flash: 
- *       'make run PLUSARGS="c firmware=../../../sw/build/main.hex boot_sel=1 execute_from_flash=0" '
+ *     - Add boot_sel: 
+ *       'make run PLUSARGS="c firmware=../../../sw/build/main.hex boot_sel=0" '
  *     
  */
 
@@ -1082,12 +1082,6 @@ int main()
     /* Initialize the SPI */
     soc_ctrl_t soc_ctrl;
     soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
-
-    if ( get_spi_flash_mode(&soc_ctrl) == SOC_CTRL_SPI_FLASH_MODE_SPIMEMIO ) {
-        PRINTF("This application cannot work with the memory mapped SPI FLASH"
-            "module - do not use the FLASH_EXEC linker script for this application\n");
-        return EXIT_SUCCESS;
-    }
 
     /* Pick the correct spi device based on simulation type */
     spi_host_t *spi;

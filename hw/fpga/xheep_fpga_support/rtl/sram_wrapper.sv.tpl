@@ -8,6 +8,15 @@
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the
 // specific language governing permissions and limitations under the License.
 
+<%
+  base_peripheral_domain = xheep.get_base_peripheral_domain()
+  if base_peripheral_domain.contains_peripheral('w25q128jw_controller'):
+    w25 = xheep.get_base_peripheral_domain().get_W25Q128JW_controller()
+    cache = w25.get_cache()
+  else:
+    cache = 0
+%>
+
 module sram_wrapper #(
     parameter int unsigned NumWords = 32'd1024,  // Number of Words in data array
     parameter int unsigned DataWidth = 32'd32,  // Data signal width
@@ -47,6 +56,19 @@ assign pwrgate_ack_no = pwrgate_ni;
   end
 <%el = "else "%>
 % endfor
+  % if cache:
+  else if (NumWords == 32'd4096) begin // for w25q128jw cache
+      xilinx_mem_gen_llc_cache tc_ram_i (
+        .clka (clk_i),
+        .ena  (req_i),
+        .wea  ({4{req_i & we_i}} & be_i),
+        .addra(addr_i),
+        .dina (wdata_i),
+        // output ports
+        .douta(rdata_o)
+    );
+  end
+  % endif 
   else begin
     $error("Bank size not generated.");
   end

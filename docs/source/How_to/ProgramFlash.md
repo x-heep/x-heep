@@ -115,8 +115,7 @@ Now program the FPGA with the x-heep bitstream:
 make vivado-fpga-pgm FPGA_BOARD=pynq-z2
 ```
 
-Remember to set the `boot_sel_i` and `execute_from_flash_i` switches to `1` if you `execute from flash`,
-or just  `boot_sel_i` to `1` and `execute_from_flash_i` to `0`  if you `load from flash`.
+Remember to set `boot_sel_i` to `1` if you `load from flash`.
 
 Reset the logic (so the x-heep reset and not the bitstream reset) and enjoy.
 

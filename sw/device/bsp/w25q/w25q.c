@@ -237,30 +237,25 @@ void w25q128jw_init_crt0() {
 
 w25q_error_codes_t w25q128jw_init(spi_host_t* spi_host) {
     /*
-     * Check if memory mapped SPI is enabled. Current version of the bsp
-     * does not support memory mapped SPI.
+     * Setup SPI and initialize flash
     */
-    if (soc_ctrl_peri->USE_SPIMEMIO == 1) {
-        return FLASH_ERROR; // Error
+
+    if (soc_ctrl_peri->BOOT_SELECT == 0) {            
+        // Set the global spi variable to the one passed as argument.
+        spi = spi_host;
+
+        // Enable SPI host device
+        spi_set_enable(spi, true);
+
+        // Enable SPI output
+        spi_output_enable(spi, true);
+
+        // Configure SPI<->Flash connection on CSID 0
+        configure_spi();
+
+        // Set CSID
+        spi_set_csid(spi, 0);
     }
-
-    // Set the global spi variable to the one passed as argument.
-    spi = spi_host;
-
-    // Select SPI host as SPI output
-    soc_ctrl_select_spi_host((soc_ctrl_t*)soc_ctrl_peri);
-
-    // Enable SPI host device
-    spi_set_enable(spi, true);
-
-    // Enable SPI output
-    spi_output_enable(spi, true);
-
-    // Configure SPI<->Flash connection on CSID 0
-    configure_spi();
-
-    // Set CSID
-    spi_set_csid(spi, 0);
 
     // Power up flash
     flash_power_up();
@@ -519,8 +514,6 @@ w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32
     };
     // Size is in data units (words in this case)
     trans.size_d1_du = length>>2;
-
-    asm volatile("davide3: add x0, x0, %0\n\t" : : "r"(length>>2));
 
     // Validate, load and launch DMA transaction
 

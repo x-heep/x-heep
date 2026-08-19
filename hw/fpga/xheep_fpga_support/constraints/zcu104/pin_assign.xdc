@@ -18,7 +18,6 @@ set_property -dict {PACKAGE_PIN A5 IOSTANDARD LVCMOS33} [get_ports exit_valid_o]
 set_property -dict {PACKAGE_PIN B5 IOSTANDARD LVCMOS33} [get_ports exit_value_o]
 
 # SWITCHES
-set_property -dict {PACKAGE_PIN E4 IOSTANDARD LVCMOS33} [get_ports execute_from_flash_i]
 set_property -dict {PACKAGE_PIN D4 IOSTANDARD LVCMOS33} [get_ports boot_select_i]
 
 # FLASH

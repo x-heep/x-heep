@@ -14,7 +14,6 @@ filesets:
       - openhwgroup.org:ip:soc_ctrl
       - x-heep:ip:power_manager
       - lowrisc:ip:spi_host
-      - x-heep:ip:obi_spimemio
     files:
     - boot_rom.sv
     file_type: systemVerilogSource

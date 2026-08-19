@@ -19,6 +19,7 @@
   dma = base_peripheral_domain.get_dma()
   external_domains = base_peripheral_domain.get_power_manager().get_external_domains()
   memory_ss = xheep.memory_ss()
+  address_map = xheep.address_map()
 %>
 
 package core_v_mini_mcu_pkg;
@@ -90,29 +91,29 @@ package core_v_mini_mcu_pkg;
     localparam logic [31:0] RAM_IL${i}_IDX = RAM${group.id}_IDX;
   % endfor
 
-  localparam logic[31:0] DEBUG_START_ADDRESS = 32'h${debug_start_address};
-  localparam logic[31:0] DEBUG_SIZE = 32'h${debug_size_address};
+  localparam logic[31:0] DEBUG_START_ADDRESS = 32'h${f'{address_map.get_region("debug").get_start_address():08X}'};
+  localparam logic[31:0] DEBUG_SIZE = 32'h${f'{address_map.get_region("debug").get_length():08X}'};
   localparam logic[31:0] DEBUG_END_ADDRESS = DEBUG_START_ADDRESS + DEBUG_SIZE;
   localparam logic[31:0] DEBUG_IDX = 32'd${memory_ss.ram_numbanks() + 1};
 
-  localparam logic[31:0] AO_PERIPHERAL_START_ADDRESS = 32'h${hex(base_peripheral_domain.get_start_address())[2:]};
-  localparam logic[31:0] AO_PERIPHERAL_SIZE = 32'h${hex(base_peripheral_domain.get_length())[2:]};
+  localparam logic[31:0] AO_PERIPHERAL_START_ADDRESS = 32'h${f'{address_map.get_region("base_peripheral_domain").get_start_address():08X}'};
+  localparam logic[31:0] AO_PERIPHERAL_SIZE = 32'h${f'{address_map.get_region("base_peripheral_domain").get_length():08X}'};
   localparam logic[31:0] AO_PERIPHERAL_END_ADDRESS = AO_PERIPHERAL_START_ADDRESS + AO_PERIPHERAL_SIZE;
   localparam logic[31:0] AO_PERIPHERAL_IDX = 32'd${memory_ss.ram_numbanks() + 2};
 
-  localparam logic[31:0] PERIPHERAL_START_ADDRESS = 32'h${hex(user_peripheral_domain.get_start_address())[2:]};
-  localparam logic[31:0] PERIPHERAL_SIZE = 32'h${hex(user_peripheral_domain.get_length())[2:]};
+  localparam logic[31:0] PERIPHERAL_START_ADDRESS = 32'h${f'{address_map.get_region("user_peripheral_domain").get_start_address():08X}'};
+  localparam logic[31:0] PERIPHERAL_SIZE = 32'h${f'{address_map.get_region("user_peripheral_domain").get_length():08X}'};
   localparam logic[31:0] PERIPHERAL_END_ADDRESS = PERIPHERAL_START_ADDRESS + PERIPHERAL_SIZE;
   localparam logic[31:0] PERIPHERAL_IDX = 32'd${memory_ss.ram_numbanks() + 3};
 
-  localparam logic[31:0] FLASH_MEM_START_ADDRESS = 32'h${flash_mem_start_address};
-  localparam logic[31:0] FLASH_MEM_SIZE = 32'h${flash_mem_size_address};
+  localparam logic[31:0] FLASH_MEM_START_ADDRESS = 32'h${f'{address_map.get_region("flash_mem").get_start_address():08X}'};
+  localparam logic[31:0] FLASH_MEM_SIZE = 32'h${f'{address_map.get_region("flash_mem").get_length():08X}'};
   localparam logic[31:0] FLASH_MEM_END_ADDRESS = FLASH_MEM_START_ADDRESS + FLASH_MEM_SIZE;
   localparam logic[31:0] FLASH_MEM_IDX = 32'd${memory_ss.ram_numbanks() + 4};
 
   % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
-    localparam logic[31:0] SERIAL_LINK_START_ADDRESS = 32'h${serial_link_start_address};
-    localparam logic[31:0] SERIAL_LINK_SIZE = 32'h${serial_link_size_address};
+    localparam logic[31:0] SERIAL_LINK_START_ADDRESS = 32'h${f'{address_map.get_region("serial_link").get_start_address():08X}'};
+    localparam logic[31:0] SERIAL_LINK_SIZE = 32'h${f'{address_map.get_region("serial_link").get_length():08X}'};
     localparam logic[31:0] SERIAL_LINK_END_ADDRESS = SERIAL_LINK_START_ADDRESS + SERIAL_LINK_SIZE;
     localparam logic[31:0] SERIAL_LINK_IDX = 32'd${memory_ss.ram_numbanks() + 5};
   % endif
@@ -133,8 +134,8 @@ package core_v_mini_mcu_pkg;
 
   // External slave address map
   // --------------------------
-  localparam logic [31:0] EXT_SLAVE_START_ADDRESS = 32'h${ext_slave_start_address};
-  localparam logic [31:0] EXT_SLAVE_SIZE = 32'h${ext_slave_size_address};
+  localparam logic [31:0] EXT_SLAVE_START_ADDRESS = 32'h${f'{address_map.get_region("ext_slaves").get_start_address():08X}'};
+  localparam logic [31:0] EXT_SLAVE_SIZE = 32'h${f'{address_map.get_region("ext_slaves").get_length():08X}'};
   localparam logic [31:0] EXT_SLAVE_END_ADDRESS = EXT_SLAVE_START_ADDRESS + EXT_SLAVE_SIZE;
 
   // Forward crossbars address map and index

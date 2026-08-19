@@ -25,7 +25,6 @@ set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets clk_out_OBUF]
 set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets clk_led_OBUF]
 
 # Switches
-set_property -dict {PACKAGE_PIN M19 IOSTANDARD LVCMOS33} [get_ports execute_from_flash_i]
 set_property -dict {PACKAGE_PIN M20 IOSTANDARD LVCMOS33} [get_ports boot_select_i]
 
 # FLASH

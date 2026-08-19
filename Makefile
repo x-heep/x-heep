@@ -57,7 +57,7 @@ PROJECT ?= hello_world
 
 # Folder where the linker scripts are located
 LINK_FOLDER ?= $(mkfile_path)/sw/linker
-# Linker options are 'on_chip' (default),'flash_load','flash_exec','freertos'
+# Linker options are 'on_chip' (default),'flash_load','freertos'
 LINKER ?= on_chip
 
 # Target options are 'sim' (default) and 'pynq-z2' and 'nexys-a7-100t'
@@ -192,7 +192,7 @@ format-python:
 ## Generates the build folder in sw using CMake to build (compile and linking)
 ## @param PROJECT=<folder_name_of_the_project_to_be_built>
 ## @param TARGET=sim(default),systemc,pynq-z2,nexys-a7-100t,genesys2,aup-zu3,zcu102,zcu104
-## @param LINKER=on_chip(default),flash_load,flash_exec
+## @param LINKER=on_chip(default),flash_load
 ## @param COMPILER=gcc(default),clang
 ## @param COMPILER_PREFIX=riscv32-corev-(default),riscv32-unknown-
 ## @param ARCH=rv32imc(default),<any_RISC-V_ISA_string_supported_by_the_CPU>
@@ -378,8 +378,6 @@ test:
 	$(RM) test/*.log
 	$(PYTHON) test/test_apps/test_apps.py $(TEST_FLAGS) 2>&1 | tee test/test_apps/test_apps.log
 	@echo "You can also find the output in test/test_apps/test_apps.log"
-	$(PYTHON) test/test_x_heep_gen/test_peripherals.py
-	@echo "You can also find the peripheral test outputs in test/test_x_heep_gen/outputs"
 
 ## Compares two mcu-gen runs and lists the differences in the generated files. 
 ## It can be used to manually check if a change in the configuration or in the mcu-gen code has an
@@ -444,7 +442,7 @@ clean: clean-app
 
 ## Leave the repository in a clean state, removing all generated files. For now, it just calls clean.
 .PHONY: clean-all
-clean-all: clean
+clean-all: clean vendor-clean
 
 ## @section Utilities
 # Check if a program is available in PATH

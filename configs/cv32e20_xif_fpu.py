@@ -1,14 +1,16 @@
 from xheep import XHeep
+from address_map.address_map import AddressMap
+from address_map.address_region import AddressRegion
 from cpu.cv32e20 import cv32e20
 from cv_x_if import CvXIf
 from bus_type import BusType
+from debug_ss.debug_ss import DebugSS
 from memory_ss.memory_ss import MemorySS
 from memory_ss.linker_section import LinkerSection
 from peripherals.base_peripherals import (
     SOC_ctrl,
     Bootrom,
     SPI_flash,
-    SPI_memio,
     DMA,
     Power_manager,
     RV_timer_ao,
@@ -32,6 +34,8 @@ from peripherals.user_peripherals import (
     I2S,
     UART,
 )
+
+from linker_script.linker_script import LinkerScript
 
 
 def config():
@@ -57,15 +61,43 @@ def config():
     memory_ss.add_linker_section(LinkerSection("data", 0x000008000, None))
     system.set_memory_ss(memory_ss)
 
+    system.set_linker_script_config(LinkerScript(stack_size=0x800, heap_size=0x800))
+
+    system.set_debug_ss(DebugSS(has_spi_slave=1))
+
+    address_map = AddressMap()
+    address_map.add_region(
+        AddressRegion("debug", start_address=0x10000000, length=0x00100000)
+    )
+    address_map.add_region(
+        AddressRegion(
+            "base_peripheral_domain", start_address=0x20000000, length=0x00100000
+        )
+    )
+    address_map.add_region(
+        AddressRegion(
+            "user_peripheral_domain", start_address=0x30000000, length=0x00100000
+        )
+    )
+    address_map.add_region(
+        AddressRegion("flash_mem", start_address=0x40000000, length=0x01000000)
+    )
+    address_map.add_region(
+        AddressRegion("serial_link", start_address=0x50000000, length=0x01000000)
+    )
+    address_map.add_region(
+        AddressRegion("ext_slaves", start_address=0xF0000000, length=0x01000000)
+    )
+    system.set_address_map(address_map)
+
     # Peripheral domains initialization
     base_peripheral_domain = BasePeripheralDomain()
     user_peripheral_domain = UserPeripheralDomain()
 
-    # Base peripherals. All base peripherals must be added. They can be either added with "add_peripheral" or "add_missing_peripherals" (adds all base peripherals).
+    # Base peripherals. All base peripherals must be added.
     base_peripheral_domain.add_peripheral(SOC_ctrl(0x00000000))
     base_peripheral_domain.add_peripheral(Bootrom(0x00010000))
     base_peripheral_domain.add_peripheral(SPI_flash(0x00020000, 0x00008000))
-    base_peripheral_domain.add_peripheral(SPI_memio(0x00028000, 0x00008000))
     base_peripheral_domain.add_peripheral(
         DMA(
             address=0x30000,
@@ -82,7 +114,7 @@ def config():
     base_peripheral_domain.add_peripheral(Pad_control(0x00080000))
     base_peripheral_domain.add_peripheral(GPIO_ao(0x00090000))
 
-    # User peripherals. All are optional. They must be added with "add_peripheral".
+    # User peripherals. All are optional.
     user_peripheral_domain.add_peripheral(RV_plic(0x00000000))
     user_peripheral_domain.add_peripheral(UART(0x00080000))
 

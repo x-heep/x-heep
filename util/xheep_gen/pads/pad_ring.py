@@ -26,7 +26,8 @@ class PadRing:
         floorplan_dimensions: FloorplanDimensions,
         mapping: dict,
         pin_list: List[Pin],
-        attributes: dict,
+        attributes: dict = {},
+        custom_rtl: str = None,
     ):
         """
         Constructor for PadRing.
@@ -36,14 +37,16 @@ class PadRing:
             combination of List[Pin] and Pad.
         :param pin_list: A list of all pins which can be (but not necessarily are) connected to a
             Pad. The unconnected pads can be treated as bypass.
-        :param attributes: User-defined dictionary of attributes of the pad ring. For example,
-            depending on the technology used, some pads cells require additional I/Os other than the
-            basic input and output ports. This can be defined in a "bits" field with value "7:0" of
-            the attributes dictionary.
+        :param attributes: Optional user-defined dictionary of attributes of the pad ring. For
+            example, depending on the technology used, some pads cells require additional I/Os other
+            than the basic input and output ports. This can be defined in a "bits" field with value
+            "7:0" of the attributes dictionary.
+        :param custom_rtl: Optional string containing custom RTL code to be added to the pad ring.
         """
         self.floorplan_dimensions = floorplan_dimensions
         self.pin_list = pin_list
         self.attributes = attributes
+        self.custom_rtl = custom_rtl
 
         # List[Pad] containing all pads in the pad ring
         self.pad_list = []
@@ -303,6 +306,12 @@ class PadRing:
                 )
                 pad.bp_space = space
                 last_bp = i + 1
+
+    def get_custom_rtl(self):
+        """
+        Returns the custom RTL code for the pad ring, if any.
+        """
+        return self.custom_rtl
 
     def validate(self):
         """

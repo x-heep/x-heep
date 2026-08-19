@@ -3,6 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+<%
+    address_map = xheep.address_map()
+%>
+
 ENTRY(_start)
 
 MEMORY
@@ -10,10 +14,10 @@ MEMORY
 <%flash_end = 0%>
 % for i, section in enumerate(xheep.memory_ss().iter_linker_sections()):
     ram${i} (rwxai) : ORIGIN = ${f"{section.start:#08x}"}, LENGTH = ${f"{section.size:#08x}"}
-    FLASH${i} (rx)  : ORIGIN = ${f"{section.start + int(flash_mem_start_address,16):#08x}"}, LENGTH = ${f"{section.size:#08x}"}
+    FLASH${i} (rx)  : ORIGIN = ${f"{section.start + address_map.get_region('flash_mem').get_start_address():#08x}"}, LENGTH = ${f"{section.size:#08x}"}
 <%flash_end = section.end%>
 % endfor
-    FLASH_left (rx) : ORIGIN = ${f"{flash_end + int(flash_mem_start_address,16):#08x}"}, LENGTH = ${f"{int(flash_mem_size_address,16) - flash_end:#08x}"}
+    FLASH_left (rx) : ORIGIN = ${f"{flash_end + address_map.get_region('flash_mem').get_start_address():#08x}"}, LENGTH = ${f"{address_map.get_region('flash_mem').get_length() - flash_end:#08x}"}
 }
 
 
@@ -24,9 +28,9 @@ SECTIONS {
     PROVIDE(__boot_address = 0x180);
 
     /* stack and heap related settings */
-    __stack_size = DEFINED(__stack_size) ? __stack_size : 0x${stack_size};
+    __stack_size = DEFINED(__stack_size) ? __stack_size : 0x${format(xheep.stack_size(), 'X')};
     PROVIDE(__stack_size = __stack_size);
-    __heap_size = DEFINED(__heap_size) ? __heap_size : 0x${heap_size};
+    __heap_size = DEFINED(__heap_size) ? __heap_size : 0x${format(xheep.heap_size(), 'X')};
 
     /* interrupt vectors */
     .vectors (ORIGIN(ram0)):

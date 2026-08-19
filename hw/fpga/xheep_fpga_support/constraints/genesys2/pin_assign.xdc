@@ -18,7 +18,6 @@ set_property -dict { PACKAGE_PIN U30   IOSTANDARD LVCMOS33 } [get_ports { exit_v
 set_property -dict { PACKAGE_PIN U29   IOSTANDARD LVCMOS33 } [get_ports { exit_valid_o }]; # Sch=led[3]
 
 ## Mode selection switches
-set_property -dict { PACKAGE_PIN G25   IOSTANDARD LVCMOS12 } [get_ports { execute_from_flash_i }]; # Sch=sw[1]
 set_property -dict { PACKAGE_PIN G19   IOSTANDARD LVCMOS12 } [get_ports { boot_select_i }]; # Sch=sw[0]
 
 ## FLASH - PMOD Header JC

@@ -5,6 +5,13 @@
 <%
     memory_ss = xheep.memory_ss()
     external_domains = xheep.get_base_peripheral_domain().get_power_manager().get_external_domains()
+
+    base_peripheral_domain = xheep.get_base_peripheral_domain()
+    if base_peripheral_domain.contains_peripheral('w25q128jw_controller'):
+      w25 = xheep.get_base_peripheral_domain().get_W25Q128JW_controller()
+      cache = w25.get_cache()
+    else:
+      cache = 0
 %>
 
 { name: "power_manager",
@@ -303,6 +310,68 @@
     }
 
 % endfor
+% if cache:
+    { name:     "RAM_w25_cache_CLK_GATE",
+      desc:     "Clock-gates the RAM_w25_cache domain",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0", name: "RAM_w25_cache_CLK_GATE", desc: "Clock-gates the RAM_w25_cache domain" }
+      ]
+    }
+
+    { name:     "POWER_GATE_RAM_BLOCK_w25_cache_ACK",
+      desc:     "Used by the ram w25_cache switch to ack the power manager",
+      resval:   "0x00000000"
+      swaccess: "ro",
+      hwaccess: "hrw",
+      fields: [
+        { bits: "0", name: "POWER_GATE_RAM_BLOCK_w25_cache_ACK", desc: "Power Gate Ram Block w25_cache Ack Reg" }
+      ]
+    }
+
+    { name:     "RAM_w25_cache_SWITCH",
+      desc:     "Switch off the RAM_w25_cache domain",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0", name: "RAM_w25_cache_SWITCH", desc: "Switch off RAM_w25_cache domain" }
+      ]
+    }
+
+    { name:     "RAM_w25_cache_WAIT_ACK_SWITCH_ON",
+      desc:     "Wait for the RAM_w25_cache domain switch ack",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0", name: "RAM_w25_cache_WAIT_ACK_SWITCH_ON", desc: "Wait RAM_w25_cache domain switch ack" }
+      ]
+    }
+
+    { name:     "RAM_w25_cache_ISO",
+      desc:     "Set on the isolation of the RAM_w25_cache domain",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0", name: "RAM_w25_cache_ISO", desc: "Set on isolation of RAM_w25_cache domain" }
+      ]
+    }
+
+    { name:     "RAM_w25_cache_RETENTIVE",
+      desc:     "Set on retentive mode for the RAM_w25_cache domain",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0", name: "RAM_w25_cache_RETENTIVE", desc: "Set on retentive mode for RAM_w25_cache domain" }
+      ]
+    }
+
+% endif
 % for ext in range(external_domains):
     { name:     "EXTERNAL_${ext}_CLK_GATE",
       desc:     "Clock-gates the EXTERNAL_${ext} domain",
@@ -407,6 +476,7 @@
     }
 
 % endfor
+
 % for ext in range(external_domains):
     { name:     "MONITOR_POWER_GATE_EXTERNAL_${ext}",
       desc:     "Used to monitor the signals to power gate external ${ext}",

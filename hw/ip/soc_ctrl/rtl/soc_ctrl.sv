@@ -16,8 +16,6 @@ module soc_ctrl #(
     output reg_rsp_t reg_rsp_o,
 
     input logic boot_select_i,
-    input logic execute_from_flash_i,
-    output logic use_spimemio_o,
     input logic [31:0] xheep_instance_id_i,
 
     output logic        exit_valid_o,
@@ -25,8 +23,6 @@ module soc_ctrl #(
 );
 
   import soc_ctrl_reg_pkg::*;
-
-  logic enable_spi_sel;
 
   soc_ctrl_reg2hw_t reg2hw;
   soc_ctrl_hw2reg_t hw2reg;
@@ -49,11 +45,9 @@ module soc_ctrl #(
   assign hw2reg.boot_exit_loop.de = 1'b0;
 `endif
 
-  assign hw2reg.boot_select.de  = 1'b1;
-  assign hw2reg.boot_select.d   = boot_select_i;
+  assign hw2reg.boot_select.de = 1'b1;
+  assign hw2reg.boot_select.d  = boot_select_i;
 
-  assign hw2reg.use_spimemio.de = ~enable_spi_sel;
-  assign hw2reg.use_spimemio.d  = execute_from_flash_i;
 
   soc_ctrl_reg_top #(
       .reg_req_t(reg_req_t),
@@ -68,10 +62,8 @@ module soc_ctrl #(
       .devmode_i(1'b1)
   );
 
-  assign exit_valid_o   = reg2hw.exit_valid.q;
-  assign exit_value_o   = reg2hw.exit_value.q;
-  assign use_spimemio_o = reg2hw.use_spimemio.q;
-  assign enable_spi_sel = reg2hw.enable_spi_sel.q;
+  assign exit_valid_o = reg2hw.exit_valid.q;
+  assign exit_value_o = reg2hw.exit_value.q;
 
   always_comb begin
     reg_rsp_o = reg_rsp_int;

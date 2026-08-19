@@ -29,13 +29,11 @@ module testharness #(
     input  wire         clk_i,
     input  wire         rst_ni,
     input  wire         boot_select_i,
-    input  wire         execute_from_flash_i,
     output wire         exit_valid_o,
 `else  // VERILATOR
     inout  wire         clk_i,
     inout  wire         rst_ni,
     inout  wire         boot_select_i,
-    inout  wire         execute_from_flash_i,
     inout  wire         exit_valid_o,
 `endif  // VERILATOR
     output logic [31:0] exit_value_o,
@@ -93,7 +91,6 @@ module testharness #(
   wire clk;
   wire rst_n;
   wire boot_select;
-  wire execute_from_flash;
   wire exit_valid;
 
   // UART
@@ -271,7 +268,6 @@ module testharness #(
   assign clk = clk_i;
   assign rst_n = rst_ni;
   assign boot_select = boot_select_i;
-  assign execute_from_flash = execute_from_flash_i;
   assign exit_valid_o = exit_valid;
 
   // X-HEEP system instance
@@ -295,7 +291,6 @@ module testharness #(
       .jtag_tdi_i(mux_jtag_tdi),
       .jtag_tdo_o(mux_jtag_tdo),
       .boot_select_i(boot_select),
-      .execute_from_flash_i(execute_from_flash),
       .exit_valid_o(exit_valid),
       .uart_rx_i(uart_rx),
       .uart_tx_o(uart_tx),

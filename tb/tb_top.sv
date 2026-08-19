@@ -28,11 +28,9 @@ module tb_top #(
   wire clk_w, rst_n_w;
 
   // Boot selection (0:jtag or 1:flash)
-  logic boot_sel;
-  // SPI selection (0:ot-qspi or 1:memory mapped flash, only valid if boot_sel is 1)
-  logic execute_from_flash;
+  logic               boot_sel;
   // wire for inout connections
-  wire boot_sel_w, execute_from_flash_w;
+  wire                boot_sel_w;
 
   // cycle counter
   int unsigned        cycle_cnt_q;
@@ -59,7 +57,7 @@ module tb_top #(
   // we either load the provided firmware or execute a small test program that
   // doesn't do more than an infinite loop with some I/O
   initial begin : load_prog
-    automatic string firmware, arg_boot_sel, arg_execute_from_flash;
+    automatic string firmware, arg_boot_sel;
 
     if ($value$plusargs("firmware=%s", firmware)) begin
       $display("[TESTBENCH]: loading firmware %0s", firmware);
@@ -75,6 +73,7 @@ module tb_top #(
       $value$plusargs("boot_sel=%s", arg_boot_sel);
       if (arg_boot_sel == "1") begin
         $display("[TESTBENCH]: Booting from flash");
+        $display("[TESTBENCH]: Using OpenTitan SPI");
         boot_sel = 1;
       end else if (arg_boot_sel == "0") begin
         $display("[TESTBENCH]: Booting from jtag");
@@ -87,28 +86,6 @@ module tb_top #(
     end else begin
       $display("[TESTBENCH]: No Boot Option specified, using jtag (boot_sel=0)");
       boot_sel = 0;
-    end
-
-    execute_from_flash = 0;
-    if (boot_sel == 1) begin
-      if ($test$plusargs("execute_from_flash")) begin
-        $value$plusargs("execute_from_flash=%s", arg_execute_from_flash);
-        if (arg_execute_from_flash == "1") begin
-          $display("[TESTBENCH]: Using YosysHQ memory mapped SPI");
-          execute_from_flash = 1;
-        end else if (arg_execute_from_flash == "0") begin
-          $display("[TESTBENCH]: Using OpenTitan SPI");
-          execute_from_flash = 0;
-        end else begin
-          $display(
-              "[TESTBENCH]: Wrong SPI Option specified (execute from flash, load flash in-memory) - using execute from flash (execute_from_flash=1)");
-          execute_from_flash = 1;
-        end
-      end else begin
-        $display(
-            "[TESTBENCH]: No SPI Option specified, using load from flash (execute_from_flash=0)");
-        execute_from_flash = 0;
-      end
     end
 
     testharness_i.load_flash_hex(firmware);
@@ -186,7 +163,6 @@ module tb_top #(
   assign clk_w = clk;
   assign rst_n_w = rst_n;
   assign boot_sel_w = boot_sel;
-  assign execute_from_flash_w = execute_from_flash;
 
   // wrapper for riscv, the memory system and stdout peripheral
   testharness #(
@@ -194,17 +170,16 @@ module tb_top #(
       .USE_EXTERNAL_DEVICE_EXAMPLE(USE_EXTERNAL_DEVICE_EXAMPLE),
       .CLK_FREQUENCY              (CLK_FREQUENCY_KHz)
   ) testharness_i (
-      .clk_i               (clk_w),
-      .rst_ni              (rst_n_w),
-      .boot_select_i       (boot_sel_w),
-      .execute_from_flash_i(execute_from_flash_w),
-      .exit_valid_o        (exit_valid),
-      .exit_value_o        (exit_value),
-      .jtag_tck_i          (jtag_tck),
-      .jtag_trst_ni        (jtag_trst_n),
-      .jtag_tms_i          (jtag_tms),
-      .jtag_tdi_i          (jtag_tdi),
-      .jtag_tdo_o          (jtag_tdo)
+      .clk_i        (clk_w),
+      .rst_ni       (rst_n_w),
+      .boot_select_i(boot_sel_w),
+      .exit_valid_o (exit_valid),
+      .exit_value_o (exit_value),
+      .jtag_tck_i   (jtag_tck),
+      .jtag_trst_ni (jtag_trst_n),
+      .jtag_tms_i   (jtag_tms),
+      .jtag_tdi_i   (jtag_tdi),
+      .jtag_tdo_o   (jtag_tdo)
   );
 
 

@@ -17,7 +17,6 @@ set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets clk_led_o_OBUF]
 set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets rst_led_o_OBUF]
 
 ##Switches
-set_property -dict {PACKAGE_PIN L16 IOSTANDARD LVCMOS33} [get_ports {execute_from_flash_i}]; #Sch=sw[1]
 set_property -dict {PACKAGE_PIN M13 IOSTANDARD LVCMOS33} [get_ports {boot_select_i}]; #Sch=sw[2]
 
 ##Switches

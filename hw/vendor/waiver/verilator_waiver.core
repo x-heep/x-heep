@@ -24,7 +24,6 @@ filesets:
     - lint/uart.vlt
     - lint/uartdpi.vlt
     - lint/cluster_interconnect.vlt
-    - lint/picorv32.vlt
     - lint/pulpissimo.vlt
     - lint/rv_plic.vlt
     - lint/spi_device.vlt

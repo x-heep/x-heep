@@ -5,6 +5,13 @@
 <%
     memory_ss = xheep.memory_ss()
     external_domains = xheep.get_base_peripheral_domain().get_power_manager().get_external_domains()
+
+    base_peripheral_domain = xheep.get_base_peripheral_domain()
+    if base_peripheral_domain.contains_peripheral('w25q128jw_controller'):
+        w25 = xheep.get_base_peripheral_domain().get_W25Q128JW_controller()
+        cache = w25.get_cache()
+    else:
+        cache = 0
 %>
 
 `include "common_cells/assertions.svh"
@@ -53,6 +60,9 @@ module power_manager import power_manager_pkg::*; #(
     output power_manager_out_t cpu_subsystem_pwr_ctrl_o,
     output power_manager_out_t peripheral_subsystem_pwr_ctrl_o,
     output power_manager_out_t memory_subsystem_pwr_ctrl_o[core_v_mini_mcu_pkg::NUM_BANKS-1:0],
+    % if cache:
+    output power_manager_out_t w25_cache_pwr_ctrl_o,
+    % endif
     output power_manager_out_t external_subsystem_pwr_ctrl_o[EXT_DOMAINS_RND-1:0],
     output power_manager_out_t dma_subsystem_pwr_ctrl_o[core_v_mini_mcu_pkg::DMA_CH_NUM-1:0],
 
@@ -60,6 +70,9 @@ module power_manager import power_manager_pkg::*; #(
     input power_manager_in_t cpu_subsystem_pwr_ctrl_i,
     input power_manager_in_t peripheral_subsystem_pwr_ctrl_i,
     input power_manager_in_t memory_subsystem_pwr_ctrl_i[core_v_mini_mcu_pkg::NUM_BANKS-1:0],
+    % if cache:
+    input power_manager_in_t w25_cache_pwr_ctrl_i,
+    % endif
     input power_manager_in_t external_subsystem_pwr_ctrl_i[EXT_DOMAINS_RND-1:0]
 
 );
@@ -112,6 +125,10 @@ module power_manager import power_manager_pkg::*; #(
   logic peripheral_subsystem_rst_n;
   logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_n;
   logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_iso_n;
+% if cache:
+  logic w25_cache_powergate_switch_n;
+  logic w25_cache_powergate_iso_n;
+% endif
 % if external_domains != 0:
   logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_switch_n;
   logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_iso_n;
@@ -136,6 +153,13 @@ module power_manager import power_manager_pkg::*; #(
   assign memory_subsystem_pwr_ctrl_o[${bank.name()}].rst_n = 1'b1;
   assign memory_subsystem_pwr_ctrl_o[${bank.name()}].clkgate_en_n = ~reg2hw.ram_${bank.name()}_clk_gate.q;
 % endfor
+
+% if cache:
+  assign w25_cache_pwr_ctrl_o.pwrgate_en_n = w25_cache_powergate_switch_n;
+  assign w25_cache_pwr_ctrl_o.isogate_en_n = w25_cache_powergate_iso_n;
+  assign w25_cache_pwr_ctrl_o.rst_n = 1'b1;
+  assign w25_cache_pwr_ctrl_o.clkgate_en_n = ~reg2hw.ram_w25_cache_clk_gate.q;
+% endif
 
 % for channel in range(xheep.get_base_peripheral_domain().get_dma().get_num_channels()):
   assign dma_subsystem_pwr_ctrl_o[${channel}].clkgate_en_n = ~reg2hw.dma_ch${channel}_clk_gate.q;
@@ -489,6 +513,80 @@ module power_manager import power_manager_pkg::*; #(
   );
 
 % endfor
+
+% if cache:
+  // --------------------------------------------------------------------------------------
+  // RAM_w25_cache DOMAIN
+  // --------------------------------------------------------------------------------------
+
+  logic ram_w25_cache_subsystem_powergate_switch_ack_sync;
+
+  sync #(
+      .ResetValue(1'b0)
+  ) sync_ram_w25_cache_ack_i (
+      .clk_i,
+      .rst_ni,
+      .serial_i(w25_cache_pwr_ctrl_i.pwrgate_ack_n),
+      .serial_o(ram_w25_cache_subsystem_powergate_switch_ack_sync)
+  );
+
+  assign hw2reg.power_gate_ram_block_w25_cache_ack.de = 1'b1;
+  assign hw2reg.power_gate_ram_block_w25_cache_ack.d = ram_w25_cache_subsystem_powergate_switch_ack_sync;
+
+  //if you want to wait for ACK, or just bypass it
+  logic ram_w25_cache_switch_wait_ack;
+  assign ram_w25_cache_switch_wait_ack = reg2hw.ram_w25_cache_wait_ack_switch_on.q ? reg2hw.power_gate_ram_block_w25_cache_ack.q == SWITCH_IDLE_VALUE : 1'b1;
+
+  power_manager_sequence #(
+      .IDLE_VALUE(SWITCH_IDLE_VALUE),
+      .ONOFF_AT_RESET(SWITCH_VALUE_AT_RESET)
+  ) power_manager_sequence_ram_w25_cache_switch_i (
+      .clk_i,
+      .rst_ni,
+
+      // trigger to start the sequence
+      .start_off_sequence_i(reg2hw.ram_w25_cache_switch.q),
+      .start_on_sequence_i (~reg2hw.ram_w25_cache_switch.q),
+      .switch_ack_i (1'b1),
+
+      // switch on and off signal, 1 means on
+      .switch_onoff_signal_o(w25_cache_powergate_switch_n)
+  );
+
+  power_manager_sequence #(
+    .IDLE_VALUE(ISO_IDLE_VALUE),
+    .ONOFF_AT_RESET(ISO_VALUE_AT_RESET)
+  ) power_manager_sequence_ram_w25_cache_iso_i (
+      .clk_i,
+      .rst_ni,
+
+      // trigger to start the sequence
+      .start_off_sequence_i(reg2hw.ram_w25_cache_iso.q),
+      .start_on_sequence_i (~reg2hw.ram_w25_cache_iso.q),
+      .switch_ack_i (ram_w25_cache_switch_wait_ack),
+
+      // switch on and off signal, 1 means on
+      .switch_onoff_signal_o(w25_cache_powergate_iso_n)
+  );
+
+  power_manager_sequence #(
+    .IDLE_VALUE(ISO_IDLE_VALUE),
+    .ONOFF_AT_RESET(ISO_VALUE_AT_RESET)
+  ) power_manager_sequence_ram_w25_cache_retentive_i (
+      .clk_i,
+      .rst_ni,
+
+      // trigger to start the sequence
+      .start_off_sequence_i(reg2hw.ram_w25_cache_retentive.q),
+      .start_on_sequence_i (~reg2hw.ram_w25_cache_retentive.q),
+      .switch_ack_i (1'b1),
+
+      // switch on and off signal, 1 means on
+      .switch_onoff_signal_o(w25_cache_pwr_ctrl_o.retentive_en_n)
+  );
+
+% endif
+
 % for ext in range(external_domains):
   // --------------------------------------------------------------------------------------
   // EXTERNAL_SUBSYSTEM_${ext} DOMAIN
@@ -591,6 +689,7 @@ module power_manager import power_manager_pkg::*; #(
   assign hw2reg.monitor_power_gate_ram_block_${bank.name()}.de = 1'b1;
   assign hw2reg.monitor_power_gate_ram_block_${bank.name()}.d = {memory_subsystem_banks_powergate_iso_n[${bank.name()}], memory_subsystem_banks_powergate_switch_n[${bank.name()}]};
 % endfor
+
 
 % for ext in range(external_domains):
   assign hw2reg.monitor_power_gate_external_${ext}.de = 1'b1;

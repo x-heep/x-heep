@@ -86,11 +86,6 @@ def generate_xheep(args):
         exit(f"Error loading pads configuration file: {args.pads_cfg}")
     xheep.set_padring(pad_ring)
 
-    try:
-        has_spi_slave = 1 if config["debug"]["has_spi_slave"] == "yes" else 0
-    except KeyError:
-        has_spi_slave = 0
-
     if args.bus != None and args.bus != "":
         xheep.set_bus_type(BusType(args.bus))
 
@@ -103,31 +98,6 @@ def generate_xheep(args):
     # Override CPU setting if specified in the make arguments
     if args.cpu != None and args.cpu != "":
         xheep.set_cpu(CPU(args.cpu))
-
-    debug_start_address = string2int(config["debug"]["address"])
-    if int(debug_start_address, 16) < int("10000", 16):
-        exit("debug start address must be greater than 0x10000")
-
-    debug_size_address = string2int(config["debug"]["length"])
-    ext_slave_start_address = string2int(config["ext_slaves"]["address"])
-    ext_slave_size_address = string2int(config["ext_slaves"]["length"])
-
-    flash_mem_start_address = string2int(config["flash_mem"]["address"])
-    flash_mem_size_address = string2int(config["flash_mem"]["length"])
-
-    serial_link_start_address = (
-        string2int(config["serial_link"]["address"])
-        if "serial_link" in config
-        else 0x50000000
-    )
-    serial_link_size_address = (
-        string2int(config["serial_link"]["length"])
-        if "serial_link" in config
-        else 0x01000000
-    )
-
-    stack_size = string2int(config["linker_script"]["stack_size"])
-    heap_size = string2int(config["linker_script"]["heap_size"])
 
     plic_used_n_interrupts = len(config["interrupts"]["list"])
     plit_n_interrupts = config["interrupts"]["number"]
@@ -145,30 +115,8 @@ def generate_xheep(args):
     # Validate the configuration, performing some sanity checks
     xheep.validate()
 
-    if (
-        int(stack_size, 16) + int(heap_size, 16)
-    ) > xheep.memory_ss().ram_size_address():
-        exit(
-            "The stack and heap section must fit in the RAM size, instead they take "
-            + str(int(stack_size, 16) + int(heap_size, 16))
-            + " bytes while RAM size is "
-            + str(xheep.memory_ss().ram_size_address())
-            + " bytes."
-        )
-
     kwargs = {
         "xheep": xheep,
-        "debug_start_address": debug_start_address,
-        "debug_size_address": debug_size_address,
-        "has_spi_slave": has_spi_slave,
-        "ext_slave_start_address": ext_slave_start_address,
-        "ext_slave_size_address": ext_slave_size_address,
-        "flash_mem_start_address": flash_mem_start_address,
-        "flash_mem_size_address": flash_mem_size_address,
-        "serial_link_start_address": serial_link_start_address,
-        "serial_link_size_address": serial_link_size_address,
-        "stack_size": stack_size,
-        "heap_size": heap_size,
         "plic_used_n_interrupts": plic_used_n_interrupts,
         "plit_n_interrupts": plit_n_interrupts,
         "interrupts": interrupts,

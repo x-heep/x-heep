@@ -75,7 +75,6 @@ sw/device/lib/runtime/core_v_mini_mcu.h
 sw/device/lib/runtime/core_v_mini_mcu_memory.h
 
 sw/linker/link.ld
-sw/linker/link_flash_exec.ld
 sw/linker/link_flash_load.ld
 
 sw/device/lib/drivers/soc_ctrl/soc_ctrl_regs.h

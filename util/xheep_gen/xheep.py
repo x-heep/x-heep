@@ -1,13 +1,23 @@
-import sys
+# Copyright 2026 EPFL
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Author(s): marinPh, David Mallasén
+# Description: X-HEEP System configuration.
+
 from copy import deepcopy
+
 from bus_type import BusType
+from debug_ss.debug_ss import DebugSS
 from memory_ss.memory_ss import MemorySS
 from cpu.cpu import CPU
 from cv_x_if import CvXIf
+from address_map.address_map import AddressMap
 from peripherals.abstractions import PeripheralDomain
 from peripherals.base_peripherals_domain import BasePeripheralDomain
 from peripherals.user_peripherals_domain import UserPeripheralDomain
 from pads.pad_ring import PadRing
+from linker_script.linker_script import LinkerScript
 
 
 class XHeep:
@@ -33,17 +43,15 @@ class XHeep:
             )
 
         self._cpu = None
-
         self._xif: CvXIf = None
-
         self._bus_type: BusType = bus_type
-
         self._memory_ss = None
-
+        self._debug_ss = None
+        self._linker_script_config: LinkerScript = None
+        self._address_map: AddressMap = None
         self._base_peripheral_domain = None
         self._user_peripheral_domain = None
         self._padring: PadRing = None
-
         self._extensions = {}
 
     # ------------------------------------------------------------
@@ -140,6 +148,92 @@ class XHeep:
         return self._memory_ss
 
     # ------------------------------------------------------------
+    # Linker Script Configuration
+    # ------------------------------------------------------------
+    def set_linker_script_config(self, linker_script_config: LinkerScript):
+        """
+        Sets the linker script configuration for stack and heap sizes.
+
+        :param LinkerScript config: The linker script configuration.
+        """
+
+        if not isinstance(linker_script_config, LinkerScript):
+
+            raise TypeError(
+                f"XHeep.linker_script_config should be of type LinkerScript not {type(linker_script_config)}"
+            )
+        self._linker_script_config = linker_script_config
+
+    def linker_script(self) -> LinkerScript:
+        """
+        :return: the linker script configuration
+        :rtype: LinkerScript
+        """
+        return self._linker_script_config
+
+    def stack_size(self) -> int:
+        """
+        :return: the configured or inferred stack size in bytes
+        :rtype: int
+        """
+        return self._linker_script_config.stack_size()
+
+    def heap_size(self) -> int:
+        """
+        :return: the configured or inferred heap size in bytes
+        :rtype: int
+        """
+        return self._linker_script_config.heap_size()
+
+    # ------------------------------------------------------------
+    # Debug Subsystem
+    # ------------------------------------------------------------
+
+    def set_debug_ss(self, debug_ss: DebugSS):
+        """
+        Sets the debug subsystem of the system.
+
+        :param DebugSS debug_ss: The debug subsystem to set.
+        :raise TypeError: when debug_ss is of incorrect type.
+        """
+        if not isinstance(debug_ss, DebugSS):
+            raise TypeError(
+                f"XHeep.debug_ss should be of type DebugSS not {type(self._debug_ss)}"
+            )
+        self._debug_ss = debug_ss
+
+    def debug_ss(self) -> DebugSS:
+        """
+        :return: the configured debug subsystem
+        :rtype: DebugSS
+        """
+        return self._debug_ss
+
+    # ------------------------------------------------------------
+    # Address Map
+    # ------------------------------------------------------------
+
+    def set_address_map(self, address_map: AddressMap):
+        """
+        Sets the address map of the system.
+
+        :param AddressMap address_map: The address map to set.
+        :raise TypeError: when address_map is of incorrect type.
+        """
+        if not isinstance(address_map, AddressMap):
+            raise TypeError(
+                f"XHeep.address_map should be of type AddressMap not {type(self._address_map)}"
+            )
+        self._address_map = address_map
+
+    def address_map(self) -> AddressMap:
+        """
+        :return: the system's top-level address map.
+        :rtype: AddressMap
+        """
+        return self._address_map
+
+    # ------------------------------------------------------------
     # Peripherals
     # ------------------------------------------------------------
 
@@ -156,16 +250,6 @@ class XHeep:
         :rtype: bool
         """
         return self._user_peripheral_domain is not None
-
-    def are_peripherals_configured(self) -> bool:
-        """
-        :return: `True` if both base and user peripherals are configured, `False` otherwise.
-        :rtype: bool
-        """
-        return (
-            self.are_base_peripherals_configured()
-            and self.are_user_peripherals_configured()
-        )
 
     def add_peripheral_domain(self, domain: PeripheralDomain):
         """
@@ -264,10 +348,16 @@ class XHeep:
 
         if self.memory_ss():
             self.memory_ss().build()
-        if self.are_base_peripherals_configured():
-            self._base_peripheral_domain.build()
-        if self.are_user_peripherals_configured():
-            self._user_peripheral_domain.build()
+        if self.linker_script():
+            self.linker_script().build(self.memory_ss().linker_data_region_size())
+        if self.address_map() and self.are_base_peripherals_configured():
+            self._base_peripheral_domain.build(
+                self.address_map().get_region("base_peripheral_domain").get_length()
+            )
+        if self.address_map() and self.are_user_peripherals_configured():
+            self._user_peripheral_domain.build(
+                self.address_map().get_region("user_peripheral_domain").get_length()
+            )
 
     def validate(self):
         """
@@ -280,7 +370,14 @@ class XHeep:
 
         if not self.memory_ss():
             raise RuntimeError("[MCU-GEN] ERROR: A memory subsystem must be configured")
+
+        if not self.linker_script():
+            raise RuntimeError(
+                "[MCU-GEN] ERROR: A linker script instance must be configured"
+            )
+
         self.memory_ss().validate()
+        self.linker_script().validate(self.memory_ss().linker_data_region_size())
 
         if self.memory_ss().has_il_ram() and (
             self._bus_type not in self.IL_COMPATIBLE_BUS_TYPES
@@ -289,56 +386,29 @@ class XHeep:
                 f"[MCU-GEN] ERROR: This system has a {self._bus_type} bus, one of {self.IL_COMPATIBLE_BUS_TYPES} is required for interleaved memory"
             )
 
-        # Check that each peripheral domain is valid
+        if not self.address_map():
+            raise RuntimeError("[MCU-GEN] ERROR: An address map must be configured")
+        self.address_map().validate()
+
         if self.are_base_peripherals_configured():
-            self._base_peripheral_domain.validate()
+            self._base_peripheral_domain.validate(
+                self.address_map().get_region("base_peripheral_domain").get_length(),
+                self._bus_type,
+            )
+        else:
+            raise RuntimeError(
+                "[MCU-GEN] ERROR: Base peripheral domain must be configured"
+            )
         if self.are_user_peripherals_configured():
-            self._user_peripheral_domain.validate()
-
-        # Check that peripherals domains do not overlap
-        if (
-            self.are_base_peripherals_configured()
-            and self._base_peripheral_domain.get_start_address()
-            < self._user_peripheral_domain.get_start_address()
-            and self._base_peripheral_domain.get_start_address()
-            + self._base_peripheral_domain.get_length()
-            > self._user_peripheral_domain.get_start_address()
-        ):  # base peripheral domain comes before user peripheral domain
+            self._user_peripheral_domain.validate(
+                self.address_map().get_region("user_peripheral_domain").get_length()
+            )
+        else:
             raise RuntimeError(
-                f"[MCU-GEN] ERROR: The base peripheral domain (ends at {self._base_peripheral_domain.get_start_address() + self._base_peripheral_domain.get_length():#08X}) overflows over user peripheral domain (starts at {self._user_peripheral_domain.get_start_address():#08X})."
+                "[MCU-GEN] ERROR: User peripheral domain must be configured"
             )
 
-        if (
-            self.are_user_peripherals_configured()
-            and self._user_peripheral_domain.get_start_address()
-            < self._base_peripheral_domain.get_start_address()
-            and self._user_peripheral_domain.get_start_address()
-            + self._user_peripheral_domain.get_length()
-            > self._base_peripheral_domain.get_start_address()
-        ):  # user peripheral domain comes before base peripheral domain
-            raise RuntimeError(
-                f"[MCU-GEN] ERROR: The user peripheral domain (ends at {self._user_peripheral_domain.get_start_address() + self._user_peripheral_domain.get_length():#08X}) overflows over base peripheral domain (starts at {self._base_peripheral_domain.get_start_address():#08X})."
-            )
-
-        if (
-            self.are_user_peripherals_configured()
-            and self.are_base_peripherals_configured()
-            and self._user_peripheral_domain.get_start_address()
-            == self._base_peripheral_domain.get_start_address()
-        ):  # both domains start at the same address
-            raise RuntimeError(
-                f"[MCU-GEN] ERROR: The base peripheral domain and the user peripheral domain should not start at the same address (current addresses are {self._base_peripheral_domain.get_start_address():#08X} and {self._user_peripheral_domain.get_start_address():#08X})."
-            )
-
-        if (
-            self.are_base_peripherals_configured()
-            and self._base_peripheral_domain.get_start_address() < 0x10000
-        ):  # from mcu_gen.py
-            raise RuntimeError(
-                f"[MCU-GEN] ERROR: Always on peripheral start address must be greater than 0x10000, current address is {self._base_peripheral_domain.get_start_address():#08X}."
-            )
-
-        # Check that the extension interface is enabled with a supported core
+        # Check that if the extension interface is enabled, it is using a supported core
         if self.xif() is not None and self.cpu().get_name() in ["cv32e40p"]:
             raise RuntimeError(
                 f"[MCU-GEN] ERROR: CV-X-IF enabled (xheep.set_xif()) with incompatible CPU ({self.cpu().get_name()})."

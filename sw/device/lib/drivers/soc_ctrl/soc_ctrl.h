@@ -67,24 +67,6 @@ uint32_t soc_ctrl_get_frequency(const soc_ctrl_t *soc_ctrl);
 
 void soc_ctrl_set_frequency(const soc_ctrl_t *soc_ctrl, uint32_t frequency);
 
-/**
- * Select SPI MEMIO as SPI output
- * @param soc_ctrl Pointer to soc_ctrl_t represting the target SOC CTRL.
- */
-void soc_ctrl_select_spi_memio(const soc_ctrl_t *soc_ctrl);
-
-/**
- * Select SPI HOST as SPI output
- * @param soc_ctrl Pointer to soc_ctrl_t represting the target SOC CTRL.
- */
-void soc_ctrl_select_spi_host(const soc_ctrl_t *soc_ctrl);
-
-/**
- * Get the SPI mode selected
- * @param soc_ctrl Pointer to soc_ctrl_t represting the target SOC CTRL.
- */
-
-uint32_t get_spi_flash_mode(const soc_ctrl_t *soc_ctrl);
 
 /**
  * Get the X-HEEP Instance ID

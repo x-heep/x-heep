@@ -104,4 +104,9 @@ module pad_ring (
     `endif
 % endif #len(analog_signal_pads) > 0:
 
+% if xheep.get_padring().get_custom_rtl():
+    // Custom RTL code for the pad ring
+    ${xheep.get_padring().get_custom_rtl()}
+% endif
+
 endmodule //pad_ring

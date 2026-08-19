@@ -54,7 +54,6 @@ BLACKLIST = [
     "example_pdm2pcm",
     "example_dma_slow_mem",  # TODO: @tommaso remove this once it's fixed
     "example_matmul_quadrilatero",
-    "example_w25q128jw_write",
     "example_serial_link_performance",
     "example_serial_link_simulation_dma",  # Functionality already covered by example_serial_link_direct_write, excluded to avoid redundant testing
     "example_serial_link",  # Functionality already covered by example_serial_link_direct_write, excluded to avoid redundant testing
@@ -65,6 +64,8 @@ BLACKLIST = [
     "example_freertos_blinky",  # Times out
     "example_matmul",  # Times out
     "example_w25q128jw_read",  # Times out
+    "example_w25q128jw_write",  # Times out
+    "example_w25q128jw_memio",  # Times out
 ]
 # TODO : The example_pdm2pcm app is testing a wrong version of the PDM2PCM acting only as a CIC filter.
 #        When fixed, it not passes anymore. Need to be updated.

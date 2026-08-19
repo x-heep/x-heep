@@ -70,7 +70,6 @@ int main (int argc, char * argv[])
   dut->jtag_tms_i           = 0;
   dut->jtag_trst_ni         = 0;
   dut->jtag_tdi_i           = 0;
-  dut->execute_from_flash_i = 0;
 
   dut->eval();
   m_trace->dump(sim_time);

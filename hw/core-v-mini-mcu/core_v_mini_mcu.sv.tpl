@@ -16,7 +16,6 @@
 
   clk_module = next((p for p in xheep.get_padring().get_connected_pins() if p.name in ["clk", "ref_clk"] ), None).module
   rst_module = next((p for p in xheep.get_padring().get_connected_pins() if p.name == "rst"), None).module
-
 %>
 
 module core_v_mini_mcu #(
@@ -341,10 +340,21 @@ module core_v_mini_mcu #(
       .core_sleep_o(core_sleep)
   );
 
+  % if xheep.debug_ss().has_spi_slave() == 0:
+    logic spi_slave_sck_i;
+    assign spi_slave_sck_i = 0;
+    logic spi_slave_cs_i;
+    assign spi_slave_cs_i = 0;
+    logic spi_slave_miso_o;
+    logic spi_slave_miso_oe_o;
+    logic spi_slave_mosi_i;
+    assign spi_slave_mosi_i = 0;
+  % endif
+
   debug_subsystem #(
       .NRHARTS    (NRHARTS),
       .JTAG_IDCODE(JTAG_IDCODE),
-      .SPI_SLAVE(${has_spi_slave}),
+      .SPI_SLAVE(${xheep.debug_ss().has_spi_slave()}),
       .obi_req_t(obi_req_t),
       .obi_rsp_t(obi_rsp_t)
   ) debug_subsystem_i (
@@ -450,7 +460,6 @@ module core_v_mini_mcu #(
       .ao2spc_resp_o(ext_ao_peripheral_slave_resp_o),
       .xheep_instance_id_i,
       .boot_select_i,
-      .execute_from_flash_i,
       .exit_valid_o,
       .exit_value_o,
       .spimemio_req_i(flash_mem_slave_req),
@@ -531,7 +540,7 @@ module core_v_mini_mcu #(
       .cio_sda_i(i2c_sda_i),
       .cio_sda_o(i2c_sda_o),
       .cio_sda_en_o(i2c_sda_oe_o),
-      .spi_sck_o,
+      .spi_sck_o(spi_sck_o),
       .spi_sck_en_o(spi_sck_oe_o),
       .spi_csb_o({spi_cs_1_o,spi_cs_0_o}),
       .spi_csb_en_o({spi_cs_1_oe_o, spi_cs_0_oe_o}),
@@ -541,7 +550,7 @@ module core_v_mini_mcu #(
       .spi_intr_event_o(spi_intr),
       .spi_rx_valid_o(spi_rx_valid),
       .spi_tx_ready_o(spi_tx_ready),
-      .spi2_sck_o,
+      .spi2_sck_o(spi2_sck_o),
       .spi2_sck_en_o(spi2_sck_oe_o),
       .spi2_csb_o({spi2_cs_1_o, spi2_cs_0_o}),
       .spi2_csb_en_o({spi2_cs_1_oe_o, spi2_cs_0_oe_o}),

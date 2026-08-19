@@ -74,7 +74,6 @@ module xilinx_core_v_mini_mcu_wrapper
 
 `ifndef PS_ENABLE
     inout logic boot_select_i,
-    inout logic execute_from_flash_i,
 
     inout logic jtag_tck_i,
     inout logic jtag_tms_i,
@@ -309,7 +308,6 @@ module xilinx_core_v_mini_mcu_wrapper
 `ifdef PS_ENABLE
       .rst_ni(ps_x_heep_o[0] & rst_n),
       .boot_select_i(ps_x_heep_o[1]),
-      .execute_from_flash_i(ps_x_heep_o[2]),
       .jtag_tck_i(ps_tck),
       .jtag_tms_i(ps_tms),
       .jtag_trst_ni(ps_x_heep_o[3]),
@@ -321,7 +319,6 @@ module xilinx_core_v_mini_mcu_wrapper
 `else
       .rst_ni(rst_n),
       .boot_select_i(boot_select_i),
-      .execute_from_flash_i(execute_from_flash_i),
       .jtag_tck_i(jtag_tck_i),
       .jtag_tms_i(jtag_tms_i),
       .jtag_trst_ni(jtag_trst_ni),

@@ -29,7 +29,6 @@ module core_v_mini_mcu #(
     input  logic rst_ni,
     input  logic clk_i,
     input  logic boot_select_i,
-    input  logic execute_from_flash_i,
     input  logic jtag_tck_i,
     input  logic jtag_tms_i,
     input  logic jtag_trst_ni,
@@ -435,6 +434,18 @@ module core_v_mini_mcu #(
   assign memory_subsystem_banks_powergate_iso_n[1] = memory_subsystem_pwr_ctrl_out[1].isogate_en_n;
   assign memory_subsystem_banks_set_retentive_n[1] = memory_subsystem_pwr_ctrl_out[1].retentive_en_n;
   assign memory_subsystem_clkgate_en_n[1] = memory_subsystem_pwr_ctrl_out[1].clkgate_en_n;
+  assign memory_subsystem_banks_powergate_switch_n[2] = memory_subsystem_pwr_ctrl_out[2].pwrgate_en_n;
+  assign memory_subsystem_pwr_ctrl_in[2].pwrgate_ack_n = memory_subsystem_banks_powergate_switch_ack_n[2];
+  //isogate exposed outside for UPF sim flow and switch cells
+  assign memory_subsystem_banks_powergate_iso_n[2] = memory_subsystem_pwr_ctrl_out[2].isogate_en_n;
+  assign memory_subsystem_banks_set_retentive_n[2] = memory_subsystem_pwr_ctrl_out[2].retentive_en_n;
+  assign memory_subsystem_clkgate_en_n[2] = memory_subsystem_pwr_ctrl_out[2].clkgate_en_n;
+  assign memory_subsystem_banks_powergate_switch_n[3] = memory_subsystem_pwr_ctrl_out[3].pwrgate_en_n;
+  assign memory_subsystem_pwr_ctrl_in[3].pwrgate_ack_n = memory_subsystem_banks_powergate_switch_ack_n[3];
+  //isogate exposed outside for UPF sim flow and switch cells
+  assign memory_subsystem_banks_powergate_iso_n[3] = memory_subsystem_pwr_ctrl_out[3].isogate_en_n;
+  assign memory_subsystem_banks_set_retentive_n[3] = memory_subsystem_pwr_ctrl_out[3].retentive_en_n;
+  assign memory_subsystem_clkgate_en_n[3] = memory_subsystem_pwr_ctrl_out[3].clkgate_en_n;
 
   for (genvar i = 0; i < EXT_DOMAINS_RND; i = i + 1) begin : gen_external_subsystem_pwr_gating
     assign external_subsystem_powergate_switch_no[i]        = external_subsystem_pwr_ctrl_out[i].pwrgate_en_n;
@@ -508,6 +519,7 @@ module core_v_mini_mcu #(
       .debug_req_i(debug_core_req),
       .core_sleep_o(core_sleep)
   );
+
 
   debug_subsystem #(
       .NRHARTS    (NRHARTS),
@@ -612,7 +624,6 @@ module core_v_mini_mcu #(
       .ao2spc_resp_o(ext_ao_peripheral_slave_resp_o),
       .xheep_instance_id_i,
       .boot_select_i,
-      .execute_from_flash_i,
       .exit_valid_o,
       .exit_value_o,
       .spimemio_req_i(flash_mem_slave_req),
@@ -695,7 +706,7 @@ module core_v_mini_mcu #(
       .cio_sda_i(i2c_sda_i),
       .cio_sda_o(i2c_sda_o),
       .cio_sda_en_o(i2c_sda_oe_o),
-      .spi_sck_o,
+      .spi_sck_o(spi_sck_o),
       .spi_sck_en_o(spi_sck_oe_o),
       .spi_csb_o({spi_cs_1_o, spi_cs_0_o}),
       .spi_csb_en_o({spi_cs_1_oe_o, spi_cs_0_oe_o}),
@@ -705,7 +716,7 @@ module core_v_mini_mcu #(
       .spi_intr_event_o(spi_intr),
       .spi_rx_valid_o(spi_rx_valid),
       .spi_tx_ready_o(spi_tx_ready),
-      .spi2_sck_o,
+      .spi2_sck_o(spi2_sck_o),
       .spi2_sck_en_o(spi2_sck_oe_o),
       .spi2_csb_o({spi2_cs_1_o, spi2_cs_0_o}),
       .spi2_csb_en_o({spi2_cs_1_oe_o, spi2_cs_0_oe_o}),

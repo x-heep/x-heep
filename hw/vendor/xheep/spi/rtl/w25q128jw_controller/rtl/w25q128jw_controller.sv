@@ -16,17 +16,27 @@
  *                      Alain Girard <alain.girard@epfl.ch>
  *                                   <alaingirardvd@gmail.com>
  */
+
 module w25q128jw_controller
   import dma_reg_pkg::*;
+  import power_manager_pkg::*;
   import spi_host_reg_pkg::*;
+  import flash_llc_cache_reg_pkg::*;
 #(
     // SPI host memory address
     parameter logic [31:0] SPI_FLASH_START_ADDRESS = 'h0,
+    parameter logic [31:0] W25Q128JW_CONTROLLER_START_ADDRESS = 'h0,
     // External DMA number of channels
     parameter int unsigned DMA_CH_NUM = 'd1,
+
+    // Cache enable
+    parameter bit  CACHE_EN  = 1'b0,
     // Register Interface data types
     parameter type reg_req_t = logic,
-    parameter type reg_rsp_t = logic
+    parameter type reg_rsp_t = logic,
+    // OBI Interface data types
+    parameter type obi_req_t = logic,
+    parameter type obi_rsp_t = logic
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -34,6 +44,10 @@ module w25q128jw_controller
     // Register interface from system bus
     input  reg_req_t reg_req_i,
     output reg_rsp_t reg_rsp_o,
+
+    // Memory mapped SPI
+    input  obi_req_t spimemio_req_i,
+    output obi_rsp_t spimemio_resp_o,
 
     // Interrupt signal
     output logic w25q128jw_controller_intr_o,
@@ -47,6 +61,11 @@ module w25q128jw_controller
     // SPI HW register
     input spi_host_reg_pkg::spi_host_hw2reg_status_reg_t external_spi_host_hw2reg_status_i,
 
+    //LLC cache power
+    input  power_manager_out_t llc_cache_pwr_ctrl_i,
+    output power_manager_in_t  llc_cache_pwr_ctrl_o,
+
+
     // DMA channel redy/done signals (directly from DMA IP)
     input logic [DMA_CH_NUM-1:0] dma_ready_i,
     input logic [DMA_CH_NUM-1:0] dma_done_i
@@ -54,199 +73,58 @@ module w25q128jw_controller
 
   // ============== PACKAGE IMPORTS ==============
   import w25q128jw_controller_reg_pkg::*;
+  import w25q128jw_controller_pkg::*;
 
   // ============== REGISTER SIGNALS ==============
   w25q128jw_controller_reg2hw_t reg2hw;
   w25q128jw_controller_hw2reg_t hw2reg;
 
   // ============== LOCAL PARAMETERS ==============
-  localparam int SPI_FLASH_TX_FIFO_DEPTH = spi_host_reg_pkg::TxDepth;
-  localparam logic [1:0] SPI_DIR_DUMMY = 2'h0;
-  localparam logic [1:0] SPI_DIR_RX = 2'h1;
-  localparam logic [1:0] SPI_DIR_TX = 2'h2;
-  localparam logic [1:0] SPI_SPEED_STD = 2'h0;
-  localparam logic [1:0] SPI_SPEED_QUAD = 2'h2;
+  localparam logic [31:0] CACHE_DATA_ADDR = W25Q128JW_CONTROLLER_START_ADDRESS
+                            + {{(32-w25q128jw_controller_reg_pkg::BlockAw){1'b0}}, W25Q128JW_CONTROLLER_CACHE_DATA_OFFSET};
 
-  localparam logic [23:0] SPI_DUMMY_CYCLES_WAIT = 24'h03;
+  // ============== PACKAGE FUNCTIONS ==============
+  function automatic void set_dma_regs(
+      input logic [31:0] src_ptr, input logic [31:0] dst_ptr, input logic [31:0] src_ptr_inc,
+      input logic [31:0] dst_ptr_inc, input logic [1:0] src_data_type, dst_data_type,
+      input logic [31:0] rx_trigger_slot, input logic [31:0] tx_trigger_slot,
+      input logic [31:0] slot_wait_counter, input logic [15:0] size_d1);
+    // Set DMA source pointer
+    external_dma_hw2reg_o.src_ptr.de = 1'b1;
+    external_dma_hw2reg_o.src_ptr.d = src_ptr;
+    // Set DMA destination pointer
+    external_dma_hw2reg_o.dst_ptr.de = 1'b1;
+    external_dma_hw2reg_o.dst_ptr.d = dst_ptr;
+    // Set source increment
+    external_dma_hw2reg_o.src_ptr_inc_d1.de = 1'b1;
+    external_dma_hw2reg_o.src_ptr_inc_d1.d = src_ptr_inc;
+    // Set destination increment
+    external_dma_hw2reg_o.dst_ptr_inc_d1.de = 1'b1;
+    external_dma_hw2reg_o.dst_ptr_inc_d1.d = dst_ptr_inc;
+    // Set source data type (See hw/vendor/xheep_dma/data/dma.hjson for encoding)
+    external_dma_hw2reg_o.src_data_type.de = 1'b1;
+    external_dma_hw2reg_o.src_data_type.d = src_data_type;
+    // Set destination data type: 1 byte
+    external_dma_hw2reg_o.dst_data_type.de = 1'b1;
+    external_dma_hw2reg_o.dst_data_type.d = dst_data_type;
+    // Set DMA trigger slots (See sw/device/lib/drivers/dma/dma.h for trigger slot mapping)
+    external_dma_hw2reg_o.slot.rx_trigger_slot.de = 1'b1;
+    external_dma_hw2reg_o.slot.rx_trigger_slot.d = rx_trigger_slot;
+    external_dma_hw2reg_o.slot.tx_trigger_slot.de = 1'b1;
+    external_dma_hw2reg_o.slot.tx_trigger_slot.d = tx_trigger_slot;
+    // Set slot wait counter
+    external_dma_hw2reg_o.slot_wait_counter.de = 1'b1;
+    external_dma_hw2reg_o.slot_wait_counter.d = slot_wait_counter;
 
-  // FLASH COMMANDS
-  localparam logic [12:0] FC_RD = 13'h03,  // Read Data
-  FC_RDQIO = 13'heb,  // Read Data Quad I/O
-  FC_RSR1 = 13'h05,  // Read Status Register 1
-  FC_WE = 13'h06,  // Write Enable
-  FC_SE = 13'h20,  // Sector Erase 4KB
-  FC_PP = 13'h02,  // Page Program
-  FC_PPQ = 13'h32,  // Page Program Quad
-  // W25Q128JW SIZE CONSTANTS
-  SE_WSIZE = 13'h400,  // Sector size in words
-  SE_BSIZE = 13'h1000,  // Sector size in bytes
-  PAGE_WSIZE = 13'h40,  // Page size in words
-  PAGE_BSIZE = 13'h100;  // Page size in bytes
-
-  // ============== BYTE SWAP FUNCTION ==============
-  function automatic [31:0] bitfield_byteswap32(input [31:0] adress_to_swap);
-    bitfield_byteswap32 = {
-      adress_to_swap[7:0],  // Byte 0 -> Byte 3
-      adress_to_swap[15:8],  // Byte 1 -> Byte 2
-      adress_to_swap[23:16],  // Byte 2 -> Byte 1
-      adress_to_swap[31:24]  // Byte 3 -> Byte 0
-    };
+    // Set transfer size and START DMA
+    // Writing to SIZE_D1 register triggers DMA transaction (See hw/ip/dma/data/dma.hjson)
+    external_dma_hw2reg_o.size_d1.de = 1'b1;
+    external_dma_hw2reg_o.size_d1.d = size_d1;
   endfunction
-
-  // verilog_format: off
-  function automatic logic [31:0] spi_cmd_pack(
-      input logic [1:0]  direction,
-      input logic [1:0]  speed,
-      input logic        csaat,
-      input logic [23:0] len_m1
-  );
-    spi_cmd_pack = {3'b000, direction, speed, csaat, len_m1};
-  endfunction
-  // verilog_format: on
 
   // ============================================================================
   // W25Q128JW CONTROLLER FSM
   // ============================================================================
-
-  // -------- TOP FSM STATES --------
-  // Top controller FSM
-  typedef enum logic [2:0] {
-    TOP_IDLE,     // Wait for start command
-    TOP_READ,     // Read from flash to RAM sector buffer
-    TOP_FWAIT,    // Wait for flash internal operation
-    TOP_ERASE,    // Erase flash sector
-    TOP_MODIFY,   // Modify RAM sector buffer with RAM data to write-back to flash
-    TOP_WRITE,    // Write RAM sector buffer to flash
-    TOP_DMA_INIT  // Initialize DMA registers
-  } top_state_e;
-
-  // -------- READ FSM STATES --------
-  // Handles flash read operations via SPI & DMA
-  typedef enum logic [4:0] {
-    READ_IDLE,               // Lead to DMA initialization (necessary before every use of DMA)
-    READ_SET_DMA,            // Set the DMA registers
-    READ_SPI_CHECK_TX_FIFO,  // Check if TX FIFO has space
-    READ_SPI_FILL_TX_FIFO,   // Write command + address to TX FIFO (standard mode)
-    READ_SPI_WAIT_READY_1,   // Wait for SPI Host ready
-    READ_SPI_SEND_CMD_1,     // Send command (1st phase, standard mode)
-    READ_SPI_WAIT_READY_2,   // Wait for SPI Host ready again
-    READ_SPI_SEND_CMD_2,     // Send command (2nd phase, standard mode)
-
-    READ_SPI_SEND_CMD_1_QUAD,        // Send Quad Read command (1st phase, standard mode)
-    READ_SPI_QUAD_WAIT_READY_1,      // Wait for SPI Host
-    READ_SPI_SEND_CMD_2_QUAD,        // Write Quad Read command (2nd phase, standard mode)
-    READ_SPI_QUAD_WAIT_READY_2,      // Wait for SPI Host
-    READ_SPI_SEND_CMD_3_QUAD,        // Send address command (1st phase, quad mode)
-    READ_SPI_QUAD_WAIT_READY_3,      // Wait for SPI Host
-    READ_SPI_SEND_CMD_4_QUAD,        // Send address command (2nd phase, quad mode)
-    READ_SPI_QUAD_WAIT_READY_4,      // Wait for SPI Host
-    READ_SPI_SEND_CMD_DUMMY_QUAD,    // Send dummy cycles command (quad mode)
-    READ_SPI_QUAD_WAIT_READY_DUMMY,  // Wait for SPI Host
-    READ_SPI_SEND_CMD_5_QUAD,        // Send RX command (quad mode)
-
-    READ_TRANS  // Wait for DMA transfer complete
-  } read_state_e;
-
-  // -------- FLASH WAIT FSM STATES --------
-  // Waits for flash internal operations to complete (erase/program)
-  // by polling the flash status register (Read Status Register 1)
-  typedef enum logic [3:0] {
-    FWAIT_IDLE,  // Go through FWAIT & ERASE FSMs
-    FWAIT_SET_RXWM_R,  // Read current RX watermark setting (within SPI Host Control Register)
-    FWAIT_SET_RXWM_W,  // Set RX watermark to 1 (for single word read: flash status register 1)
-    FWAIT_SPI_CHECK_TX_FIFO,  // Check if TX FIFO has space
-    FWAIT_SPI_FILL_TX_FIFO,  // Write Read Status Register 1 command (FC_RSR1)
-    FWAIT_SPI_WAIT_READY_1,  // Wait for SPI Host ready
-    FWAIT_SPI_SEND_CMD_1,  // Send FC_RSR1 command
-    FWAIT_SPI_WAIT_READY_2,  // Wait for SPI Host ready
-    FWAIT_SPI_SEND_CMD_2,  // Send command for flash to send status byte
-    FWAIT_WAIT_RXWM,  // Wait for RX watermark to be passed (status byte received)
-    FWAIT_READ_FLASH_STATUS  // Read status byte and check BUSY bit (bit 0). If busy then repeat process, else redirect to correct FSM/complete operation
-  } fwait_state_e;
-
-  // -------- FLASH WAIT RETURN STATES --------
-  // Reset wait status and redirect to correct FSM after flash is ready
-  // depending on which operation we were waiting for
-  typedef enum logic [1:0] {
-    FWAIT_RETURN_IDLE,
-    FWAIT_RETURN_ERASE,
-    FWAIT_RETURN_MODIFY,
-    FWAIT_RETURN_WRITE
-  } fwait_return_e;
-
-  // -------- ERASE FSM STATES --------
-  // Erases a 4KB sector before writing new data
-  // Sequence: Write Enable (WE) -> Sector Erase (SE)
-  typedef enum logic [3:0] {
-    ERASE_IDLE,  // Idle state (simply redirects to WE and SE sequences)
-
-    // Write Enable command sequence (required before any write/erase)
-    ERASE_WE_CHECK_TX_FIFO,  // Check if TX FIFO has space
-    ERASE_WE_FILL_TX_FIFO,   // Write Write Enable command (FC_WE)
-    ERASE_WE_WAIT_READY,     // Wait for SPI Host ready
-    ERASE_WE_SEND_CMD,       // Send Write Enable command
-
-    // Sector Erase command sequence
-    ERASE_SE_CHECK_TX_FIFO,  // Check if TX FIFO has space
-    ERASE_SE_FILL_TX_FIFO,   // Write Sector Erase command + address (FC_SE)
-    ERASE_SE_WAIT_READY,     // Wait for SPI Host ready
-    ERASE_SE_SEND_CMD        // Send Sector Erase command
-  } erase_state_e;
-
-  // -------- MODIFY FSM STATES --------
-  // Copies new data into the sector buffer (RAM) at the correct offset
-  // Uses DMA to transfer from ram_new_data to ram_buffer
-  typedef enum logic [1:0] {
-    MODIFY_IDLE,  // Leads to DMA initialization
-    MODIFY_DMA_REGS, // Set the DMA registers (ram_new_data + offset (which sector we are now looking to write into + F_ADDRESS sector misalignment))
-    MODIFY_TRANS  // Wait for DMA transfer complete and update offsets + remaining length to write
-  } modify_state_e;
-
-  // -------- WRITE FSM STATES --------
-  // Programs sector buffer to flash, page by page (256 bytes per page)
-  // Sequence: Write Enable -> Page Program command -> DMA data -> repeat for 16 pages
-  typedef enum logic [3:0] {
-    WRITE_IDLE,  // Idle state (simply redirects to WE and PP sequences)
-
-    // Write Enable command sequence (required before each page program)
-    WRITE_WE_CHECK_TX_FIFO,  // Check if TX FIFO has space
-    WRITE_WE_FILL_TX_FIFO,   // Write Write Enable command (FC_WE)
-    WRITE_WE_WAIT_READY,     // Wait for SPI Host ready
-    WRITE_WE_SEND_CMD,       // Send Write Enable command
-
-    // Page Program command sequence
-    WRITE_PP_CHECK_TX_FIFO,  // Check if TX FIFO has space
-    WRITE_PP_FILL_TX_FIFO,   // Write Page Program command + address (FC_PP)
-    WRITE_PP_WAIT_READY,     // Wait for SPI Host ready
-    WRITE_PP_SEND_CMD,       // Send Page Program command
-
-    // DMA configuration for page data transfer
-    WRITE_DMA_CHECK_READY,  // Leads to DMA initialization
-    WRITE_DMA_REGS,         // Set DMA source (ram_buffer + page offset)
-
-    // Finalize page write
-    WRITE_TRANS,            // Wait for DMA transfer complete
-    WRITE_PP_WAIT_READY_2,  // Wait for SPI Host ready
-    WRITE_PP_SEND_CMD_2     // Send final command to release CS (ends page program)
-    //and redirect depending on number of pages programmed and if more sectors need to be written
-  } write_state_e;
-
-  // -------- DMA INIT FSM STATES --------
-  // Resets all DMA registers before each transfer
-  // This ensures clean state regardless of previous DMA operations
-  typedef enum logic [1:0] {
-    DMA_INIT_IDLE,  // Wait for DMA to be ready (check status)
-    DMA_INIT_REGISTERS,  // Clear all registers
-    DMA_INIT_REDIRECT  // Return to calling FSM
-  } dma_init_state_e;
-
-  // -------- DMA INIT RETURN TYPE --------
-  // Indicates which sub-FSM to return to after DMA initialization
-  typedef enum logic [2:0] {
-    RETURN_READ,    // Return to READ FSM (flash -> RAM sector buffer transfer)
-    RETURN_MODIFY,  // Return to MODIFY FSM (RAM new data -> RAM sector buffer transfer)
-    RETURN_WRITE    // Return to WRITE FSM (RAM sector buffer -> flash transfer)
-  } dma_init_return_e;
 
   // FSM signals
   top_state_e top_state_q, top_state_d;
@@ -259,13 +137,50 @@ module w25q128jw_controller
   dma_init_state_e dma_init_state_q, dma_init_state_d;
   dma_init_return_e dma_init_return_q, dma_init_return_d;
 
+  // If cache enabled
+  check_cache_state_e check_cache_state_q, check_cache_state_d;
+  read_cache_state_e read_cache_state_q, read_cache_state_d;
+
   // Counter and Offset signals
   logic [3:0] page_cnt_q, page_cnt_d;
-  logic [31:0] sector_offset, sector_iter_offset_d, sector_iter_offset_q, md_offset_d, md_offset_q;
+  logic [11:0] sector_offset_q, sector_offset_d;
+  logic [12:0] sector_written_bytes_q, sector_written_bytes_d;
+  logic [31:0] sector_iter_offset_d, sector_iter_offset_q;
+  logic [11:0] transfer_byte_offset_d, transfer_byte_offset_q;
+  logic [31:0] read_remaining_bytes_d, read_remaining_bytes_q;
   logic [31:0] spi_control_q, spi_control_d;
 
-  logic [31:0] dma_size;
-  logic [31:0] flash_address;
+  // If cache enabled, keep in memory the victim's sector to writeback
+  logic [11:0] victim_sector_offset_d, victim_sector_offset_q;
+
+  logic [31:0] dma_size_q, dma_size_d;
+
+  logic       [31:0] flash_address;
+
+  // Cache signals
+  cache_req_t        cache_ctrl_req;
+  cache_res_t        cache_ctrl_resp;
+  addr_t             cache_lookup_addr;
+  obi_req_t          cache_dma_req;
+  obi_rsp_t          cache_dma_resp;
+  logic              cache_req;
+  data_t             cache_rdata;
+  logic              cache_valid;
+  logic cache_data_bus_we, cache_data_bus_re;
+
+  // Intermediate signals
+  reg_rsp_t reg_rsp_int;
+
+  // memio fast-path
+  logic [31:0] memio_addr_q, memio_addr_d;
+  logic [31:0] memio_data;
+  logic [ 3:0] memio_be;
+  logic [31:0] memio_write_offset_q, memio_write_offset_d;
+  memio_state_e memio_state_q, memio_state_d;
+
+  /* Register interface signals */
+  reg_req_t reg_req_param;
+  reg_rsp_t reg_rsp_param;
 
   // FSM sequential logic
   always_ff @(posedge clk_i or negedge rst_ni) begin
@@ -273,39 +188,82 @@ module w25q128jw_controller
       // -------- Reset: Initialize all FSMs to IDLE --------
       dma_init_state_q <= DMA_INIT_IDLE;
       dma_init_return_q <= RETURN_READ;
-      top_state_q   <= TOP_IDLE;
-      read_state_q  <= READ_IDLE;
+      top_state_q <= TOP_IDLE;
+      read_state_q <= READ_IDLE;
       erase_state_q <= ERASE_IDLE;
       fwait_state_q <= FWAIT_IDLE;
       modify_state_q <= MODIFY_IDLE;
       write_state_q <= WRITE_IDLE;
 
+      if (CACHE_EN) begin
+        check_cache_state_q <= CHECK_CACHE_IDLE;
+        read_cache_state_q  <= READ_CACHE_IDLE;
+      end
+
       // -------- Reset: Clear counters and offsets --------
       fwait_return_q   <= FWAIT_RETURN_IDLE;
       page_cnt_q    <= 4'b0;
+      sector_offset_q <= 12'h0;
+      sector_written_bytes_q <= 13'h0;
       sector_iter_offset_q <= 32'h0;
-      md_offset_q <= 32'h0;
+      transfer_byte_offset_q <= 12'h0;
+      read_remaining_bytes_q <= 32'h0;
       spi_control_q <= 32'h0;
+      dma_size_q <= 32'h0;
+      memio_addr_q <= 32'h0;
+      memio_state_q <= MEMIO_IDLE;
+      memio_write_offset_q <= 32'h0;
+
+      if (CACHE_EN) begin
+        victim_sector_offset_q <= 12'h0;
+      end
+
     end else begin
+      // FSM signals
       dma_init_state_q <= dma_init_state_d;
       dma_init_return_q <= dma_init_return_d;
-      top_state_q   <= top_state_d;
-      read_state_q  <= read_state_d;
+      top_state_q <= top_state_d;
+      read_state_q <= read_state_d;
       erase_state_q <= erase_state_d;
       fwait_state_q <= fwait_state_d;
       modify_state_q <= modify_state_d;
       write_state_q <= write_state_d;
+
+      if (CACHE_EN) begin
+        check_cache_state_q <= check_cache_state_d;
+        read_cache_state_q  <= read_cache_state_d;
+      end
+
+      // Counters and offsets
       fwait_return_q <= fwait_return_d;
       page_cnt_q    <= page_cnt_d;
+      sector_offset_q <= sector_offset_d;
+      sector_written_bytes_q <= sector_written_bytes_d;
       sector_iter_offset_q <= sector_iter_offset_d;
-      md_offset_q <= md_offset_d;
+      transfer_byte_offset_q <= transfer_byte_offset_d;
+      read_remaining_bytes_q <= read_remaining_bytes_d;
       spi_control_q <= spi_control_d;
+      memio_addr_q <= memio_addr_d;
+      memio_state_q <= memio_state_d;
+      memio_write_offset_q <= memio_write_offset_d;
+
+      dma_size_q <= dma_size_d;
+
+      if (CACHE_EN) begin
+        victim_sector_offset_q <= victim_sector_offset_d;
+      end
     end
   end
 
   logic [spi_host_reg_pkg::BlockAw-1:0] spi_host_reg_req_offset;
 
   assign spi_host_reg_req_o.addr = SPI_FLASH_START_ADDRESS + {{(32 - spi_host_reg_pkg::BlockAw){1'b0}}, spi_host_reg_req_offset};
+
+  logic quad_select;
+  assign quad_select = (reg2hw.control.quad.q && QUAD_AVAILABLE) || (memio_state_q != MEMIO_IDLE && QUAD_AVAILABLE);
+
+  assign hw2reg.status.cache.de = 1'b1;
+  assign hw2reg.status.cache.d = CACHE_EN;
 
   // FSM combinational logic
   always_comb begin
@@ -319,11 +277,26 @@ module w25q128jw_controller
     write_state_d = write_state_q;
     fwait_return_d = fwait_return_q;
     page_cnt_d = page_cnt_q;
+    sector_offset_d = sector_offset_q;
+    sector_written_bytes_d = sector_written_bytes_q;
     sector_iter_offset_d = sector_iter_offset_q;
-    md_offset_d = md_offset_q;
+    transfer_byte_offset_d = transfer_byte_offset_q;
+    read_remaining_bytes_d = read_remaining_bytes_q;
     spi_control_d = spi_control_q;
+    memio_addr_d = memio_addr_q;
+    memio_state_d = memio_state_q;
+    memio_write_offset_d = memio_write_offset_q;
 
-    sector_offset = 32'h0;
+    dma_size_d = dma_size_q;
+
+    if (CACHE_EN) begin
+      check_cache_state_d = check_cache_state_q;
+      read_cache_state_d = read_cache_state_q;
+
+      cache_ctrl_req = '0;
+      victim_sector_offset_d = victim_sector_offset_q;
+      cache_req = '0;
+    end
 
     hw2reg.control.start.de = 1'b0;
     hw2reg.control.start.d = 1'b0;
@@ -336,7 +309,6 @@ module w25q128jw_controller
 
     external_dma_hw2reg_o   = '0;
 
-    dma_size = '0;
     flash_address = '0;
 
     spi_host_reg_req_o.valid = '0;
@@ -344,6 +316,10 @@ module w25q128jw_controller
     spi_host_reg_req_o.write = 1'b0;
     spi_host_reg_req_o.wdata = '0;
     spi_host_reg_req_offset  = '0;
+
+    spimemio_resp_o.rvalid = 1'b0;
+    spimemio_resp_o.rdata = '0;
+    spimemio_resp_o.gnt = 1'b0;
 
     // ============================================================================
     // TOP FSM
@@ -353,18 +329,329 @@ module w25q128jw_controller
     //   - Write (rnw=0): TOP_IDLE -> TOP_READ -> TOP_FWAIT -> TOP_ERASE -> TOP_FWAIT ->
     //                    TOP_MODIFY -> TOP_WRITE -> TOP_FWAIT -> TOP_IDLE
     //
-    // Note that:
-    //   - Read operation is byte precise while Write operation is word precise
-    //   - meaning that, if you write 5bytes, it writes 8 bytes (round to next word size)
-    //   - this is because the MODIFY FSM (SRAM to SRAM) uses WORDs type transfers
 
     case (top_state_q)
       // -------- IDLE STATE --------
       // Wait for SW to set the START bit in CONTROL register
       TOP_IDLE: begin
         if (reg2hw.control.start.q) begin
-          top_state_d = TOP_READ;  // Always start with READ (for both read and write operations)
+          read_remaining_bytes_d = reg2hw.length.q;
+          transfer_byte_offset_d = 12'h0;
+          sector_iter_offset_d = 32'h0;
+          sector_offset_d = reg2hw.f_address.q[11:0];
+          sector_written_bytes_d = 13'h0;
+
+          if (CACHE_EN) begin
+            // If cache enabled, first check if data is already in cache before deciding to read from flash or not
+            top_state_d = TOP_CHECK_CACHE;
+          end else begin
+            // If no cache, always start with READ (for both read and write operations)
+            top_state_d = TOP_READ;
+          end
+        end else if (CACHE_EN && spimemio_req_i.req) begin
+          memio_addr_d = spimemio_req_i.addr;
+          memio_data = spimemio_req_i.wdata;
+          memio_be = spimemio_req_i.be;
+          spimemio_resp_o.gnt = 1'b1;
+
+          memio_state_d = spimemio_req_i.we ? MEMIO_WRITE : MEMIO_READ;
+          top_state_d = TOP_CHECK_CACHE;
+
+          cache_ctrl_req.req = 1'b1;
+          cache_ctrl_req.op = CACHE_CHECK;
+          cache_ctrl_req.addr.exposed = {8'h0, memio_addr_d & 32'h00ffffff};
+
+          if (cache_ctrl_resp.hit) begin  //hit
+            if (memio_state_d == MEMIO_READ) begin
+              top_state_d = TOP_READ_CACHE;
+              // Reset offset for first sector
+              if (sector_iter_offset_q != 32'h0) begin
+                transfer_byte_offset_d = 12'h0;
+              end
+              cache_ctrl_req.req = 1'b1;
+              cache_ctrl_req.op = CACHE_READ;
+              cache_ctrl_req.addr.exposed = {memio_addr_d & 32'h00ffffff};
+
+              cache_req = 1'b1;
+              read_cache_state_d = READ_CACHE_MEMIO_REQ;
+
+            end else begin
+              top_state_d = TOP_MODIFY;
+              cache_ctrl_req.req = 1'b1;
+              cache_ctrl_req.op = CACHE_WRITE;
+              cache_ctrl_req.addr.exposed = {memio_addr_d & 32'h00ffffff};
+              cache_ctrl_req.dirty = 1'b1;
+
+              cache_req = 1'b1;
+              modify_state_d = MODIFY_MEMIO_REQ;  // MEMIO Write
+            end
+
+          end else begin
+            if (cache_ctrl_resp.miss_info.dirty) begin  // miss dirty
+              // Keep in memory victim to write-back in TOP_ERASE/TOP_WRITE
+              victim_sector_offset_d = cache_ctrl_resp.miss_info.victim_sector_address;
+
+              top_state_d = TOP_ERASE;
+              check_cache_state_d = CHECK_CACHE_IDLE;
+            end else begin  // miss clean
+              top_state_d = TOP_READ;
+              check_cache_state_d = CHECK_CACHE_IDLE;
+            end
+          end
         end
+      end
+
+
+      // ============================================================================
+      // CHECK_CACHE FSM
+      // ============================================================================
+      // If cache enabled: Check if the requested data is already in cache (cache hit) or not (cache miss)
+      //   if hit:
+      //     if read: redirect to TOP_READ_CACHE to read from cache to RAM via DMA
+      //     if write: redirect to TOP_MODIFY to write new data from RAM to cache
+      //   if miss:
+      //     if victim clean: redirect to TOP_READ to read new sector data from flash to cache
+      //     if victim dirty: redirect to TOP_ERASE, TOP_WRITE to write the dirty sector back to flash
+      // ============================================================================
+
+      TOP_CHECK_CACHE: begin
+        case (check_cache_state_q)
+          // -------- IDLE: Trigger Cache request --------
+          CHECK_CACHE_IDLE: begin
+            cache_ctrl_req.req = 1'b1;
+            cache_ctrl_req.op  = CACHE_CHECK;
+
+            if (memio_state_q == MEMIO_IDLE) begin
+              cache_ctrl_req.addr.exposed = {
+                8'h0, (reg2hw.f_address.q + sector_iter_offset_q) & 32'h00ffffff
+              };
+            end else begin
+              cache_ctrl_req.addr.exposed = {8'h0, memio_addr_q & 32'h00ffffff};
+            end
+
+            if (cache_ctrl_resp.hit) begin  //hit
+              if (reg2hw.control.rnw.q || memio_state_q == MEMIO_READ) begin
+                top_state_d = TOP_READ_CACHE;
+                // Skip idle, faster
+                // Reset offset for first sector
+                if (sector_iter_offset_q != 32'h0) begin
+                  transfer_byte_offset_d = 12'h0;
+                end
+
+                // Next state after returning from DMA reset
+                if (memio_state_q == MEMIO_IDLE) begin
+                  top_state_d        = TOP_DMA_INIT;
+                  dma_init_return_d  = RETURN_READ_CACHE;
+                  read_cache_state_d = READ_CACHE_REGS;
+                end else begin  // MEMIO_READ
+                  cache_ctrl_req.req = 1'b1;
+                  cache_ctrl_req.op = CACHE_READ;
+                  cache_ctrl_req.addr.exposed = {memio_addr_q & 32'h00ffffff};
+
+                  cache_req = 1'b1;
+                  read_cache_state_d = READ_CACHE_MEMIO_REQ;
+                end
+              end else begin
+                top_state_d = TOP_MODIFY;
+                cache_ctrl_req.req = 1'b1;
+                cache_ctrl_req.op = CACHE_WRITE;
+                cache_ctrl_req.addr.exposed = {memio_addr_q & 32'h00ffffff};
+                cache_ctrl_req.dirty = 1'b1;
+
+                if (memio_state_q == MEMIO_WRITE) begin
+                  cache_req = 1'b1;
+                  modify_state_d = MODIFY_MEMIO_REQ;
+                end else begin
+                  modify_state_d = MODIFY_IDLE;
+                end
+              end
+
+              check_cache_state_d = CHECK_CACHE_IDLE;
+            end else begin
+              if (cache_ctrl_resp.miss_info.dirty) begin  // miss dirty
+                // Keep in memory victim to write-back in TOP_ERASE/TOP_WRITE
+                victim_sector_offset_d = cache_ctrl_resp.miss_info.victim_sector_address;
+
+                top_state_d = TOP_ERASE;
+                check_cache_state_d = CHECK_CACHE_IDLE;
+              end else begin  // miss clean
+                top_state_d = TOP_READ;
+                check_cache_state_d = CHECK_CACHE_IDLE;
+              end
+            end
+          end
+
+          default: begin
+            check_cache_state_d = CHECK_CACHE_IDLE;
+          end
+        endcase
+      end
+
+      // ============================================================================
+      // READ_CACHE FSM
+      // ============================================================================
+      // If cache enabled and data is in cache (hit), read directly from cache to RAM sector buffer via DMA
+      // ============================================================================
+      TOP_READ_CACHE: begin
+        case (read_cache_state_q)
+
+          // -------- IDLE: Trigger DMA initialization --------
+          READ_CACHE_IDLE: begin
+            // Reset offset for first sector
+            if (sector_iter_offset_q != 32'h0) begin
+              transfer_byte_offset_d = 12'h0;
+            end
+
+            // Next state after returning from DMA reset
+            if (memio_state_q == MEMIO_IDLE) begin
+              top_state_d        = TOP_DMA_INIT;
+              dma_init_return_d  = RETURN_READ_CACHE;
+              read_cache_state_d = READ_CACHE_REGS;
+            end else begin  // MEMIO_READ
+              cache_ctrl_req.req = 1'b1;
+              cache_ctrl_req.op = CACHE_READ;
+              cache_ctrl_req.addr.exposed = {memio_addr_q & 32'h00ffffff};
+
+              cache_req = 1'b1;
+              read_cache_state_d = READ_CACHE_MEMIO_REQ;
+            end
+          end
+
+          READ_CACHE_REGS: begin
+            // Compute how many words to transfer for this sector
+            if (read_remaining_bytes_q < {19'h0, SE_BSIZE} - {20'h0, sector_offset_q}) begin
+              // Case 1: All remaining data fits in this sector
+              dma_size_d = (read_remaining_bytes_q) >> 2;
+            end else begin
+              // Case 2: Data spans multiple sectors. Fill remaining sector space
+              // Transfer (4KB - offset) bytes
+              dma_size_d = (({19'h0, SE_BSIZE} - {20'h0, sector_offset_q}) >> 2);
+            end
+
+            if (dma_size_d != 0) begin
+              // Cache request
+              cache_ctrl_req.req = 1'b1;
+              cache_ctrl_req.op = CACHE_READ;
+              // Source: read from within the cached sector starting at sector_offset.
+              // For the first sector sector_offset = f_address[11:0] (misaligned start),
+              // for subsequent sectors sector_offset = 0. The cache uses the address'
+              // byte_offset field to pick the starting word within the sector.
+              cache_ctrl_req.addr.exposed = {
+                8'h0,
+                ((reg2hw.f_address.q & 32'h00fff000) + sector_iter_offset_q + {20'h0, sector_offset_q}) & 32'h00ffffff
+              };
+              cache_ctrl_req.word_count = dma_size_d[15:0];
+
+              // Destination: RAM must stay contiguous. Total bytes already written =
+              // sector_iter_offset + sector_offset - initial misalignment (f_address[11:0]),
+              // so subtract the first-sector offset to avoid leaving a gap between sectors.
+              set_dma_regs(CACHE_DATA_ADDR,
+                           reg2hw.s_address.q + sector_iter_offset_q + {20'h0, sector_offset_q} - {20'h0, reg2hw.f_address.q[11:0]},
+                           32'h0, 32'h4,  // src_inc=0 (FIFO), dst_inc=4 (word)
+                           2'h0, 2'h0,  // src_data_type=32-bit, dst_data_type=32-bit
+                           'h0, 'h0,
+                           reg2hw.dma_slot_wait_counter.q,  // slot_wait_counter to write to DMA
+                           dma_size_d[15:0]);  // size (in words)
+
+              read_cache_state_d = READ_CACHE_TRANS;
+            end
+          end
+
+          READ_CACHE_TRANS: begin
+            if (dma_done_i[0]) begin
+              transfer_byte_offset_d = transfer_byte_offset_q + (dma_size_q << 2);
+              sector_offset_d        = sector_offset_q + (dma_size_q << 2);
+              sector_written_bytes_d = sector_written_bytes_q + (dma_size_q << 2);
+
+              if (read_remaining_bytes_q <= {19'h0, sector_written_bytes_d}) begin
+                // All remaining data has been transferred at this iteration
+
+                top_state_d = TOP_DONE;
+              end else if (read_remaining_bytes_q > {19'h0, sector_written_bytes_d}) begin
+                // More data remains in next sector(s): compute remaining length for next sector iteration
+                read_remaining_bytes_d = read_remaining_bytes_q - {19'h0, sector_written_bytes_d};
+
+                sector_iter_offset_d   = sector_iter_offset_q + {19'b0, SE_BSIZE};
+                sector_offset_d        = 12'h0;
+                sector_written_bytes_d = 13'h0;
+
+                top_state_d            = TOP_CHECK_CACHE;
+              end
+              read_cache_state_d = READ_CACHE_IDLE;
+            end
+          end
+
+          READ_CACHE_MEMIO_REQ: begin
+            if (cache_valid) begin
+              spimemio_resp_o.rdata = cache_rdata;
+              spimemio_resp_o.rvalid = 1'b1;
+
+              // Clear memio flag and finish transaction
+              memio_state_d = MEMIO_IDLE;
+              memio_addr_d = 'h0;
+              memio_be = 4'h0;
+              read_cache_state_d = READ_CACHE_IDLE;
+              // Check for memio request (skip idle)
+              if (spimemio_req_i.req) begin
+                memio_addr_d = spimemio_req_i.addr;
+                memio_data = spimemio_req_i.wdata;
+                memio_be = spimemio_req_i.be;
+                spimemio_resp_o.gnt = 1'b1;
+
+                memio_state_d = spimemio_req_i.we ? MEMIO_WRITE : MEMIO_READ;
+                top_state_d = TOP_CHECK_CACHE;
+
+                cache_ctrl_req.req = 1'b1;
+                cache_ctrl_req.op = CACHE_CHECK;
+                cache_ctrl_req.addr.exposed = {8'h0, memio_addr_d & 32'h00ffffff};
+
+                if (cache_ctrl_resp.hit) begin  //hit
+                  if (memio_state_d == MEMIO_READ) begin
+                    top_state_d = TOP_READ_CACHE;
+                    // Reset offset for first sector
+                    if (sector_iter_offset_q != 32'h0) begin
+                      transfer_byte_offset_d = 12'h0;
+                    end
+                    cache_ctrl_req.req = 1'b1;
+                    cache_ctrl_req.op = CACHE_READ;
+                    cache_ctrl_req.addr.exposed = {memio_addr_d & 32'h00ffffff};
+
+                    cache_req = 1'b1;
+                    read_cache_state_d = READ_CACHE_MEMIO_REQ;
+
+                  end else begin
+                    top_state_d = TOP_MODIFY;
+                    cache_ctrl_req.req = 1'b1;
+                    cache_ctrl_req.op = CACHE_WRITE;
+                    cache_ctrl_req.addr.exposed = {memio_addr_d & 32'h00ffffff};
+                    cache_ctrl_req.dirty = 1'b1;
+
+                    cache_req = 1'b1;
+                    modify_state_d = MODIFY_MEMIO_REQ;  // MEMIO Write
+                  end
+
+                end else begin
+                  if (cache_ctrl_resp.miss_info.dirty) begin  // miss dirty
+                    // Keep in memory victim to write-back in TOP_ERASE/TOP_WRITE
+                    victim_sector_offset_d = cache_ctrl_resp.miss_info.victim_sector_address;
+
+                    top_state_d = TOP_ERASE;
+                    check_cache_state_d = CHECK_CACHE_IDLE;
+                  end else begin  // miss clean
+                    top_state_d = TOP_READ;
+                    check_cache_state_d = CHECK_CACHE_IDLE;
+                  end
+                end
+              end else begin
+                top_state_d = TOP_IDLE;  // Skip TOP_DONE
+              end
+            end
+          end
+
+          default: begin
+            read_cache_state_d = READ_CACHE_IDLE;
+          end
+        endcase
       end
 
       // ============================================================================
@@ -379,55 +666,78 @@ module w25q128jw_controller
         case (read_state_q)
           // -------- IDLE: Trigger DMA initialization --------
           READ_IDLE: begin
-            top_state_d       = TOP_DMA_INIT;  // Go to DMA init FSM
-            dma_init_return_d = RETURN_READ;  // Return here after DMA init
-            read_state_d      = READ_SET_DMA;  // Next state after returning from DMA init
+            if (!CACHE_EN) begin
+              // When no cache, every read request is independent, needs to reset offset
+              if (reg2hw.control.rnw.q) begin
+                transfer_byte_offset_d = 12'h0;
+              end
+            end
+
+            // Reset offset for first sector of a new write
+            if (sector_iter_offset_q == 32'h0) begin
+              transfer_byte_offset_d = 12'h0;
+            end
+
+            // Next state after returning from DMA reset
+            top_state_d       = TOP_DMA_INIT;
+            dma_init_return_d = RETURN_READ;
+            read_state_d      = READ_SET_DMA;
           end
 
           // ============== DMA CONFIGURATION ==============
           READ_SET_DMA: begin
             read_state_d = READ_SPI_CHECK_TX_FIFO;
-            //Set DMA source pointer: SPI RX FIFO
-            external_dma_hw2reg_o.src_ptr.de = 1'b1;
-            external_dma_hw2reg_o.src_ptr.d  = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_RXDATA_OFFSET}; // SPI RX FIFO address;
-            //Set DMA destination pointer: RAM sector buffer
-            external_dma_hw2reg_o.dst_ptr.de = 1'b1;
-            external_dma_hw2reg_o.dst_ptr.d = reg2hw.s_address.q; // RAM buffer address from S_ADDRESS register
-            //Set source increment: 0 (stay at FIFO address)
-            external_dma_hw2reg_o.src_ptr_inc_d1.de = 1'b1;
-            external_dma_hw2reg_o.src_ptr_inc_d1.d  = '0; // No increment - always read from RX FIFO address
-            //Set destination increment: +4 bytes per word
-            external_dma_hw2reg_o.dst_ptr_inc_d1.de = 1'b1;
-            external_dma_hw2reg_o.dst_ptr_inc_d1.d  = 'h04; // Increment by 4 bytes (32-bit word) in RAM
-            //Set source data type: 32-bit word
-            external_dma_hw2reg_o.src_data_type.de = 1'b1;
-            external_dma_hw2reg_o.src_data_type.d = '0;  // 0 = 32-bit word
-            //Set destination data type: 32-bit word
-            external_dma_hw2reg_o.dst_data_type.de = 1'b1;
-            external_dma_hw2reg_o.dst_data_type.d = '0;  // 0 = 32-bit word
-            //Set DMA trigger slots
-            external_dma_hw2reg_o.slot.rx_trigger_slot.de = 1'b1;
-            external_dma_hw2reg_o.slot.rx_trigger_slot.d = 'h4;
-            external_dma_hw2reg_o.slot.tx_trigger_slot.de = 1'b1;
-            external_dma_hw2reg_o.slot.tx_trigger_slot.d = '0;
-            //Set slot wait counter
-            external_dma_hw2reg_o.slot_wait_counter.de = 1'b1;
-            external_dma_hw2reg_o.slot_wait_counter.d   = reg2hw.dma_slot_wait_counter.q; // slot_wait_counter to write to DMA
 
-            //Set transfer size and START DMA
-            external_dma_hw2reg_o.size_d1.de = 1'b1;
-            if (reg2hw.control.rnw.q) begin
-              // READ operation: transfer user-specified length
-              if (reg2hw.length.q[1:0] == 0) begin
-                dma_size = reg2hw.length.q >> 2;  // Exact word count (length divisible by 4)
-              end else begin
-                dma_size = (reg2hw.length.q >> 2) + 1;  // Round up to next word
-              end
+            if (CACHE_EN) begin
+              // Always read an entire sector into the cache
+              dma_size_d = {19'b0, SE_WSIZE};
+
+              // Set the cache to fill the data
+              cache_ctrl_req.req = 1'b1;
+              cache_ctrl_req.op = CACHE_WRITE;
+              if (memio_state_q == MEMIO_IDLE)
+                cache_ctrl_req.addr.exposed = {
+                  8'h0, ((reg2hw.f_address.q & 32'h00fff000) + sector_iter_offset_q) & 32'h00ffffff
+                };
+              else  //MEMIO
+                cache_ctrl_req.addr.exposed = {8'h0, (memio_addr_q & 32'h00fff000)};
+              cache_ctrl_req.word_count = dma_size_d[15:0];
+              cache_ctrl_req.dirty = 1'b0;
+
+              set_dma_regs(SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_RXDATA_OFFSET},
+                           CACHE_DATA_ADDR, 32'h0, 32'h0,  // src_inc=0 (FIFO), dst_inc=0 (FIFO)
+                           2'h0, 2'h0,  // src_data_type=32-bit, dst_data_type=32-bit
+                           'h4, 'h0,
+                           reg2hw.dma_slot_wait_counter.q,  // slot_wait_counter to write to DMA
+                           dma_size_d[15:0]);
             end else begin
-              // WRITE operation: always read one sector (1024 words = 4KB)
-              dma_size = {19'b0, SE_WSIZE};
+              // No cache
+              if (reg2hw.control.rnw.q) begin
+                // READ: Set DMA for flash -> RAM transfer
+                dma_size_d = reg2hw.length.q >> 2;
+
+                if (dma_size_d != 0) begin
+                  // BODY: word-aligned transfer, 4 bytes at a time
+                  set_dma_regs(SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_RXDATA_OFFSET},
+                               reg2hw.s_address.q, 32'h0,
+                               32'h4,  // src_inc=0 (FIFO), dst_inc=4 (word)
+                               2'h0, 2'h0,  // src_data_type=32-bit, dst_data_type=32-bit
+                               'h4, 'h0,
+                               reg2hw.dma_slot_wait_counter.q,  // slot_wait_counter to write to DMA
+                               dma_size_d[15:0]);
+                end
+              end else begin
+                // WRITE operation: always read one sector (1024 words = 4KB)
+                dma_size_d = {19'b0, SE_WSIZE};
+
+                set_dma_regs(
+                    SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_RXDATA_OFFSET}, reg2hw.s_address.q,
+                    32'h0, 32'h4,  // src_inc=0 (FIFO), dst_inc=4 (word)
+                    2'h0, 2'h0,  // src_data_type=32-bit, dst_data_type=32-bit
+                    'h4, 'h0, reg2hw.dma_slot_wait_counter.q,  // slot_wait_counter to write to DMA
+                    dma_size_d[15:0]);
+              end
             end
-            external_dma_hw2reg_o.size_d1.d = dma_size[15:0];
           end
 
           // ============== SPI COMMAND SEQUENCE ==============
@@ -435,10 +745,10 @@ module w25q128jw_controller
           // -------- Check if TX FIFO has space for command --------
           READ_SPI_CHECK_TX_FIFO: begin
             // STATUS[7:0] = TXQD (TX FIFO depth). Proceed if not full.
-            // See hw/vendor/lowrisc_opentitan_spi_host/data/spi_host.hjson for status register bit mapping
-            // See hw/vendor/lowrisc_opentitan_spi_host/rtl/spi_host_reg_pkg.sv for TXQD depth definition
+            // See hw/vendor/xheep/spi/vendor/lowrisc_opentitan_spi_host/data/spi_host.hjson for status register bit mapping
+            // See hw/vendor/xheep/spi/vendor/lowrisc_opentitan_spi_host/rtl/spi_host_reg_pkg.sv for TXQD depth definition
             if (external_spi_host_hw2reg_status_i.txqd.d < SPI_FLASH_TX_FIFO_DEPTH[7:0]) begin
-              read_state_d = reg2hw.control.quad.q ? READ_SPI_SEND_CMD_1_QUAD : READ_SPI_FILL_TX_FIFO;
+              read_state_d = quad_select ? READ_SPI_SEND_CMD_1_QUAD : READ_SPI_FILL_TX_FIFO;
             end
           end
 
@@ -449,17 +759,20 @@ module w25q128jw_controller
             spi_host_reg_req_offset  = SPI_HOST_TXDATA_OFFSET;
             spi_host_reg_req_o.write = 1'b1;
             spi_host_reg_req_o.valid = 1'b1;
-            if (reg2hw.control.rnw.q) begin
-              // READ: Use exact flash address from F_ADDRESS register
-              flash_address = reg2hw.f_address.q & 32'h00ffffff;
-              spi_host_reg_req_o.wdata = (((bitfield_byteswap32(flash_address)) >> 8) << 8) |
-                  {19'h0, FC_RD};
-            end else begin
-              // WRITE: Use sector-aligned address + current sector iteration offset
+
+            if (CACHE_EN && memio_state_q != MEMIO_IDLE) begin
+              flash_address = (memio_addr_q & 32'h00fff000);
+            end else if (CACHE_EN || !reg2hw.control.rnw.q) begin
+              // WRITE or cache enable: whole sector
               flash_address = (reg2hw.f_address.q & 32'h00fff000) + (sector_iter_offset_q);
-              spi_host_reg_req_o.wdata = (((bitfield_byteswap32(flash_address)) >> 8) << 8) |
-                  {19'h0, FC_RD};
+            end else begin
+              // READ without cache
+              flash_address = reg2hw.f_address.q & 32'h00ffffff;
             end
+
+            spi_host_reg_req_o.wdata = (((bitfield_byteswap32(flash_address)) >> 8) << 8) |
+                {19'h0, FC_RD};
+
             if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error) begin
               read_state_d = READ_SPI_WAIT_READY_1;
             end
@@ -502,20 +815,33 @@ module w25q128jw_controller
           //   Direction RX only,
           //   Speed standard,
           //   CSAAT 0,
-          //   Length-1 
+          //   Length-1
           READ_SPI_SEND_CMD_2: begin
             spi_host_reg_req_offset  = SPI_HOST_COMMAND_OFFSET;
             spi_host_reg_req_o.write = 1'b1;
             spi_host_reg_req_o.valid = 1'b1;
-            if (reg2hw.control.rnw.q) begin
-              // READ: receive user-specified number of bytes
+
+            if (CACHE_EN) begin
+              // If cache enabled, always read a full sector (4096 bytes)
               spi_host_reg_req_o.wdata =
-                  spi_cmd_pack(SPI_DIR_RX, SPI_SPEED_STD, 1'b0, reg2hw.length.q[23:0] - 1'h1);
+                  spi_cmd_pack(SPI_DIR_RX, SPI_SPEED_STD, 1'b0, {11'b0, SE_BSIZE - 1'h1});
+            end else if (reg2hw.control.rnw.q) begin
+              // If no cache, either READ: read bytes or WRITE: read a full sector
+              if (dma_size_q != 0) begin
+                // If we have a body (word-aligned transfer)
+                spi_host_reg_req_o.wdata = spi_cmd_pack(
+                  SPI_DIR_RX,
+                  SPI_SPEED_STD,
+                  0,  // No new command
+                  ((dma_size_q << 2) - 1'h1)
+                );
+              end
             end else begin
               // WRITE: read full sector (4096 bytes)
               spi_host_reg_req_o.wdata =
                   spi_cmd_pack(SPI_DIR_RX, SPI_SPEED_STD, 1'b0, {11'b0, SE_BSIZE - 1'h1});
             end
+
             if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error) begin
               read_state_d = READ_TRANS;
             end
@@ -559,13 +885,16 @@ module w25q128jw_controller
             spi_host_reg_req_o.write = 1'b1;
             spi_host_reg_req_o.valid = 1'b1;
 
-            if (reg2hw.control.rnw.q) begin
-              // READ: Use exact flash address from F_ADDRESS register
-              flash_address = reg2hw.f_address.q & 32'h00ffffff;
+            if (CACHE_EN && memio_state_q != MEMIO_IDLE) begin
+              flash_address = (memio_addr_q & 32'h00fff000);
+            end else if (CACHE_EN || !reg2hw.control.rnw.q) begin
+              // Cache enabled or WRITE: use sector-aligned address + current sector iteration offset
+              flash_address = (reg2hw.f_address.q & 32'h00fff000) + (sector_iter_offset_q);
             end else begin
-              // WRITE: Use sector-aligned address + current sector iteration offset
-              flash_address = (reg2hw.f_address.q & 32'h00fff000) + sector_iter_offset_q;
+              // READ without cache: use exact flash address from F_ADDRESS register
+              flash_address = reg2hw.f_address.q & 32'h00ffffff;
             end
+
             spi_host_reg_req_o.wdata = (bitfield_byteswap32(flash_address) >> 8) |
                 32'hff000000;  // Address with all 4 bytes to be sent (quad mode)
             if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error) begin
@@ -616,14 +945,24 @@ module w25q128jw_controller
             spi_host_reg_req_offset  = SPI_HOST_COMMAND_OFFSET;
             spi_host_reg_req_o.write = 1'b1;
             spi_host_reg_req_o.valid = 1'b1;
+
             if (reg2hw.control.rnw.q) begin
-              spi_host_reg_req_o.wdata =
-                  spi_cmd_pack(SPI_DIR_RX, SPI_SPEED_QUAD, 1'b0, reg2hw.length.q[23:0] - 1'h1);
+              // READ
+              if (dma_size_q != 0) begin
+                // If we have a body (word-aligned transfer)
+                spi_host_reg_req_o.wdata = spi_cmd_pack(
+                  SPI_DIR_RX,
+                  SPI_SPEED_QUAD,
+                  0,  // No new command
+                  ((dma_size_q << 2) - 1'h1)
+                );
+              end
             end else begin
-              // WRITE: read full sector
+              // WRITE: read full sector (4096 bytes)
               spi_host_reg_req_o.wdata =
                   spi_cmd_pack(SPI_DIR_RX, SPI_SPEED_QUAD, 1'b0, {11'b0, SE_BSIZE - 1'h1});
             end
+
             if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error) begin
               read_state_d = READ_TRANS;
             end
@@ -632,17 +971,23 @@ module w25q128jw_controller
           // ============== WAIT FOR DMA COMPLETION ==============
           READ_TRANS: begin
             if (dma_done_i[0]) begin  // DMA channel 0 done signal
+              read_state_d = READ_IDLE;
               if (reg2hw.control.rnw.q) begin
-                // ===== READ OPERATION COMPLETE =====
-                read_state_d            = READ_IDLE;
-                top_state_d             = TOP_IDLE;
-                hw2reg.control.start.de = 1'b1;
-                hw2reg.control.start.d  = 1'b0;
-                hw2reg.intr_status.de   = 1'b1;
-                hw2reg.intr_status.d    = reg2hw.intr_enable.q;
+                transfer_byte_offset_d = transfer_byte_offset_q + (dma_size_q << 2);
+              end
+
+              if (CACHE_EN) begin
+                // ===== CACHE FILLED, proceed to CHECK_CACHE (hit) =====
+                if (reg2hw.control.rnw.q || memio_state_q == MEMIO_READ) begin
+                  top_state_d = TOP_READ_CACHE;
+                end else begin
+                  top_state_d = TOP_MODIFY;
+                end
+              end else if (reg2hw.control.rnw.q) begin
+                top_state_d       = TOP_DONE;
+                dma_init_return_d = RETURN_READ;
               end else begin
                 // ===== WRITE OPERATION: Proceed to FWAIT =====
-                read_state_d  = READ_IDLE;
                 top_state_d   = TOP_FWAIT;
                 fwait_state_d = FWAIT_IDLE;
               end
@@ -797,37 +1142,64 @@ module w25q128jw_controller
                 // ===== FLASH READY: Proceed to next operation =====
                 fwait_state_d = FWAIT_IDLE;
                 case (fwait_return_q)
-                  // After READ: Flash ready -> go to ERASE
+
                   FWAIT_RETURN_IDLE: begin
-                    fwait_return_d = FWAIT_RETURN_ERASE;
-                    top_state_d = TOP_ERASE;
-                  end
-                  // After ERASE: Flash ready -> go to MODIFY
-                  FWAIT_RETURN_ERASE: begin
-                    fwait_return_d = FWAIT_RETURN_MODIFY;
-                    top_state_d = TOP_MODIFY;
-                  end
-                  // After WRITE: Flash ready -> either complete or continue with next sector
-                  FWAIT_RETURN_MODIFY: begin
-                    fwait_return_d = FWAIT_RETURN_IDLE;
-                    if (reg2hw.length.q == 0) begin
-                      top_state_d = TOP_IDLE;
-                      md_offset_d = 32'h0;  // Reset MODIFY offset for next operation
-                      sector_iter_offset_d = 32'h0; // Reset sector iteration offset for next operation
-                      hw2reg.control.start.de = 1'b1;     // Clear START bit so operation is only done once
-                      hw2reg.control.start.d = 1'b0;
-                      hw2reg.intr_status.de   = 1'b1;     // Set interrupt status (rise IRQ through assignements (see end of module))
-                      hw2reg.intr_status.d = reg2hw.intr_enable.q;
+                    if (CACHE_EN) begin
+                      // If cache enabled, after READ: Flash ready -> go to CHECK CACHE (is a hit)
+                      if (reg2hw.control.rnw.q || memio_state_q == MEMIO_READ) begin
+                        top_state_d = TOP_READ_CACHE;
+                      end else begin
+                        top_state_d = TOP_MODIFY;
+                      end
                     end else begin
-                      top_state_d = TOP_READ;
+                      // Otherwise: Flash ready -> go to ERASE (if write operation)
+                      fwait_return_d = FWAIT_RETURN_ERASE;
+                      top_state_d = TOP_ERASE;
                     end
                   end
+
+                  FWAIT_RETURN_ERASE: begin
+                    if (CACHE_EN) begin
+                      // After ERASE: Flash ready -> go to WRITE (writeback modified sector from cache to flash)
+                      fwait_return_d = FWAIT_RETURN_WRITE;
+                      top_state_d = TOP_WRITE;
+                    end else begin
+                      // After ERASE: Flash ready -> go to MODIFY
+                      fwait_return_d = FWAIT_RETURN_MODIFY;
+                      top_state_d = TOP_MODIFY;
+                    end
+                  end
+
                   // If WRITE has multiple pages to modify, continue with next page
                   FWAIT_RETURN_WRITE: begin
                     top_state_d = TOP_WRITE;
                   end
-                  default: begin
+                  // If WRITE completed all pages: either complete or continue with next sector
+                  FWAIT_RETURN_SECTOR_DONE: begin
+                    fwait_return_d = FWAIT_RETURN_IDLE;
+                    if (reg2hw.length.q == 0) begin
+                      // All sectors done
+                      if (memio_state_q != MEMIO_IDLE) begin  //Cache enable
+                        top_state_d = TOP_READ;
+                      end else begin
+                        top_state_d = TOP_DONE;
+                      end
+                    end else begin
+                      if (CACHE_EN) begin
+                        // Victim cache line is now clean, can now load requested cache line
+                        top_state_d = TOP_READ;
+                      end else begin
+                        // More sectors to write
+                        top_state_d = TOP_READ;
+                      end
+                    end
                   end
+
+                  default: begin
+                    fwait_return_d = FWAIT_RETURN_IDLE;
+                    top_state_d    = TOP_DONE;
+                  end
+
                 endcase
               end else begin
                 // ===== FLASH STILL BUSY: Poll again =====
@@ -923,12 +1295,20 @@ module w25q128jw_controller
           // -------- Write Sector Erase command + address to TX FIFO --------
 
           ERASE_SE_FILL_TX_FIFO: begin
-            spi_host_reg_req_offset = SPI_HOST_TXDATA_OFFSET;
+            spi_host_reg_req_offset  = SPI_HOST_TXDATA_OFFSET;
             spi_host_reg_req_o.write = 1'b1;
             spi_host_reg_req_o.valid = 1'b1;
             // Use sector-aligned address + current sector iteration offset + SECTOR ERASE command
             // Inspiration from sw/device/bsp/w25q
-            flash_address = (reg2hw.f_address.q & 32'h00fff000) + (sector_iter_offset_q);
+
+            if (CACHE_EN) begin
+              // If cache enabled, erase victim sector
+              flash_address = {8'h0, victim_sector_offset_q, 12'h0};
+            end else begin
+              // If no cache, write-back directly the result at the correct address
+              flash_address = (reg2hw.f_address.q & 32'h00fff000) + (sector_iter_offset_q);
+            end
+
             spi_host_reg_req_o.wdata = ((bitfield_byteswap32(flash_address) >> 8) << 8) |
                 {19'h0, FC_SE};
             if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error) begin
@@ -958,8 +1338,9 @@ module w25q128jw_controller
             if (spi_host_reg_rsp_i.ready && ~spi_host_reg_rsp_i.error) begin
               // Go to FWAIT FSM to poll status register until erase completes
               erase_state_d = ERASE_IDLE;
-              top_state_d   = TOP_FWAIT;
+              top_state_d = TOP_FWAIT;
               fwait_state_d = FWAIT_SET_RXWM_R;  // Start polling (skip FWAIT_IDLE)
+              fwait_return_d = FWAIT_RETURN_ERASE;
             end
           end
 
@@ -972,105 +1353,200 @@ module w25q128jw_controller
       // ============================================================================
       // MODIFY FSM
       // ============================================================================
-      // At this point, the sector buffer (at S_ADDRESS) already contains the original sector data
-      // from flash (loaded by READ FSM). This FSM overlays the new data (at MD_ADDRESS) at the
-      // correct position within the sector.
+      // If cache enabled:
+      //   At this point, the data is in the cache. We need to set a new cache request,
+      //   which will set the cache line as dirty, and set a DMA transaction to copy
+      //   the modified sector from cache to flash.
+      // Otherwise:
+      //   At this point, the sector buffer (at S_ADDRESS) already contains the original sector data
+      //   from flash (loaded by READ FSM). This FSM overlays the new data (at MD_ADDRESS) at the
+      //   correct position within the sector.
       //
-      // For multi-sector write operations:
-      //   - First sector: Data is placed at sector_offset (f_address & 0xFFF)
-      //   - Subsequent sectors: Data starts at offset 0
+      //   For multi-sector write operations:
+      //     - First sector: Data is placed at sector_offset (f_address & 0xFFF)
+      //     - Subsequent sectors: Data starts at offset 0
       //
-      // After MODIFY completes, the LENGTH register is updated and a new iteration will take place after the WRITE FSM
-      // with the remaining bytes (if any).
+      //   After MODIFY completes, the LENGTH register is updated and a new iteration will take place after the WRITE FSM
+      //   with the remaining bytes (if any).
       // ============================================================================
       TOP_MODIFY: begin
-
-        // -------- Compute sector offset --------
-        if (sector_iter_offset_q == 0) begin
-          sector_offset = reg2hw.f_address.q & 32'h00000fff;  // Offset within sector for first iteration
-        end else begin
-          sector_offset = 32'h0;  // Begin from start of sector for next iterations
-        end
-
         case (modify_state_q)
           // -------- IDLE: Trigger DMA initialization --------
           MODIFY_IDLE: begin
-            top_state_d       = TOP_DMA_INIT;  // Go to DMA init FSM
-            dma_init_return_d = RETURN_MODIFY;  // Return here after DMA init
-            modify_state_d    = MODIFY_DMA_REGS;  // Next state after returning from DMA init
+            if (memio_state_q == MEMIO_IDLE) begin
+              // Compute sector offset
+              if (sector_iter_offset_q == 0) begin
+                sector_offset_d = reg2hw.f_address.q[11:0]; // Offset within sector for first iteration
+              end else begin
+                sector_offset_d = 12'h0;  // Begin from start of sector for next iterations
+              end
+
+              // Count number of bytes already written in this sector
+              sector_written_bytes_d = 13'h0;
+
+              top_state_d            = TOP_DMA_INIT;
+              dma_init_return_d      = RETURN_MODIFY;
+
+              modify_state_d         = MODIFY_REGS;
+            end else if (CACHE_EN) begin  //MEMIO
+              cache_ctrl_req.req = 1'b1;
+              cache_ctrl_req.op = CACHE_WRITE;
+              cache_ctrl_req.addr.exposed = {memio_addr_q & 32'h00ffffff};
+              cache_ctrl_req.dirty = 1'b1;
+
+              cache_req = 1'b1;
+              modify_state_d = MODIFY_MEMIO_REQ;
+            end
           end
 
           // ============== DMA CONFIGURATION ==============
-          MODIFY_DMA_REGS: begin
-            modify_state_d = MODIFY_TRANS;
-            //Set DMA source pointer: RAM new data buffer (at MD_ADDRESS)
-            external_dma_hw2reg_o.src_ptr.de = 1'b1;
-            // Source = MD_ADDRESS + offset for current sector iteration (for multi-sector writes)
-            // F_ADDRESS not necessarily sector aligned and such case must be taken into consideration
-            external_dma_hw2reg_o.src_ptr.d = reg2hw.md_address.q + md_offset_q;
-            //Set DMA destination pointer: RAM sector buffer
-            external_dma_hw2reg_o.dst_ptr.de = 1'b1;
-            external_dma_hw2reg_o.dst_ptr.d = reg2hw.s_address.q + sector_offset;
-            // Destination = S_ADDRESS + offset within sector (for first iteration only, otherwise sector_offset = 0)
-            // F_ADDRESS not necessarily sector aligned and such case must be taken into consideration
-            //Set source increment: +4 bytes per word
-            external_dma_hw2reg_o.src_ptr_inc_d1.de = 1'b1;
-            external_dma_hw2reg_o.src_ptr_inc_d1.d  = 'h4;  // Increment by 4 bytes (32-bit word) in RAM
-            //Set destination increment: +4 bytes per word
-            external_dma_hw2reg_o.dst_ptr_inc_d1.de = 1'b1;
-            external_dma_hw2reg_o.dst_ptr_inc_d1.d  = 'h4;  // Increment by 4 bytes (32-bit word) in RAM
-            //Set source data type: 32-bit word (See hw/ip/dma/data/dma.hjson for data type encoding)
-            external_dma_hw2reg_o.src_data_type.de = 1'b1;
-            external_dma_hw2reg_o.src_data_type.d = '0;  // 0 = 32-bit word
-            //Set destination data type: 32-bit word
-            external_dma_hw2reg_o.dst_data_type.de = 1'b1;
-            external_dma_hw2reg_o.dst_data_type.d = '0;  // 0 = 32-bit word
-            //Set DMA trigger slots (See sw/device/lib/drivers/dma/dma.h for trigger slot mapping)
-            external_dma_hw2reg_o.slot.rx_trigger_slot.de = 1'b1;
-            external_dma_hw2reg_o.slot.rx_trigger_slot.d = '0;
-            external_dma_hw2reg_o.slot.tx_trigger_slot.de = 1'b1;
-            external_dma_hw2reg_o.slot.tx_trigger_slot.d = '0;
-            //Set slot wait counter
-            external_dma_hw2reg_o.slot_wait_counter.de = 1'b1;
-            external_dma_hw2reg_o.slot_wait_counter.d = '0;
-
-            //Set transfer size and START DMA
-            external_dma_hw2reg_o.size_d1.de = 1'b1;
-            // Writing to SIZE_D1 register triggers DMA transaction (See hw/ip/dma/data/dma.hjson)
+          MODIFY_REGS: begin
             // Compute how many words to transfer for this sector
-            if (reg2hw.length.q < {19'h0, SE_BSIZE} - sector_offset) begin
+            if (reg2hw.length.q - {19'h0, sector_written_bytes_q} < {19'h0, SE_BSIZE} - {20'h0, sector_offset_q}) begin
               // Case 1: All remaining data fits in this sector
-              if (reg2hw.length.q[1:0] == 0) begin
-                dma_size = reg2hw.length.q >> 2;  // Exact word count
-              end else begin
-                dma_size = (reg2hw.length.q >> 2) + 1;  // Round up to next word
-              end
+              dma_size_d = (reg2hw.length.q - {19'h0, sector_written_bytes_q}) >> 2;
             end else begin
               // Case 2: Data spans multiple sectors. Fill remaining sector space
               // Transfer (4KB - offset) bytes
-              dma_size = (({19'h0, SE_BSIZE} - sector_offset) >> 2);
+              dma_size_d = (({19'h0, SE_BSIZE} - {20'h0, sector_offset_q}) >> 2);
             end
-            external_dma_hw2reg_o.size_d1.d = dma_size[15:0];
+
+            if (dma_size_d != 0) begin
+              if (CACHE_EN) begin
+                // Cache request: modify line from SRAM to cache (will set line as dirty)
+                cache_ctrl_req.req = 1'b1;
+                cache_ctrl_req.op = CACHE_WRITE;
+                cache_ctrl_req.addr.exposed = {
+                  8'h0,
+                  ((reg2hw.f_address.q & 32'h00fff000)
+                    + sector_iter_offset_q
+                    + {20'h0, sector_offset_q}) & 32'h00ffffff
+                };
+                cache_ctrl_req.word_count = dma_size_d[15:0];
+                cache_ctrl_req.dirty = 1'b1;  // Mark line as dirty since we're modifying it
+
+                set_dma_regs(reg2hw.md_address.q + transfer_byte_offset_q, CACHE_DATA_ADDR, 32'h4,
+                             32'h0,  // src_inc=4 (word), dst_inc=0 (FIFO)
+                             2'h0, 2'h0,  // src_data_type=32-bit, dst_data_type=32-bit
+                             'h0, 'h0, 'h0, dma_size_d[15:0]);
+              end else begin
+                set_dma_regs(reg2hw.md_address.q + transfer_byte_offset_q,
+                             reg2hw.s_address.q + {20'h0, sector_offset_q}, 32'h4,
+                             32'h4,  // 4-byte increment for word transfers
+                             2'h0, 2'h0,  // src_data_type=32-bit, dst_data_type=32-bit
+                             'h0, 'h0, 'h0, dma_size_d[15:0]);
+              end
+
+              modify_state_d = MODIFY_TRANS;
+            end
           end
 
           // ============== WAIT FOR DMA COMPLETION ==============
           MODIFY_TRANS: begin
             if (dma_done_i[0]) begin  // DMA channel 0 done signal
+              transfer_byte_offset_d = transfer_byte_offset_q + (dma_size_q << 2);
+              sector_offset_d = sector_offset_q + (dma_size_q << 2);
+              sector_written_bytes_d = sector_written_bytes_q + (dma_size_q << 2);
+
               // Update LENGTH register for next iteration (if any)
               hw2reg.length.de = 1'b1;
-              if (reg2hw.length.q < {19'h0, SE_BSIZE} - sector_offset) begin
+
+              if (reg2hw.length.q <= {19'h0, sector_written_bytes_d}) begin
                 // All remaining data has been transferred at this iteration: set length to 0 and reset md_offset
                 hw2reg.length.d = 32'h0;
-                md_offset_d = 32'h0;
+                transfer_byte_offset_d = 12'h0;
+
+                if (CACHE_EN) begin
+                  // Finish if cache enabled
+                  top_state_d = TOP_DONE;
+                end
               end else begin
-                // More data remains: compute remaining length for next sector iteration and update md_offset
-                hw2reg.length.d = reg2hw.length.q - ({19'h0, SE_BSIZE} - sector_offset);
-                md_offset_d = md_offset_q + ({19'h0, SE_BSIZE} - sector_offset);
+                // More data remains: compute remaining length for next sector iteration
+                hw2reg.length.d = reg2hw.length.q - {19'h0, sector_written_bytes_d};
+
+                if (CACHE_EN) begin
+                  // Start again with next sector if cache enabled
+                  sector_iter_offset_d = sector_iter_offset_q + {19'h0, SE_BSIZE};
+
+                  top_state_d = TOP_CHECK_CACHE;
+                  check_cache_state_d = CHECK_CACHE_IDLE;
+                end
               end
-              // Proceed with WRITE FSM to program modified sector (page by page (page: 256 bytes)) back to flash
+
+              if (!CACHE_EN) begin
+                // Proceed with WRITE FSM to program modified sector (page by page (page: 256 bytes)) back to flash
+                top_state_d   = TOP_WRITE;
+                write_state_d = WRITE_IDLE;
+              end
+
               modify_state_d = MODIFY_IDLE;
-              top_state_d = TOP_WRITE;
-              write_state_d = WRITE_IDLE;
+            end
+          end
+
+          MODIFY_MEMIO_REQ: begin
+            if (cache_valid) begin
+              spimemio_resp_o.rdata = memio_data;
+              spimemio_resp_o.rvalid = 1'b1;
+
+              // Clear memio flag and finish transaction
+              memio_state_d = MEMIO_IDLE;
+              memio_be = 4'h0;
+              modify_state_d = MODIFY_IDLE;
+
+              // Check for memio request (skip idle)
+              if (spimemio_req_i.req) begin
+                memio_addr_d = spimemio_req_i.addr;
+                memio_data = spimemio_req_i.wdata;
+                memio_be = spimemio_req_i.be;
+                spimemio_resp_o.gnt = 1'b1;
+
+                memio_state_d = spimemio_req_i.we ? MEMIO_WRITE : MEMIO_READ;
+                top_state_d = TOP_CHECK_CACHE;
+
+                cache_ctrl_req.req = 1'b1;
+                cache_ctrl_req.op = CACHE_CHECK;
+                cache_ctrl_req.addr.exposed = {8'h0, memio_addr_d & 32'h00ffffff};
+
+                if (cache_ctrl_resp.hit) begin  //hit
+                  if (memio_state_d == MEMIO_READ) begin
+                    top_state_d = TOP_READ_CACHE;
+                    // Reset offset for first sector
+                    if (sector_iter_offset_q != 32'h0) begin
+                      transfer_byte_offset_d = 12'h0;
+                    end
+                    cache_ctrl_req.req = 1'b1;
+                    cache_ctrl_req.op = CACHE_READ;
+                    cache_ctrl_req.addr.exposed = {memio_addr_d & 32'h00ffffff};
+
+                    cache_req = 1'b1;
+                    read_cache_state_d = READ_CACHE_MEMIO_REQ;
+
+                  end else begin
+                    top_state_d = TOP_MODIFY;
+                    cache_ctrl_req.req = 1'b1;
+                    cache_ctrl_req.op = CACHE_WRITE;
+                    cache_ctrl_req.addr.exposed = {memio_addr_d & 32'h00ffffff};
+                    cache_ctrl_req.dirty = 1'b1;
+
+                    cache_req = 1'b1;
+                    modify_state_d = MODIFY_MEMIO_REQ;  // MEMIO Write
+                  end
+
+                end else begin
+                  if (cache_ctrl_resp.miss_info.dirty) begin  // miss dirty
+                    // Keep in memory victim to write-back in TOP_ERASE/TOP_WRITE
+                    victim_sector_offset_d = cache_ctrl_resp.miss_info.victim_sector_address;
+
+                    top_state_d = TOP_ERASE;
+                    check_cache_state_d = CHECK_CACHE_IDLE;
+                  end else begin  // miss clean
+                    top_state_d = TOP_READ;
+                    check_cache_state_d = CHECK_CACHE_IDLE;
+                  end
+                end
+              end else begin
+                top_state_d = TOP_IDLE;
+              end
             end
           end
 
@@ -1162,13 +1638,20 @@ module w25q128jw_controller
           // -------- Write Page Program command + address to TX FIFO --------
           // Inspiration from sw/device/bsp/w25q
           WRITE_PP_FILL_TX_FIFO: begin
-            spi_host_reg_req_offset = SPI_HOST_TXDATA_OFFSET;
+            spi_host_reg_req_offset  = SPI_HOST_TXDATA_OFFSET;
             spi_host_reg_req_o.write = 1'b1;
             spi_host_reg_req_o.valid = 1'b1;
-            // Compute page address: sector base + sector offset + page offset
-            flash_address = ((reg2hw.f_address.q & 32'h00fff000) + sector_iter_offset_q) |
-                  ({28'h0, page_cnt_q} << 8);
-            if (reg2hw.control.quad.q) begin
+
+            if (CACHE_EN) begin
+              // If cache enabled, write-back the victim sector + page offset
+              flash_address = {8'h0, victim_sector_offset_q, page_cnt_q, 8'h0};
+            end else begin
+              // Compute page address: sector base + sector offset + page offset
+              flash_address = ((reg2hw.f_address.q & 32'h00fff000) + sector_iter_offset_q) |
+                    ({28'h0, page_cnt_q} << 8);
+            end
+
+            if (quad_select) begin
               spi_host_reg_req_o.wdata = (bitfield_byteswap32(flash_address) & 32'hffffff00) |
                   {19'h0, FC_PPQ};
             end else begin
@@ -1216,35 +1699,31 @@ module w25q128jw_controller
           // -------- Set DMA registers for WRITE Operations --------
           WRITE_DMA_REGS: begin
             write_state_d = WRITE_TRANS;
-            //Set DMA source pointer: RAM sector buffer (at S_ADDRESS) with page offset
-            external_dma_hw2reg_o.src_ptr.de = 1'b1;
-            external_dma_hw2reg_o.src_ptr.d = reg2hw.s_address.q + ({28'h0, page_cnt_q} << 8);
-            //Set DMA destination pointer: SPI Host TX FIFO
-            external_dma_hw2reg_o.dst_ptr.de = 1'b1;
-            external_dma_hw2reg_o.dst_ptr.d = SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_TXDATA_OFFSET};
-            //Set source increment: +4 bytes per word
-            external_dma_hw2reg_o.src_ptr_inc_d1.de = 1'b1;
-            external_dma_hw2reg_o.src_ptr_inc_d1.d = 'h4;  // Increment through sector buffer
-            //Set destination increment: 0 (stay at TX FIFO)
-            external_dma_hw2reg_o.dst_ptr_inc_d1.de = 1'b1;
-            external_dma_hw2reg_o.dst_ptr_inc_d1.d = 'h0;  // Keep aiming TX FIFO
-            //Set source data type: 32-bit word
-            external_dma_hw2reg_o.src_data_type.de = 1'b1;
-            external_dma_hw2reg_o.src_data_type.d = '0;  // 0 = 32-bit word
-            //Set destination data type: 32-bit word
-            external_dma_hw2reg_o.dst_data_type.de = 1'b1;
-            external_dma_hw2reg_o.dst_data_type.d = '0;  // 0 = 32-bit word
-            //Set DMA trigger slots
-            external_dma_hw2reg_o.slot.rx_trigger_slot.de = 1'b1;
-            external_dma_hw2reg_o.slot.rx_trigger_slot.d = '0;
-            external_dma_hw2reg_o.slot.tx_trigger_slot.de = 1'b1;
-            external_dma_hw2reg_o.slot.tx_trigger_slot.d = 'h8;
-            //Set slot wait counter
-            external_dma_hw2reg_o.slot_wait_counter.de = 1'b1;
-            external_dma_hw2reg_o.slot_wait_counter.d = reg2hw.dma_slot_wait_counter.q;
-            //Set transfer size and START DMA
-            external_dma_hw2reg_o.size_d1.de = 1'b1;
-            external_dma_hw2reg_o.size_d1.d = {3'h0, PAGE_WSIZE};
+
+            if (CACHE_EN) begin
+              // Cache request: send line from cache to FLASH (writeback)
+              if (page_cnt_q == 4'h0) begin
+                // Make cache request for whole sector in the first page
+                cache_ctrl_req.req = 1'b1;
+                cache_ctrl_req.op = CACHE_READ;
+                cache_ctrl_req.addr.exposed = {8'h0, victim_sector_offset_q, 12'h0};
+                cache_ctrl_req.word_count = SE_WSIZE;
+              end
+
+              set_dma_regs(CACHE_DATA_ADDR,
+                           SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_TXDATA_OFFSET}, 32'h0,
+                           32'h0,  // src_inc=0 (FIFO), dst_inc=0 (FIFO)
+                           2'h0, 2'h0,  // src_data_type=32-bit, dst_data_type=32-bit
+                           'h0, 'h8, reg2hw.dma_slot_wait_counter.q,  // slot_wait_counter
+                           {3'h0, PAGE_WSIZE});
+            end else begin
+              set_dma_regs(reg2hw.s_address.q + ({28'h0, page_cnt_q} << 8),
+                           SPI_FLASH_START_ADDRESS + {25'b0, SPI_HOST_TXDATA_OFFSET}, 32'h4,
+                           32'h0,  // src_inc=4 (word), dst_inc=0 (FIFO)
+                           2'h0, 2'h0,  // src_data_type=32-bit, dst_data_type=32-bit
+                           'h0, 'h8, reg2hw.dma_slot_wait_counter.q,  // slot_wait_counter
+                           {3'h0, PAGE_WSIZE});
+            end
           end
 
           // ============== WAIT FOR DMA COMPLETION ==============
@@ -1274,7 +1753,7 @@ module w25q128jw_controller
             spi_host_reg_req_o.valid = 1'b1;
             spi_host_reg_req_o.wdata = spi_cmd_pack(
               SPI_DIR_TX,
-              reg2hw.control.quad.q ? SPI_SPEED_QUAD : SPI_SPEED_STD,
+              quad_select ? SPI_SPEED_QUAD : SPI_SPEED_STD,
               1'b0,
               {
                 11'b0, PAGE_BSIZE - 1'h1
@@ -1288,11 +1767,19 @@ module w25q128jw_controller
               if (page_cnt_q == 4'hf) begin
                 // All 16 pages in current sector programmed
                 // Always wait until flash is not busy before finalizing or moving to next sector.
-                fwait_return_d = FWAIT_RETURN_MODIFY;
+                fwait_return_d = FWAIT_RETURN_SECTOR_DONE;
                 page_cnt_d = 4'b0;  // Reset page counter for next sector / next operation
-                if (reg2hw.length.q != 0) begin
+
+                if (CACHE_EN) begin
+                  // If cache enabled, we are evicting the sector from cache
+                  cache_ctrl_req.req = 1'b1;
+                  cache_ctrl_req.op = CACHE_EVICT;
+                  cache_ctrl_req.addr.exposed = {8'h0, victim_sector_offset_q, 12'h0};
+                end else if (reg2hw.length.q != 0) begin
+                  // If no cache and more sectors to process, move to next sector
                   sector_iter_offset_d = sector_iter_offset_q + {19'b0, SE_BSIZE}; // Next sector (+4KB)
                 end
+
               end else begin
                 // ===== MORE PAGES IN CURRENT SECTOR: Program next page =====
                 // Restart WE + PP sequence after waiting for BUSY bit
@@ -1408,6 +1895,12 @@ module w25q128jw_controller
               RETURN_WRITE: begin
                 top_state_d = TOP_WRITE;  // Continue with flash page programming
               end
+
+              // Only reachable if cache enabled
+              RETURN_READ_CACHE: begin
+                top_state_d = TOP_READ_CACHE;  // Continue with flash read operation with cache
+              end
+
               default: begin
                 top_state_d = TOP_IDLE;
               end
@@ -1420,6 +1913,23 @@ module w25q128jw_controller
         endcase
       end
 
+      TOP_DONE: begin
+        transfer_byte_offset_d = 32'h0;
+        read_remaining_bytes_d = 32'h0;
+        sector_iter_offset_d = 32'h0;
+        sector_offset_d = 12'h0;
+        sector_written_bytes_d = 13'h0;
+
+        hw2reg.control.start.de = 1'b1;
+        hw2reg.control.start.d  = 1'b0;
+        hw2reg.intr_status.de   = 1'b1;
+        hw2reg.intr_status.d    = reg2hw.intr_enable.q;
+        hw2reg.length.de = 1'b1;
+        hw2reg.length.de = '0;
+
+        top_state_d = TOP_IDLE;
+      end
+
       default: begin
         top_state_d = TOP_IDLE;
       end
@@ -1427,9 +1937,88 @@ module w25q128jw_controller
   end
 
   // Assignments
-  assign hw2reg.status.d = (top_state_q == TOP_IDLE); // READY = 1 when TOP FSM is in IDLE state, 0 otherwise
-  assign hw2reg.status.de = 1'b1;  // Always update status register
+  assign hw2reg.status.ready.d = (top_state_q == TOP_IDLE); // READY = 1 when TOP FSM is in IDLE state, 0 otherwise
+  assign hw2reg.status.ready.de = 1'b1;  // Always update status register
   assign w25q128jw_controller_intr_o = reg2hw.intr_status.q; // ISR Handler lowers interrupt status register (interrupt register is risen in hw2reg by FSM when done)
+
+
+  generate
+    if (CACHE_EN) begin : gen_cache_reg
+      assign hw2reg.cache_data.de = cache_dma_resp.rvalid;
+      assign hw2reg.cache_data.d  = cache_dma_resp.rdata;
+    end
+  endgenerate
+
+  always_comb begin
+    if (!reg2hw.control.start.q && spimemio_req_i.req) begin
+      // memio fast path: request being granted in TOP_IDLE this cycle
+      cache_lookup_addr.exposed = spimemio_req_i.addr & 32'h00ffffff;
+    end else if (memio_state_q == MEMIO_IDLE) begin
+      // register-driven (DMA) transfer: current sector iteration
+      cache_lookup_addr.exposed = (reg2hw.f_address.q + sector_iter_offset_q) & 32'h00ffffff;
+    end else begin
+      // memio transaction in flight: re-check the latched memio address
+      cache_lookup_addr.exposed = memio_addr_q & 32'h00ffffff;
+    end
+  end
+
+  // ============== CACHE INSTANTIATION ==============
+  always_comb begin
+    if (CACHE_EN) begin
+      cache_data_bus_we = reg_req_i.valid
+                              & reg_req_i.write
+                              & (reg_req_i.addr[w25q128jw_controller_reg_pkg::BlockAw-1:0] == W25Q128JW_CONTROLLER_CACHE_DATA_OFFSET);
+      cache_data_bus_re = reg_req_i.valid
+                              & ~reg_req_i.write
+                              & (reg_req_i.addr[w25q128jw_controller_reg_pkg::BlockAw-1:0] == W25Q128JW_CONTROLLER_CACHE_DATA_OFFSET);
+
+      cache_dma_req = '0;
+
+      if (cache_data_bus_we) begin
+        cache_dma_req.req   = 1'b1;
+        cache_dma_req.we    = 1'b1;
+        cache_dma_req.wdata = reg_req_i.wdata;
+        cache_dma_req.be    = reg_req_i.wstrb;
+      end else if (cache_data_bus_re && !cache_dma_resp.rvalid) begin
+        cache_dma_req.req = 1'b1;
+        cache_dma_req.we  = 1'b0;
+      end
+    end else begin
+      cache_data_bus_we = 1'b0;
+      cache_data_bus_re = 1'b0;
+      cache_dma_req = '0;
+    end
+  end
+
+  generate
+    if (CACHE_EN) begin : gen_cache
+      flash_llc_cache #(
+          .obi_req_t(obi_req_t),
+          .obi_rsp_t(obi_rsp_t)
+      ) flash_llc_cache_i (
+          .clk_i            (clk_i),
+          .rst_ni           (rst_ni),
+          .pwr_ctrl_i       (llc_cache_pwr_ctrl_i),
+          .pwr_ctrl_o       (llc_cache_pwr_ctrl_o),
+          .dma_req_i        (cache_dma_req),
+          .dma_resp_o       (cache_dma_resp),
+          .controller_req_i (cache_ctrl_req),
+          .controller_resp_o(cache_ctrl_resp),
+          .lookup_addr_i    (cache_lookup_addr),
+          .mem_man_req_i    (cache_req),
+          .memio_wdata_i    (memio_data),
+          .memio_be_i       (memio_be),
+          .valid_bridge_o   (cache_valid),
+          .mem_rdata_o      (cache_rdata)
+      );
+    end else begin : gen_no_cache
+      assign cache_dma_resp = '0;
+      assign cache_ctrl_resp = '0;
+      assign cache_rdata = '0;
+      assign cache_valid = '0;
+      assign llc_cache_pwr_ctrl_o = '0;
+    end
+  endgenerate
 
   // Registers
   w25q128jw_controller_reg_top #(
@@ -1438,10 +2027,38 @@ module w25q128jw_controller
   ) w25q128jw_controller_reg_top_i (
       .clk_i(clk_i),
       .rst_ni(rst_ni),
-      .reg_req_i,
-      .reg_rsp_o,
+      .reg_req_i(reg_req_param),
+      .reg_rsp_o(reg_rsp_int),
       .reg2hw,
       .hw2reg,
       .devmode_i(1'b1)
   );
+
+
+
+  // If cache read requested, delay ready until cache response is valid
+  assign reg_rsp_param.ready = reg_rsp_int.ready
+                            & ~(CACHE_EN & cache_data_bus_re & ~cache_dma_resp.rvalid);
+  assign reg_rsp_param.rdata = (CACHE_EN & cache_dma_resp.rvalid & cache_data_bus_re)
+                            ? cache_dma_resp.rdata : reg_rsp_int.rdata;
+  assign reg_rsp_param.error = reg_rsp_int.error;
+
+  always_comb begin
+    reg_req_param = reg_req_i;
+    reg_rsp_o     = reg_rsp_param;
+    if (reg_req_i.valid) begin
+      case (reg_req_i.addr[w25q128jw_controller_reg_pkg::BlockAw-1:0])
+        W25Q128JW_CONTROLLER_CACHE_DATA_OFFSET: begin
+          if (CACHE_EN == 1'b0) begin
+            reg_req_param   = 'b0;
+            reg_rsp_o.error = 1'b1;
+            reg_rsp_o.ready = 1'b1;
+            reg_rsp_o.rdata = 'b0;
+          end
+        end
+        default: ;
+      endcase
+    end
+  end
+
 endmodule

@@ -28,20 +28,6 @@ void soc_ctrl_set_frequency(const soc_ctrl_t *soc_ctrl, uint32_t frequency) {
   mmio_region_write32(soc_ctrl->base_addr, (ptrdiff_t)(SOC_CTRL_SYSTEM_FREQUENCY_HZ_REG_OFFSET), frequency);
 }
 
-void soc_ctrl_select_spi_memio(const soc_ctrl_t *soc_ctrl) {
-  mmio_region_write32(soc_ctrl->base_addr, (ptrdiff_t)(SOC_CTRL_ENABLE_SPI_SEL_REG_OFFSET), 0x1);
-  mmio_region_write32(soc_ctrl->base_addr, (ptrdiff_t)(SOC_CTRL_USE_SPIMEMIO_REG_OFFSET), SOC_CTRL_SPI_FLASH_MODE_SPIMEMIO);
-}
-
-void soc_ctrl_select_spi_host(const soc_ctrl_t *soc_ctrl) {
-  mmio_region_write32(soc_ctrl->base_addr, (ptrdiff_t)(SOC_CTRL_ENABLE_SPI_SEL_REG_OFFSET), 0x1);
-  mmio_region_write32(soc_ctrl->base_addr, (ptrdiff_t)(SOC_CTRL_USE_SPIMEMIO_REG_OFFSET), SOC_CTRL_SPI_FLASH_MODE_SPIHOST);
-}
-
-uint32_t get_spi_flash_mode(const soc_ctrl_t *soc_ctrl) {
-  return mmio_region_read32(soc_ctrl->base_addr, (ptrdiff_t)(SOC_CTRL_USE_SPIMEMIO_REG_OFFSET));
-}
-
 uint32_t get_xheep_instance_id(const soc_ctrl_t *soc_ctrl) {
   return mmio_region_read32(soc_ctrl->base_addr, (ptrdiff_t)(SOC_CTRL_XHEEP_ID_REG_OFFSET));
 }

@@ -56,12 +56,6 @@ int main(int argc, char *argv[]) {
         return EXIT_SUCCESS;
     #endif
 
-    if ( get_spi_flash_mode(&soc_ctrl) == SOC_CTRL_SPI_FLASH_MODE_SPIMEMIO ) {
-        PRINTF("This application cannot work with the memory mapped SPI FLASH"
-            "module - do not use the FLASH_EXEC linker script for this application\n");
-        return EXIT_SUCCESS;
-    }
-
     // Pick the correct spi device based on simulation type
     spi_host_t* spi = spi_flash;
 

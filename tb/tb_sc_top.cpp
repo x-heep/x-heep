@@ -25,7 +25,6 @@ SC_MODULE(testbench)
   sc_out<bool> clk_o;
   sc_out<bool> rst_no;
   sc_out<bool> boot_select_o;
-  sc_out<bool> execute_from_flash_o;
   sc_out<bool> jtag_tck_o;
   sc_out<bool> jtag_tms_o;
   sc_out<bool> jtag_trst_n_o;
@@ -86,7 +85,6 @@ SC_MODULE(testbench)
   void make_stimuli () {
 
     boot_select_o.write(boot_select_option);
-    execute_from_flash_o.write(true);
     jtag_tck_o.write(false);
     jtag_tms_o.write(false);
     jtag_trst_n_o.write(false);
@@ -179,7 +177,6 @@ int sc_main (int argc, char * argv[])
   sc_signal<bool, SC_MANY_WRITERS>     clk;
   sc_signal<bool, SC_MANY_WRITERS>     rst_n;
   sc_signal<bool, SC_MANY_WRITERS>     boot_select;
-  sc_signal<bool, SC_MANY_WRITERS>     execute_from_flash;
   sc_signal<bool>     jtag_tck;
   sc_signal<bool>     jtag_tms;
   sc_signal<bool>     jtag_trst_n;
@@ -202,7 +199,6 @@ int sc_main (int argc, char * argv[])
   tb.clk_o(clk);
   tb.rst_no(rst_n);
   tb.boot_select_o(boot_select);
-  tb.execute_from_flash_o(execute_from_flash);
   tb.jtag_tck_o(jtag_tck);
   tb.jtag_tms_o(jtag_tms);
   tb.jtag_trst_n_o(jtag_trst_n);
@@ -214,7 +210,6 @@ int sc_main (int argc, char * argv[])
   dut.clk_i(clk);
   dut.rst_ni(rst_n);
   dut.boot_select_i(boot_select);
-  dut.execute_from_flash_i(execute_from_flash);
   dut.jtag_tck_i(jtag_tck);
   dut.jtag_tms_i(jtag_tms);
   dut.jtag_trst_ni(jtag_trst_n);

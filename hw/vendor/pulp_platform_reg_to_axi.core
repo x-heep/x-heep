@@ -29,7 +29,7 @@ filesets:
   rtl:
     depend:
     - pulp-platform.org::register_interface
-    - pulp-platform.org::axi:0.39.8
+    - pulp-platform.org::axi:0.39.9
     files:
     - pulp_platform/register_interface/src/axi_lite_to_reg.sv
     - pulp_platform/register_interface/src/axi_to_reg_v2.sv

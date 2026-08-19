@@ -62,15 +62,6 @@ uint32_t check_result(uint32_t *test_buffer, uint32_t len, dma_trans_data_t dma_
 w25q_error_codes_t global_status;
 
 int main(int argc, char *argv[]) {
-    soc_ctrl_t soc_ctrl;
-    soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
-
-    if ( get_spi_flash_mode(&soc_ctrl) == SOC_CTRL_SPI_FLASH_MODE_SPIMEMIO ) {
-        PRINTF("This application cannot work with the memory mapped SPI FLASH"
-            "module - do not use the FLASH_EXEC linker script for this application\n");
-        return EXIT_SUCCESS;
-    }
-
     // Pick the correct spi device based on simulation type
     spi_host_t* spi;
     spi = spi_flash;

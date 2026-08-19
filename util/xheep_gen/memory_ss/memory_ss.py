@@ -308,7 +308,7 @@ class MemorySS:
 
     def iter_bank_numwords(self) -> Generator[int, None, None]:
         """
-        Iterates over the size of the ram banks in number of words.
+        Iterates over the sizes of the RAM banks in number of words.
 
         :return: Generator over the sizes
         :rtype: Generator[int, None, None]
@@ -319,13 +319,30 @@ class MemorySS:
                 sizes.add(b.size())
                 yield b.size() // 4
 
+    def linker_data_region_size(self) -> int:
+        """
+        Returns the size of the linker data region.
+        If a linker section named `data` is configured, its size is used.
+        Otherwise raises a RuntimeError.
+
+        :return: The linker data region size in bytes.
+        :rtype: int
+        """
+        for section in self._linker_sections:
+            if section.name == "data":
+                return section.size
+
+        raise RuntimeError("Memory subsystem must be built first to obtain data region")
+
     def build(self):
         """
         Finalizes the memory subsystem configuration.
-
-        - Aplies the overrides for the interleaved memory as the normal memory needs to be configured first.
-        - Sorts the linker sections by starting address.
-        - Inferes the missing linker section ends with the start of the next section if present. If not it uses the end of the last memory bank.
+                - Applies the overrides for the interleaved memory, as the normal memory
+                    needs to be configured first.
+                - Sorts the linker sections by starting address.
+                - Infers the missing linker section ends using the start of the next
+                    section if present; otherwise it uses the end of the last memory
+                    bank.
         """
 
         if self._ignore_ram_interleaved:

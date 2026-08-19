@@ -36,6 +36,7 @@ PYTHON  	:= $(shell which python)
 RV_PROFILE  := $(shell which rv_profile)
 AREA_PLOT   := $(shell which area-plot)
 endif
+CONDA_ENV_NAME ?= $(shell sed -n 's/^name: //p' util/conda_environment.yml)
 
 # FuseSoC cores root. Defaults to the root of the parent project vendoring X-HEEP.
 FUSESOC_CORES_ROOT	?= $(HEEP_EXTERNAL_ROOT)
@@ -141,8 +142,14 @@ VENDOR_LOCKS	:= $(subst .vendor.hjson,.lock.hjson,$(VENDOR_FILES))
 export
 
 ## @section Conda
-conda:
-	conda env create -f util/conda_environment.yml
+conda: util/conda_environment.yml
+	@if conda info --envs | grep -q $(CONDA_ENV_NAME); then \
+		echo "Environment $(CONDA_ENV_NAME) exists, updating..."; \
+		conda env update -f util/conda_environment.yml --prune; \
+	else \
+		echo "Creating new $(CONDA_ENV_NAME) environment..."; \
+		conda env create -f util/conda_environment.yml; \
+	fi
 
 ## @section Installation
 

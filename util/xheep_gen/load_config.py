@@ -18,6 +18,7 @@ from cpu.cv32e40p import cv32e40p
 from cpu.cv32e40px import cv32e40px
 from cpu.cv32e40x import cv32e40x
 from debug_ss.debug_ss import DebugSS
+from interrupts.interrupts import Interrupts
 from memory_ss.memory_ss import MemorySS
 from memory_ss.linker_section import LinkerSection
 from memory_ss.linker_subsection import LinkerSubsection
@@ -227,6 +228,29 @@ def load_linker_script_config(system: XHeep, config: hjson.OrderedDict):
         LinkerScript(stack_size=stack_size, heap_size=heap_size)
     )
 
+def load_interrupts_config(system: XHeep, config: hjson.OrderedDict):
+    """
+    Reads the interrupts configuration.
+
+    :param XHeep system: the system object where the configuration should be added.
+    :param hjson.OrderedDict config: The interrupts configuration.
+    """
+    if not isinstance(system, XHeep):
+        raise TypeError("system should be an instance of XHeep")
+    if type(config) is not hjson.OrderedDict:
+        raise TypeError("config should be of type hjson.OrderedDict")
+
+    interrupts = Interrupts()
+    for key, value in config.items():
+        if key == "list":
+            for name, id in value.items():
+                interrupts.add_interrupt(name, id)
+        elif key == "number":
+            if value != interrupts.PLIC_NUM_INTERRUPTS:
+                raise RuntimeError(
+                    f"Number of interrupts should be {interrupts.PLIC_NUM_INTERRUPTS}"
+                )
+    system.set_interrupts(interrupts)
 
 def load_cpu_config(
     system: XHeep, cpu_type_config: str, cpu_features_config: hjson.OrderedDict
@@ -288,7 +312,7 @@ def load_cfg_hjson(src: str) -> XHeep:
     bus_config = None
     linker_config = None
     linker_script_config = None
-
+    interrupts_config = None
     cpu_type_config = None
     cpu_features_config = hjson.OrderedDict()
     address_map = AddressMap()
@@ -307,6 +331,8 @@ def load_cfg_hjson(src: str) -> XHeep:
             cpu_type_config = value
         elif key == "cpu_features":
             cpu_features_config = value
+        elif key == "interrupts":
+            interrupts_config = value
         elif key == "debug":
             address_map.add_region(
                 AddressRegion(
@@ -361,6 +387,8 @@ def load_cfg_hjson(src: str) -> XHeep:
         load_linker_config(memory_ss, linker_config)
     if linker_script_config is not None:
         load_linker_script_config(system, linker_script_config)
+
+    load_interrupts_config(system, interrupts_config)
 
     system.set_memory_ss(memory_ss)
 

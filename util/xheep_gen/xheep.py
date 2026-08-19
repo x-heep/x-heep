@@ -18,6 +18,7 @@ from peripherals.base_peripherals_domain import BasePeripheralDomain
 from peripherals.user_peripherals_domain import UserPeripheralDomain
 from pads.pad_ring import PadRing
 from linker_script.linker_script import LinkerScript
+from interrupts.interrupts import Interrupts
 
 
 class XHeep:
@@ -52,6 +53,7 @@ class XHeep:
         self._base_peripheral_domain = None
         self._user_peripheral_domain = None
         self._padring: PadRing = None
+        self._interrupts: Interrupts = None
         self._extensions = {}
 
     # ------------------------------------------------------------
@@ -285,6 +287,30 @@ class XHeep:
         return deepcopy(self._base_peripheral_domain)
 
     # ------------------------------------------------------------
+    # Interrupts
+    # ------------------------------------------------------------
+
+    def set_interrupts(self, interrupts: Interrupts):
+        """
+        Sets the interrupts of the system.
+
+        :param Interrupts interrupts: The interrupts to set.
+        :raise TypeError: when interrupts is of incorrect type.
+        """
+        if not isinstance(interrupts, Interrupts):
+            raise TypeError(
+                f"XHeep.interrupts should be of type Interrupts not {type(interrupts)}"
+            )
+        self._interrupts = interrupts
+
+    def get_interrupts(self) -> Interrupts:
+        """
+        :return: the configured interrupts
+        :rtype: Interrupts
+        """
+        return self._interrupts
+
+    # ------------------------------------------------------------
     # Pad Ring
     # ------------------------------------------------------------
 
@@ -358,6 +384,8 @@ class XHeep:
             self._user_peripheral_domain.build(
                 self.address_map().get_region("user_peripheral_domain").get_length()
             )
+        if self._interrupts:
+            self._interrupts.build()
 
     def validate(self):
         """
@@ -413,6 +441,9 @@ class XHeep:
             raise RuntimeError(
                 f"[MCU-GEN] ERROR: CV-X-IF enabled (xheep.set_xif()) with incompatible CPU ({self.cpu().get_name()})."
             )
+
+        if not self._interrupts:
+            raise RuntimeError("[MCU-GEN] ERROR: Interrupts must be configured")
 
         if not self._padring:
             raise RuntimeError("[MCU-GEN] ERROR: A padring must be configured")

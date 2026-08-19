@@ -9,6 +9,7 @@
     memory_ss = xheep.memory_ss()
     external_domains = base_peripheral_domain.get_power_manager().get_external_domains()
     address_map = xheep.address_map()
+    interrupts = xheep.get_interrupts()
 %>
 
 #ifndef COREV_MINI_MCU_H_
@@ -145,8 +146,8 @@ extern "C" {
 #define SERIAL_LINK_SIZE 0x${f'{address_map.get_region("serial_link").get_length():08X}'}
 #define SERIAL_LINK_END_ADDRESS (SERIAL_LINK_START_ADDRESS + SERIAL_LINK_SIZE)
 
-#define QTY_INTR ${len(interrupts)}
-% for key, value in interrupts.items():
+#define QTY_INTR interrupts.PLIC_NUM_INTERRUPTS
+% for key, value in interrupts.get_interrupts().items():
 #define ${key.upper()} ${value}
 % endfor
 

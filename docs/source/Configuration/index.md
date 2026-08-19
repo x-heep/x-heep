@@ -29,5 +29,6 @@ PeripheralConfiguration
 ExtensionConfiguration
 AddressMap
 DebugSS
+Interrupts
 
 xheep_gen/index

@@ -4,6 +4,7 @@
 
 <%
   user_peripheral_domain = xheep.get_user_peripheral_domain()
+  interrupts = xheep.get_interrupts()
 %>
 
 module peripheral_subsystem #(
@@ -173,35 +174,35 @@ module peripheral_subsystem #(
   assign unused_irq_id = irq_id;
 
   // Assign internal interrupts
-  assign intr_vector[${interrupts["null_intr"]}] = 1'b0;  // ID [0] is a special case and must be tied to zero.
-  assign intr_vector[${interrupts["uart_intr_tx_watermark"]}] = uart_intr_tx_watermark;
-  assign intr_vector[${interrupts["uart_intr_rx_watermark"]}] = uart_intr_rx_watermark;
-  assign intr_vector[${interrupts["uart_intr_tx_empty"]}] = uart_intr_tx_empty;
-  assign intr_vector[${interrupts["uart_intr_rx_overflow"]}] = uart_intr_rx_overflow;
-  assign intr_vector[${interrupts["uart_intr_rx_frame_err"]}] = uart_intr_rx_frame_err;
-  assign intr_vector[${interrupts["uart_intr_rx_break_err"]}] = uart_intr_rx_break_err;
-  assign intr_vector[${interrupts["uart_intr_rx_timeout"]}] = uart_intr_rx_timeout;
-  assign intr_vector[${interrupts["uart_intr_rx_parity_err"]}] = uart_intr_rx_parity_err;
-  assign intr_vector[${interrupts["gpio_intr_31"]}:${interrupts["gpio_intr_8"]}] = gpio_intr;
-  assign intr_vector[${interrupts["intr_fmt_watermark"]}] = i2c_intr_fmt_watermark;
-  assign intr_vector[${interrupts["intr_rx_watermark"]}] = i2c_intr_rx_watermark;
-  assign intr_vector[${interrupts["intr_fmt_overflow"]}] = i2c_intr_fmt_overflow;
-  assign intr_vector[${interrupts["intr_rx_overflow"]}] = i2c_intr_rx_overflow;
-  assign intr_vector[${interrupts["intr_nak"]}] = i2c_intr_nak;
-  assign intr_vector[${interrupts["intr_scl_interference"]}] = i2c_intr_scl_interference;
-  assign intr_vector[${interrupts["intr_sda_interference"]}] = i2c_intr_sda_interference;
-  assign intr_vector[${interrupts["intr_stretch_timeout"]}] = i2c_intr_stretch_timeout;
-  assign intr_vector[${interrupts["intr_sda_unstable"]}] = i2c_intr_sda_unstable;
-  assign intr_vector[${interrupts["intr_trans_complete"]}] = i2c_intr_trans_complete;
-  assign intr_vector[${interrupts["intr_tx_empty"]}] = i2c_intr_tx_empty;
-  assign intr_vector[${interrupts["intr_tx_nonempty"]}] = i2c_intr_tx_nonempty;
-  assign intr_vector[${interrupts["intr_tx_overflow"]}] = i2c_intr_tx_overflow;
-  assign intr_vector[${interrupts["intr_acq_overflow"]}] = i2c_intr_acq_overflow;
-  assign intr_vector[${interrupts["intr_ack_stop"]}] = i2c_intr_ack_stop;
-  assign intr_vector[${interrupts["intr_host_timeout"]}] = i2c_intr_host_timeout;
-  assign intr_vector[${interrupts["spi2_intr_event"]}] = spi2_intr_event;
-  assign intr_vector[${interrupts["i2s_intr_event"]}] = i2s_intr_event;
-  assign intr_vector[${interrupts["w25q128jw_controller_intr_event"]}] = w25q128jw_controller_intr_i;
+  assign intr_vector[${interrupts.get_interrupt("null_intr")}] = 1'b0;  // ID [0] is a special case and must be tied to zero.
+  assign intr_vector[${interrupts.get_interrupt("uart_intr_tx_watermark")}] = uart_intr_tx_watermark;
+  assign intr_vector[${interrupts.get_interrupt("uart_intr_rx_watermark")}] = uart_intr_rx_watermark;
+  assign intr_vector[${interrupts.get_interrupt("uart_intr_tx_empty")}] = uart_intr_tx_empty;
+  assign intr_vector[${interrupts.get_interrupt("uart_intr_rx_overflow")}] = uart_intr_rx_overflow;
+  assign intr_vector[${interrupts.get_interrupt("uart_intr_rx_frame_err")}] = uart_intr_rx_frame_err;
+  assign intr_vector[${interrupts.get_interrupt("uart_intr_rx_break_err")}] = uart_intr_rx_break_err;
+  assign intr_vector[${interrupts.get_interrupt("uart_intr_rx_timeout")}] = uart_intr_rx_timeout;
+  assign intr_vector[${interrupts.get_interrupt("uart_intr_rx_parity_err")}] = uart_intr_rx_parity_err;
+  assign intr_vector[${interrupts.get_interrupt("gpio_intr_31")}:${interrupts.get_interrupt("gpio_intr_8")}] = gpio_intr;
+  assign intr_vector[${interrupts.get_interrupt("intr_fmt_watermark")}] = i2c_intr_fmt_watermark;
+  assign intr_vector[${interrupts.get_interrupt("intr_rx_watermark")}] = i2c_intr_rx_watermark;
+  assign intr_vector[${interrupts.get_interrupt("intr_fmt_overflow")}] = i2c_intr_fmt_overflow;
+  assign intr_vector[${interrupts.get_interrupt("intr_rx_overflow")}] = i2c_intr_rx_overflow;
+  assign intr_vector[${interrupts.get_interrupt("intr_nak")}] = i2c_intr_nak;
+  assign intr_vector[${interrupts.get_interrupt("intr_scl_interference")}] = i2c_intr_scl_interference;
+  assign intr_vector[${interrupts.get_interrupt("intr_sda_interference")}] = i2c_intr_sda_interference;
+  assign intr_vector[${interrupts.get_interrupt("intr_stretch_timeout")}] = i2c_intr_stretch_timeout;
+  assign intr_vector[${interrupts.get_interrupt("intr_sda_unstable")}] = i2c_intr_sda_unstable;
+  assign intr_vector[${interrupts.get_interrupt("intr_trans_complete")}] = i2c_intr_trans_complete;
+  assign intr_vector[${interrupts.get_interrupt("intr_tx_empty")}] = i2c_intr_tx_empty;
+  assign intr_vector[${interrupts.get_interrupt("intr_tx_nonempty")}] = i2c_intr_tx_nonempty;
+  assign intr_vector[${interrupts.get_interrupt("intr_tx_overflow")}] = i2c_intr_tx_overflow;
+  assign intr_vector[${interrupts.get_interrupt("intr_acq_overflow")}] = i2c_intr_acq_overflow;
+  assign intr_vector[${interrupts.get_interrupt("intr_ack_stop")}] = i2c_intr_ack_stop;
+  assign intr_vector[${interrupts.get_interrupt("intr_host_timeout")}] = i2c_intr_host_timeout;
+  assign intr_vector[${interrupts.get_interrupt("spi2_intr_event")}] = spi2_intr_event;
+  assign intr_vector[${interrupts.get_interrupt("i2s_intr_event")}] = i2s_intr_event;
+  assign intr_vector[${interrupts.get_interrupt("w25q128jw_controller_intr_event")}] = w25q128jw_controller_intr_i;
 
   // External interrupts assignement
   for (genvar i = 0; i < NEXT_INT; i++) begin : gen_external_intr_vect

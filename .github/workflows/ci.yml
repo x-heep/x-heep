@@ -21,7 +21,7 @@ jobs:
       tag: ${{ steps.get-tag.outputs.tag }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0 # need the full history to get the tag
           fetch-tags: true
@@ -51,7 +51,7 @@ jobs:
       image: ghcr.io/x-heep/x-heep/x-heep-toolchain:${{ needs.determine-image-tag.outputs.tag }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Setup Project
         uses: ./.github/actions/setup-project
       - name: Compile all apps with GCC and Clang
@@ -68,7 +68,7 @@ jobs:
       image: ghcr.io/x-heep/x-heep/x-heep-toolchain:${{ needs.determine-image-tag.outputs.tag }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Setup Project
         uses: ./.github/actions/setup-project
       - name: Compile and simulate all apps
@@ -85,7 +85,7 @@ jobs:
       image: ghcr.io/x-heep/x-heep/x-heep-toolchain:${{ needs.determine-image-tag.outputs.tag }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Setup Project
         uses: ./.github/actions/setup-project
       - name: Mark Repository as Safe
@@ -112,7 +112,7 @@ jobs:
       image: ghcr.io/x-heep/x-heep/x-heep-toolchain:${{ needs.determine-image-tag.outputs.tag }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Setup Project
         uses: ./.github/actions/setup-project
       - name: Mark Repository as Safe
@@ -129,7 +129,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - uses: actions/setup-python@v4
         with:
           python-version: 3.12
@@ -145,7 +145,7 @@ jobs:
     name: Check Python code formatting
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: psf/black@stable
         with:
           options: "--check --verbose"

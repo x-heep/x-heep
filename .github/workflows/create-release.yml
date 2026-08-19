@@ -32,7 +32,7 @@ jobs:
       prev_tag: ${{ steps.check.outputs.prev_tag }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -85,7 +85,7 @@ jobs:
       branch_name: ${{ steps.bump_versions.outputs.BRANCH_NAME }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Create release branch and update versions
         id: bump_versions
@@ -107,10 +107,7 @@ jobs:
 
       - name: Create GitHub Draft Release
         id: create_release
-        uses: actions/create-release@v1
-        env:
-          IMAGE_ID: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ github.event.inputs.release_tag }}
           release_name: X-HEEP ${{ github.event.inputs.release_tag }}
@@ -141,7 +138,7 @@ jobs:
       tarball_name: ${{ steps.package.outputs.TARBALL_NAME || steps.package_reuse.outputs.TARBALL_NAME }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Install build dependencies
         if: needs.check-changes.outputs.rebuild_toolchain == 'true'
@@ -249,7 +246,7 @@ jobs:
       packages: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ needs.prepare-release.outputs.branch_name }}
 
@@ -313,7 +310,7 @@ jobs:
       pull-requests: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Create Pull Request
         env:
@@ -336,7 +333,7 @@ jobs:
       packages: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Delete Release and Tag
         env:

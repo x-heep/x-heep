@@ -66,8 +66,8 @@ class Interrupts:
         Add remaining interrupts as external interrupts (EXT_INTR_x)
         """
         num_used_interrupts = self.get_num_used_interrupts()
-        for i in range(self._num_used_interrupts, self.PLIC_NUM_INTERRUPTS):
-            self.add_interrupt(f"EXT_INTR_{i}", i)
+        for i in range(num_used_interrupts, self.PLIC_NUM_INTERRUPTS):
+            self.add_interrupt(f"EXT_INTR_{i - num_used_interrupts}", i)
 
         # Update the number of used interrupts after adding external interrupts. This number is only
         # the user-defined interrupts, not the external interrupts.

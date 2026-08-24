@@ -1,18 +1,17 @@
-#!/usr/bin/env python3
-
 # Copyright 2020 ETH Zurich and University of Bologna.
+# Copyright 2026 EPFL
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
-
-# Simplified version of occamygen.py https://github.com/pulp-platform/snitch/blob/master/util/occamygen.py
+#
+# Author(s): David Mallasén, Luigi Giuffrida, Davide Schiavone
+# Description: Configures the X-HEEP system and generates the output files from the templates.
+#
+# Originated from a simplified version of occamygen.py https://github.com/pulp-platform/snitch/blob/master/util/occamygen.py
 
 import argparse
-import hjson
 import pathlib
-import sys
 import re
 import logging
-from jsonref import JsonRef
 from mako.template import Template
 import load_config
 from xheep import BusType

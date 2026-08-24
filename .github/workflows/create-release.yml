@@ -107,7 +107,10 @@ jobs:
 
       - name: Create GitHub Draft Release
         id: create_release
-        uses: softprops/action-gh-release@v3
+        uses: actions/create-release@v1
+        env:
+          IMAGE_ID: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.event.inputs.release_tag }}
           release_name: X-HEEP ${{ github.event.inputs.release_tag }}

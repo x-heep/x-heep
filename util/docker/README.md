@@ -40,6 +40,14 @@ This target will first pull the latest version of the toolchain from the [X-HEEP
 ### Publishing an Updated Image
 There is no need to push the container manually. The container is automatically built and pushed to the [GHCR registry](https://ghcr.io/x-heep/x-heep/x-heep-toolchain:latest) by the [`create-release.yml`](/.github/workflows/create-release.yml) GitHub workflow. This must be launched manually from the [GitHub Actions tab](https://github.com/x-heep/x-heep/actions). Remember to specify the release tag when doing so.
 
+Always trigger the final `create-release` workflow from the `main` branch. The workflow creates the `release/<tag>` branch from the current ref, so triggering it from another branch (e.g. a feature branch) will include all of that branch's commits in the release PR.
+
+If you need to test CI changes (e.g. a Python/conda update) with a new Docker image before merging the feature PR, you can temporarily trigger `create-release` from the feature branch (in the upstream repository, only for maintainers) to produce a draft release where you can run the CI including the changes of the feature PR. The CI automatically detects `release/<tag>` PRs and uses the corresponding Docker image tag for testing. Once testing is complete:
+- Close the draft release and delete the `release/<tag>` branch.
+- Delete the temporary Docker image tag from GHCR if desired.
+- Merge the feature PR into `main`.
+- Trigger `create-release` again from `main` to create the real release.
+
 ### Apptainer Version
 
 An Apptainer image (SIF format) can be automatically generated from the Docker layers using the following command:

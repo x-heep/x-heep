@@ -29,6 +29,15 @@ jobs:
       - name: Determine tag
         id: get-tag
         run: |
+          # If this is a release PR, use the release tag from the branch name
+          BRANCH_NAME="${{ github.head_ref }}"
+          if [[ "$BRANCH_NAME" == release/* ]]; then
+            TAG_NAME="${BRANCH_NAME#release/}"
+            echo "Detected release PR tag: $TAG_NAME"
+            echo "tag=$TAG_NAME" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
           UPSTREAM_URL=$(git remote get-url upstream 2>/dev/null || echo "https://github.com/x-heep/x-heep.git")
           git fetch --tags "$UPSTREAM_URL"
           TAG_NAME=$(git describe --tags --abbrev=0 --match "v*" 2> /dev/null || echo "")

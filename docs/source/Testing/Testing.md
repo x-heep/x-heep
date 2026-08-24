@@ -40,7 +40,7 @@ This workflow ensures the stability and integrity of the codebase by running a s
 
 1.  **`determine-image-tag`**:
     *   **Purpose**: Determines the Docker image tag to be used by subsequent jobs.
-    *   **Details**: It checks the Git history for the most recent tag. If no tag is found in the current branch, it looks for one in the `main` branch. If no tags are found at all, it defaults to `latest`. This ensures that the CI always uses a relevant toolchain version.
+    *   **Details**: It checks the Git history for the most recent tag. If no tag is found in the current branch, it looks for one in the `main` branch. If no tags are found at all, it defaults to `latest`. If the current branch is a `release/<tag>` branch, it uses `<tag>` directly so that release PRs are tested with their corresponding freshly built Docker image. This ensures that the CI always uses a relevant toolchain version.
 
 2.  **`compile-apps`**:
     *   **Purpose**: Compiles all software applications with both GCC and Clang to ensure they build correctly.

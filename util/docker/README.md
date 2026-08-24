@@ -44,7 +44,7 @@ Always trigger the final `create-release` workflow from the `main` branch. The w
 
 If you need to test CI changes (e.g. a Python/conda update) with a new Docker image before merging the feature PR, you can temporarily trigger `create-release` from the feature branch (in the upstream repository, only for maintainers) to produce a draft release where you can run the CI including the changes of the feature PR. The CI automatically detects `release/<tag>` PRs and uses the corresponding Docker image tag for testing. Once testing is complete:
 - Close the draft release and delete the `release/<tag>` branch.
-- Delete the temporary Docker image tag from GHCR if desired.
+- Delete the temporary Docker image tag from GHCR.
 - Merge the feature PR into `main`.
 - Trigger `create-release` again from `main` to create the real release.
 

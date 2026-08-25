@@ -143,6 +143,14 @@ endif
 endif
 
 ifndef PY
+_PY_OPTION:=python3
+ifeq (ok,$(shell $(_PY_OPTION) -c "print('ok')" $(NULL_STDERR)))
+PY=$(_PY_OPTION)
+$(info $(_PY_AUTODETECT_MSG))
+endif
+endif
+
+ifndef PY
 define _PY_AUTODETECT_ERR
 Could not detect Python interpreter automatically.
 Please specify path to interpreter via PY environment variable.

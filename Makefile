@@ -142,7 +142,8 @@ export
 
 ## @section Conda
 conda: util/conda_environment.yml
-	@if conda info --envs | grep -q $(CONDA_ENV_NAME); then \
+	@export CMAKE_POLICY_VERSION_MINIMUM=3.5; \
+	if conda info --envs | grep -q $(CONDA_ENV_NAME); then \
 		echo "Environment $(CONDA_ENV_NAME) exists, updating..."; \
 		conda env update -f util/conda_environment.yml --prune; \
 	else \

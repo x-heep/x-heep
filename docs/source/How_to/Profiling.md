@@ -3,7 +3,7 @@
 ## Overview
 
 X-HEEP supports performance profiling using the
-[rv-profile](https://github.com/vlsi-lab/rv_profile) Python package. This tool
+[rv-profile](https://github.com/edge-group-polito/rv_profile) Python package. This tool
 provides **cycle-accurate profiling** for RISC-V, allowing you to measure how
 many cycles each function consumes during RTL simulation. 
 
@@ -13,7 +13,7 @@ any web browser for analysis.
 
 ![FlameGraph](https://vincenzo-petrolo.github.io/flamegraph_example/flamegraph.svg)
 
-Currently, all cores supported by X-HEEP are compatible with [rv-profile](https://github.com/vlsi-lab/rv_profile).
+Currently, all cores supported by X-HEEP are compatible with [rv-profile](https://github.com/edge-group-polito/rv_profile).
 
 ## Profiling with rv-profile
 

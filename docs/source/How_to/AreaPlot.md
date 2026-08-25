@@ -1,5 +1,5 @@
 # Area Plot
-X-HEEP offers the possibility to visualize post-synthesis area reports using the [area_plot](https://github.com/vlsi-lab/area-plot-post-syn.git) Python package.
+X-HEEP offers the possibility to visualize post-synthesis area reports using the [area_plot](https://github.com/edge-group-polito/area-plot-post-syn.git) Python package.
 The tool, based on [`plotly`](https://plotly.com) `treemap` graphics, provides an interactive interface for hierarchical design exploration, making it easier to analyze the relative area contributions of various submodules and their impact on the overall design.
 
 ![X-Heep area example](./../images/x-heep-area-plot.png)

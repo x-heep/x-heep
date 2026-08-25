@@ -18,7 +18,7 @@ git+https://github.com/x-heep/fusesoc.git@ot#egg=fusesoc
 git+https://github.com/x-heep/edalize.git
 
 # RISC-V firmware profiler
-git+https://github.com/vlsi-lab/rv_profile.git
+git+https://github.com/edge-group-polito/rv_profile.git
 
 # Area Plot
-git+https://github.com/vlsi-lab/area-plot-post-syn.git
+git+https://github.com/edge-group-polito/area-plot-post-syn.git

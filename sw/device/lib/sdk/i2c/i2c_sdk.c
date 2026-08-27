@@ -50,6 +50,7 @@ i2c_result_t initialize_i2c(){
     }
 
     // I2C timing computation
+    i2c_timing_config.clock_period_nanos = clock_period_ns;
     i2c_result = i2c_compute_timing(i2c_timing_config, &i2c_config);
     if(i2c_result != kDifI2cOk) {
         return i2c_result;

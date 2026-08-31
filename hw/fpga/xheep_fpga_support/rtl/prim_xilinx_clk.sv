@@ -108,7 +108,7 @@ module cv32e40x_clock_gate #(
 endmodule
 
 module tc_clk_gating #(
-    /// This paramaeter is a hint for tool/technology specific mappings of this
+    /// This parameter is a hint for tool/technology specific mappings of this
     /// tech_cell. It indicates wether this particular clk gate instance is
     /// required for functional correctness or just instantiated for power
     /// savings. If IS_FUNCTIONAL == 0, technology specific mappings might
@@ -145,6 +145,40 @@ module tc_clk_mux2 (
   );
 
 endmodule
+
+// Added to resolve Vpk180 diffference
+module tc_clk_logic_mux #(
+    parameter int unsigned IS_CLOCK = 1
+) (
+    input  logic clk1_i,
+    input  logic clk0_i,
+    input  logic clk_sel_i,
+    output logic clk_o
+);
+`ifdef FPGA_VPK180
+  generate
+    ;
+    if (IS_CLOCK) begin
+      tc_clk_mux2 clk_mux (
+          .clk1_i,
+          .clk0_i,
+          .clk_sel_i,
+          .clk_o
+      );
+    end else begin
+      assign clk_o = clk_sel_i ? clk1_i : clk0_i;
+    end
+  endgenerate
+`else
+  tc_clk_mux2 clk_mux (
+      .clk1_i,
+      .clk0_i,
+      .clk_sel_i,
+      .clk_o
+  );
+`endif
+endmodule
+
 
 module tc_clk_xor2 (
     input  logic clk0_i,

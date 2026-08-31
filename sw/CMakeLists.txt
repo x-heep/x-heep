@@ -561,3 +561,4 @@ add_custom_command(TARGET ${MAINFILE}.elf POST_BUILD
 SET(DCMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 #message( FATAL_ERROR "You can not do this at all, CMake will exit." )
+

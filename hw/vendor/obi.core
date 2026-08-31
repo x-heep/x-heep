@@ -1,0 +1,29 @@
+CAPI=2:
+
+# Copyright (C) 2026 EPFL.
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+#
+# File: obi.core
+# Author: Mohammad Hossein Nikkhah
+# Description: 
+
+name: pulp-platform.org::obi
+description: OBI package from pulp-platform/obi with package renamed to obi_pkg.
+
+filesets:
+  rtl:
+    depend:
+    - pulp-platform.org::common_cells
+    files:
+    - pulp_platform/obi/src/obi_pkg.sv
+    file_type: systemVerilogSource
+
+targets:
+  default:
+    filesets:
+    - rtl
+
+  rtl:
+    filesets:
+    - rtl

@@ -1,0 +1,15 @@
+diff --git a/src/clk_int_div.sv b/src/clk_int_div.sv
+index bc56b4f3..4be6c10a 100644
+--- a/src/clk_int_div.sv
++++ b/src/clk_int_div.sv
+@@ -343,7 +343,9 @@ module clk_int_div #(
+   );
+ 
+   //---- Clock MUX to select between odd and even div logic ----
+-  tc_clk_mux2 i_clk_mux (
++  tc_clk_logic_mux #(
++    .IS_CLOCK(0)
++  ) i_clk_mux (
+     .clk0_i    ( even_clk           ),
+     .clk1_i    ( odd_clk            ),
+     .clk_sel_i ( use_odd_division_q ),

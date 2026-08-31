@@ -132,9 +132,6 @@ module core_v_mini_mcu #(
     output logic spi_sd_3_o,
     output logic spi_sd_3_oe_o,
     input  logic spi_slave_sck_i,
-    input  logic gpio_14_i,
-    output logic gpio_14_o,
-    output logic gpio_14_oe_o,
     input  logic spi_slave_cs_i,
     input  logic gpio_15_i,
     output logic gpio_15_o,
@@ -827,10 +824,6 @@ module core_v_mini_mcu #(
   assign gpio_in[13]              = gpio_13_i;
   assign gpio_13_o                = gpio_out[13];
   assign gpio_13_oe_o             = gpio_oe[13];
-
-  assign gpio_in[14]              = gpio_14_i;
-  assign gpio_14_o                = gpio_out[14];
-  assign gpio_14_oe_o             = gpio_oe[14];
 
   assign gpio_in[15]              = gpio_15_i;
   assign gpio_15_o                = gpio_out[15];

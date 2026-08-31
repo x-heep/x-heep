@@ -1,79 +1,135 @@
 # Authors: Luigi Giuffrida, Michele Caon
+FROM condaforge/miniforge3:latest AS conda-source
 
-FROM debian:12-slim
+FROM ubuntu:noble
 
 # Set the build-time shell to bash
 SHELL ["/bin/bash", "-c"]
 
 # Set ARGs and ENVs
-ARG riscv=/tools/riscv
-ARG toolchain_path=toolchain.tar.gz
-ARG verilator_version=v5.040
-ARG verible_version=v0.0-4023-gc1271a00
-ENV RISCV_XHEEP=${riscv}
-ENV VERILATOR_VERSION=${verilator_version}
-ENV VERIBLE_VERSION=${verible_version}
-ENV DEBIAN_FRONTEND=noninteractive
-ENV TOOLCHAIN_PATH=${toolchain_path}
+ENV RISCV_XHEEP=/tools/riscv
+ARG RISCV_TOOLCHAIN_TAR_FILE=toolchain.tar.gz
+ARG XPACK_RISCV_GCC_VERSION=15.2.0-1
+ARG VERILATOR_VERSION=v5.040
+ARG VERIBLE_VERSION=v0.0-4023-gc1271a00
+ARG DEBIAN_FRONTEND=noninteractive
 
 # Update PATH to include installed tools
 # NOTE: use a dedicated variable here and append it to path in env.sh to prevent
 #       conda from overriding the PATH at runtime
 ENV TOOL_PATH=/tools/verible/verible-${VERIBLE_VERSION}/bin:/tools/verilator/${VERILATOR_VERSION}/bin:${RISCV_XHEEP}/bin
 
-# Install build dependencies, build tools, then remove build-only dependencies
-# to keep the final image smaller
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    # Runtime dependencies
-    lcov libelf1 libelf-dev libftdi1-2 libssl-dev libglib2.0-dev libudev-dev libusb-1.0-0 \
-    lsb-release texinfo bc zlib1g-dev picocom python3-venv python3-dev git \
-    wget python3 build-essential make coreutils libfindbin-libs-perl g++ curl \
-    # Build-time dependencies for tools
-    autoconf autotools-dev libmpc-dev libmpfr-dev libgmp-dev gperf libtool patchutils \
-    cmake flex bison libexpat-dev gawk ninja-build help2man libfl-dev
+# Install core dependencies
+RUN --mount=type=cache,target=/var/cache/apt \
+    --mount=type=cache,target=/var/lib/apt/lists \
+    apt-get update && apt-get install -y --no-install-recommends \
+        ca-certificates \
+        curl \
+        locales \
+    && \
+    sed -i -e 's/^#\s*\(C.UTF-8\)/\1/' -e 's/^#\s*\(en_US.UTF-8\)/\1/' /etc/locale.gen && \
+    locale-gen && \
+    userdel -r ubuntu
 
 # Install X-HEEP GCC/LLVM RISC-V toolchain
-COPY ${TOOLCHAIN_PATH} /tmp/
-RUN mkdir -p ${RISCV_XHEEP} && \
-    tar -xz -C ${RISCV_XHEEP} --strip-components=1 -f /tmp/toolchain.tar.gz && \
-    rm /tmp/toolchain.tar.gz
+RUN --mount=type=bind,source=${RISCV_TOOLCHAIN_TAR_FILE},target=${RISCV_TOOLCHAIN_TAR_FILE} \
+    mkdir -p ${RISCV_XHEEP} && \
+    tar -xz -o -C ${RISCV_XHEEP} --strip-components=1 -f ${RISCV_TOOLCHAIN_TAR_FILE} && \
+    ln -s /usr/lib/x86_64-linux-gnu/libpython3.12.so.1.0 /usr/lib/x86_64-linux-gnu/libpython3.10.so.1.0
 
 # Install CORE-V GCC RISC-V toolchain
 RUN mkdir -p ${RISCV_XHEEP} && \
-    wget -qO- https://github.com/x-heep/corev-gcc/releases/download/cv32e40pv2-release/corev-openhw-gcc-ubuntu2204-20240530.tar.gz | tar -xz -C ${RISCV_XHEEP} --strip-components=1
+    curl -fssL \
+    https://github.com/x-heep/corev-gcc/releases/download/cv32e40pv2-release/corev-openhw-gcc-ubuntu2204-20240530.tar.gz \
+    | tar -xz -o -C ${RISCV_XHEEP} --strip-components=1
+
+# Install RISC-V toolchain from XPACK
+RUN mkdir -p ${RISCV_XHEEP} && \
+    curl -fsSL \
+    https://github.com/xpack-dev-tools/riscv-none-elf-gcc-xpack/releases/download/v${XPACK_RISCV_GCC_VERSION}/xpack-riscv-none-elf-gcc-${XPACK_RISCV_GCC_VERSION}-linux-x64.tar.gz \
+    | tar -xz -o -C ${RISCV_XHEEP} --strip-components=1 --exclude=*rv64* --exclude=*elf64*
 
 # Install Verilator
-RUN git clone https://github.com/verilator/verilator.git /tmp/verilator && \
-    cd /tmp/verilator && git checkout ${VERILATOR_VERSION} && \
-    autoconf && ./configure --prefix=/tools/verilator/${VERILATOR_VERSION} && \
-    make -j$(nproc) && make install && \
-    rm -rf /tmp/verilator
+RUN mkdir -p /tools/verilator/${VERILATOR_VERSION} && \
+    curl -fsSL \
+    https://github.com/EDAPack/verilator-bin/releases/download/v5.040.19012338870/verilator-manylinux_2_34_x86_64-5.040.19012338870.tar.gz \
+    | tar -xz -o -C /tools/verilator/${VERILATOR_VERSION} --strip-components=1
 
 # Install Verible
-RUN wget -q https://github.com/chipsalliance/verible/releases/download/${VERIBLE_VERSION}/verible-${VERIBLE_VERSION}-linux-static-x86_64.tar.gz -O /tmp/verible.tar.gz && \
-    mkdir -p /tools/verible && tar -xf /tmp/verible.tar.gz -C /tools/verible/ && \
-    rm /tmp/verible.tar.gz
+RUN mkdir -p /tools/verible && \
+    curl -fsSL \
+    https://github.com/chipsalliance/verible/releases/download/${VERIBLE_VERSION}/verible-${VERIBLE_VERSION}-linux-static-x86_64.tar.gz \
+    | tar -xz -o -C /tools/verible
 
-# Clean up build-time dependencies and apt cache
-RUN apt-get purge -y --auto-remove autoconf autotools-dev build-essential libfl-dev && \
-    rm -rf /var/lib/apt/lists/*
-
-# Install conda
-RUN wget -q https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O /tmp/miniconda.sh && \
-    bash /tmp/miniconda.sh -b -p /opt/conda && \
-    rm /tmp/miniconda.sh
-
-# Install conda environment
-COPY util/conda_environment.yml util/python-requirements.txt .
-COPY docs/python-requirements.txt docs/
-RUN /opt/conda/bin/conda tos accept && \
+# Install and setup conda environment
+RUN --mount=type=cache,target=/var/cache/apt \
+    --mount=type=cache,target=/var/lib/apt/lists \
+    apt-get update && apt-get install -y --no-install-recommends \
+        cmake \
+        git \
+        g++ \
+        make \
+        zlib1g-dev
+COPY --from=conda-source /opt/conda /opt/conda
+ARG PATH=/opt/conda/bin:$PATH
+RUN --mount=type=bind,source=util/conda_environment.yml,target=conda_environment.yml \
+    --mount=type=bind,source=util/python-requirements.txt,target=python-requirements.txt \
+    --mount=type=bind,source=docs/python-requirements.txt,target=docs/python-requirements.txt \
     /opt/conda/bin/conda config --set auto_activate_base false && \
     /opt/conda/bin/conda env create -f conda_environment.yml && \
-    rm conda_environment.yml python-requirements.txt
+    /opt/conda/bin/conda clean -afy
 
-# Copy profile scripts (conda initialization and welcome message)
+# Setup shell environment
+RUN --mount=type=cache,target=/var/cache/apt \
+    --mount=type=cache,target=/var/lib/apt/lists \
+    apt-get update && apt-get install -y --no-install-recommends \
+        zsh
 COPY util/docker/env.sh util/docker/motd.sh /etc/profile.d/
-RUN chmod +x /etc/profile.d/env.sh /etc/profile.d/motd.sh
+RUN chmod +x /etc/profile.d/env.sh /etc/profile.d/motd.sh && \
+    chsh -s /bin/zsh && \
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" --unattended && \
+    git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ~/.oh-my-zsh/custom/themes/powerlevel10k && \
+    git clone --depth=1 https://github.com/zsh-users/zsh-syntax-highlighting.git ~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting && \
+    sed -i  -e 's/ZSH_THEME="robbyrussell"/ZSH_THEME="powerlevel10k\/powerlevel10k"/g' \
+            -e 's/plugins=(git)/plugins=(git zsh-syntax-highlighting)/g' ~/.zshrc && \
+    echo 'POWERLEVEL9K_DISABLE_CONFIGURATION_WIZARD=true' >> ~/.zshrc && \
+    echo "source ~/.oh-my-zsh/custom/themes/powerlevel10k/config/p10k-lean-8colors.zsh" >> ~/.zshrc && \
+    /opt/conda/bin/conda init --system && \
+    /opt/conda/bin/conda init zsh && \
+    echo "source /etc/profile.d/env.sh" >> ~/.zshenv && \
+    echo "source /etc/profile.d/motd.sh" >> ~/.zlogin
+
+# Setup additional packages
+RUN --mount=type=cache,target=/var/cache/apt \
+    --mount=type=cache,target=/var/lib/apt/lists \
+    apt-get update && apt-get install -y --no-install-recommends \
+        gh \
+        gtkwave \
+        lcov \
+        libelf-dev \
+        libfindbin-libs-perl \
+        libssl-dev \
+        libxtst6 \
+        lsb-release \
+        ninja-build \
+        openocd \
+        patchutils \
+        picocom \
+        libftdi1-dev \
+        pkgconf \
+        vim \
+        xterm \
+    && \
+    echo 'syn on' >> ~/.vimrc && \
+    echo 'set ts=4 sw=4 sts=4 et' >> ~/.vimrc && \
+    echo '"set nu' >> ~/.vimrc && \
+    echo '"set listchars=eol:¶,tab:»\ ,trail:~,extends:>,precedes:<,space:·,nbsp:␣' >> ~/.vimrc && \
+    echo '"set list' >> ~/.vimrc
+
+ENV LANG=C.UTF-8
+ENV DISPLAY=host.docker.internal:0
+ENV LD_PRELOAD="/lib/x86_64-linux-gnu/libudev.so.1:/usr/lib/x86_64-linux-gnu/libcap.so.2"
+ENV _JAVA_AWT_WM_NONREPARENTING=1
 
 # Mark X-HEEP repo as a safe so new version of git don't complain when running util/git-diff.py
 RUN git config --global --add safe.directory '*'
@@ -86,4 +142,4 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
 # Default command to run when no other command is specified
-CMD ["/bin/bash", "-l"]
+CMD ["/bin/zsh", "--login"]

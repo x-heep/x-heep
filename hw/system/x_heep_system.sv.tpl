@@ -334,6 +334,15 @@ analog_signal_pads = [ pad for pad in xheep.get_padring().pad_list if any(isinst
       % endif
   );
 
+`ifdef FPGA_VPK180
+  vpk180_rstgen rstgen_i (
+    .clk_i(clk_in_x),
+    .rst_ni(rst_nin_x),
+    .test_mode_i(1'b0),
+    .rst_no(rst_ngen),
+    .init_no()
+  );
+`else
   rstgen rstgen_i (
     .clk_i(clk_in_x),
     .rst_ni(rst_nin_x),
@@ -341,6 +350,7 @@ analog_signal_pads = [ pad for pad in xheep.get_padring().pad_list if any(isinst
     .rst_no(rst_ngen),
     .init_no()
   );
+`endif
 
 
 endmodule  // x_heep_system

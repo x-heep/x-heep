@@ -1,0 +1,42 @@
+// Copyright 2026 Huawei Technologies Co., Ltd.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+{
+  name: "obi",
+  target_dir: "obi",
+
+  upstream: {
+    url: "https://github.com/pulp-platform/obi.git",
+    rev: "v0.1.7",
+  },
+
+  patch_dir: "../patches/pulp_platform_obi",
+
+  exclude_from_upstream: [
+    ".ci",
+    ".github",
+    ".gitlab-ci.d",
+    ".gitignore",
+    ".gitlab-ci.yml",
+    "Bender.lock",
+    "Bender.yml",
+    "CHANGELOG.md",
+    "Makefile",
+    "Readme.md",
+    "include",
+    "scripts",
+    "src/apb_to_obi.sv",
+    "src/obi_atop_resolver.sv",
+    "src/obi_cut.sv",
+    "src/obi_demux.sv",
+    "src/obi_err_sbr.sv",
+    "src/obi_intf.sv",
+    "src/obi_mux.sv",
+    "src/obi_rready_converter.sv",
+    "src/obi_sram_shim.sv",
+    "src/obi_xbar.sv",
+    "src/test",
+    "test",
+  ]
+
+}

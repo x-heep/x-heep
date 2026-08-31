@@ -12,9 +12,19 @@ filesets:
     - rtl/sram_wrapper.sv
     file_type: systemVerilogSource
 
+  rtl-fpga-vpk180:
+    files:
+    - rtl/vpk180_rstgen.sv
+    file_type: systemVerilogSource
+
+  ip-fpga-sram:
+    files:
+    - "!target_vpk180 ? (scripts/generate_sram.tcl)"
+    - "target_vpk180 ? (scripts/vpk180/generate_sram.tcl)"
+    file_type: tclSource
+
   ip-fpga:
     files:
-    - scripts/generate_sram.tcl:  { file_type: tclSource }
     - rtl/prim_xilinx_clk.sv
     - rtl/cv32e40p_xilinx_clock_gate.sv
     - rtl/cv32e40x_xilinx_clock_gate.sv
@@ -44,7 +54,13 @@ filesets:
     files:
     - scripts/zcu102/xilinx_generate_clk_wizard.tcl
     file_type: tclSource
-    
+
+  ip-fpga-vpk180:
+    files:
+    - scripts/vpk180/xilinx_generate_clk_wizard.tcl
+    - scripts/vpk180/xilinx_generate_ps_wizard.tcl
+    file_type: tclSource
+
   ip-fpga-aup-zu3:
     files:
     - scripts/aup-zu3/xilinx_generate_clk_wizard.tcl
@@ -90,7 +106,16 @@ filesets:
     - constraints/common/jtag.xdc
     - constraints/common/sync.xdc
     file_type: xdc
-    
+
+  xdc-fpga-vpk180:
+    files:
+    - constraints/vpk180/pin_assign.xdc
+    - constraints/vpk180/constraints.xdc
+    - constraints/vpk180/spi_slave.xdc
+    - constraints/vpk180/jtag.xdc
+    - constraints/vpk180/sync.xdc
+    file_type: xdc
+
   xdc-fpga-aup-zu3:
     files:
     - constraints/aup-zu3/pin_assign.xdc
@@ -118,24 +143,35 @@ parameters:
   PS_ENABLE:
     datatype: bool
     paramtype: vlogdefine
+    default: false
 
 targets:
   default: &default_target
     filesets:
     - rtl-fpga
     - ip-fpga
+    - target_pynq-z2 ? (ip-fpga-sram)
     - target_pynq-z2 ? (ip-fpga-pynq-z2)
     - target_pynq-z2 ? (xdc-fpga-pynq-z2)
     - target_pynq-z2 ? (tcl-fpga-ps-utils)
+    - target_nexys-a7-100t ? (ip-fpga-sram)
     - target_nexys-a7-100t ? (ip-fpga-nexys)
     - target_nexys-a7-100t ? (xdc-fpga-nexys)
+    - target_zcu104 ? (ip-fpga-sram)
     - target_zcu104 ? (ip-fpga-zcu104)
     - target_zcu104 ? (xdc-fpga-zcu104)
+    - target_zcu102 ? (ip-fpga-sram)
     - target_zcu102 ? (ip-fpga-zcu102)
     - target_zcu102 ? (xdc-fpga-zcu102)
+    - target_vpk180 ? (ip-fpga-sram)
+    - target_vpk180 ? (ip-fpga-vpk180)
+    - target_vpk180 ? (xdc-fpga-vpk180)
+    - target_vpk180 ? (rtl-fpga-vpk180)
+    - target_aup-zu3 ? (ip-fpga-sram)
     - target_aup-zu3 ? (xdc-fpga-aup-zu3)
     - target_aup-zu3 ? (ip-fpga-aup-zu3)
     - target_aup-zu3 ? (tcl-fpga-ps-utils)
+    - target_genesys2 ? (ip-fpga-sram)
     - target_genesys2 ? (ip-fpga-genesys2)
     - target_genesys2 ? (xdc-fpga-genesys2)
 

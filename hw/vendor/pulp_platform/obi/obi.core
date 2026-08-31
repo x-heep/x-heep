@@ -1,0 +1,25 @@
+CAPI=2:
+
+# Copyright 2026 Huawei Technologies Co., Ltd.
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+name: pulp-platform.org::obi
+description: OBI package from pulp-platform/obi with package renamed to pulp_obi_pkg.
+
+filesets:
+  rtl:
+    depend:
+    - pulp-platform.org::common_cells
+    files:
+    - src/obi_pkg.sv
+    file_type: systemVerilogSource
+
+targets:
+  default:
+    filesets:
+    - rtl
+
+  rtl:
+    filesets:
+    - rtl

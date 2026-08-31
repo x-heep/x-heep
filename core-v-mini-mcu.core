@@ -96,6 +96,10 @@ filesets:
     - hw/fpga/xilinx_core_v_mini_mcu_wrapper.sv
     file_type: systemVerilogSource
 
+  rtl-fpga-vpk180-obi-to-axi:
+    depend:
+    - x-heep:ip:xheep_obi_to_axi_bridge
+
   ip-asic:
     depend:
     - technology::prim_mytech
@@ -235,6 +239,14 @@ parameters:
     datatype: bool
     paramtype: vlogdefine
     default: false
+  FPGA_VPK180:
+    datatype: bool
+    paramtype: vlogdefine
+    default: false
+  PS_ENABLE:
+    datatype: bool
+    paramtype: vlogdefine
+    default: false
   NO_DDR_CLK_PORTS:
     datatype: bool
     paramtype: vlogdefine
@@ -277,6 +289,12 @@ scripts:
     cmd:
     - python
     - ../../../scripts/sim/vcs/patch_vcs_ams_Makefile.py
+
+  # Patch the generated Vivado files needed by the VPK180 PS/DDR design.
+  patch_vpk_run:
+    cmd:
+    - sh
+    - ../../../scripts/building/patch_vpk180.sh
 
   # Simulation utils
   remove_uart_log:
@@ -545,6 +563,32 @@ targets:
         part: xc7k325tffg900-2
         board_part: digilentinc.com:genesys2:part0:1.1
         board_repo_paths: [../../../hw/fpga/xheep_fpga_support/board_files/genesys2]
+    toplevel: [xilinx_core_v_mini_mcu_wrapper]
+
+  vpk180:
+    <<: *default_target
+    default_tool: vivado
+    description: Xilinx VPK180 Versal Evaluation Board
+    filesets_append:
+    - x_heep_system
+    - rtl-fpga-vpk180-obi-to-axi
+    - rtl-fpga
+    parameters:
+    - SYNTHESIS=true
+    - REMOVE_OBI_FIFO
+    - NO_DDR_CLK_PORTS=true
+    - FPGA_SYNTHESIS=true
+    - FPGA_VPK180=true
+    - PS_ENABLE=true
+    flags:
+      PS_ENABLE: true
+    hooks:
+      pre_build:
+      - patch_vpk_run
+    tools:
+      vivado:
+        part: xcvp1802-lsvc4072-2MP-e-S
+        jobs: 10
     toplevel: [xilinx_core_v_mini_mcu_wrapper]
 
   asic_synthesis:

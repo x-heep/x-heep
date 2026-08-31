@@ -1,0 +1,30 @@
+diff --git a/src/dmi_jtag_tap.sv b/src/dmi_jtag_tap.sv
+index d627cefd..e91aa06a 100644
+--- a/src/dmi_jtag_tap.sv
++++ b/src/dmi_jtag_tap.sv
+@@ -185,6 +185,7 @@ module dmi_jtag_tap #(
+   // ----------------
+   // DFT
+   // ----------------
++`ifndef FPGA_SYNTHESIS
+   logic tck_n, tck_ni;
+ 
+   tc_clk_inverter i_tck_inv (
+@@ -198,9 +199,17 @@ module dmi_jtag_tap #(
+     .clk_sel_i ( testmode_i ),
+     .clk_o     ( tck_n      )
+   );
++`endif
+ 
+   // TDO changes state at negative edge of TCK
++`ifdef FPGA_SYNTHESIS
++  // Avoid mapping the DFT clock mux to a Xilinx BUFGMUX for FPGA builds. The
++  // functional X-HEEP FPGA flow ties testmode_i low, so TDO can be registered
++  // directly on the falling TCK edge.
++  always_ff @(negedge tck_i, negedge trst_ni) begin : p_tdo_regs
++`else
+   always_ff @(posedge tck_n, negedge trst_ni) begin : p_tdo_regs
++`endif
+     if (!trst_ni) begin
+       td_o     <= 1'b0;
+       tdo_oe_o <= 1'b0;

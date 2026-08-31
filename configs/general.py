@@ -81,7 +81,7 @@ def config():
         AddressRegion("serial_link", start_address=0x50000000, length=0x01000000)
     )
     address_map.add_region(
-        AddressRegion("ext_slaves", start_address=0xF0000000, length=0x01000000)
+        AddressRegion("ext_slaves", start_address=0xC0000000, length=0x40000000)
     )
     system.set_address_map(address_map)
 
@@ -119,7 +119,7 @@ def config():
     user_peripheral_domain.add_peripheral(I2C(0x00030000))
     user_peripheral_domain.add_peripheral(RV_timer(0x00040000))
     user_peripheral_domain.add_peripheral(SPI2(0x00050000))
-    user_peripheral_domain.add_peripheral(I2S(0x00070000))
+    # user_peripheral_domain.add_peripheral(I2S(0x00070000))
     user_peripheral_domain.add_peripheral(UART(0x00080000))
 
     # Add the peripheral domains to the system

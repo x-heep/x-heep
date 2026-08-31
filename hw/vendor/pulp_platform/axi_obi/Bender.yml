@@ -1,0 +1,18 @@
+# Copyright 2023 ETH Zurich and University of Bologna.
+# Solderpad Hardware License, Version 0.51, see LICENSE for details.
+# SPDX-License-Identifier: SHL-0.51
+
+package:
+  name: axi_obi
+  authors:
+    - "Michael Rogenmoser <michaero@iis.ee.ethz.ch>"
+
+dependencies:
+  axi:          { git: "https://github.com/pulp-platform/axi.git",          version: 0.39.9 }
+  obi:          { git: "https://github.com/pulp-platform/obi.git",          version: 0.1.7  }
+  common_cells: { git: "https://github.com/pulp-platform/common_cells.git", version: 1.38.0 }
+
+sources:
+  - src/axi_to_detailed_mem_user.sv
+  - src/axi_to_obi.sv
+  - src/obi_to_axi.sv

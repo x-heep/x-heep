@@ -1,0 +1,50 @@
+diff --git a/obi.core b/obi.core
+new file mode 100644
+index 0000000..276fb3d
+--- /dev/null
++++ b/obi.core
+@@ -0,0 +1,25 @@
++CAPI=2:
++
++# Copyright 2026 Huawei Technologies Co., Ltd.
++# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
++# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
++
++name: pulp-platform.org::obi
++description: OBI package from pulp-platform/obi with package renamed to pulp_obi_pkg.
++
++filesets:
++  rtl:
++    depend:
++    - pulp-platform.org::common_cells
++    files:
++    - src/obi_pkg.sv
++    file_type: systemVerilogSource
++
++targets:
++  default:
++    filesets:
++    - rtl
++
++  rtl:
++    filesets:
++    - rtl
+diff --git a/src/obi_pkg.sv b/src/obi_pkg.sv
+index b9f6e45..a9f0a6a 100644
+--- a/src/obi_pkg.sv
++++ b/src/obi_pkg.sv
+@@ -4,7 +4,7 @@
+ 
+ // Michael Rogenmoser <michaero@iis.ee.ethz.ch>
+ 
+-package obi_pkg;
++package pulp_obi_pkg;
+ 
+   /// The OBI atomics type, to be expanded.
+   typedef logic [5:0] atop_t;
+@@ -117,4 +117,4 @@ package obi_pkg;
+     ATOPNONE = 6'h0
+   } obi_atop_e;
+ 
+-endpackage
++endpackage : pulp_obi_pkg

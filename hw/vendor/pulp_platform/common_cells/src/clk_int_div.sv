@@ -343,12 +343,20 @@ module clk_int_div #(
   );
 
   //---- Clock MUX to select between odd and even div logic ----
+`ifdef FPGA_SYNTHESIS
+  // The odd/even divider clocks are generated in fabric. Mapping this mux to a
+  // Xilinx BUFGMUX would drive both BUFGCTRL inputs from fabric, which violates
+  // Versal clock-routing DRCs. Keep this local; the downstream bypass mux still
+  // drives the selected clock through the FPGA clock mux primitive.
+  assign generated_clock = use_odd_division_q ? odd_clk : even_clk;
+`else
   tc_clk_mux2 i_clk_mux (
     .clk0_i    ( even_clk           ),
     .clk1_i    ( odd_clk            ),
     .clk_sel_i ( use_odd_division_q ),
     .clk_o     ( generated_clock    )
   );
+`endif
 
   //-------------------- clock mux to bypass clock if divide-by-1  --------------------
   tc_clk_mux2 i_clk_bypass_mux (

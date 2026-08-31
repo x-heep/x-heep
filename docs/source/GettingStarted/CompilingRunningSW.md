@@ -11,7 +11,7 @@ make app
 ```
 
 ```{warning}
-Don't forget to set the `RISCV_XHEEP` env variable to the compiler folder (without the `/bin` included).
+Don't forget to set the `RISCV_TOOLCHAIN_BASE` env variable to the compiler folder (without the `/bin` included).
 ```
 
 You can find all the documentation and parameters for compiling applications in the [compiling applications guide](/How_to/CompileApps.md).

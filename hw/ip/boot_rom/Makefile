@@ -2,9 +2,9 @@
 
 boot_rom = boot_rom.sv
 
-GCC?=$(RISCV_XHEEP)/bin/$(COMPILER_PREFIX)elf-gcc
-OBJCOPY?=$(RISCV_XHEEP)/bin/$(COMPILER_PREFIX)elf-objcopy
-OBJDUMP?=$(RISCV_XHEEP)/bin/$(COMPILER_PREFIX)elf-objdump
+GCC?=$(RISCV_TOOLCHAIN_BASE)/bin/$(COMPILER_PREFIX)elf-gcc
+OBJCOPY?=$(RISCV_TOOLCHAIN_BASE)/bin/$(COMPILER_PREFIX)elf-objcopy
+OBJDUMP?=$(RISCV_TOOLCHAIN_BASE)/bin/$(COMPILER_PREFIX)elf-objdump
 PYTHON?=python
 
 INC_FOLDERS                 = $(sort $(dir $(wildcard ../../../sw/device/lib/drivers/*/)))

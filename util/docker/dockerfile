@@ -7,7 +7,7 @@ FROM ubuntu:noble
 SHELL ["/bin/bash", "-c"]
 
 # Set ARGs and ENVs
-ENV RISCV_XHEEP=/tools/riscv
+ENV RISCV_TOOLCHAIN_BASE=/tools/riscv
 ARG RISCV_TOOLCHAIN_TAR_FILE=toolchain.tar.gz
 ARG XPACK_RISCV_GCC_VERSION=15.2.0-1
 ARG VERILATOR_VERSION=v5.040
@@ -17,7 +17,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 # Update PATH to include installed tools
 # NOTE: use a dedicated variable here and append it to path in env.sh to prevent
 #       conda from overriding the PATH at runtime
-ENV TOOL_PATH=/tools/verible/verible-${VERIBLE_VERSION}/bin:/tools/verilator/${VERILATOR_VERSION}/bin:${RISCV_XHEEP}/bin
+ENV TOOL_PATH=/tools/verible/verible-${VERIBLE_VERSION}/bin:/tools/verilator/${VERILATOR_VERSION}/bin:${RISCV_TOOLCHAIN_BASE}/bin
 
 # Install core dependencies
 RUN --mount=type=cache,target=/var/cache/apt \
@@ -33,21 +33,21 @@ RUN --mount=type=cache,target=/var/cache/apt \
 
 # Install X-HEEP GCC/LLVM RISC-V toolchain
 RUN --mount=type=bind,source=${RISCV_TOOLCHAIN_TAR_FILE},target=${RISCV_TOOLCHAIN_TAR_FILE} \
-    mkdir -p ${RISCV_XHEEP} && \
-    tar -xz -o -C ${RISCV_XHEEP} --strip-components=1 -f ${RISCV_TOOLCHAIN_TAR_FILE} && \
+    mkdir -p ${RISCV_TOOLCHAIN_BASE} && \
+    tar -xz -o -C ${RISCV_TOOLCHAIN_BASE} --strip-components=1 -f ${RISCV_TOOLCHAIN_TAR_FILE} && \
     ln -s /usr/lib/x86_64-linux-gnu/libpython3.12.so.1.0 /usr/lib/x86_64-linux-gnu/libpython3.10.so.1.0
 
 # Install CORE-V GCC RISC-V toolchain
-RUN mkdir -p ${RISCV_XHEEP} && \
+RUN mkdir -p ${RISCV_TOOLCHAIN_BASE} && \
     curl -fssL \
     https://github.com/x-heep/corev-gcc/releases/download/cv32e40pv2-release/corev-openhw-gcc-ubuntu2204-20240530.tar.gz \
-    | tar -xz -o -C ${RISCV_XHEEP} --strip-components=1
+    | tar -xz -o -C ${RISCV_TOOLCHAIN_BASE} --strip-components=1
 
 # Install RISC-V toolchain from XPACK
-RUN mkdir -p ${RISCV_XHEEP} && \
+RUN mkdir -p ${RISCV_TOOLCHAIN_BASE} && \
     curl -fsSL \
     https://github.com/xpack-dev-tools/riscv-none-elf-gcc-xpack/releases/download/v${XPACK_RISCV_GCC_VERSION}/xpack-riscv-none-elf-gcc-${XPACK_RISCV_GCC_VERSION}-linux-x64.tar.gz \
-    | tar -xz -o -C ${RISCV_XHEEP} --strip-components=1 --exclude=*rv64* --exclude=*elf64*
+    | tar -xz -o -C ${RISCV_TOOLCHAIN_BASE} --strip-components=1 --exclude=*rv64* --exclude=*elf64*
 
 # Install Verilator
 RUN mkdir -p /tools/verilator/${VERILATOR_VERSION} && \

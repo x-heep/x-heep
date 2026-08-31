@@ -45,10 +45,10 @@ endif()
 project(${PROJECT} ASM C CXX)
 
 # environment check
-if(DEFINED ENV{RISCV_XHEEP})
-  set(RISCV_XHEEP "$ENV{RISCV_XHEEP}")
+if(DEFINED ENV{RISCV_TOOLCHAIN_BASE})
+  set(RISCV_TOOLCHAIN_BASE "$ENV{RISCV_TOOLCHAIN_BASE}")
 else()
-  message(WARNING "RISCV_XHEEP not set in the environment. Using the one passed from Makefile: ${RISCV_XHEEP}")
+  message(WARNING "RISCV_TOOLCHAIN_BASE not set in the environment. Using the one passed from Makefile: ${RISCV_TOOLCHAIN_BASE}")
 endif()
 
 # set the required CMake standard
@@ -112,8 +112,8 @@ LIST(REMOVE_DUPLICATES h_dir_list_)
 # Add list to the directories to be included
 
 # Get all the folders to include when linking
-SET(INCLUDE_FOLDERS "-I ${RISCV_XHEEP}/${COMPILER_PREFIX}elf/include \
-                     -I ${RISCV_XHEEP}/${COMPILER_PREFIX}elf/include/ \
+SET(INCLUDE_FOLDERS "-I ${RISCV_TOOLCHAIN_BASE}/${COMPILER_PREFIX}elf/include \
+                     -I ${RISCV_TOOLCHAIN_BASE}/${COMPILER_PREFIX}elf/include/ \
                      -I ${ROOT_PROJECT} \
                      -I ${SOURCE_PATH} \
 					           ${dir_list_str}")                                      
@@ -372,8 +372,8 @@ message( "${Yellow}Compiler flags: ${BASE_COMPILER_FLAGS}${ColourReset}")
 
 if (${COMPILER} MATCHES "clang")
      set( CLANG_EXTRA_FLAGS "--target=riscv32 \
-                             --gcc-toolchain=${RISCV_XHEEP} \
-                             --sysroot=${RISCV_XHEEP}/${COMPILER_PREFIX}elf \
+                             --gcc-toolchain=${RISCV_TOOLCHAIN_BASE} \
+                             --sysroot=${RISCV_TOOLCHAIN_BASE}/${COMPILER_PREFIX}elf \
                              -static \
                              -mcmodel=medany \
                              -fvisibility=hidden \
@@ -439,7 +439,7 @@ if (${COMPILER} MATCHES "clang" AND NOT CLANG_LINKER_USE_LD)
                               -Wl,-Map=${MAINFILE}.map \
                               -Wl,--gc-sections \
                               -Wl,--allow-multiple-definition \
-                              -L ${RISCV_XHEEP}/${COMPILER_PREFIX}elf/lib \
+                              -L ${RISCV_TOOLCHAIN_BASE}/${COMPILER_PREFIX}elf/lib \
                               -lc -lm -lgcc -flto \
                               -fpermissive -fno-rtti -fno-exceptions -fno-threadsafe-statics \
                               -ffunction-sections -fdata-sections \
@@ -453,13 +453,13 @@ else()
                               -static \
                               -Wl,-Map=${MAINFILE}.map \
                               -Wl,--gc-sections \
-                              -L ${RISCV_XHEEP}/${COMPILER_PREFIX}elf/lib \
+                              -L ${RISCV_TOOLCHAIN_BASE}/${COMPILER_PREFIX}elf/lib \
                               -lc -lm -lgcc -flto \
                               -fpermissive -fno-rtti -fno-exceptions -fno-threadsafe-statics \
                               -ffunction-sections -fdata-sections -specs=nano.specs")
 endif()
-message( "${Green}RISCV_XHEEP env variable: ${RISCV_XHEEP}")
-message( "${Magenta}Lib Folder RISCV-GCC: ${RISCV_XHEEP}/${COMPILER_PREFIX}elf/lib${ColourReset}")
+message( "${Green}RISCV_TOOLCHAIN_BASE env variable: ${RISCV_TOOLCHAIN_BASE}")
+message( "${Magenta}Lib Folder RISCV-GCC: ${RISCV_TOOLCHAIN_BASE}/${COMPILER_PREFIX}elf/lib${ColourReset}")
 
 if (${VERBOSE} MATCHES "true")
  SET(CMAKE_VERBOSE_MAKEFILE ON)

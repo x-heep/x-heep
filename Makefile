@@ -81,8 +81,8 @@ EXTERNAL_MCU_GEN_OUTPUTS = $(patsubst %.tpl,%, $(EXTERNAL_MCU_GEN_TEMPLATES))
 
 # Compiler options are 'gcc' (default) and 'clang'
 COMPILER 		?= gcc
-# Compiler prefix options are 'riscv32-corev-' (default) and 'riscv32-unknown-'
-COMPILER_PREFIX ?= $(shell basename $$(ls $(RISCV_XHEEP)/bin/*gcc 2>/dev/null | head -1) | sed 's/elf-gcc$$//')
+# Compiler prefix options are 'riscv-none-' (default), 'riscv32-corev-' and 'riscv32-unknown-'
+COMPILER_PREFIX ?= $(shell basename $$(ls $(RISCV_TOOLCHAIN_BASE)/bin/*gcc 2>/dev/null | head -1) | sed 's/elf-gcc$$//')
 # Compiler flags to be passed (for both linking and compiling)
 COMPILER_FLAGS 	?=
 # Arch options are any RISC-V ISA string supported by the CPU. Default 'rv32imc_zicsr'
@@ -193,7 +193,7 @@ format-python:
 ## @param TARGET=sim(default),systemc,pynq-z2,nexys-a7-100t,genesys2,aup-zu3,zcu102,zcu104
 ## @param LINKER=on_chip(default),flash_load
 ## @param COMPILER=gcc(default),clang
-## @param COMPILER_PREFIX=riscv32-corev-(default),riscv32-unknown-
+## @param COMPILER_PREFIX=riscv-none-(default),riscv32-corev-,riscv32-unknown-
 ## @param ARCH=rv32imc(default),<any_RISC-V_ISA_string_supported_by_the_CPU>
 app: clean-app
 	@$(MAKE) -C sw PROJECT=$(PROJECT) TARGET=$(TARGET) LINKER=$(LINKER) LINK_FOLDER=$(LINK_FOLDER) COMPILER=$(COMPILER) COMPILER_PREFIX=$(COMPILER_PREFIX) COMPILER_FLAGS="$(COMPILER_FLAGS)" ARCH=$(ARCH) SOURCE=$(SOURCE) CLANG_LINKER_USE_LD=$(CLANG_LINKER_USE_LD) \

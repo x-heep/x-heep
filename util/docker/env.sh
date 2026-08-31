@@ -7,21 +7,26 @@ conda activate x-heep
 # Functions to initialize SW build environment
 # NOTE: we don't use aliases as they would not be picked up by the non-interactive
 #       shell used by GitHub CI.
+export COMPILER_PREFIX_GCC=riscv-none-
+export COMPILER_PREFIX_CLANG=riscv32-unknown-
+
 init_gcc() {
     export COMPILER=gcc
-    export COMPILER_PREFIX=riscv32-unknown-
+    export COMPILER_PREFIX_GCC=riscv-none-
+    export COMPILER_PREFIX=$COMPILER_PREFIX_GCC
     export ARCH=rv32imc_zicsr
 }
 
 init_clang() {
     export COMPILER=clang
-    export COMPILER_PREFIX=riscv32-unknown-
+    export COMPILER_PREFIX=$COMPILER_PREFIX_CLANG
     export ARCH=rv32imc_zicsr
 }
 
 init_corev() {
     export COMPILER=gcc
-    export COMPILER_PREFIX=riscv32-corev-
+    export COMPILER_PREFIX_GCC=riscv32-corev-
+    export COMPILER_PREFIX=$COMPILER_PREFIX_GCC
     export ARCH=rv32imc_zicsr_zifencei_xcvhwlp_xcvmem_xcvmac_xcvbi_xcvalu_xcvsimd_xcvbitmanip
 }
 

@@ -67,7 +67,7 @@ jobs:
         shell: bash -le {0}
         run: |
           make mcu-gen X_HEEP_CFG=configs/ci.hjson && \
-          python3 test/test_apps/test_apps.py --compilers gcc,clang,gcc --compiler-paths /tools/riscv --compiler-prefixes riscv32-corev-,riscv32-unknown-,riscv32-unknown- --table --compile-only
+          python3 test/test_apps/test_apps.py --compilers gcc,clang,gcc --compiler-paths /tools/riscv --compiler-prefixes riscv32-corev-,riscv32-unknown-,riscv-none- --table --compile-only
 
   simulate-apps:
     name: Simulate All Apps

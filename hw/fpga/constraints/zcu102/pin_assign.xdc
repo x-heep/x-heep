@@ -34,9 +34,9 @@ set_property -dict {PACKAGE_PIN E20 IOSTANDARD LVCMOS33} [get_ports {spi_flash_s
 set_property -dict {PACKAGE_PIN J20 IOSTANDARD LVCMOS33} [get_ports {spi_flash_sd_io[2]}]
 set_property -dict {PACKAGE_PIN D22 IOSTANDARD LVCMOS33} [get_ports {spi_flash_sd_io[3]}]
 
-# UART Pmod zcu102 board
-set_property -dict {PACKAGE_PIN A20 IOSTANDARD LVCMOS33} [get_ports uart_tx_o]
-set_property -dict {PACKAGE_PIN B21 IOSTANDARD LVCMOS33} [get_ports uart_rx_i]
+# UART native/Pmod zcu102 board
+set_property -dict [list PACKAGE_PIN [expr {[info exists ::BSCANE] ? "E13" : "B21"}] IOSTANDARD LVCMOS33] [get_ports uart_rx_i]
+set_property -dict [list PACKAGE_PIN [expr {[info exists ::BSCANE] ? "F13" : "A20"}] IOSTANDARD LVCMOS33] [get_ports uart_tx_o]
 
 # JTAG
 set_property -dict {PACKAGE_PIN B20 IOSTANDARD LVCMOS33} [get_ports jtag_tdi_i]

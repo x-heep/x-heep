@@ -87,16 +87,8 @@ filesets:
 
   xdc-fpga-zcu102:
     files:
+    - use_bscane_xilinx ? (constraints/zcu102/bscane_enable.xdc)
     - constraints/zcu102/pin_assign.xdc
-    - constraints/zcu102/constraints.xdc
-    - constraints/common/spi_slave.xdc
-    - constraints/common/jtag.xdc
-    - constraints/common/sync.xdc
-    file_type: xdc
-
-  xdc-fpga-bscane-zcu102:
-    files:
-    - constraints/zcu102/bscane_pin_assign.xdc
     - constraints/zcu102/constraints.xdc
     - constraints/common/spi_slave.xdc
     - constraints/common/jtag.xdc
@@ -133,8 +125,7 @@ targets:
     - target_zcu104 ? (ip-fpga-zcu104)
     - target_zcu104 ? (xdc-fpga-zcu104)
     - target_zcu102 ? (ip-fpga-zcu102)
-    - target_zcu102 ? (!use_bscane_xilinx ? (xdc-fpga-zcu102))
-    - target_zcu102 ? (use_bscane_xilinx ? (xdc-fpga-bscane-zcu102))
+    - target_zcu102 ? (xdc-fpga-zcu102)
     - target_aup-zu3 ? (xdc-fpga-aup-zu3)
     - target_aup-zu3 ? (ip-fpga-aup-zu3)
     - target_genesys2 ? (ip-fpga-genesys2)

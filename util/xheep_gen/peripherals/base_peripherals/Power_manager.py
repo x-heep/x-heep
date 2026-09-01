@@ -13,6 +13,12 @@ class Power_manager(BasePeripheral):
         address: int = None,
         length: int = None,
         external_domains: int = 0,
+        has_master_ports: bool = False,
+        num_master_ports: int = None,
+        has_slave_ports: bool = False,
+        num_slave_ports: int = None,
+        has_reg_if_ports: bool = True,
+        num_reg_if_ports: int = None,
     ):
         """
         Initialize the Power_manager peripheral.
@@ -21,7 +27,16 @@ class Power_manager(BasePeripheral):
         :param int length: The length of the Power_manager.
         :param int external_domains: the number of power domains external to X-HEEP.
         """
-        super().__init__(address, length)
+        super().__init__(
+            address,
+            length,
+            has_master_ports=has_master_ports,
+            num_master_ports=num_master_ports,
+            has_slave_ports=has_slave_ports,
+            num_slave_ports=num_slave_ports,
+            has_reg_if_ports=has_reg_if_ports,
+            num_reg_if_ports=num_reg_if_ports,
+        )
 
         if external_domains > 32:
             raise ValueError(

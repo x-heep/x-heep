@@ -11,7 +11,18 @@ class PDM2PCM(UserPeripheral):
 
     _name = "pdm2pcm"
 
-    def __init__(self, address: int = None, length: int = None, cic_only: bool = True):
+    def __init__(
+        self,
+        address: int = None,
+        length: int = None,
+        cic_only: bool = True,
+        has_master_ports: bool = False,
+        num_master_ports: int = None,
+        has_slave_ports: bool = False,
+        num_slave_ports: int = None,
+        has_reg_if_ports: bool = True,
+        num_reg_if_ports: int = None,
+    ):
         """
         Initialize the PDM2PCM peripheral.
 
@@ -19,7 +30,16 @@ class PDM2PCM(UserPeripheral):
         :param int length: The length of the pdm2pcm.
         :param bool cic_only: True to enable CIC only mode, False to enable other modes. By default, CIC only mode is enabled.
         """
-        super().__init__(address, length)
+        super().__init__(
+            address,
+            length,
+            has_master_ports=has_master_ports,
+            num_master_ports=num_master_ports,
+            has_slave_ports=has_slave_ports,
+            num_slave_ports=num_slave_ports,
+            has_reg_if_ports=has_reg_if_ports,
+            num_reg_if_ports=num_reg_if_ports,
+        )
         self._cic_only = cic_only
 
     def get_cic_mode(self):

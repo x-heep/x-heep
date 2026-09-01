@@ -97,6 +97,38 @@ def generate_xheep(args):
     return kwargs
 
 
+def generate_xalp(args):
+
+    if args.verbose:
+        logging.basicConfig(level=logging.DEBUG)
+
+    # X-ALP is configured exclusively through the Python configuration file.
+    if not str(args.config).endswith(".py"):
+        exit("X-ALP generation requires a Python configuration file (--config *.py)")
+
+    xalp = load_config.load_cfg_file(pathlib.PurePath(str(args.config)))
+
+    # Load pads configuration file
+    pad_ring = load_config.load_pad_cfg(pathlib.PurePath(str(args.pads_cfg)), xalp)
+    if pad_ring is None:
+        exit(f"Error loading pads configuration file: {args.pads_cfg}")
+    xalp.set_padring(pad_ring)
+
+    # Here the X-ALP system is built and validated.
+    xalp.build()
+    xalp.validate()
+
+    # "xalp" is the X-ALP specific handle; "xheep" is also exposed so that
+    # templates shared with the X-HEEP flow (which only use system-level
+    # accessors such as get_padring()) render unchanged for both systems.
+    kwargs = {
+        "xalp": xalp,
+        "xheep": xalp,
+    }
+
+    return kwargs
+
+
 def main():
     parser = argparse.ArgumentParser(prog="mcugen")
 
@@ -105,7 +137,16 @@ def main():
         metavar="file",
         type=str,
         required=True,
-        help="X-HEEP general configuration",
+        help="System general configuration (.py or .hjson)",
+    )
+
+    parser.add_argument(
+        "--system",
+        metavar="xheep,xalp",
+        choices=["xheep", "xalp"],
+        nargs="?",
+        default="xheep",
+        help="System to generate: xheep or xalp (default: xheep)",
     )
 
     parser.add_argument(
@@ -180,11 +221,20 @@ def main():
 
     args = parser.parse_args()
 
-    print(f"{Colors.BLUE}[MCU-GEN]{Colors.RESET} Generating X-HEEP configuration...")
-    kwargs = generate_xheep(args)
-    print(
-        f"{Colors.GREEN}[MCU-GEN]{Colors.RESET} X-HEEP configuration generated successfully"
-    )
+    if args.system == "xalp":
+        print(f"{Colors.BLUE}[MCU-GEN]{Colors.RESET} Generating X-ALP configuration...")
+        kwargs = generate_xalp(args)
+        print(
+            f"{Colors.GREEN}[MCU-GEN]{Colors.RESET} X-ALP configuration generated successfully"
+        )
+    else:
+        print(
+            f"{Colors.BLUE}[MCU-GEN]{Colors.RESET} Generating X-HEEP configuration..."
+        )
+        kwargs = generate_xheep(args)
+        print(
+            f"{Colors.GREEN}[MCU-GEN]{Colors.RESET} X-HEEP configuration generated successfully"
+        )
 
     # Handle single template or multiple templates
     outtpl_list = [t for t in re.split(r"[,\s]+", args.outtpl or "") if t]

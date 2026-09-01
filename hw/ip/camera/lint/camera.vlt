@@ -1,0 +1,13 @@
+// Copyright 2026 EPFL
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+`verilator_config
+
+lint_off -rule UNDRIVEN -file "*/camera_if.sv" -match "*"
+lint_off -rule UNDRIVEN -file "*/camera_if.sv" -match "Signal is not driven: 'fifo*"
+lint_off -rule UNUSED -file "*/camera_if.sv" -match "Signal is not used*"
+lint_off -rule UNUSEDSIGNAL -file "*/camera_if.sv" -match "Bits of signal are not used*"
+lint_off -rule UNUSEDSIGNAL -file "*/camera_window.sv" -match "Bits of signal are not used*"
+
+lint_off -rule DECLFILENAME -file "*/camera_reg_top.sv" -match "Filename 'camera_reg_top' does not match MODULE name: 'camera_reg_top_intf'"

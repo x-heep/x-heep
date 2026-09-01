@@ -30,6 +30,8 @@ from .user_peripherals import (
     GPIO,
     I2C,
     RV_timer,
+    CAMERA,
+    HDMI,
     SPI2,
     PDM2PCM,
     I2S,
@@ -55,7 +57,8 @@ def load_peripherals_config(system, config: hjson.OrderedDict, address_map: Addr
         "soc_ctrl": lambda o, l: SOC_ctrl(o, l),
         "bootrom": lambda o, l: Bootrom(o, l),
         "spi_flash": lambda o, l: SPI_flash(o, l),
-        "w25q128jw_controller": _create_w25q128jw_controller_peripheral,  # Special handling for complex W25Q128JW controller config
+        # Special handling for complex W25Q128JW controller config
+        "w25q128jw_controller": _create_w25q128jw_controller_peripheral,
         "dma": _create_dma_peripheral,  # Special handling for complex DMA config
         "power_manager": lambda o, l: Power_manager(o, l),
         "rv_timer_ao": lambda o, l: RV_timer_ao(o, l),
@@ -79,6 +82,8 @@ def load_peripherals_config(system, config: hjson.OrderedDict, address_map: Addr
         "serial_link_reg": lambda o, l: SerialLinkReg(o, l),
         "serial_link_receiver_fifo": lambda o, l: SerialLinkReceiverFifo(o, l),
         "serial_link_wrapper_mux": lambda o, l: SerialLinkWrapperReg(o, l),
+        "camera": lambda o, l: CAMERA(o, l),
+        "hdmi": lambda o, l: HDMI(o, l),
     }
 
     for name, fields in config.items():

@@ -1,0 +1,73 @@
+{ name: "hdmi"
+  clock_primary: "clk_i"
+  bus_interfaces: [
+    { protocol: "reg_iface", direction: "device" }
+  ]
+  regwidth: "32"
+
+  registers: [
+    { name: "CTRL"
+      desc: "Video output control"
+      swaccess: "rw"
+      hwaccess: "hro"
+      fields: [
+        { bits: "0", name: "EN", desc: '''Enable the visible image. The link keeps sending sync
+                                          even when this is 0, so the monitor stays locked and
+                                          simply shows a black screen.'''
+          resval: "0x0" }
+        { bits: "3:1", name: "PATTERN", desc: '''Test pattern: 0 = colour bars, 1 = XOR texture,
+                                                 2 = checkerboard with a red border,
+                                                 3 = solid colour taken from COLOR,
+                                                 4 = pixel stream written through the PIXEL window,
+                                                 one word per screen pixel at native resolution.'''
+          resval: "0x0" }
+      ]
+    }
+
+    { name: "COLOR"
+      desc: "Solid colour used when CTRL.PATTERN is 3"
+      swaccess: "rw"
+      hwaccess: "hro"
+      fields: [
+        { bits: "23:0", name: "RGB", desc: "Red in [23:16], green in [15:8], blue in [7:0].", resval: "0x0" }
+      ]
+    }
+
+    { name: "STATUS"
+      desc: "Video output status"
+      swaccess: "ro"
+      hwaccess: "hwo"
+      fields: [
+        { bits: "0", name: "VSYNC", desc: '''High while the pixel side is inside vertical sync,
+                                             resynchronised into the bus clock domain.''' }
+      ]
+    }
+
+    { name: "FRAME_CNT"
+      desc: '''Frames sent since reset. Counted in the bus clock domain on the rising edge of the
+               resynchronised vertical sync, so a value that keeps changing proves the pixel clock
+               is actually running.'''
+      swaccess: "ro"
+      hwaccess: "hwo"
+      fields: [
+        { bits: "31:0", name: "COUNT", desc: "Frame count." }
+      ]
+    }
+
+    {window: {
+        name: "PIXEL",
+        items: "1",
+        validbits: "32",
+        desc: '''Pixel FIFO push, used when CTRL.PATTERN is 4. Write one 0x00RRGGBB word per
+                 screen pixel, in raster order (row-major, native resolution, no replication).
+                 There is no frame buffer behind this window, only a shallow CDC FIFO, so
+                 software (typically via DMA, possibly straight from another peripheral's own
+                 window) must re-push the whole frame roughly every 16ms (once per HDMI frame) or
+                 the picture starts showing stale pixels. A write stalls (bus not ready) while the
+                 FIFO is full, which is what paces a DMA transfer into this window.
+                 '''
+        swaccess: "wo",
+      }
+    }
+  ]
+}

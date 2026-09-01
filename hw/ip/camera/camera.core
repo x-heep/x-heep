@@ -1,0 +1,44 @@
+CAPI=2:
+
+name: "x-heep:ip:camera"
+description: "camera interface block"
+
+# Copyright 2026 EPFL
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+
+filesets:
+  files_rtl:
+    depend:
+      - x-heep::packages
+      - xheep:util:reg-generator
+    files:
+    - rtl/camera_if.sv
+    - rtl/camera_window.sv
+    - rtl/fake_signals.sv
+    file_type: systemVerilogSource
+
+  files_verilator_waiver:
+    files:
+      - lint/camera.vlt
+    file_type: vlt
+
+generate:
+  camera:
+    generator: regtool
+    parameters:
+      config:           data/camera.hjson
+      name:             camera
+      rtl_dir:          rtl
+      sw_path:          ../../../sw/device/lib/drivers/camera/camera_regs.h
+      doc_path:         docs/camera_regs.md
+      structs_sw_path:  ../../../sw/device/lib/drivers/camera/camera_structs.h
+
+targets:
+  default:
+    filesets:
+    - files_rtl
+    - tool_verilator ? (files_verilator_waiver)
+    generate:
+    - camera

@@ -1,0 +1,5 @@
+`verilator_config
+
+lint_off -rule TIMESCALEMOD -file "*.sv" -match "Timescale missing*"
+
+lint_off -rule WIDTHEXPAND -file "*hdmi_video_tb.sv" -match "Operator*"

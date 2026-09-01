@@ -1,0 +1,17 @@
+// Copyright 2026 EPFL
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+`verilator_config
+
+// The timing generator is parameterised, so for any given resolution some of
+// the position bits the pattern generator asks for are wider than needed.
+lint_off -rule UNUSEDSIGNAL -file "*/hdmi_pattern.sv" -match "Bits of signal are not used: 'hpos_i'*"
+lint_off -rule UNUSEDSIGNAL -file "*/hdmi_pattern.sv" -match "Bits of signal are not used: 'vpos_i'*"
+
+lint_off -rule WIDTHEXPAND  -file "*/hdmi_tmds_encoder.sv" -match "*"
+
+lint_off -rule DECLFILENAME -file "*/hdmi_reg_top.sv" -match "Filename 'hdmi_reg_top' does not match MODULE name: 'hdmi_reg_top_intf'"
+
+lint_off -rule UNUSEDSIGNAL -file "*/hdmi_pixel_stream.sv" -match "Bits of signal are not used: 'pop_data'*"
+lint_off -rule UNUSEDSIGNAL -file "*/hdmi_window.sv" -match "Bits of signal are not used: 'win_i'*"

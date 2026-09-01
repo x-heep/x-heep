@@ -13,6 +13,7 @@ export "DPI-C" task tb_loadHEX;
 % for bank in memory_ss.iter_ram_banks():
 export "DPI-C" task tb_writetoSram${bank.name()};
 % endfor
+export "DPI-C" task tb_dumpHEX;
 export "DPI-C" task tb_getMemSize;
 export "DPI-C" task tb_set_exit_loop;
 export "DPI-C" task load_flash_hex;
@@ -125,4 +126,32 @@ task load_flash_hex;
     for (i=0;i<=16*1024*1024;i=i+1)
         gen_USE_EXTERNAL_DEVICE_EXAMPLE.flash_boot_i.memory[i] = 8'h00;
     $readmemh(firmware_file, gen_USE_EXTERNAL_DEVICE_EXAMPLE.flash_boot_i.memory);
+endtask
+
+// Dump the RAM content in the byte range [start_addr:end_addr] (inclusive) to
+// 'file', one byte per line in hex. Reverse of tb_loadHEX: it reads every bank
+// and rebuilds a flat byte image, so it stays valid whatever the bank
+// count/interleaving configured in the .hjson.
+task tb_dumpHEX;
+  input string file;
+
+  logic [7:0] image[core_v_mini_mcu_pkg::MEM_SIZE];
+  logic [31:0] word;
+  int i, r_addr;
+
+  % for bank in memory_ss.iter_ram_banks():
+  for (i = ${bank.start_address()}; i < ${bank.end_address()}; i = i + 4) begin
+    if (((i / 4) & ${2**bank.il_level()-1}) == ${bank.il_offset()}) begin
+      r_addr = ((i / 4) >> ${bank.il_level()}) % ${bank.size()//4};
+      word = x_heep_system_i.core_v_mini_mcu_i.memory_subsystem_i.ram${bank.name()}_i.tc_ram_i.sram[r_addr];
+      image[i+0] = word[7:0];
+      image[i+1] = word[15:8];
+      image[i+2] = word[23:16];
+      image[i+3] = word[31:24];
+    end
+  end
+% endfor
+
+  $writememh(file, image, 0, core_v_mini_mcu_pkg::MEM_SIZE);
+  $display("[TESTBENCH] dumped RAM [0x%08x:0x%08x] to %0s", 0, core_v_mini_mcu_pkg::MEM_SIZE, file);
 endtask

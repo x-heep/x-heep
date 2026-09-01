@@ -1,0 +1,47 @@
+CAPI=2:
+
+name: "x-heep:ip:hdmi"
+description: "HDMI/DVI-D transmitter front end"
+
+# Copyright 2026 EPFL
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+
+filesets:
+  files_rtl:
+    depend:
+      - x-heep::packages
+      - xheep:util:reg-generator
+    files:
+    - rtl/hdmi_timing.sv
+    - rtl/hdmi_pattern.sv
+    - rtl/hdmi_window.sv
+    - rtl/hdmi_pixel_stream.sv
+    - rtl/hdmi_tmds_encoder.sv
+    - rtl/hdmi_if.sv
+    file_type: systemVerilogSource
+
+  files_verilator_waiver:
+    files:
+      - lint/hdmi.vlt
+    file_type: vlt
+
+generate:
+  hdmi:
+    generator: regtool
+    parameters:
+      config:           data/hdmi.hjson
+      name:             hdmi
+      rtl_dir:          rtl
+      sw_path:          ../../../sw/device/lib/drivers/hdmi/hdmi_regs.h
+      doc_path:         docs/hdmi_regs.md
+      structs_sw_path:  ../../../sw/device/lib/drivers/hdmi/hdmi_structs.h
+
+targets:
+  default:
+    filesets:
+    - files_rtl
+    - tool_verilator ? (files_verilator_waiver)
+    generate:
+    - hdmi

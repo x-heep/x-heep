@@ -108,7 +108,33 @@ module peripheral_subsystem #(
     // PDM2PCM Interface
     output logic pdm2pcm_clk_o,
     output logic pdm2pcm_clk_en_o,
-    input  logic pdm2pcm_pdm_i
+    input  logic pdm2pcm_pdm_i,
+
+    // Camera
+    % if user_peripheral_domain.contains_peripheral('camera'):
+    output logic camera_xclk_o,
+    output logic camera_rst_o,
+    output logic camera_pwnd_o,
+    input logic camera_pclk_i,
+    input logic camera_vsync_i,
+    input logic camera_href_i,
+    input logic camera_data_0_i,
+    input logic camera_data_1_i,
+    input logic camera_data_2_i,
+    input logic camera_data_3_i,
+    input logic camera_data_4_i,
+    input logic camera_data_5_i,
+    input logic camera_data_6_i,
+    input logic camera_data_7_i,
+    % endif
+
+    // HDMI. Not pad signals: the pixel clock comes from the FPGA clocking
+    // resources and the TMDS words go to device-specific serialisers, both of
+    // which live outside the MCU.
+    input  logic       hdmi_pclk_i,
+    output logic [9:0] hdmi_tmds_ch0_o,
+    output logic [9:0] hdmi_tmds_ch1_o,
+    output logic [9:0] hdmi_tmds_ch2_o
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -690,6 +716,51 @@ module peripheral_subsystem #(
     assign ddr_snd_clk_o = '0;
     assign {ddr_snd_3_o, ddr_snd_2_o, ddr_snd_1_o, ddr_snd_0_o} = '0;
 %endif
+
+% if user_peripheral_domain.contains_peripheral('camera'):
+  logic [7:0]camera_data_i;
+  assign camera_data_i = {camera_data_7_i, camera_data_6_i, camera_data_5_i, camera_data_4_i,camera_data_3_i,camera_data_2_i,camera_data_1_i,camera_data_0_i};
+
+  camera_if #(
+      .reg_req_t(reg_req_t),
+      .reg_rsp_t(reg_rsp_t)
+  ) camera_i(
+    .clk_i(clk_i),
+    .rst_ni(rst_ni),
+    .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::CAMERA_IDX]),
+    .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::CAMERA_IDX]),
+
+    .cam_xclk_o(camera_xclk_o),
+    .cam_rst_o(camera_rst_o),
+    .cam_pwnd_o(camera_pwnd_o),
+    .cam_pclk_i(camera_pclk_i),
+    .cam_href_i(camera_href_i),
+    .cam_vsync_i(camera_vsync_i),
+    .cam_data_i(camera_data_i)
+  );
+% endif
+
+% if user_peripheral_domain.contains_peripheral('hdmi'):
+  hdmi_if #(
+      .reg_req_t(reg_req_t),
+      .reg_rsp_t(reg_rsp_t)
+  ) hdmi_i(
+    .clk_i(clk_i),
+    .rst_ni(rst_ni),
+    .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::HDMI_IDX]),
+    .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::HDMI_IDX]),
+
+    .pclk_i(hdmi_pclk_i),
+    .tmds_ch0_o(hdmi_tmds_ch0_o),
+    .tmds_ch1_o(hdmi_tmds_ch1_o),
+    .tmds_ch2_o(hdmi_tmds_ch2_o)
+  );
+% else:
+    // Hold the link in a control period so an unused HDMI output stays quiet.
+    assign hdmi_tmds_ch0_o = 10'b1101010100;
+    assign hdmi_tmds_ch1_o = 10'b1101010100;
+    assign hdmi_tmds_ch2_o = 10'b1101010100;
+% endif
 
 % if len(user_peripheral_domain.get_peripherals()) == 0:
   // If no peripherals are selected, tie off the slave response

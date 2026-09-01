@@ -10,7 +10,6 @@ import UPF::*;
   cpu = xheep.cpu()
   user_peripheral_domain = xheep.get_user_peripheral_domain()
   xif = xheep.xif()
-  th  = xheep.get_extension("testharness")
 %>
 
 module testharness #(
@@ -285,6 +284,10 @@ module testharness #(
       .rst_ni(rst_n),
       .hart_id_i('0),
       .xheep_instance_id_i('0),
+      .hdmi_pclk_i(clk),
+      .hdmi_tmds_ch0_o(),
+      .hdmi_tmds_ch1_o(),
+      .hdmi_tmds_ch2_o(),
       .jtag_tck_i(mux_jtag_tck),
       .jtag_tms_i(mux_jtag_tms),
       .jtag_trst_ni(mux_jtag_trstn),
@@ -740,6 +743,18 @@ module testharness #(
           .io2(spi_flash_sd_io[2]),
           .io3(spi_flash_sd_io[3])
       );
+
+      % if user_peripheral_domain.contains_peripheral('camera'):
+      // Camera example
+      camera_model camera_i(
+          .clk_i(gpio[2]),
+          .rst_ni(rst_ni),
+          .pclk_o(gpio[3]),
+          .vsync_o(gpio[4]),
+          .href_o(gpio[5]),
+          .data_o(gpio[13:6])
+      );
+      % endif
 
       // FPU Subsystem
       // -------------

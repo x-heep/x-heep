@@ -122,6 +122,7 @@ int main (int argc, char * argv[])
   // The return value should be the last character (in case it is 0)
   if(dut->exit_valid_o==1) { 
     std::cout<<"Program Finished with value "<<dut->exit_value_o<<std::endl;
+    dut->tb_dumpHEX("memory_dump.hex");
     exit_val = EXIT_SUCCESS;
   } else {
     std::cout<<"Simulation was terminated before program finished"<<std::endl;

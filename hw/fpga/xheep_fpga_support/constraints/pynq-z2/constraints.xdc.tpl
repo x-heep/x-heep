@@ -84,3 +84,25 @@ set_output_delay -add_delay -min -clock [get_clocks clk_ddr_out] [expr $MARGIN -
 set_output_delay -add_delay -max -clock_fall -clock [get_clocks clk_ddr_out] [expr $T_FWD_CLK / 4 - $MARGIN] -reference_pin [get_ports ddr_snd_clk_o] [get_ports {gpio_io[7] gpio_io[8] gpio_io[9] gpio_io[10]}]
 set_output_delay -add_delay -min -clock_fall -clock [get_clocks clk_ddr_out] [expr $MARGIN - $T_FWD_CLK / 4] -reference_pin [get_ports ddr_snd_clk_o] [get_ports {gpio_io[7] gpio_io[8] gpio_io[9] gpio_io[10]}]
 % endif
+% if user_peripheral_domain.contains_peripheral('hdmi'):
+### HDMI
+# The three MMCM outputs are all driven off the same VCO, so Vivado sees them as
+# related and will try to time paths between the 15 MHz system clock and the
+# 25 MHz pixel clock. Those paths are the clock domain crossing inside hdmi_if
+# and are handled by two-flop synchronisers, so tell the tool not to time them.
+# The pixel clock and its 5x partner stay in one group: OSERDESE2 needs CLK and
+# CLKDIV to be phase aligned, so they must remain related to each other.
+#
+# The clocks are reached through the block design wrapper pins rather than by
+# name, so this keeps working if the clocking wizard renames its outputs.
+set hdmi_sys_clk [get_clocks -of_objects [get_pins xilinx_clk_wizard_wrapper_i/clk_out1_0]]
+set hdmi_pix_clk [get_clocks -of_objects [get_pins xilinx_clk_wizard_wrapper_i/clk_out2_0]]
+set hdmi_ser_clk [get_clocks -of_objects [get_pins xilinx_clk_wizard_wrapper_i/clk_out3_0]]
+
+set_clock_groups -asynchronous -group $hdmi_sys_clk -group [concat $hdmi_pix_clk $hdmi_ser_clk]
+
+# No output delay constraints on the TMDS pins on purpose. The clock lane is
+# produced by the same kind of serialiser as the data lanes, off the same two
+# clocks, so the link is source synchronous by construction; what matters is that
+# all eight pins sit in the same bank, which the pin assignment already ensures.
+%endif

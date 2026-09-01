@@ -175,6 +175,16 @@
             length:  0x00010000
             is_included: "yes"
         }
+        camera: {
+            offset:  0x000D0000
+            length:  0x00010000
+            is_included: "yes"
+        }
+        hdmi: {
+            offset:  0x000E0000
+            length:  0x00010000
+            is_included: "yes"
+        }
 
     }
 

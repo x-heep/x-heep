@@ -39,6 +39,8 @@ filesets:
     - x-heep:ip:serial_link_xheep_wrapper
     - esl_epfl:ip:obi_spi_slave
     - x-heep:ip:w25q128jw_controller
+    - x-heep:ip:camera
+    - x-heep:ip:hdmi
     files:
     - hw/core-v-mini-mcu/core_v_mini_mcu.sv
     - hw/core-v-mini-mcu/cpu_subsystem.sv
@@ -93,6 +95,7 @@ filesets:
     depend:
     - x-heep:x-heep:x-heep-fpga-support
     files:
+    - hw/fpga/hdmi_tmds_out_xilinx.sv
     - hw/fpga/xilinx_core_v_mini_mcu_wrapper.sv
     file_type: systemVerilogSource
 
@@ -215,6 +218,15 @@ parameters:
     datatype: bool
     paramtype: vlogdefine
     default: false
+  HDMI_OUT:
+    datatype: bool
+    paramtype: vlogdefine
+    default: false
+    description: |
+      Build the HDMI output stage in the FPGA wrapper. Only the Pynq-Z2 has the
+      pins and the extra clocking wizard outputs for it. Keep this in step with
+      the hdmi entry in the peripheral configuration, which is what emits the pin
+      constraints.
   FPGA_NEXYS:
     datatype: bool
     paramtype: vlogdefine
@@ -460,6 +472,7 @@ targets:
     - SYNTHESIS=true
     - REMOVE_OBI_FIFO
     - FPGA_SYNTHESIS=true
+    - HDMI_OUT=true
     tools:
       vivado:
         part: xc7z020clg400-1

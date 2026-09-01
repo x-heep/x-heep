@@ -44,6 +44,8 @@ from peripherals.user_peripherals import (
     SerialLinkReg,
     SerialLinkReceiverFifo,
     SerialLinkWrapperReg,
+    CAMERA,
+    HDMI,
 )
 
 from linker_script.linker_script import LinkerScript
@@ -144,6 +146,8 @@ def config():
     user_peripheral_domain.add_peripheral(SerialLinkReg(0x000A0000))
     user_peripheral_domain.add_peripheral(SerialLinkReceiverFifo(0x000B0000))
     user_peripheral_domain.add_peripheral(SerialLinkWrapperReg(0x000C0000))
+    user_peripheral_domain.add_peripheral(CAMERA(0x000D0000))
+    user_peripheral_domain.add_peripheral(HDMI(0x000E0000))
 
     # Add the peripheral domains to the system
     system.add_peripheral_domain(base_peripheral_domain)

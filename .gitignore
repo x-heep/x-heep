@@ -92,6 +92,12 @@ sw/device/lib/drivers/pdm2pcm/pdm2pcm_regs.md
 sw/device/lib/drivers/pad_control/pad_control_regs.h
 sw/device/lib/drivers/pad_control/pad_control_regs.md
 
+sw/device/lib/drivers/camera/camera_regs.h
+sw/device/lib/drivers/camera/camera_structs.h
+
+sw/device/lib/drivers/hdmi/hdmi_regs.h
+sw/device/lib/drivers/hdmi/hdmi_structs.h
+
 # Openroad
 flow/OpenROAD-flow-scripts
 

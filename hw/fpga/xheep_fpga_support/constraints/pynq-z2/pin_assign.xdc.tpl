@@ -52,8 +52,8 @@ set_property -dict {PACKAGE_PIN W16 IOSTANDARD LVCMOS33} [get_ports jtag_tck_i] 
 set_property -dict {PACKAGE_PIN W19 IOSTANDARD LVCMOS33} [get_ports jtag_trst_ni] ; # Pmoda[7]
 
 # I2C
-set_property -dict {PACKAGE_PIN P15 IOSTANDARD LVCMOS33} [get_ports {i2c_scl_io}] ; # arduino_direct_iic_scl_io
-set_property -dict {PACKAGE_PIN P16 IOSTANDARD LVCMOS33} [get_ports {i2c_sda_io}] ; # arduino_direct_iic_sda_io
+set_property -dict {PACKAGE_PIN P15 IOSTANDARD LVCMOS33 PULLTYPE PULLUP} [get_ports {i2c_scl_io}] ; # arduino_direct_iic_scl_io
+set_property -dict {PACKAGE_PIN P16 IOSTANDARD LVCMOS33 PULLTYPE PULLUP} [get_ports {i2c_sda_io}] ; # arduino_direct_iic_sda_io
 
 
 # SPI SD
@@ -111,4 +111,28 @@ set_property -dict {PACKAGE_PIN F20 IOSTANDARD LVCMOS33} [get_ports {ddr_snd_clk
 % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
 set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets ddr_rcv_clk_i_IBUF]
 set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets ddr_snd_clk_o_OBUF]
+%endif
+% if user_peripheral_domain.contains_peripheral('hdmi'):
+# HDMI OUT connector (J10). Pin locations come from the TUL board file,
+# board_files/esl_epfl_pynq_z2_board_files/part0_pins.xml.
+#
+# The board file lists these as LVCMOS33, but they are driven as true TMDS_33
+# pairs out of OBUFDS, which is also what the official PYNQ base design does.
+# Single-ended is not an option here: a 10:1 OSERDESE2 cascade occupies the OLOGIC
+# of both pins of a pair, so only the master pin can emit and the complement has
+# to come from the output buffer.
+#
+# Bank 34 is an HR bank at VCCO 3.3V, which is what TMDS_33 requires. No SLEW or
+# DRIVE properties: those do not apply to a differential output standard.
+#
+# These constraints must stay in step with the HDMI_OUT define on the pynq-z2
+# target, since the wrapper only has these ports when that define is set.
+set_property -dict {PACKAGE_PIN L16 IOSTANDARD TMDS_33} [get_ports {hdmi_tx_clk_p_o}]
+set_property -dict {PACKAGE_PIN L17 IOSTANDARD TMDS_33} [get_ports {hdmi_tx_clk_n_o}]
+set_property -dict {PACKAGE_PIN K17 IOSTANDARD TMDS_33} [get_ports {hdmi_tx_data_p_o[0]}]
+set_property -dict {PACKAGE_PIN K18 IOSTANDARD TMDS_33} [get_ports {hdmi_tx_data_n_o[0]}]
+set_property -dict {PACKAGE_PIN K19 IOSTANDARD TMDS_33} [get_ports {hdmi_tx_data_p_o[1]}]
+set_property -dict {PACKAGE_PIN J19 IOSTANDARD TMDS_33} [get_ports {hdmi_tx_data_n_o[1]}]
+set_property -dict {PACKAGE_PIN J18 IOSTANDARD TMDS_33} [get_ports {hdmi_tx_data_p_o[2]}]
+set_property -dict {PACKAGE_PIN H18 IOSTANDARD TMDS_33} [get_ports {hdmi_tx_data_n_o[2]}]
 %endif

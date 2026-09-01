@@ -35,6 +35,18 @@ module xilinx_core_v_mini_mcu_wrapper
     output wire ddr_snd_clk_o,
 `endif
 
+`ifdef HDMI_OUT
+    // "HDMI OUT" connector. Each lane is a TMDS_33 differential pair driven by
+    // an OBUFDS inside hdmi_tmds_out_xilinx. Keep this define in step with the
+    // hdmi entry in the peripheral
+    // configuration: the pin constraints are emitted only when that entry is
+    // included.
+    output wire       hdmi_tx_clk_p_o,
+    output wire       hdmi_tx_clk_n_o,
+    output wire [2:0] hdmi_tx_data_p_o,
+    output wire [2:0] hdmi_tx_data_n_o,
+`endif
+
     inout logic rst_i,
 
     output logic rst_led_o,
@@ -124,6 +136,19 @@ module xilinx_core_v_mini_mcu_wrapper
   wire                               rst_n;
   logic [CLK_LED_COUNT_LENGTH - 1:0] clk_count;
 
+  // HDMI video path. The TMDS words always exist because the MCU always exposes
+  // them; only the serialisers and the pixel clocks are board specific.
+  wire  [                       9:0] hdmi_tmds_ch0;
+  wire  [                       9:0] hdmi_tmds_ch1;
+  wire  [                       9:0] hdmi_tmds_ch2;
+
+`ifdef HDMI_OUT
+  wire hdmi_pclk;
+  wire hdmi_pclk5x;
+`else
+  wire hdmi_pclk = 1'b0;
+`endif
+
 `ifdef PS_ENABLE
   wire exit_valid;
 
@@ -203,6 +228,33 @@ module xilinx_core_v_mini_mcu_wrapper
   xilinx_clk_wizard_wrapper xilinx_clk_wizard_wrapper_i (
       .clk_125MHz(clk_i),
       .clk_out1_0(clk_gen)
+`ifdef HDMI_OUT,
+      .clk_out2_0(hdmi_pclk),
+      .clk_out3_0(hdmi_pclk5x)
+`endif
+  );
+`endif
+
+`ifdef HDMI_OUT
+  // OSERDESE2 expects its reset to be released synchronously to CLKDIV.
+  reg [1:0] hdmi_rst_sync;
+
+  always @(posedge hdmi_pclk or negedge rst_n) begin
+    if (!rst_n) hdmi_rst_sync <= 2'b11;
+    else hdmi_rst_sync <= {hdmi_rst_sync[0], 1'b0};
+  end
+
+  hdmi_tmds_out_xilinx hdmi_tmds_out_i (
+      .pclk_i       (hdmi_pclk),
+      .pclk5x_i     (hdmi_pclk5x),
+      .rst_i        (hdmi_rst_sync[1]),
+      .tmds_ch0_i   (hdmi_tmds_ch0),
+      .tmds_ch1_i   (hdmi_tmds_ch1),
+      .tmds_ch2_i   (hdmi_tmds_ch2),
+      .hdmi_clk_p_o (hdmi_tx_clk_p_o),
+      .hdmi_clk_n_o (hdmi_tx_clk_n_o),
+      .hdmi_data_p_o(hdmi_tx_data_p_o),
+      .hdmi_data_n_o(hdmi_tx_data_n_o)
   );
 `endif
 
@@ -386,7 +438,11 @@ module xilinx_core_v_mini_mcu_wrapper
       .ext_dma_stop_i('0),
       .intr_ext_peripheral_i('0),
       .hw_fifo_done_i('0),
-      .dma_done_o()
+      .dma_done_o(),
+      .hdmi_pclk_i(hdmi_pclk),
+      .hdmi_tmds_ch0_o(hdmi_tmds_ch0),
+      .hdmi_tmds_ch1_o(hdmi_tmds_ch1),
+      .hdmi_tmds_ch2_o(hdmi_tmds_ch2)
 
   );
 

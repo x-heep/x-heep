@@ -38,6 +38,7 @@ filesets:
     files:
     - tb_util.svh: {is_include_file: true}
     - yosys_spiflash.sv
+    - camera_model.sv
     - testharness_pkg.sv
     - testharness.sv
     - ext_xbar.sv

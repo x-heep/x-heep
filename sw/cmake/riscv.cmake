@@ -14,9 +14,9 @@
 
 # Author: Jose Miranda (jose.mirandacalero@epfl.ch)
 
-# set(RISCV_TOOLCHAIN_BASE  /home/$ENV{USER}/tools/riscv)
-set(RISCV_GITHUB_GCC_COMPILER  $ENV{RISCV_TOOLCHAIN_BASE}/bin/$ENV{COMPILER_PREFIX}elf-gcc)
-set(RISCV_GITHUB_CLANG_COMPILER  $ENV{RISCV_TOOLCHAIN_BASE}/bin/clang)
+# set(RISCV_XHEEP  /home/$ENV{USER}/tools/riscv)
+set(RISCV_GITHUB_GCC_COMPILER  $ENV{RISCV_XHEEP}/bin/$ENV{COMPILER_PREFIX}elf-gcc)
+set(RISCV_GITHUB_CLANG_COMPILER  $ENV{RISCV_XHEEP}/bin/clang)
 #message("RISC-V GCC cross-compiler is in : ${RISCV_GCC_COMPILER}") 
 
 if (EXISTS ${RISCV_GITHUB_GCC_COMPILER})
@@ -103,7 +103,7 @@ endif()
 set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g" )
 set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=${CMAKE_SYSTEM_PROCESSOR} ${COMPILER_FLAGS}" )
 if ($ENV{COMPILER} MATCHES "clang")
-     set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-command-line-argument --target=riscv32 --gcc-toolchain=$ENV{RISCV_TOOLCHAIN_BASE} --sysroot=$ENV{RISCV_TOOLCHAIN_BASE}/$ENV{COMPILER_PREFIX}elf" )
+     set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-command-line-argument --target=riscv32 --gcc-toolchain=$ENV{RISCV_XHEEP} --sysroot=$ENV{RISCV_XHEEP}/$ENV{COMPILER_PREFIX}elf" )
 endif()
 
 set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS}" CACHE STRING "" )

@@ -82,7 +82,7 @@ class Application:
             )
         try:
             compile_command = ["make", "app", f"PROJECT={self.name}"]
-            os.environ["RISCV_TOOLCHAIN_BASE"] = compiler_path
+            os.environ["RISCV_XHEEP"] = compiler_path
             if compiler_prefix:
                 compile_command.append(f"COMPILER_PREFIX={compiler_prefix}")
             if compiler:
@@ -94,11 +94,7 @@ class Application:
 
             if dry_run:
                 if verbose:
-                    env_str = (
-                        f"RISCV_TOOLCHAIN_BASE={compiler_path} "
-                        if compiler_path
-                        else ""
-                    )
+                    env_str = f"RISCV_XHEEP={compiler_path} " if compiler_path else ""
                     print(
                         BColors.OKCYAN
                         + f"[DRY RUN] {env_str}{' '.join(compile_command)}"

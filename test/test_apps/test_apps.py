@@ -26,11 +26,8 @@ from utils import (
 
 # Default available compilers
 COMPILERS = ["gcc", "clang"]
-COMPILER_PATH = [os.environ.get("RISCV_TOOLCHAIN_BASE") for _ in COMPILERS]
-COMPILER_PREFIXES = [
-    os.environ.get("COMPILER_PREFIX_GCC", os.environ.get("COMPILER_PREFIX")),
-    os.environ.get("COMPILER_PREFIX_CLANG", os.environ.get("COMPILER_PREFIX")),
-]
+COMPILER_PATH = [os.environ.get("RISCV_XHEEP") for _ in COMPILERS]
+COMPILER_PREFIXES = ["riscv32-unknown-" for _ in COMPILERS]
 
 # Available simulators
 SIMULATORS = ["verilator"]

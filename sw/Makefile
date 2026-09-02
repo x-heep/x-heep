@@ -25,14 +25,14 @@ SOURCE 	?= $(".")
 VERBOSE ?= false
 
 # riscv toolchain install path
-RISCV_TOOLCHAIN_BASE			 ?= ~/.riscv
-RISCV_EXE_PREFIX	= $(RISCV_TOOLCHAIN_BASE)/bin/${COMPILER_PREFIX}elf-
+RISCV_XHEEP			 ?= ~/.riscv
+RISCV_EXE_PREFIX	= $(RISCV_XHEEP)/bin/${COMPILER_PREFIX}elf-
 RISCV_GDB_PATH		= $(RISCV_EXE_PREFIX)gdb
 
-ifneq ($(filter environment command line override, $(origin RISCV_TOOLCHAIN_BASE)),)
-  $(shell printf '\033[1;32mINFO: Using RISCV_TOOLCHAIN_BASE from environment or command line: %s\033[0m\n' '$(RISCV_TOOLCHAIN_BASE)' >&2)
+ifneq ($(filter environment command line override, $(origin RISCV_XHEEP)),)
+  $(shell printf '\033[1;32mINFO: Using RISCV_XHEEP from environment or command line: %s\033[0m\n' '$(RISCV_XHEEP)' >&2)
 else
-  $(shell printf '\033[1;33mWARNING: RISCV_TOOLCHAIN_BASE not set in environment or command line. Using default: %s\033[0m\n' '$(RISCV_TOOLCHAIN_BASE)' >&2)
+  $(shell printf '\033[1;33mWARNING: RISCV_XHEEP not set in environment or command line. Using default: %s\033[0m\n' '$(RISCV_XHEEP)' >&2)
 endif
 
 # Get the absolute path

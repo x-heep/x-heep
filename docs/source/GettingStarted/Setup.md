@@ -19,7 +19,7 @@ The Docker image provides built-in shortcuts (as Bash functions) to select among
 | Shortcut | Description | Configuration |
 | -------- | ----------- | ------------- |
 | `init_corev` | Use the Embecosm CORE-V toolchain with PULP extension | `COMPILER=gcc`<br>`COMPILER_PREFIX=riscv32-corev-`<br>`ARCH=rv32imc_zicsr_zifencei_xcvhwlp_xcvmem_xcvmac_xcvbi_xcvalu_xcvsimd_xcvbitmanip` |
-| `init_gcc` | Use the GCC toolchain | `COMPILER=gcc`<br>`COMPILER_PREFIX=riscv-none-`<br>`ARCH=rv32imc_zicsr` |
+| `init_gcc` | Use the GCC toolchain | `COMPILER=gcc`<br>`COMPILER_PREFIX=riscv32-unknown-`<br>`ARCH=rv32imc_zicsr` |
 | `init_clang` | Use the LLVM/Clang toolchain | `COMPILER=clang`<br>`COMPILER_PREFIX=riscv32-unknown-`<br>`ARCH=rv32imc_zicsr` |
 
 For example, if you want to compile and link the `hello_world` application using LLVM/Clang:
@@ -96,7 +96,7 @@ source .venv/bin/activate
 ### 3. Install the RISC-V Compiler:
 
 ```{warning}
-The RISC-V toolchain environment variable name has changed. Use `RISCV_TOOLCHAIN_BASE` instead of `RISCV` to avoid conflicts with other projects. If you previously exported `RISCV` for X-HEEP, update your shell initialization files (e.g., `~/.bashrc`, `~/.zshrc`) or environment modules to export `RISCV_TOOLCHAIN_BASE` and remove or adjust any old `RISCV` definitions accordingly.
+The RISC-V toolchain environment variable name has changed. Use `RISCV_XHEEP` instead of `RISCV` to avoid conflicts with other projects. If you previously exported `RISCV` for X-HEEP, update your shell initialization files (e.g., `~/.bashrc`, `~/.zshrc`) or environment modules to export `RISCV_XHEEP` and remove or adjust any old `RISCV` definitions accordingly.
 ```
 
 X-HEEP supports the [CORE-V toolchain from Embecosm](https://embecosm.com/downloads/tool-chain-downloads/#core-v-top-of-tree-compilers), but you can also use the standard RISC-V GCC or CLANG toolchains.
@@ -126,17 +126,17 @@ make newlib
 where the `abi` flag has changed to `ilp32e` and arc to `rv32emc`.
 This has been tested with a different compiler version (`4e7952b5f6c106c01b2e1c056476687e1390105d`, which is why make newlib instead of just make.)
 
-You need to set the `RISCV_TOOLCHAIN_BASE` environment variable like this:
+You need to set the `RISCV_XHEEP` environment variable like this:
 
 ```
-export RISCV_TOOLCHAIN_BASE=/home/$USER/tools/riscv
+export RISCV_XHEEP=/home/$USER/tools/riscv
 ```
 Also consider adding it to your `~/.bashrc` or equivalent so that it's set automatically in the future. 
 
-Optionally you can also compile and link with Clang/LLVM instead of GCC. For that you must install the Clang compiler (and the LLVM LLD linker) into the same `RISCV_TOOLCHAIN_BASE` path. The binaries of GCC and Clang do not collide so you can have both residing in the same `RISCV_TOOLCHAIN_BASE` directory. For this you can set the `-DCMAKE_INSTALL_PREFIX` cmake variable to `$RISCV_TOOLCHAIN_BASE` when building LLVM. This can be accomplished by doing the following:
+Optionally you can also compile and link with Clang/LLVM instead of GCC. For that you must install the Clang compiler (and the LLVM LLD linker) into the same `RISCV_XHEEP` path. The binaries of GCC and Clang do not collide so you can have both residing in the same `RISCV_XHEEP` directory. For this you can set the `-DCMAKE_INSTALL_PREFIX` cmake variable to `$RISCV_XHEEP` when building LLVM. This can be accomplished by doing the following:
 
 ```bash
-INSTALL_DIR=${RISCV_TOOLCHAIN_BASE}
+INSTALL_DIR=${RISCV_XHEEP}
 git clone https://github.com/llvm/llvm-project.git
 cd llvm-project
 git checkout llvmorg-19.1.4

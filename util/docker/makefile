@@ -3,23 +3,25 @@ TAG 				?= $(shell git describe --tags --abbrev=0)
 GITHUB_REPOSITORY 	:= ghcr.io/x-heep/x-heep
 IMAGE_NAME 			:= x-heep-toolchain
 IMAGE_ID 			:= $(GITHUB_REPOSITORY)/$(IMAGE_NAME)
-
+PLATFORM 			?= linux/amd64
+RUNFLAGS			?= --rm
+DOCKERFILE			?= ./dockerfile
 # User targets
 
 # Try to download the image corresponding to the current revision, else default to 'latest'
 .PHONY: docker-pull
 docker-pull:
-	docker pull $(IMAGE_ID):$(TAG) || docker pull $(IMAGE_ID):latest
+	docker pull --platform $(PLATFORM) $(IMAGE_ID):$(TAG) || docker pull $(IMAGE_ID):latest
 
 # Spawn a Docker container and mount the X-HEEP directory in `/workspace/x-heep`
 .PHONY: docker-run
 docker-run:
-	docker run -it --rm -v $(ROOT_DIR):/workspace/x-heep $(IMAGE_ID):$(TAG)
+	docker run --platform $(PLATFORM) $(RUNFLAGS) -it -v $(ROOT_DIR):/workspace/x-heep $(IMAGE_ID):$(TAG)
 
 # Build the image locally
 .PHONY: docker-build
 docker-build: toolchain.tar.gz
-	docker build -t $(IMAGE_ID):$(TAG) -f ./dockerfile $(ROOT_DIR) --build-arg toolchain_path=util/docker/$<
+	docker build --platform $(PLATFORM) -t $(IMAGE_ID):$(TAG) -f $(DOCKERFILE) $(ROOT_DIR) --build-arg toolchain_path=util/docker/$<
 	$(RM) $<
 
 toolchain.tar.gz:

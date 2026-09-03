@@ -1,5 +1,7 @@
 # Authors: Luigi Giuffrida, Michele Caon
 
+FROM condaforge/miniforge3:latest AS conda-source
+
 FROM debian:12-slim
 
 # Set the build-time shell to bash
@@ -23,57 +25,60 @@ ENV TOOL_PATH=/tools/verible/verible-${VERIBLE_VERSION}/bin:/tools/verilator/${V
 
 # Install build dependencies, build tools, then remove build-only dependencies
 # to keep the final image smaller
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    # Runtime dependencies
-    lcov libelf1 libelf-dev libftdi1-2 libssl-dev libglib2.0-dev libudev-dev libusb-1.0-0 \
-    lsb-release texinfo bc zlib1g-dev picocom python3-venv python3-dev git \
-    wget python3 build-essential make coreutils libfindbin-libs-perl g++ curl \
-    # Build-time dependencies for tools
-    autoconf autotools-dev libmpc-dev libmpfr-dev libgmp-dev gperf libtool patchutils \
-    cmake flex bison libexpat-dev gawk ninja-build help2man libfl-dev
+RUN --mount=type=cache,target=/var/cache/apt \
+    --mount=type=cache,target=/var/lib/apt/lists \
+    apt-get update && apt-get install -y --no-install-recommends \
+        # Runtime dependencies
+        lcov libelf1 libelf-dev libftdi1-2 libssl-dev libglib2.0-dev libudev-dev libusb-1.0-0 \
+        lsb-release texinfo bc zlib1g-dev picocom python3-venv python3-dev git \
+        wget python3 make coreutils libfindbin-libs-perl g++ curl
 
 # Install X-HEEP GCC/LLVM RISC-V toolchain
-COPY ${TOOLCHAIN_PATH} /tmp/
-RUN mkdir -p ${RISCV_XHEEP} && \
-    tar -xz -C ${RISCV_XHEEP} --strip-components=1 -f /tmp/toolchain.tar.gz && \
-    rm /tmp/toolchain.tar.gz
+RUN --mount=type=bind,source=${TOOLCHAIN_PATH},target=${TOOLCHAIN_PATH} \
+    mkdir -p ${RISCV_XHEEP} && \
+    tar -xz -o -C ${RISCV_XHEEP} --strip-components=1 -f ${TOOLCHAIN_PATH}
 
 # Install CORE-V GCC RISC-V toolchain
 RUN mkdir -p ${RISCV_XHEEP} && \
-    wget -qO- https://github.com/x-heep/corev-gcc/releases/download/cv32e40pv2-release/corev-openhw-gcc-ubuntu2204-20240530.tar.gz | tar -xz -C ${RISCV_XHEEP} --strip-components=1
+    wget -qO- https://github.com/x-heep/corev-gcc/releases/download/cv32e40pv2-release/corev-openhw-gcc-ubuntu2204-20240530.tar.gz | tar -xz -o -C ${RISCV_XHEEP} --strip-components=1
 
 # Install Verilator
-RUN git clone https://github.com/verilator/verilator.git /tmp/verilator && \
+RUN --mount=type=tmpfs,destination=/tmp/verilator \
+    --mount=type=cache,target=/var/cache/apt \
+    --mount=type=cache,target=/var/lib/apt/lists \
+    apt-get update && apt-get install -y --no-install-recommends \
+        # Build-time dependencies for tools
+        autoconf autotools-dev build-essential libmpc-dev libmpfr-dev libgmp-dev gperf libtool patchutils \
+        cmake flex bison libexpat-dev gawk ninja-build help2man libfl-dev && \
+    git clone https://github.com/verilator/verilator.git /tmp/verilator && \
     cd /tmp/verilator && git checkout ${VERILATOR_VERSION} && \
     autoconf && ./configure --prefix=/tools/verilator/${VERILATOR_VERSION} && \
     make -j$(nproc) && make install && \
-    rm -rf /tmp/verilator
+    apt-get purge --auto-remove -y \
+        # Clean up build-time dependencies
+        autoconf autotools-dev build-essential libfl-dev
 
 # Install Verible
-RUN wget -q https://github.com/chipsalliance/verible/releases/download/${VERIBLE_VERSION}/verible-${VERIBLE_VERSION}-linux-static-x86_64.tar.gz -O /tmp/verible.tar.gz && \
-    mkdir -p /tools/verible && tar -xf /tmp/verible.tar.gz -C /tools/verible/ && \
-    rm /tmp/verible.tar.gz
+RUN mkdir -p /tools/verible && \
+    wget -qO- https://github.com/chipsalliance/verible/releases/download/${VERIBLE_VERSION}/verible-${VERIBLE_VERSION}-linux-static-x86_64.tar.gz | \
+    tar -xz -o -C /tools/verible
 
-# Clean up build-time dependencies and apt cache
-RUN apt-get purge -y --auto-remove autoconf autotools-dev build-essential libfl-dev && \
-    rm -rf /var/lib/apt/lists/*
-
-# Install conda
-RUN wget -q https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O /tmp/miniconda.sh && \
-    bash /tmp/miniconda.sh -b -p /opt/conda && \
-    rm /tmp/miniconda.sh
-
-# Install conda environment
-COPY util/conda_environment.yml util/python-requirements.txt .
-COPY docs/python-requirements.txt docs/
-RUN /opt/conda/bin/conda tos accept && \
+# Install conda & setup environment
+COPY --from=conda-source /opt/conda /opt/conda
+RUN --mount=type=bind,source=util/conda_environment.yml,target=conda_environment.yml \
+    --mount=type=bind,source=util/python-requirements.txt,target=python-requirements.txt \
+    --mount=type=bind,source=docs/python-requirements.txt,target=docs/python-requirements.txt \
     /opt/conda/bin/conda config --set auto_activate_base false && \
+    /opt/conda/bin/conda config --add channels conda-forge && \
+    /opt/conda/bin/conda config --set channel_priority strict && \
     /opt/conda/bin/conda env create -f conda_environment.yml && \
-    rm conda_environment.yml python-requirements.txt
+    /opt/conda/bin/conda clean -afy && \
+    /opt/conda/bin/conda init --system
 
 # Copy profile scripts (conda initialization and welcome message)
 COPY util/docker/env.sh util/docker/motd.sh /etc/profile.d/
 RUN chmod +x /etc/profile.d/env.sh /etc/profile.d/motd.sh
+RUN echo "source /etc/profile.d/env.sh" >> /etc/bash.bashrc
 
 # Mark X-HEEP repo as a safe so new version of git don't complain when running util/git-diff.py
 RUN git config --global --add safe.directory '*'

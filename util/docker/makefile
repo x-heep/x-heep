@@ -3,7 +3,7 @@ TAG 				?= $(shell git describe --tags --abbrev=0)
 GITHUB_REPOSITORY 	:= ghcr.io/x-heep/x-heep
 IMAGE_NAME 			:= x-heep-toolchain
 IMAGE_ID 			:= $(GITHUB_REPOSITORY)/$(IMAGE_NAME)
-PLATFORM 			?= $(shell docker info --format '{{.OSType}}/{{.Architecture}}')
+PLATFORM 			?= linux/amd64
 RUNFLAGS			?= --rm
 DOCKERFILE			?= ./dockerfile
 # User targets

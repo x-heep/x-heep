@@ -380,7 +380,7 @@ module xilinx_core_v_mini_mcu_wrapper
       .pdm2pcm_pdm_io,
       .i2s_sck_io(i2s_sck_io),
       .i2s_ws_io(i2s_ws_io),
-      .i2s_sd_io(i2s_sd_io),
+      .i2s_sd_rx_io(i2s_sd_io),
       .ext_dma_slot_tx_i('0),
       .ext_dma_slot_rx_i('0),
       .ext_dma_stop_i('0),

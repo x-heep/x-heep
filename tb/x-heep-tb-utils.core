@@ -16,6 +16,7 @@ filesets:
     - example:ip:ams
     - example:ip:iffifo
     - example:ip:i2s_microphone
+    - example:ip:i2s_tx_sink
     - example:ip:simple_accelerator
     - example:ip:dlc
     - example:ip:im2col_spc

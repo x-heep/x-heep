@@ -8,7 +8,8 @@
 
 module i2s_core #(
     parameter MaxWordWidth = 32,
-    parameter ClkDividerWidth = 8
+    parameter ClkDividerWidth = 8,
+    parameter bit I2sDisableTx = 1'b1
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -16,10 +17,12 @@ module i2s_core #(
     input logic en_ws_i,
     input logic en_rx_left_i,
     input logic en_rx_right_i,
+    input logic en_tx_i,
 
     // IO interface
     output logic sck_o,
     output logic ws_o,
+    output logic sd_o,
     input  logic sd_i,
 
     // config
@@ -32,14 +35,21 @@ module i2s_core #(
     output logic                    data_rx_valid_o,
     input  logic                    data_rx_ready_i,
 
+    input  logic [MaxWordWidth-1:0] data_tx_i,
+    input  logic                    data_tx_valid_i,
+    output logic                    data_tx_ready_o,
+
     input logic clear_rx_overflow_i,
+    input logic clear_tx_underflow_i,
 
     output logic running_o,
-    output logic data_rx_overflow_o
+    output logic data_rx_overflow_o,
+    output logic data_tx_underflow_o
 );
 
   logic                    ws;
   logic                    sck;
+  logic                    sd;
 
   logic [MaxWordWidth-1:0] data_rx_dc;
   logic                    data_rx_dc_valid;
@@ -49,6 +59,7 @@ module i2s_core #(
 
   assign ws_o  = ws;
   assign sck_o = sck;
+  assign sd_o  = sd;
 
   clk_int_div #(
       .DIV_VALUE_WIDTH(ClkDividerWidth),
@@ -97,7 +108,7 @@ module i2s_core #(
 
   // cdc
   cdc_fifo_gray #(
-      .T(logic [31:0]),
+      .T(logic [MaxWordWidth-1:0]),
       .LOG_DEPTH(2)
   ) rx_cdc_i (
       .src_clk_i  (sck),
@@ -123,6 +134,65 @@ module i2s_core #(
       .serial_i(data_rx_overflow_async),
       .serial_o(data_rx_overflow_o)
   );
+
+  generate
+    if (!I2sDisableTx) begin : gen_i2s_tx
+      logic [MaxWordWidth-1:0] data_tx_dc;
+      logic                    data_tx_dc_valid;
+      logic                    data_tx_dc_ready;
+      logic                    data_tx_underflow_async;
+
+      i2s_tx_channel #(
+          .MaxWordWidth(MaxWordWidth)
+      ) i2s_tx_channel_i (
+          .sck_i (sck),
+          .rst_ni(rst_ni),
+          .en_i  (en_tx_i & en_ws_i),
+          .ws_i  (ws),
+
+          .word_width_i(cfg_word_width_i),
+
+          .data_i(data_tx_dc),
+          .data_valid_i(data_tx_dc_valid),
+          .data_ready_o(data_tx_dc_ready),
+
+          .sd_o(sd),
+          .underflow_o(data_tx_underflow_async),
+          .clear_underflow_i(clear_tx_underflow_i)
+      );
+
+      cdc_fifo_gray #(
+          .T(logic [MaxWordWidth-1:0]),
+          .LOG_DEPTH(2)
+      ) tx_cdc_i (
+          .src_clk_i  (clk_i),
+          .src_rst_ni (rst_ni),
+          .src_ready_o(data_tx_ready_o),
+          .src_data_i (data_tx_i),
+          .src_valid_i(data_tx_valid_i),
+
+          .dst_rst_ni (rst_ni),
+          .dst_clk_i  (sck),
+          .dst_data_o (data_tx_dc),
+          .dst_valid_o(data_tx_dc_valid),
+          .dst_ready_i(data_tx_dc_ready)
+      );
+
+      sync #(
+          .STAGES(2),
+          .ResetValue(1'b0)
+      ) data_tx_underflow_sync_i (
+          .clk_i,
+          .rst_ni,
+          .serial_i(data_tx_underflow_async),
+          .serial_o(data_tx_underflow_o)
+      );
+    end else begin : gen_no_i2s_tx
+      assign sd                  = 1'b0;
+      assign data_tx_ready_o     = 1'b0;
+      assign data_tx_underflow_o = 1'b0;
+    end
+  endgenerate
 
 
   logic en_q;

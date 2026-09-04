@@ -1,0 +1,45 @@
+// Copyright EPFL contributors.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+
+{ name: "i2s_tx_sink"
+  clock_primary: "clk_i"
+  bus_interfaces: [
+    { protocol: "reg_iface", direction: "device" }
+  ]
+  regwidth: 32
+  registers: [
+
+    { name:     "CONTROL"
+      desc:     "Sink control. Bit 0 enables TX capture."
+      swaccess: "rw"
+      hwaccess: "hro"
+      resval:   0
+      fields: [
+        { bits: "31:0" }
+      ]
+    }
+
+    { name:     "RXDATA"
+      desc:     "Decoded I2S TX sample FIFO output"
+      swaccess: "ro"
+      hwaccess: "hrw"
+      hwext:    "true"
+      hwre:     "true"
+      fields: [
+        { bits: "31:0" }
+      ]
+    }
+
+    { name:     "STATUS"
+      desc:     "I2S TX sink status"
+      swaccess: "ro"
+      hwaccess: "hwo"
+      fields: [
+        { bits: "0", name: "EMPTY", desc: "Asserted when no decoded sample is available." }
+        { bits: "1", name: "AVAILABLE", desc: "Asserted when a decoded sample can be read." }
+        { bits: "2", name: "OVERFLOW", desc: "Asserted when the decoded-sample FIFO overflowed." }
+      ]
+    }
+  ]
+}

@@ -11,7 +11,7 @@ set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets jtag_tck_i_IBUF]
 
 set_property PACKAGE_PIN AF5 [get_ports {gpio_io[11]}]
 set_property PACKAGE_PIN AE7 [get_ports {gpio_io[12]}]
-set_property PACKAGE_PIN AH2 [get_ports {gpio_io[13]}]
+set_property PACKAGE_PIN AH2 [get_ports {gpio_io[13]}] ; # muxed with i2s_sd_tx
 # set_property PACKAGE_PIN AE5 [get_ports {PL_USER_LED[3]}]
 # set_property PACKAGE_PIN AH1 [get_ports {PL_USER_LED[4]}]
 # set_property PACKAGE_PIN AE4 [get_ports {PL_USER_LED[5]}]

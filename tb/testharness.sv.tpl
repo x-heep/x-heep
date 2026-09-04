@@ -332,7 +332,7 @@ module testharness #(
       .pdm2pcm_clk_io(gpio[19]),
       .i2s_sck_io(gpio[20]),
       .i2s_ws_io(gpio[21]),
-      .i2s_sd_io(gpio[22]),
+      .i2s_sd_rx_io(gpio[22]),
       .spi2_cs_0_io(gpio[23]),
       .spi2_cs_1_io(gpio[24]),
       .spi2_sck_io(gpio[25]),
@@ -675,6 +675,19 @@ module testharness #(
           .iffifo_out_valid_o(iffifo_out_valid),
           // Interrupt lines
           .iffifo_int_o(iffifo_int_o)
+      );
+
+      i2s_tx_sink #(
+          .reg_req_t(reg_req_t),
+          .reg_rsp_t(reg_rsp_t)
+      ) i2s_tx_sink_i (
+          .clk_i,
+          .rst_ni,
+          .reg_req_i(ext_periph_slv_req[testharness_pkg::I2S_TX_SINK_IDX]),
+          .reg_rsp_o(ext_periph_slv_rsp[testharness_pkg::I2S_TX_SINK_IDX]),
+          .i2s_sck_i(gpio[20]),
+          .i2s_ws_i(gpio[21]),
+          .i2s_sd_i(gpio[13])
       );
 
       addr_decode #(

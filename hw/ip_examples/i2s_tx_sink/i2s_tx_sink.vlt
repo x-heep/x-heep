@@ -1,0 +1,8 @@
+// Copyright 2026 EPFL
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+`verilator_config
+
+lint_off -rule DECLFILENAME -file "*/i2s_tx_sink/rtl/i2s_tx_sink_reg_top.sv" -match "Filename 'i2s_tx_sink_reg_top' does not match MODULE name: 'i2s_tx_sink_reg_top_intf'*"
+lint_off -rule WIDTH -file "*/i2s_tx_sink/rtl/i2s_tx_sink_reg_top.sv" -match "Operator ASSIGNW expects*"

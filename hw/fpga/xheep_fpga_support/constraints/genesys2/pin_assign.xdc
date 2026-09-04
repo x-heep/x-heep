@@ -81,7 +81,7 @@ set_property -dict { PACKAGE_PIN H24   IOSTANDARD LVCMOS12 } [get_ports { gpio_i
 set_property -dict { PACKAGE_PIN K19   IOSTANDARD LVCMOS12 } [get_ports { gpio_io[10] }]; # Sch=sw[3]
 set_property -dict { PACKAGE_PIN N19   IOSTANDARD LVCMOS12 } [get_ports { gpio_io[11] }]; # Sch=sw[4]
 set_property -dict { PACKAGE_PIN P19   IOSTANDARD LVCMOS12 } [get_ports { gpio_io[12] }]; # Sch=sw[5]
-set_property -dict { PACKAGE_PIN P26   IOSTANDARD LVCMOS33 } [get_ports { gpio_io[13] }]; # Sch=sw[6]
+set_property -dict { PACKAGE_PIN P26   IOSTANDARD LVCMOS33 } [get_ports { gpio_io[13] }]; # Sch=sw[6], muxed with i2s_sd_tx
 
 ## FMA dummy
 set_property -dict { PACKAGE_PIN P27   IOSTANDARD LVCMOS33 } [get_ports { spi_slave_cs_io }]; # Sch=sw[7]

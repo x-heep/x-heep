@@ -67,6 +67,7 @@
 #define DMA_SPI_FLASH_RX_SLOT     0x04
 #define DMA_SPI_FLASH_TX_SLOT     0x08
 #define DMA_I2S_RX_SLOT           0x10
+#define DMA_I2S_TX_SLOT           0x20
 
 #define DMA_INT_TR_START     0x0
 
@@ -116,7 +117,7 @@ extern "C" {
 /****************************************************************************/
 
 /**
- * SLOT_1~4 are the available slots for adding triggers.
+ * SLOT_1~8 are the available slots for adding triggers.
  * These are defined in hardware, so it should be consistent with the
  * registers' assigned values.
  * It was considered during design time that slots could be masked, in case a
@@ -135,9 +136,11 @@ typedef enum
     DMA_TRIG_SLOT_SPI_TX        = 2, /*!< Slot 2 (MEM > SPI). */
     DMA_TRIG_SLOT_SPI_FLASH_RX  = 4, /*!< Slot 3 (MEM < SPI FLASH). */
     DMA_TRIG_SLOT_SPI_FLASH_TX  = 8, /*!< Slot 4 (MEM > SPI FLASH). */
-    DMA_TRIG_SLOT_I2S           = 16,/*!< Slot 5 (I2S). */
-    DMA_TRIG_SLOT_EXT_TX        = 32,/*!< Slot 6 (External peripherals TX). */
-    DMA_TRIG_SLOT_EXT_RX        = 64,/*!< Slot 7 (External peripherals RX). */
+    DMA_TRIG_SLOT_I2S_RX        = 16, /*!< Slot 5 (I2S RX). */
+    DMA_TRIG_SLOT_I2S           = DMA_TRIG_SLOT_I2S_RX, /*!< Backward-compatible I2S RX alias. */
+    DMA_TRIG_SLOT_I2S_TX        = 32, /*!< Slot 6 (I2S TX). */
+    DMA_TRIG_SLOT_EXT_TX        = 64, /*!< Slot 7 (External peripherals TX). */
+    DMA_TRIG_SLOT_EXT_RX        = 128,/*!< Slot 8 (External peripherals RX). */
     DMA_TRIG__size,      /*!< Not used, only for sanity checks. */
     DMA_TRIG__undef,     /*!< DMA will not be used. */
 } dma_trigger_slot_mask_t;

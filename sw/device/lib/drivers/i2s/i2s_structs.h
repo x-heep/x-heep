@@ -5,7 +5,7 @@
 **                                                                         **
 ** project  : x-heep                                                       **
 ** filename : i2s_structs.h                                 **
-** date     : 05/11/2025                                                      **
+** date     : 21/08/2026                                                      **
 **                                                                         **
 *****************************************************************************
 **                                                                         **
@@ -16,7 +16,7 @@
 
 /**
 * @file   i2s_structs.h
-* @date   05/11/2025
+* @date   21/08/2026
 * @brief  Contains structs for every register
 *
 * This file contains the structs of the registes of the peripheral.
@@ -66,6 +66,8 @@ typedef struct {
   uint32_t WATERMARK;                             /*!< Watermark to reach for an interrupt*/
 
   uint32_t WATERLEVEL;                            /*!< Watermark counter level*/
+
+  uint32_t TXDATA;                                /*!< I2s Transmit data*/
 
 } i2s;
 

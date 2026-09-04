@@ -6,3 +6,7 @@
 
 lint_off -rule DECLFILENAME -file "*/i2s_reg_top.sv"
 lint_off -rule WIDTH -file "*/i2s_reg_top.sv" -match "Operator ASSIGNW expects *"
+lint_off -rule UNUSED -file "*/i2s_core.sv" -match "*'en_tx_i'*"
+lint_off -rule UNUSED -file "*/i2s_core.sv" -match "*'data_tx_i'*"
+lint_off -rule UNUSED -file "*/i2s_core.sv" -match "*'data_tx_valid_i'*"
+lint_off -rule UNUSED -file "*/i2s_core.sv" -match "*'clear_tx_underflow_i'*"

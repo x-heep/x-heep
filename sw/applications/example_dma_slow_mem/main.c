@@ -6,7 +6,7 @@
  *  Author: Tommaso Terzano <tommaso.terzano@epfl.ch>
  *                         <tommaso.terzano@gmail.com>
  *  
- *  Info: Example application of a DMA interaction with a slow memory. The goal is to test the DAM's robustness with an OBI-compliant,
+ *  Info: Example application of a DMA interaction with a slow memory. The goal is to test the DMA's robustness with an OBI-compliant,
  *        realistic unit.
  */
 

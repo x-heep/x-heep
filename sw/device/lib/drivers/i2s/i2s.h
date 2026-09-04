@@ -35,6 +35,11 @@
  */
 #define I2S_RX_DATA_ADDRESS (uint32_t)(I2S_RXDATA_REG_OFFSET+I2S_START_ADDRESS)
 
+/**
+ * Address of the I2S TX data register.
+ */
+#define I2S_TX_DATA_ADDRESS (uint32_t)(I2S_TXDATA_REG_OFFSET+I2S_START_ADDRESS)
+
 
 /****************************************************************************/
 /**                                                                        **/
@@ -78,6 +83,10 @@ typedef enum i2s_result {
    * Indicates overflow.
    */
   kI2sOverflow = 2,
+  /**
+   * Indicates underflow.
+   */
+  kI2sUnderflow = 3,
   /**
    * Indicates some unspecified failure.
    */
@@ -206,6 +215,60 @@ uint32_t i2s_rx_read_data(void);
  * @return false
  */
 bool i2s_rx_overflow(void);
+
+//
+// TX Channel
+//
+
+/**
+ * I2S start TX channel.
+ *
+ * This can be called before i2s_init() to arm a preloaded TX FIFO. Data is
+ * shifted only once SCK and WS are running.
+ *
+ * @return kI2sOk success
+ * @return kI2sError TX already started
+ */
+i2s_result_t i2s_tx_start(void);
+
+/**
+ * I2S stop TX channel and clear TX status flags when possible.
+ *
+ * @return kI2sOk success
+ * @return kI2sOverflow the TX FIFO overflowed since TX was started
+ * @return kI2sUnderflow the TX FIFO underflowed since TX was started
+ */
+i2s_result_t i2s_tx_stop(void);
+
+/**
+ * I2S check if TX FIFO can accept a sample.
+ *
+ * @return true if TX FIFO can accept a sample
+ */
+bool i2s_tx_ready(void);
+
+/**
+ * I2S enqueue TX word.
+ *
+ * @param data TX word
+ * @return kI2sOk success
+ * @return kI2sError TX FIFO is full
+ */
+i2s_result_t i2s_tx_write_data(uint32_t data);
+
+/**
+ * I2S check TX underflow.
+ *
+ * @return true if TX needed data while the TX FIFO was empty
+ */
+bool i2s_tx_underflow(void);
+
+/**
+ * I2S check TX overflow.
+ *
+ * @return true if software wrote TXDATA while the TX FIFO was full
+ */
+bool i2s_tx_overflow(void);
 
 
 

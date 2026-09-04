@@ -77,7 +77,7 @@ set_property -dict {PACKAGE_PIN Y10 IOSTANDARD LVCMOS18} [get_ports {spi_slave_m
 set_property -dict {PACKAGE_PIN AB5 IOSTANDARD LVCMOS18} [get_ports {spi_slave_mosi_io}]
 set_property -dict {PACKAGE_PIN AB6 IOSTANDARD LVCMOS18} [get_ports {gpio_io[11]}]
 set_property -dict {PACKAGE_PIN U4 IOSTANDARD LVCMOS18} [get_ports {gpio_io[12]}]
-set_property -dict {PACKAGE_PIN U5 IOSTANDARD LVCMOS18} [get_ports {gpio_io[13]}]
+set_property -dict {PACKAGE_PIN U5 IOSTANDARD LVCMOS18} [get_ports {gpio_io[13]}] ; # muxed with i2s_sd_tx
 
 # PDM2PCM
 set_property -dict {PACKAGE_PIN Y2 IOSTANDARD LVCMOS18} [get_ports pdm2pcm_clk_io]

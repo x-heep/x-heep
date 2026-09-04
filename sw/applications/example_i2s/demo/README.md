@@ -1,5 +1,12 @@
 # I2S DEMO application
-The main.c read from the microphone and dumps the read values.
+The `example_i2s` application contains three selectable tests. Select them in
+`test_i2s.h`:
+- `TEST_ID_0`: RX-only DMA capture from the I2S microphone stream.
+- `TEST_ID_1`: TX-only DMA transfer to the I2S serial output.
+- `TEST_ID_2`: simultaneous TX and RX DMA transfers on different DMA channels.
+
+The FPGA demo script is for the `TEST_ID_0` RX-only path. It reads from the
+microphone and dumps the captured values.
 
 This demo requires mcu_gen with `MEM_BANKS=16`
 to record 2.52 seconds of audio.

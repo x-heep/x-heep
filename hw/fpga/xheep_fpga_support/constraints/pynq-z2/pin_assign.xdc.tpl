@@ -80,7 +80,7 @@ set_property -dict {PACKAGE_PIN V7 IOSTANDARD LVCMOS33} [get_ports {gpio_io[10]}
 # Tri-color LEDs for TARGET_PYNQ_Z2
 set_property -dict {PACKAGE_PIN M15 IOSTANDARD LVCMOS33} [get_ports {gpio_io[11]}] ; # rgbleds_6bits_tri_o[5]
 set_property -dict {PACKAGE_PIN G14 IOSTANDARD LVCMOS33} [get_ports {gpio_io[12]}] ; # rgbled_6bits_tri_o[3]
-set_property -dict {PACKAGE_PIN L14 IOSTANDARD LVCMOS33} [get_ports {gpio_io[13]}] ; # rgbleds_6bits_tri_o[4]
+set_property -dict {PACKAGE_PIN L14 IOSTANDARD LVCMOS33} [get_ports {gpio_io[13]}] ; # rgbleds_6bits_tri_o[4], muxed with i2s_sd_tx
 
 # SPI SLAVE
 set_property -dict {PACKAGE_PIN U7 IOSTANDARD LVCMOS33} [get_ports {spi_slave_sck_io}] ; # rpi_gpio_tri_io[9]

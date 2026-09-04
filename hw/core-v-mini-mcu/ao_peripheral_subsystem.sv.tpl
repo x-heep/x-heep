@@ -113,6 +113,7 @@ module ao_peripheral_subsystem
 
     // I2s
     input logic i2s_rx_valid_i,
+    input logic i2s_tx_ready_i,
 
     // EXTERNAL PERIPH
     output reg_req_t ext_peripheral_slave_req_o,
@@ -130,7 +131,7 @@ module ao_peripheral_subsystem
   import core_v_mini_mcu_pkg::*;
   import tlul_pkg::*;
 
-  localparam DMA_GLOBAL_TRIGGER_SLOT_NUM = 5;
+  localparam DMA_GLOBAL_TRIGGER_SLOT_NUM = 6;
   localparam DMA_EXT_TRIGGER_SLOT_NUM = core_v_mini_mcu_pkg::DMA_CH_NUM * 2;
 
   /*_________________________________________________________________________________________________________________________________ */
@@ -197,6 +198,7 @@ module ao_peripheral_subsystem
   assign dma_global_trigger_slots[2] = spi_flash_rx_valid;
   assign dma_global_trigger_slots[3] = spi_flash_tx_ready;
   assign dma_global_trigger_slots[4] = i2s_rx_valid_i;
+  assign dma_global_trigger_slots[5] = i2s_tx_ready_i;
 
   generate
     for (genvar i = 0; i < core_v_mini_mcu_pkg::DMA_CH_NUM; i++) begin : dma_trigger_slots_gen

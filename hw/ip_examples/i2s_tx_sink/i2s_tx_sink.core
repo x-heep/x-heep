@@ -1,0 +1,41 @@
+CAPI=2:
+
+name: "example:ip:i2s_tx_sink"
+description: "core-v-mini-mcu I2S TX sink test peripheral"
+
+# Copyright 2026 EPFL
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+filesets:
+  files_rtl:
+    depend:
+      - pulp-platform.org::common_cells
+      - xheep:util:reg-generator
+    files:
+    - rtl/i2s_tx_sink_deserializer.sv
+    - rtl/i2s_tx_sink.sv
+    file_type: systemVerilogSource
+
+  verilator-waiver:
+    files:
+    - i2s_tx_sink.vlt
+    file_type: vlt
+
+generate:
+  i2s_tx_sink:
+    generator: regtool
+    parameters:
+      config:           data/i2s_tx_sink.hjson
+      name:             i2s_tx_sink
+      rtl_dir:          rtl
+      sw_path:          ../../../sw/device/lib/drivers/i2s_tx_sink/i2s_tx_sink_regs.h
+      doc_path:         ../../../sw/device/lib/drivers/i2s_tx_sink/i2s_tx_sink_regs.md
+
+targets:
+  default:
+    filesets:
+    - files_rtl
+    - tool_verilator ? (verilator-waiver)
+    generate:
+    - i2s_tx_sink

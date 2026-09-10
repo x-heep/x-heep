@@ -88,6 +88,7 @@ void i2s_terminate(void)
     (1 << I2S_CONTROL_EN_WS_BIT)    // disable WS gen
     + (1 << I2S_CONTROL_EN_BIT)     // disable SCK
     + (1 << I2S_CONTROL_EN_IO_BIT)  // disconnect IO
+    + (1 << I2S_CONTROL_EN_TX_BIT)  // disable TX
   );
 }
 
@@ -185,6 +186,81 @@ bool i2s_rx_overflow(void)
 {
   // read overflow bit from STATUS register
   return (i2s_peri->STATUS & (1 << I2S_STATUS_RX_OVERFLOW_BIT));
+}
+
+
+//
+// TX Channel
+//
+
+i2s_result_t i2s_tx_start(void)
+{
+  uint32_t control = i2s_peri->CONTROL;
+
+  if (control & (1 << I2S_CONTROL_EN_TX_BIT)) {
+    return kI2sError;
+  }
+
+  if (i2s_tx_overflow()) {
+    return kI2sOverflow;
+  }
+
+  i2s_peri->CONTROL = control | (1 << I2S_CONTROL_EN_TX_BIT);
+  return kI2sOk;
+}
+
+i2s_result_t i2s_tx_stop(void)
+{
+  uint32_t control = i2s_peri->CONTROL & ~(1 << I2S_CONTROL_EN_TX_BIT);
+  bool underflow = i2s_tx_underflow();
+  bool overflow = i2s_tx_overflow();
+
+  i2s_peri->CONTROL = control;
+
+  if (underflow && i2s_is_running()) {
+    i2s_peri->CONTROL = control | (1 << I2S_CONTROL_RESET_TX_UNDERFLOW_BIT);
+    while (i2s_tx_underflow()) ;
+    i2s_peri->CONTROL = control;
+  }
+
+  if (overflow) {
+    i2s_peri->CONTROL = control | (1 << I2S_CONTROL_RESET_TX_OVERFLOW_BIT);
+    i2s_peri->CONTROL = control;
+  }
+
+  if (overflow) {
+    return kI2sOverflow;
+  }
+  if (underflow) {
+    return kI2sUnderflow;
+  }
+
+  return kI2sOk;
+}
+
+bool i2s_tx_ready(void)
+{
+  return (i2s_peri->STATUS & (1 << I2S_STATUS_TX_READY_BIT));
+}
+
+i2s_result_t i2s_tx_write_data(uint32_t data)
+{
+  if (!i2s_tx_ready()) {
+    return kI2sError;
+  }
+
+  i2s_peri->TXDATA = data;
+  return kI2sOk;
+}
+
+bool i2s_tx_underflow(void)
+{
+  return (i2s_peri->STATUS & (1 << I2S_STATUS_TX_UNDERFLOW_BIT));
+}
+
+bool i2s_tx_overflow(void)
+{
+  return (i2s_peri->STATUS & (1 << I2S_STATUS_TX_OVERFLOW_BIT));
 }
 
 

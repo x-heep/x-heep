@@ -4,8 +4,8 @@
 **                            *******************                          **
 **                                                                         **
 ** project  : x-heep                                                       **
-** filename : i2s_structs.h                                 **
-** date     : 21/08/2026                                                      **
+** filename : i2s_tx_sink_structs.h                                 **
+** date     : 08/09/2026                                                      **
 **                                                                         **
 *****************************************************************************
 **                                                                         **
@@ -15,8 +15,8 @@
 */
 
 /**
-* @file   i2s_structs.h
-* @date   21/08/2026
+* @file   i2s_tx_sink_structs.h
+* @date   08/09/2026
 * @brief  Contains structs for every register
 *
 * This file contains the structs of the registes of the peripheral.
@@ -25,8 +25,8 @@
 * 
 */
 
-#ifndef _I2S_STRUCTS_H
-#define I2S_STRUCTS
+#ifndef _I2S_TX_SINK_STRUCTS_H
+#define I2S_TX_SINK_STRUCTS
 
 /****************************************************************************/
 /**                                                                        **/
@@ -43,7 +43,7 @@
 /**                                                                        **/
 /****************************************************************************/
 
-#define i2s_peri ((volatile i2s *) I2S_START_ADDRESS)
+#define i2s_tx_sink_peri ((volatile i2s_tx_sink *) I2S_TX_SINK_START_ADDRESS)
 
 /****************************************************************************/
 /**                                                                        **/
@@ -55,21 +55,13 @@
 
 typedef struct {
 
-  uint32_t CONTROL;                               /*!< control register*/
+  uint32_t CONTROL;                               /*!< Sink control. Bit 0 enables TX capture.*/
 
-  uint32_t STATUS;                                /*!< Status flags of the I2s peripheral*/
+  uint32_t RXDATA;                                /*!< Decoded I2S TX sample FIFO output*/
 
-  uint32_t CLKDIVIDX;                             /*!< Control register*/
+  uint32_t STATUS;                                /*!< I2S TX sink status*/
 
-  uint32_t RXDATA;                                /*!< I2s Receive data*/
-
-  uint32_t WATERMARK;                             /*!< Watermark to reach for an interrupt*/
-
-  uint32_t WATERLEVEL;                            /*!< Watermark counter level*/
-
-  uint32_t TXDATA;                                /*!< I2s Transmit data*/
-
-} i2s;
+} i2s_tx_sink;
 
 /****************************************************************************/
 /**                                                                        **/
@@ -77,11 +69,11 @@ typedef struct {
 /**                                                                        **/
 /****************************************************************************/
 
-#ifndef _I2S_STRUCTS_C_SRC
+#ifndef _I2S_TX_SINK_STRUCTS_C_SRC
 
 
 
-#endif  /* _I2S_STRUCTS_C_SRC */
+#endif  /* _I2S_TX_SINK_STRUCTS_C_SRC */
 
 /****************************************************************************/
 /**                                                                        **/
@@ -98,7 +90,7 @@ typedef struct {
 
 
 
-#endif /* _I2S_STRUCTS_H */
+#endif /* _I2S_TX_SINK_STRUCTS_H */
 /****************************************************************************/
 /**                                                                        **/
 /**                                EOF                                     **/

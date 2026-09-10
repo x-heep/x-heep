@@ -11,7 +11,7 @@ set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets jtag_tck_i_IBUF]
 
 set_property PACKAGE_PIN AF5 [get_ports {gpio_io[11]}]
 set_property PACKAGE_PIN AE7 [get_ports {gpio_io[12]}]
-set_property PACKAGE_PIN AH2 [get_ports {gpio_io[13]}]
+set_property PACKAGE_PIN AH2 [get_ports {i2s_sd_tx_io}] ; # i2s_sd_tx pad, muxed with gpio_22
 # set_property PACKAGE_PIN AE5 [get_ports {PL_USER_LED[3]}]
 # set_property PACKAGE_PIN AH1 [get_ports {PL_USER_LED[4]}]
 # set_property PACKAGE_PIN AE4 [get_ports {PL_USER_LED[5]}]
@@ -126,7 +126,7 @@ set_property PACKAGE_PIN AB10 [get_ports {pdm2pcm_pdm_io}] ; # rpi_gpio_tri_io[1
 # I2S
 set_property PACKAGE_PIN AG14 [get_ports {i2s_sck_io}] ; # rpi_gpio_tri_io[17]
 set_property PACKAGE_PIN AC11 [get_ports {i2s_ws_io}] ; # rpi_gpio_tri_io[18]
-set_property PACKAGE_PIN AB9 [get_ports {i2s_sd_io}] ; # rpi_gpio_tri_io[19]
+set_property PACKAGE_PIN AB9 [get_ports {i2s_sd_rx_io}] ; # rpi_gpio_tri_io[19]
 
 # SPI 2
 set_property PACKAGE_PIN AA10 [get_ports {spi2_csb_o[0]}] ; # rpi_gpio_tri_io[20]
@@ -206,8 +206,8 @@ set_property IOSTANDARD LVCMOS18 [get_ports AIC_mclk_o]
 # PIN PROPERTY SETTINGS
 
 # LED
-set_property IOSTANDARD LVCMOS12 [get_ports {gpio_io[11] gpio_io[12] gpio_io[13]}]
-set_property DRIVE 8 [get_ports {gpio_io[11] gpio_io[12] gpio_io[13]}]
+set_property IOSTANDARD LVCMOS12 [get_ports {gpio_io[11] gpio_io[12] i2s_sd_tx_io}]
+set_property DRIVE 8 [get_ports {gpio_io[11] gpio_io[12] i2s_sd_tx_io}]
 
 # LED RGB
 set_property IOSTANDARD LVCMOS12 [get_ports {rst_led_o clk_led_o exit_valid_o exit_value_o}]
@@ -230,7 +230,7 @@ set_property IOSTANDARD LVCMOS33 [get_ports {gpio_io[0] gpio_io[1] gpio_io[2] gp
 # RasPi SPI / PDM / I2S / SPI2 
 set_property IOSTANDARD LVCMOS33 [get_ports {spi_slave_sck_io spi_slave_cs_io spi_slave_miso_io spi_slave_mosi_io \
                                              pdm2pcm_clk_io pdm2pcm_pdm_io \
-                                             i2s_sck_io i2s_ws_io i2s_sd_io \
+                                             i2s_sck_io i2s_ws_io i2s_sd_rx_io \
                                              spi2_csb_o[0] spi2_csb_o[1] spi2_sck_o spi2_sd_io[0] spi2_sd_io[1] spi2_sd_io[2] spi2_sd_io[3]}]
 # SPI
 set_property IOSTANDARD LVCMOS33 [get_ports {spi_sd_io[*] spi_sck_o spi_csb_o}]

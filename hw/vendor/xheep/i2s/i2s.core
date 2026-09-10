@@ -17,6 +17,7 @@ filesets:
     - rtl/i2s.sv
     - rtl/i2s_core.sv
     - rtl/i2s_rx_channel.sv
+    - rtl/i2s_tx_channel.sv
     - rtl/i2s_ws_gen.sv
     - rtl/event_counter.sv
     file_type: systemVerilogSource

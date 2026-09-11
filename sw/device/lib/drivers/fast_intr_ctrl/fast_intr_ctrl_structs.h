@@ -5,7 +5,6 @@
 **                                                                         **
 ** project  : x-heep                                                       **
 ** filename : fast_intr_ctrl_structs.h                                 **
-** date     : 05/11/2025                                                      **
 **                                                                         **
 *****************************************************************************
 **                                                                         **
@@ -16,7 +15,6 @@
 
 /**
 * @file   fast_intr_ctrl_structs.h
-* @date   05/11/2025
 * @brief  Contains structs for every register
 *
 * This file contains the structs of the registes of the peripheral.
@@ -26,7 +24,7 @@
 */
 
 #ifndef _FAST_INTR_CTRL_STRUCTS_H
-#define FAST_INTR_CTRL_STRUCTS
+#define _FAST_INTR_CTRL_STRUCTS_H
 
 /****************************************************************************/
 /**                                                                        **/

@@ -5,7 +5,6 @@
 **                                                                         **
 ** project  : x-heep                                                       **
 ** filename : serial_link_xheep_wrapper_structs.h                                 **
-** date     : 28/02/2026                                                      **
 **                                                                         **
 *****************************************************************************
 **                                                                         **
@@ -16,7 +15,6 @@
 
 /**
 * @file   serial_link_xheep_wrapper_structs.h
-* @date   28/02/2026
 * @brief  Contains structs for every register
 *
 * This file contains the structs of the registes of the peripheral.
@@ -26,7 +24,7 @@
 */
 
 #ifndef _SERIAL_LINK_XHEEP_WRAPPER_STRUCTS_H
-#define SERIAL_LINK_XHEEP_WRAPPER_STRUCTS
+#define _SERIAL_LINK_XHEEP_WRAPPER_STRUCTS_H
 
 /****************************************************************************/
 /**                                                                        **/

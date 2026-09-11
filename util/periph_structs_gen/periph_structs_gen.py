@@ -3,7 +3,6 @@ from math import ceil
 import string
 import argparse
 import sys
-from datetime import date
 
 ############################################################
 #  This module generates the structures for the registers  #
@@ -68,9 +67,6 @@ def write_template(tpl, structs, enums, struct_name, header_filename):
         lower_case_name, struct_name, upper_case_name
     )
 
-    today = date.today()
-    today = today.strftime("%d/%m/%Y")
-
     # To print the final result into the template
     with open(tpl) as t:
         template = string.Template(t.read())
@@ -80,7 +76,6 @@ def write_template(tpl, structs, enums, struct_name, header_filename):
         enums_definitions=enums,
         peripheral_name=struct_name,
         peripheral_name_upper=upper_case_name,
-        date=today,
         start_address_define=start_addr_def,
         header_filename=header_filename,
     )

@@ -5,7 +5,6 @@
 **                                                                         **
 ** project  : x-heep                                                       **
 ** filename : uart_structs.h                                 **
-** date     : 28/08/2025                                                      **
 **                                                                         **
 *****************************************************************************
 **                                                                         **
@@ -16,7 +15,6 @@
 
 /**
 * @file   uart_structs.h
-* @date   28/08/2025
 * @brief  Contains structs for every register
 *
 * This file contains the structs of the registes of the peripheral.
@@ -26,7 +24,7 @@
 */
 
 #ifndef _UART_STRUCTS_H
-#define UART_STRUCTS
+#define _UART_STRUCTS_H
 
 /****************************************************************************/
 /**                                                                        **/

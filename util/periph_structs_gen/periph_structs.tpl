@@ -5,7 +5,6 @@
 **                                                                         **
 ** project  : x-heep                                                       **
 ** filename : ${peripheral_name}_structs.h                                 **
-** date     : ${date}                                                      **
 **                                                                         **
 *****************************************************************************
 **                                                                         **
@@ -16,7 +15,6 @@
 
 /**
 * @file   ${peripheral_name}_structs.h
-* @date   ${date}
 * @brief  Contains structs for every register
 *
 * This file contains the structs of the registes of the peripheral.
@@ -26,7 +24,7 @@
 */
 
 #ifndef _${peripheral_name_upper}_STRUCTS_H
-#define ${peripheral_name_upper}_STRUCTS
+#define _${peripheral_name_upper}_STRUCTS_H
 
 /****************************************************************************/
 /**                                                                        **/

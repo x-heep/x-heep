@@ -5,7 +5,6 @@
 **                                                                         **
 ** project  : x-heep                                                       **
 ** filename : RV_PLIC_structs.h                                 **
-** date     : 28/08/2025                                                      **
 **                                                                         **
 *****************************************************************************
 **                                                                         **
@@ -16,7 +15,6 @@
 
 /**
 * @file   RV_PLIC_structs.h
-* @date   28/08/2025
 * @brief  Contains structs for every register
 *
 * This file contains the structs of the registes of the peripheral.
@@ -26,7 +24,7 @@
 */
 
 #ifndef _RV_PLIC_STRUCTS_H
-#define RV_PLIC_STRUCTS
+#define _RV_PLIC_STRUCTS_H
 
 /****************************************************************************/
 /**                                                                        **/

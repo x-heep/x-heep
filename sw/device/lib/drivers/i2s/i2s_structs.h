@@ -5,7 +5,6 @@
 **                                                                         **
 ** project  : x-heep                                                       **
 ** filename : i2s_structs.h                                 **
-** date     : 05/11/2025                                                      **
 **                                                                         **
 *****************************************************************************
 **                                                                         **
@@ -16,7 +15,6 @@
 
 /**
 * @file   i2s_structs.h
-* @date   05/11/2025
 * @brief  Contains structs for every register
 *
 * This file contains the structs of the registes of the peripheral.
@@ -26,7 +24,7 @@
 */
 
 #ifndef _I2S_STRUCTS_H
-#define I2S_STRUCTS
+#define _I2S_STRUCTS_H
 
 /****************************************************************************/
 /**                                                                        **/

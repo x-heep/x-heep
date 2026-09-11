@@ -5,7 +5,6 @@
 **                                                                         **
 ** project  : x-heep                                                       **
 ** filename : spi_host_structs.h                                 **
-** date     : 10/06/2026                                                      **
 **                                                                         **
 *****************************************************************************
 **                                                                         **
@@ -16,7 +15,6 @@
 
 /**
 * @file   spi_host_structs.h
-* @date   10/06/2026
 * @brief  Contains structs for every register
 *
 * This file contains the structs of the registes of the peripheral.
@@ -26,7 +24,7 @@
 */
 
 #ifndef _SPI_HOST_STRUCTS_H
-#define SPI_HOST_STRUCTS
+#define _SPI_HOST_STRUCTS_H
 
 /****************************************************************************/
 /**                                                                        **/

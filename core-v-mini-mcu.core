@@ -153,6 +153,11 @@ filesets:
     - tb/tb_top.cpp
     file_type: cppSource
 
+  tb-verilator-sighandler:
+    files:
+    - tb/tb_verilator_sighandler.cpp
+    file_type: cppSource
+
   tb-sv:
     files:
     - tb/tb_top.sv
@@ -306,6 +311,7 @@ targets:
     - tool_xcelium? (pre_build_remote_bitbang)
     - tool_xcelium? (pre_build_uartdpi)
     - tool_verilator? (tb-verilator)
+    - tool_verilator? (tb-verilator-sighandler)
     - tool_modelsim? (tb-sv)
     - tool_vcs? (tb-sv)
     - tool_xcelium? (tb-sv)

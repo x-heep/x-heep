@@ -81,7 +81,7 @@ def config():
         AddressRegion("serial_link", start_address=0x50000000, length=0x01000000)
     )
     address_map.add_region(
-        AddressRegion("ext_slaves", start_address=0xC0000000, length=0x01000000)
+        AddressRegion("ext_slaves", start_address=0xC0000000, length=0x40000000)
     )
     system.set_address_map(address_map)
 

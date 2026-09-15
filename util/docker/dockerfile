@@ -50,8 +50,8 @@ RUN --mount=type=tmpfs,destination=/tmp/verilator \
         # Build-time dependencies for tools
         autoconf autotools-dev build-essential libmpc-dev libmpfr-dev libgmp-dev gperf libtool patchutils \
         cmake flex bison libexpat-dev gawk ninja-build help2man libfl-dev && \
-    git clone https://github.com/verilator/verilator.git /tmp/verilator && \
-    cd /tmp/verilator && git checkout ${VERILATOR_VERSION} && \
+    git clone --depth 1 --branch ${VERILATOR_VERSION} https://github.com/verilator/verilator.git /tmp/verilator && \
+    cd /tmp/verilator && \
     autoconf && ./configure --prefix=/tools/verilator/${VERILATOR_VERSION} && \
     make -j$(nproc) && make install && \
     apt-get purge --auto-remove -y \

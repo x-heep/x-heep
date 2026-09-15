@@ -11,7 +11,7 @@ DOCKERFILE			?= ./dockerfile
 # Try to download the image corresponding to the current revision, else default to 'latest'
 .PHONY: docker-pull
 docker-pull:
-	docker pull --platform $(PLATFORM) $(IMAGE_ID):$(TAG) || docker pull $(IMAGE_ID):latest
+	docker pull --platform $(PLATFORM) $(IMAGE_ID):$(TAG) || docker pull --platform $(PLATFORM) $(IMAGE_ID):latest
 
 # Spawn a Docker container and mount the X-HEEP directory in `/workspace/x-heep`
 .PHONY: docker-run

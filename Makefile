@@ -286,6 +286,13 @@ verilator-waves: .check-gtkwave
 questasim-run: 
 	$(MAKE) -C $(QUESTASIM_DIR) run PLUSARGS="c firmware=../../../sw/build/main.hex"
 
+## Does the same as Questasim-run and on top generates and opens waveforms
+questasim-waveforms:
+	$(MAKE) -C $(QUESTASIM_DIR) run \
+		PLUSARGS="c firmware=../../../sw/build/main.hex" \
+		VSIM_OPTIONS="-sv_lib ../../../hw/vendor/lowrisc/opentitan/hw/dv/dpi/uartdpi/uartdpi -sv_lib ../../../hw/vendor/pulp_platform/pulpissimo/rtl/tb/remote_bitbang/librbs -voptargs=+acc=npr -wlf sim.wlf"
+	cd $(QUESTASIM_DIR) && vsim -view sim.wlf
+
 ## First builds the app and then uses Questasim to simulate the HW model and run the FW
 questasim-run-app: app
 	$(MAKE) -C $(QUESTASIM_DIR) run PLUSARGS="c firmware=../../../sw/build/main.hex"

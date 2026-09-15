@@ -21,7 +21,10 @@ class Power_manager(BasePeripheral):
         :param int length: The length of the Power_manager.
         :param int external_domains: the number of power domains external to X-HEEP.
         """
-        super().__init__(address, length)
+        super().__init__(
+            address,
+            length,
+        )
 
         if external_domains > 32:
             raise ValueError(

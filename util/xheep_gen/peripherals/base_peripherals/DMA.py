@@ -41,7 +41,11 @@ class DMA(BasePeripheral):
         :param int num_master_ports: The number of master ports in the DMA.
         :param int num_channels_per_master_port: The number of channels per master port in the DMA.
         """
-        super().__init__(address, length)
+        super().__init__(
+            address,
+            length,
+            num_master_ports=num_master_ports,
+        )
         self._ch_length = ch_length
         self._num_channels = num_channels
         self._num_master_ports = num_master_ports

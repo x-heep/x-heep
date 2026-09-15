@@ -5,10 +5,16 @@
 # Author(s): David Mallasén
 # Description: Definition of an address region in the memory-mapped address map.
 
+from typing import Optional
+
 
 class AddressRegion:
     """
     A named region of the address map.
+
+    The start address and the length may be `None` when they are only known
+    later in the build; :meth:`validate` is what rejects a region that is
+    still missing them.
 
     :param str name: The name of the region.
     :param int start_address: The start address of the region.
@@ -18,8 +24,8 @@ class AddressRegion:
     def __init__(
         self,
         name: str,
-        start_address: int,
-        length: int,
+        start_address: Optional[int] = None,
+        length: Optional[int] = None,
     ):
         self.name = name
         self.start_address = start_address

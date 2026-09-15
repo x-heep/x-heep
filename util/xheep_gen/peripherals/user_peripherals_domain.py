@@ -5,6 +5,9 @@
 # Author(s): Pacsort17, marinPh, David Mallasén
 # Description: User Peripherals (optional peripherals)
 
+from typing import List, Optional
+
+from address_map.address_region import AddressRegion
 from .abstractions import UserPeripheral, PeripheralDomain
 
 from .user_peripherals import PDM2PCM
@@ -12,15 +15,29 @@ from .user_peripherals import PDM2PCM
 
 class UserPeripheralDomain(PeripheralDomain):
     """
-    Domain for user peripherals. All user peripherals must be added.
+    Subsystem for user peripherals (switchable domain). All user peripherals must be added.
     """
 
-    def __init__(self):
+    def __init__(
+        self,
+        start_address: Optional[int] = None,
+        length: Optional[int] = None,
+        power_domain: str = "peripheral_subsystem",
+        clock_gating: bool = True,
+        peripherals: Optional[List[UserPeripheral]] = None,
+    ):
         """
         Initialize the user peripheral domain.
+
+        At the beginning, there is no user peripheral. All non-added peripherals will be added during build().
+
+        By default the user peripheral domain belongs to the "peripheral_subsystem" power domain and supports clock gating.
         """
         super().__init__(
-            name="User",
+            region=AddressRegion("User", start_address, length),
+            power_domain=power_domain,
+            clock_gating=clock_gating,
+            peripherals=peripherals,
         )
 
     def get_pdm2pcm(self):
@@ -54,4 +71,5 @@ class UserPeripheralDomain(PeripheralDomain):
             print(
                 f"Warning : Peripheral {peripheral.get_name()} is not in the domain {self._name}"
             )
+            return
         self._peripherals.remove(peripheral)

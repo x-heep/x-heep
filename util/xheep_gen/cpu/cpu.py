@@ -3,7 +3,7 @@ class CPU:
     Represents a CPU configuration.
     """
 
-    AVAILABLE_CPUS = {"cv32e20", "cv32e40p", "cv32e40px", "cv32e40x"}
+    AVAILABLE_CPUS = {"cv32e20", "cv32e40p", "cv32e40px", "cv32e40x", "cva6"}
 
     def __init__(self, name: str):
         if name not in self.AVAILABLE_CPUS:

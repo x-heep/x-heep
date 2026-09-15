@@ -82,7 +82,7 @@ class AddressMap:
                 raise RuntimeError(
                     f"[AddressMap] ERROR: Region {current.get_name()} "
                     f"({hex(current.get_start_address())}-{hex(current.get_end_address())}) overlaps with "
-                    f"{following.get_name()} (starts at {hex(following.get_start_address())}) in {self._name}"
+                    f"{following.get_name()} (starts at {hex(following.get_start_address())})"
                 )
 
         last = sorted_regions[-1]

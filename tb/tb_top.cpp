@@ -107,11 +107,11 @@ int main (int argc, char * argv[])
 
 
   if(run_all==false) {
-    while(dut->exit_valid_o!=1 && sim_time<max_sim_time) {
+    while(!Verilated::gotFinish() && dut->exit_valid_o!=1 && sim_time<max_sim_time) {
       runCycles(100, dut, m_trace);
     }
   } else {
-    while(dut->exit_valid_o!=1) {
+    while(!Verilated::gotFinish() && dut->exit_valid_o!=1) {
       runCycles(100, dut, m_trace);
     }
   }
@@ -128,6 +128,8 @@ int main (int argc, char * argv[])
     exit_val = 2; // exit 2 to indicate successful run but premature termination
   }
 
+  dut->final();
+  m_trace->flush();
   m_trace->close();
   delete dut;
   delete cmd_lines_options;

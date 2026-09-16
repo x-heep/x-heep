@@ -30,13 +30,18 @@ def main():
         else:
             raise e
 
-    # diff tree against working tree
+    if len(diff_to_head) == 0:
+        exit(0)
+
+    print("::error ::The following files differ from git HEAD:")
     for diff in diff_to_head:
-        print("::error file={}::Files differ ({})".format(
-            diff.b_path, diff.change_type))
-    if len(diff_to_head) > 0:
-        print(args.error_msg)
-        exit(1)
+        print(
+            "::error file={}::{} differs ({})".format(
+                diff.b_path, diff.b_path, diff.change_type
+            )
+        )
+    print(args.error_msg)
+    exit(1)
 
 
 if __name__ == '__main__':

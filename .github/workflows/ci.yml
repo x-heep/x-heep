@@ -113,8 +113,8 @@ jobs:
             exit 1
           fi
 
-  lint:
-    name: Lint Generated Files
+  check-mcu-gen-generated-files:
+    name: Check mcu-gen generated files are up-to-date
     runs-on: ubuntu-latest
     needs: determine-image-tag
     container:
@@ -127,11 +127,11 @@ jobs:
       - name: Mark Repository as Safe
         run: |
           git config --global --add safe.directory $GITHUB_WORKSPACE
-      - name: Check generated file consistency
+      - name: Check mcu-gen generated files are up-to-date
         shell: bash -le {0}
         run: |
           make mcu-gen && \
-          util/git-diff.py --error-msg '::error ::Found differences in generated SystemVerilog files.'
+          util/git-diff.py --error-msg '::error ::Found differences in generated files. Run mcu-gen locally and commit the changes.'
 
   check-vendor:
     name: Vendor up-to-date
@@ -147,7 +147,7 @@ jobs:
       - name: Re-vendor and diff
         run: |
           find hw/vendor hw/fpga sw/vendor util -maxdepth 2 -type f -name '*.vendor.hjson' | xargs -P8 -n1 util/vendor.py --verbose && \
-          util/git-diff.py --error-msg '::error ::Found differences, please re-vendor.' && \
+          util/git-diff.py --error-msg '::error ::Found differences in vendored files. Commit the changes in the upstream repositories.' && \
           util/check-vendor.py
 
   black-formatter:

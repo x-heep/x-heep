@@ -25,7 +25,7 @@ This script is also integrated in the CI workflow described in the following sec
 
 ## Github CIs
 
-The project's Continuous Integration (CI) is managed through GitHub Actions. The workflows are defined in the `.github/workflows` directory. The main CI workflow is `ci.yml`, which is triggered on every push and pull request to the `main` branch.
+The project's Continuous Integration (CI) is managed through GitHub Actions. The workflows are defined in the `.github/workflows` directory. The main CI workflow is `ci.yml`, which is triggered on every push to the `main` branch and on pull requests to any branch.
 
 ### CI Workflow (`ci.yml`)
 
@@ -33,8 +33,8 @@ This workflow ensures the stability and integrity of the codebase by running a s
 
 **Triggers:**
 
-*   Push to any branch (`push: branches: [ "**" ]`).
-*   Pull request to the `main` branch (`pull_request: branches: [ "main" ]`).
+*   Push to the `main` branch (`push: branches: [ "main" ]`).
+*   Pull request to any branch (`pull_request: branches: [ "**" ]`).
 
 **Jobs:**
 
@@ -52,30 +52,40 @@ This workflow ensures the stability and integrity of the codebase by running a s
 
 3.  **`simulate-apps`**:
     *   **Purpose**: Runs Verilator RTL simulations for all applications (except the blacklisted ones) to verify their runtime behavior.
-    *   **Condition**: This job only runs on pull requests to `main`.
     *   **Dependencies**: Depends on `determine-image-tag`.
     *   **Environment**: Runs inside the `x-heep-toolchain` Docker container.
     *   **Steps**:
         *   Generates the MCU configuration using `make mcu-gen X_HEEP_CFG=configs/ci.hjson`.
         *   Executes `test/test_apps/test_apps.py` to compile and simulate all applications.
 
-4.  **`lint`**:
-    *   **Purpose**: Checks that all auto-generated hardware files are up-to-date and have been formatted .
+4.  **`test-rv-profile`**:
+    *   **Purpose**: Verifies that the RISC-V profiling flow works end-to-end and produces a flamegraph.
+    *   **Dependencies**: Depends on `determine-image-tag`.
+    *   **Environment**: Runs inside the `x-heep-toolchain` Docker container.
+    *   **Steps**:
+        *   Generates the MCU configuration using `make mcu-gen PYTHON_X_HEEP_CFG=configs/ci.py`.
+        *   Builds the Verilator model (`make verilator-build`), compiles the default app (`make app`), and runs the simulation (`make verilator-run`).
+        *   Runs the profiling flow (`make profile`).
+        *   Fails if `util/profile/flamegraph.svg` was not generated.
+
+5.  **`check-mcu-gen-generated-files`**:
+    *   **Purpose**: Checks that all auto-generated mcu-gen files are up-to-date.
     *   **Dependencies**: Depends on `determine-image-tag`.
     *   **Environment**: Runs inside the `x-heep-toolchain` Docker container.
     *   **Steps**:
         *   Runs `make mcu-gen` to regenerate all hardware files.
         *   Uses `util/git-diff.py` to check for any differences between the working directory and the git HEAD. The job fails if any differences are found.
 
-5.  **`check-vendor`**:
+6.  **`check-vendor`**:
     *   **Purpose**: Verifies that all third-party vendored dependencies are up-to-date.
     *   **Environment**: Runs inside a `ubuntu-latest` VM.
     *   **Steps**:
         *   Installs Python dependencies.
         *   Runs the `util/vendor.py` script for all `.vendor.hjson` files to re-vendor all dependencies.
         *   Uses `util/git-diff.py` to check for any differences, ensuring that any changes to vendored repositories are properly committed.
+        *   Runs `util/check-vendor.py` to validate the vendored dependencies.
 
-6.  **`black-formatter`**:
+7.  **`black-formatter`**:
     *   **Purpose**: Checks that all Python code adheres to the `black` formatting standard.
     *   **Environment**: Runs inside a `ubuntu-latest` VM.
     *   **Steps**:

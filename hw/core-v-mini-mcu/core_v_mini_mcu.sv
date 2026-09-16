@@ -15,7 +15,7 @@ module core_v_mini_mcu #(
     parameter EXT_XBAR_NMASTER_RND = EXT_XBAR_NMASTER == 0 ? 1 : EXT_XBAR_NMASTER,
     parameter EXT_DOMAINS_RND = core_v_mini_mcu_pkg::EXTERNAL_DOMAINS == 0 ? 1 : core_v_mini_mcu_pkg::EXTERNAL_DOMAINS,
     parameter NEXT_INT_RND = core_v_mini_mcu_pkg::NEXT_INT == 0 ? 1 : core_v_mini_mcu_pkg::NEXT_INT,
-    parameter EXT_HARTS_RND = EXT_HARTS == 0 ? 1 : EXT_HARTS
+    parameter EXT_HARTS_RND = EXT_HARTS == 0 ? 1 : EXT_HARTS,
     // Common data types
     // NOTE: the address and data withs of the following types must match
     parameter type obi_req_t = xheep_obi_pkg::xheep_obi_req_t,

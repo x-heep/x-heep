@@ -100,7 +100,13 @@ module serial_link_physical_rx #(
   parameter type phy_data_t   = serial_link_pkg::phy_data_t,
   parameter int NumLanes      = 8,
   parameter int FifoDepth     = 8,
-  parameter int CdcSyncStages = 2
+  parameter int CdcSyncStages = 2,
+  parameter int ResetSyncStages = 4,
+  // Hold the receive side in reset until ResetSyncStages forwarded-clock edges have
+  // arrived after rst_ni release, then discard one more edge before accepting payload.
+  // The transmitter must forward at least ResetSyncStages + 1 clock periods of idle
+  // data after reset release before its first payload word.
+  parameter bit EnableStartupTraining = 1'b0
 ) (
   input  logic                  clk_i,
   input  logic                  rst_ni,
@@ -113,10 +119,56 @@ module serial_link_physical_rx #(
 
   phy_data_t            data_in;
   logic [NumLanes-1:0]  ddr_q;
+  logic                 src_rst_n, dst_rst_n;
+  logic                 src_initialized_q;
 
   ///////////////////////////////
   //   CLOCK DOMAIN CROSSING   //
   ///////////////////////////////
+
+  if (EnableStartupTraining) begin : gen_startup_reset
+    // cdc_fifo_gray needs simultaneous asynchronous assertion and per-domain
+    // synchronized deassertion of its two resets. A plain sync is used rather than
+    // rstgen: this module has no test-mode input for the bypass, and a reset-test
+    // mux can be mapped onto global clock resources even with its select tied
+    // inactive.
+    sync #(
+      .STAGES    (ResetSyncStages),
+      .ResetValue(1'b0)
+    ) i_src_reset_sync (
+      .clk_i   (ddr_rcv_clk_i),
+      .rst_ni  (rst_ni),
+      .serial_i(1'b1),
+      .serial_o(src_rst_n)
+    );
+
+    sync #(
+      .STAGES    (ResetSyncStages),
+      .ResetValue(1'b0)
+    ) i_dst_reset_sync (
+      .clk_i   (clk_i),
+      .rst_ni  (rst_ni),
+      .serial_i(1'b1),
+      .serial_o(dst_rst_n)
+    );
+
+    // Discard one more forwarded-clock edge after the source reset is released.
+    always_ff @(posedge ddr_rcv_clk_i or negedge src_rst_n) begin
+      if (!src_rst_n) begin
+        src_initialized_q <= 1'b0;
+      end else begin
+        src_initialized_q <= 1'b1;
+      end
+    end
+  end else begin : gen_legacy_reset
+    // Without startup training the receive side leaves reset with rst_ni and
+    // accepts every forwarded word. The CDC-full assertion below is elaborated
+    // only under training, where src_valid_i stays low until the reset
+    // synchronizers have completed.
+    assign src_rst_n = rst_ni;
+    assign dst_rst_n = rst_ni;
+    assign src_initialized_q = 1'b1;
+  end
 
   cdc_fifo_gray #(
     .T            ( phy_data_t                        ),
@@ -124,26 +176,28 @@ module serial_link_physical_rx #(
     .SYNC_STAGES  ( CdcSyncStages                     )
   ) i_cdc_in (
     .src_clk_i   ( ddr_rcv_clk_i    ),
-    .src_rst_ni  ( rst_ni           ),
+    .src_rst_ni  ( src_rst_n        ),
     .src_data_i  ( data_in          ),
-    .src_valid_i ( 1'b1             ),
+    .src_valid_i ( src_initialized_q ),
     .src_ready_o (                  ),
 
     .dst_clk_i   ( clk_i            ),
-    .dst_rst_ni  ( rst_ni           ),
+    .dst_rst_ni  ( dst_rst_n        ),
     .dst_data_o  ( data_in_o        ),
     .dst_valid_o ( data_in_valid_o  ),
     .dst_ready_i ( data_in_ready_i  )
   );
 
-  // TODO: Fix assertion during reset
-  // `ASSERT(CdcRxFifoFull, !(i_cdc_in.src_valid_i & ~i_cdc_in.src_ready_o), ddr_rcv_clk_i, !rst_ni)
+  if (EnableStartupTraining) begin : gen_startup_assert
+    `ASSERT(CdcRxFifoFull, !(i_cdc_in.src_valid_i & ~i_cdc_in.src_ready_o), ddr_rcv_clk_i,
+        !src_rst_n)
+  end
 
   ////////////////
   //   DDR IN   //
   ////////////////
-  always_ff @(negedge ddr_rcv_clk_i, negedge rst_ni) begin
-    if (~rst_ni) begin
+  always_ff @(negedge ddr_rcv_clk_i or negedge src_rst_n) begin
+    if (!src_rst_n) begin
       ddr_q <= '0;
     end else begin
       ddr_q <= ddr_i;
@@ -163,7 +217,9 @@ module serial_link_physical #(
   // Num Credit for Flow control
   parameter int FifoDepth  = 8,
   // Maximum factor of ClkDiv
-  parameter int MaxClkDiv  = 32
+  parameter int MaxClkDiv  = 32,
+  parameter int ResetSyncStages = 4,
+  parameter bit EnableStartupTraining = 1'b0
 ) (
   input  logic                          clk_i,
   input  logic                          rst_ni,
@@ -205,9 +261,11 @@ module serial_link_physical #(
   //   PHY RX   //
   ////////////////
   serial_link_physical_rx #(
-    .phy_data_t ( phy_data_t  ),
-    .NumLanes   ( NumLanes    ),
-    .FifoDepth  ( FifoDepth   )
+    .phy_data_t            ( phy_data_t            ),
+    .NumLanes              ( NumLanes              ),
+    .FifoDepth             ( FifoDepth             ),
+    .ResetSyncStages       ( ResetSyncStages       ),
+    .EnableStartupTraining ( EnableStartupTraining )
   ) i_serial_link_physical_rx (
     .clk_i,
     .rst_ni,

@@ -703,7 +703,7 @@ module xilinx_core_v_mini_mcu_wrapper
       .ddr_rcv_clk_i(1'b0),
       .ddr_snd_clk_o(),
 `endif
-      .spi_slave_sck_i(spi_slave_sck_io),  
+      .spi_slave_sck_io(spi_slave_sck_io),
       .spi_slave_cs_io(spi_slave_cs_io),
       .spi_slave_miso_io(spi_slave_miso_io),
       .spi_slave_mosi_io(spi_slave_mosi_io),

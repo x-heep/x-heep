@@ -4,4 +4,4 @@ This section shows a diagram illustrating how to connect the EPFL X-HEEP program
 
 The diagram also shows where the X-HEEP global IOs are placed in this board: `reset`, `boot_select`, `execute_from_flash` (not used anymore), and the status LEDs (from left to right: `exit_valid`, `exit_value`, `clk_div`, and `rst_n`).
 
-<img src="./../images/genesys-2-2.png" width="500">
+![Genesys2](./../images/genesys-2-2.png)

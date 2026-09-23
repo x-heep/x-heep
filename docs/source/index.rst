@@ -10,6 +10,8 @@ By doing so, you inherit an IP capable of booting RTOS (such as FreeRTOS) with t
 X-HEEP supports simulation with Verilator, QuestaSim, VCS, and Xcelium. Moreover, FW can be built and linked by using CMake either with GCC or with Clang and/or SEGGER Embedded Studio using gcc. It can be implemented on FPGA, and it supports implementation in Silicon, which is its main (but not only) target.
 You are welcome to explore our `X-HEEP repository <https://github.com/x-heep/x-heep>`_ or our `X-HEEP paper <https://infoscience.epfl.ch/record/302127>`_ for a deeper description of the platform.
 
+.. _architecture:
+
 Architecture
 ^^^^^^^^^^^^
 The architecture is divided into the following power domains: CPU subsystem domain, memory banks domains, peripheral subsystem domain and always-on peripheral subsystem domain. The following image highlights each power domain with a different colour. IPs are carefully selected and grouped in the mentioned power domains in order to maximize energy savings during the processing and acquisition phases of our target ultra-low-power edge-computing applications. We reused several IPs from the most important open-source projects, such as `PULP <https://github.com/pulp-platform>`_, `OpenHW <https://github.com/openhwgroup>`_ and `lowRISC <https://github.com/lowRISC>`_. Moreover, we custom-designed some specific IPs to meet our architectural needs.

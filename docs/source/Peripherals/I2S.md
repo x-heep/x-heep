@@ -267,7 +267,7 @@ report_io -file i2s_io.rpt
 If the mapping is correct, inspect the TX pad mux, `CONTROL`, and `STATUS` using
 GDB. For the current example's address map:
 
-```gdb
+```text
 x/1wx 0x20080044
 x/2wx 0x30070000
 ```

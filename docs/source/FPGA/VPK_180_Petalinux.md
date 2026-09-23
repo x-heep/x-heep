@@ -187,7 +187,7 @@ mkdir -p project-spec/meta-user/recipes-devtools/openocd/files
 
 2. Create `project-spec/meta-user/recipes-devtools/openocd/openocd_%.bbappend` with:
 
-```bitbake
+```text
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
 # Use the OpenOCD upstream repo/revision expected by the X-HEEP helper flow.

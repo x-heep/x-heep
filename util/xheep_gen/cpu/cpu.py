@@ -37,3 +37,13 @@ class CPU:
         :return: Value of the parameter or None if not defined.
         """
         return self.params.get(param_name, None)
+
+    def pretty_print(self) -> str:
+        """
+        Return a compact description of the CPU.
+
+        :return: The CPU name, with its parameters if any are defined.
+        :rtype: str
+        """
+        details = ", ".join(f"{key}={value}" for key, value in self.params.items())
+        return f"CPU: {self.get_name()}" + (f" ({details})" if details else "")

@@ -61,7 +61,7 @@
             offset:  0x00029000
             length:  0x00007000
             is_included: "yes"
-            cache: "yes"
+            cache: "no"
         }
         dma: {
             offset:  0x00030000

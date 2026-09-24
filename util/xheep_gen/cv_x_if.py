@@ -39,3 +39,12 @@ class CvXIf:
         :return: Value of the parameter or None if not defined.
         """
         return self.params.get(param_name, None)
+
+    def pretty_print(self) -> str:
+        """
+        Return a compact description of the CORE-V eXtension Interface.
+
+        :return: A short label indicating the interface is enabled.
+        :rtype: str
+        """
+        return "CV-X-IF: enabled"

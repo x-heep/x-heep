@@ -7,3 +7,9 @@
 lint_off -rule GENUNNAMED -file "*/src/*.sv" -match "Unnamed generate block '*'"
 lint_off -rule UNOPTFLAT -file "*/src/cdc_reset_ctrlr.sv" -match "Signal unoptimizable: Circular combinational logic: '*'"
 lint_off -rule UNOPTFLAT -file "*/src/rr_arb_tree.sv" -match "Signal unoptimizable: Circular combinational logic: '*'"
+
+// stream_to_mem's internal request counter ('cnt_q', a small 3-bit
+// saturating counter) compared against a wider constant -- a benign width
+// expansion, not a real bug. First pulled into a Verilator build by the
+// HLS dot-product accelerator example via axi_obi's axi_to_obi.
+lint_off -rule WIDTHEXPAND -file "*/pulp_platform/common_cells/src/stream_to_mem.sv" -match "Operator LT expects 32 bits on the LHS, but LHS's VARREF 'cnt_q' generates 3 bits."

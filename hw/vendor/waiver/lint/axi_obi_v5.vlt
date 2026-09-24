@@ -1,0 +1,63 @@
+// Copyright 2026 EPFL
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+//
+// Waivers for rules only named this way starting from Verilator 5, for
+// pulp_platform/axi_obi (axi_to_obi.sv / obi_to_axi.sv /
+// axi_to_detailed_mem_user.sv), first pulled into an X-HEEP Verilator build
+// by the HLS dot-product accelerator example
+// (hw/fpga/hls/vitis/dot_product), which is the first consumer to exercise
+// these code paths. See axi_obi.vlt for the version-independent waivers of
+// the same repo.
+
+`verilator_config
+
+// obi_to_axi.sv computes 'localparam int unsigned AxiSize' from a 3-bit
+// axi_pkg::size_t cast, widened to the 32-bit localparam type. A benign
+// width expansion, not a real bug.
+lint_off -rule WIDTHEXPAND -file "*/pulp_platform/axi_obi/src/obi_to_axi.sv" -match "Operator VAR 'AxiSize' expects 32 bits on the Initial value, but Initial value's CASTWRAP generates 3 bits."
+
+// obi_to_axi.sv / axi_to_obi.sv write several 'generate if'/ternary
+// conditions as multi-bit parameter expressions instead of explicit
+// single-bit booleans -- a vendor coding-style pattern present regardless
+// of the widths this bridge instantiates it with.
+lint_off -rule WIDTHTRUNC -file "*/pulp_platform/axi_obi/src/obi_to_axi.sv" -match "Logical operator GENIF expects 1 bit on the If, but If's SEL generates 32 bits."
+lint_off -rule WIDTHTRUNC -file "*/pulp_platform/axi_obi/src/axi_to_obi.sv" -match "Logical operator COND expects 1 bit on the Conditional Test, but Conditional Test's SEL generates 32 bits."
+lint_off -rule WIDTHTRUNC -file "*/pulp_platform/axi_obi/src/axi_to_obi.sv" -match "Logical operator GENIF expects 1 bit on the If, but If's SEL generates 32 bits."
+
+// axi_to_obi.sv truncates a 64-bit AXI address down to a 32-bit OBI
+// address -- this is exactly the intended narrowing this bridge is used
+// for (the HLS accelerator's 64-bit m_axi pointers -> X-HEEP's 32-bit OBI
+// address space), not an unintended loss of bits.
+lint_off -rule WIDTHTRUNC -file "*/pulp_platform/axi_obi/src/axi_to_obi.sv" -match "Operator ASSIGNW expects 32 bits on the Assign RHS, but Assign RHS's SEL generates 64 bits."
+
+// obi_to_axi.sv's 'user_i' and axi_to_obi.sv's generic optional
+// lock/cache/user/atop/prot metadata ports and internal signals: this
+// bridge disables all of these (AxiLite CTRL passthrough / plain memory
+// reads, no lock, no cache, no atomics), so the generic multi-protocol
+// bridge code exposes ports/signals this particular use never drives or
+// reads.
+lint_off -rule UNUSEDSIGNAL -file "*/pulp_platform/axi_obi/src/obi_to_axi.sv" -match "Signal is not used: 'user_i'"
+lint_off -rule UNUSEDSIGNAL -file "*/pulp_platform/axi_obi/src/obi_to_axi.sv" -match "Signal is not used: 'axi_obi_lock'"
+lint_off -rule UNUSEDSIGNAL -file "*/pulp_platform/axi_obi/src/obi_to_axi.sv" -match "Signal is not used: 'axi_obi_cache'"
+lint_off -rule UNUSEDSIGNAL -file "*/pulp_platform/axi_obi/src/axi_to_obi.sv" -match "Signal is not used: 'req_write_wuser_i'"
+lint_off -rule UNUSEDSIGNAL -file "*/pulp_platform/axi_obi/src/axi_to_obi.sv" -match "Signal is not used: 'bank_mem_*'"
+lint_off -rule UNUSEDSIGNAL -file "*/pulp_platform/axi_obi/src/axi_to_obi.sv" -match "Signal is not used: 'obi_atop'"
+
+// axi_to_detailed_mem_user.sv: internal helper functions/localparams
+// ('num_bytes', 'aligned_addr', 'NumBytesPerBank'/'DataWidth') mix narrow
+// computed types (16-bit byte counts, etc.) into wider 64/128-bit locals --
+// a pre-existing vendor coding style, unrelated to any parameter this
+// bridge passes in.
+lint_off -rule WIDTHEXPAND -file "*/pulp_platform/axi_obi/src/axi_to_detailed_mem_user.sv" -match "Operator ADD expects 64 bits on the RHS, but RHS's FUNCREF 'num_bytes' generates 16 bits."
+lint_off -rule WIDTHEXPAND -file "*/pulp_platform/axi_obi/src/axi_to_detailed_mem_user.sv" -match "Operator FUNCREF 'aligned_addr' expects 128 bits on the Function Argument, but Function Argument's SEL generates 64 bits."
+lint_off -rule WIDTHEXPAND -file "*/pulp_platform/axi_obi/src/axi_to_detailed_mem_user.sv" -match "Operator COND expects 2 bits on the Conditional False, but Conditional False's SEL generates 1 bits."
+lint_off -rule WIDTHEXPAND -file "*/pulp_platform/axi_obi/src/axi_to_detailed_mem_user.sv" -match "Operator ADD expects 64 bits on the RHS, but RHS's VARREF 'NumBytesPerBank' generates 32 bits."
+lint_off -rule WIDTHEXPAND -file "*/pulp_platform/axi_obi/src/axi_to_detailed_mem_user.sv" -match "Operator MODDIV expects 64 bits on the RHS, but RHS's VARREF 'DataWidth' generates 32 bits."
+lint_off -rule WIDTHTRUNC -file "*/pulp_platform/axi_obi/src/axi_to_detailed_mem_user.sv" -match "Operator PATMEMBER expects 1 bits on the Pattern value, but Pattern value's COND generates 2 bits."
+lint_off -rule WIDTHTRUNC -file "*/pulp_platform/axi_obi/src/axi_to_detailed_mem_user.sv" -match "Operator ASSIGN expects 1 bits on the Assign RHS, but Assign RHS's REPLICATE generates 2 bits."
+
+// axi_to_detailed_mem_user.sv's internal 'meta_buf' tracking register
+// carries fields (address/length/strobe bookkeeping bits) this bridge's
+// simple read-only/single-outstanding-request usage never populates.
+lint_off -rule UNUSEDSIGNAL -file "*/pulp_platform/axi_obi/src/axi_to_detailed_mem_user.sv" -match "Bits of signal are not used: 'meta_buf'*"

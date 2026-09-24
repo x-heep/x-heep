@@ -1,0 +1,15 @@
+// Copyright 2026 EPFL
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+//
+// Waivers for rules only named this way starting from Verilator 5, for
+// pulp_platform/obi, first pulled into an X-HEEP Verilator build by the HLS
+// dot-product accelerator example (hw/fpga/hls/vitis/dot_product) via the
+// axi_obi bridges, which are the first consumers to exercise obi_mux.
+
+`verilator_config
+
+// obi_mux.sv's response-side 'rsp_rid' field is part of the generic
+// multi-master OBI response struct; this bridge's OBI id width usage never
+// needs the muxed id echoed back out, so the field is left dangling.
+lint_off -rule UNUSEDSIGNAL -file "*/pulp_platform/obi/src/obi_mux.sv" -match "Signal is not driven, nor used: 'rsp_rid'"

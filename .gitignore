@@ -13,6 +13,16 @@ build/
 .venv/
 __pycache__/
 
+# Vitis HLS scratch project directories (regenerate with generate_core.sh)
+hw/fpga/hls/vitis/*/*_proj/
+
+# Vitis HLS-generated RTL (regenerate with generate_core.sh; requires a
+# licensed Vitis HLS install -- NOTE: dot_product is currently an
+# unconditional dependency of tb/x-heep-tb-utils.core's files_examples, so
+# this file must exist before `make verilator-build`/`make vivado-fpga`
+# will work for anyone. TODO: make that dependency conditional.)
+hw/fpga/hls/vitis/*/rtl/hls/
+
 # Apps output files
 run_verif_rtl_log.txt
 

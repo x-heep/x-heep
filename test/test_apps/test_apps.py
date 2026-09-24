@@ -67,6 +67,7 @@ BLACKLIST = [
     "example_w25q128jw_write",  # Times out
     "example_w25q128jw_memio",  # Times out
     "fpga_ddr_test",  # Target Specific test
+    "example_dot_product_hls",  # Target Specific test
 ]
 # TODO : The example_pdm2pcm app is testing a wrong version of the PDM2PCM acting only as a CIC filter.
 #        When fixed, it not passes anymore. Need to be updated.

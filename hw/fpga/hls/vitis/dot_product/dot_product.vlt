@@ -1,0 +1,32 @@
+// Copyright EPFL contributors.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+//
+// Vitis HLS's RTL backend is not written with Verilator's lint checks in
+// mind (unused ports/params from generic templating, legacy AXI3-style
+// signal widths, generated timescale/module-name mismatches, etc.). None
+// of this is X-HEEP's own code to fix -- waive it wholesale for the
+// generated sources only. hw/fpga/hls/vitis/dot_product's hand-written
+// integration wrapper (dot_product_xheep_wrapper.sv) is deliberately NOT
+// covered here: its warnings are fixed at the source instead.
+
+`verilator_config
+
+lint_off -file "*/hw/fpga/hls/vitis/dot_product/rtl/hls/*"
+
+// UNOPTFLAT is treated as always-on unless explicitly named, even under a
+// bare file-wide lint_off above -- these two are HLS's own generic m_axi
+// write-request-throttle template (unused in practice: 'a'/'b' are
+// read-only pointers, so the write side never fires) flagged as a
+// conservative false-positive combinational loop.
+lint_off -rule UNOPTFLAT -file "*/hw/fpga/hls/vitis/dot_product/rtl/hls/dot_product_gmem_a_m_axi.v"
+lint_off -rule UNOPTFLAT -file "*/hw/fpga/hls/vitis/dot_product/rtl/hls/dot_product_gmem_b_m_axi.v"
+lint_off -rule COMBDLY   -file "*/hw/fpga/hls/vitis/dot_product/rtl/hls/dot_product_gmem_a_m_axi.v"
+lint_off -rule COMBDLY   -file "*/hw/fpga/hls/vitis/dot_product/rtl/hls/dot_product_gmem_b_m_axi.v"
+
+// Pre-existing width-mismatch in xheep_obi_to_axi_bridge.sv's AxiBurstType
+// default (2-bit axi_pkg::BURST_INCR into a 32-bit unsigned parameter).
+// dot_product is the first consumer to pull this bridge into a Verilator
+// build; not this IP's code to fix.
+lint_off -rule WIDTHEXPAND -file "*/hw/ip/xheep_obi_to_axi_bridge/rtl/xheep_obi_to_axi_bridge.sv"
+

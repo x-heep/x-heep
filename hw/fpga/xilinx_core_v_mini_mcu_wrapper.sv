@@ -581,7 +581,25 @@ module xilinx_core_v_mini_mcu_wrapper
 `endif
 `endif
 
-  x_heep_system x_heep_system_i (
+`ifdef USE_HLS_EXAMPLE
+  // dot_product's two AXI4 read masters, bridged to OBI, plug straight
+  // into x_heep_system's ext_xbar_master ports (real system crossbar --
+  // arbitration needed since there are two of them). Its AXI4-Lite CTRL
+  // port, bridged to a single OBI slave, is instead wired directly onto
+  // the CPU data master's dedicated external-slave demux output
+  // (ext_core_data_req_o/resp_i) below: a plain 1-to-1 tap, no crossbar
+  // needed since there is exactly one master on that path.
+  xheep_obi_req_t dotprod_ctrl_obi_req;
+  xheep_obi_rsp_t dotprod_ctrl_obi_rsp;
+  xheep_obi_req_t [1:0] dotprod_gmem_obi_req;
+  xheep_obi_rsp_t [1:0] dotprod_gmem_obi_rsp;
+`endif
+
+  x_heep_system #(
+`ifdef USE_HLS_EXAMPLE
+      .EXT_XBAR_NMASTER(2)
+`endif
+  ) x_heep_system_i (
       .hart_id_i('0),
       .xheep_instance_id_i('0),
       .intr_vector_ext_i('0),
@@ -629,6 +647,27 @@ module xilinx_core_v_mini_mcu_wrapper
       .ext_dma_addr_resp_i('0),
 `endif
 `else
+`ifdef USE_HLS_EXAMPLE
+      // dot_product's gmem_a/gmem_b OBI masters go through the real
+      // system crossbar (2 external masters).
+      .ext_xbar_master_req_i(dotprod_gmem_obi_req),
+      .ext_xbar_master_resp_o(dotprod_gmem_obi_rsp),
+      .ext_core_instr_req_o(),
+      .ext_core_instr_resp_i('0),
+      // Only the CPU data master can reach dot_product's CTRL slave --
+      // a direct 1-to-1 tap on its dedicated external-slave demux output,
+      // no crossbar involved.
+      .ext_core_data_req_o(dotprod_ctrl_obi_req),
+      .ext_core_data_resp_i(dotprod_ctrl_obi_rsp),
+      .ext_debug_master_req_o(),
+      .ext_debug_master_resp_i('0),
+      .ext_dma_read_req_o(),
+      .ext_dma_read_resp_i('0),
+      .ext_dma_write_req_o(),
+      .ext_dma_write_resp_i('0),
+      .ext_dma_addr_req_o(),
+      .ext_dma_addr_resp_i('0),
+`else
       .ext_xbar_master_req_i('0),
       .ext_xbar_master_resp_o(),
       .ext_core_instr_req_o(),
@@ -643,6 +682,7 @@ module xilinx_core_v_mini_mcu_wrapper
       .ext_dma_write_resp_i('0),
       .ext_dma_addr_req_o(),
       .ext_dma_addr_resp_i('0),
+`endif
 `endif
       .ext_peripheral_slave_req_o(),
       .ext_peripheral_slave_resp_i('0),
@@ -744,6 +784,31 @@ module xilinx_core_v_mini_mcu_wrapper
       .dma_done_o()
 
   );
+
+`ifdef USE_HLS_EXAMPLE
+`ifndef PS_ENABLE
+  // HLS-generated streaming dot-product accelerator -- see
+  // hw/fpga/hls/vitis/dot_product/rtl/dot_product_xheep_wrapper.sv.
+  // Only wired up for the plain (non-PS) FPGA boards, pynq-z2 included;
+  // see the ext_xbar_master_req_i/ext_core_data_req_o connections above.
+  dot_product_xheep_wrapper #(
+      .obi_req_t(xheep_obi_req_t),
+      .obi_rsp_t(xheep_obi_rsp_t)
+  ) dot_product_wrapper_i (
+      .clk_i (clk_gen),
+      .rst_ni(rst_n),
+
+      .ctrl_obi_req_i(dotprod_ctrl_obi_req),
+      .ctrl_obi_rsp_o(dotprod_ctrl_obi_rsp),
+
+      .gmem_a_obi_req_o(dotprod_gmem_obi_req[0]),
+      .gmem_a_obi_rsp_i(dotprod_gmem_obi_rsp[0]),
+
+      .gmem_b_obi_req_o(dotprod_gmem_obi_req[1]),
+      .gmem_b_obi_rsp_i(dotprod_gmem_obi_rsp[1])
+  );
+`endif
+`endif
 
   assign exit_value_o = exit_value[0];
 

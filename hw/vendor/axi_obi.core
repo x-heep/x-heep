@@ -21,11 +21,26 @@ filesets:
     - pulp_platform/axi_obi/src/obi_to_axi.sv
     file_type: systemVerilogSource
 
+  axi_to_obi:
+    depend:
+    - pulp-platform.org::obi
+    - pulp-platform.org::common_cells
+    - pulp-platform.org::axi
+    files:
+    - pulp_platform/axi_obi/src/axi_to_detailed_mem_user.sv
+    - pulp_platform/axi_obi/src/axi_to_obi.sv
+    file_type: systemVerilogSource
+
 targets:
   default:
     filesets:
     - obi_to_axi
+    - axi_to_obi
 
   obi_to_axi:
     filesets:
     - obi_to_axi
+
+  axi_to_obi:
+    filesets:
+    - axi_to_obi

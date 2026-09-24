@@ -1,0 +1,25 @@
+// Copyright 2026 EPFL
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+//
+// Waivers for pulp_platform/axi_obi (axi_to_obi.sv / obi_to_axi.sv /
+// axi_to_detailed_mem_user.sv), first pulled into an X-HEEP Verilator build
+// by the HLS dot-product accelerator example
+// (hw/fpga/hls/vitis/dot_product), which is the first consumer to exercise
+// these code paths.
+
+`verilator_config
+
+// obi_to_axi.sv declares 'data_offset'/'rdata_offset' as
+// [$clog2(AxiDataWidth/ObiCfg.DataWidth)-1:0], which degenerates to [-1:0]
+// whenever AXI and OBI share the same data width (no width conversion
+// needed) -- exactly the case for a same-width AXI4-Lite CTRL passthrough.
+// Harmless zero-width vector, not a real bug.
+lint_off -rule ASCRANGE -file "*/pulp_platform/axi_obi/src/obi_to_axi.sv" -match "Ascending bit range vector: left < right of bit range: [-1:0]"
+
+// False-positive combinational-loop flags on axi_to_obi's internal
+// read-arbitration FSM (axi_to_detailed_mem_user's meta-tracking/arbiter
+// signals): the flagged path only affects metadata bookkeeping, not a real
+// timing loop.
+lint_off -rule UNOPTFLAT -file "*/pulp_platform/axi_obi/src/axi_to_detailed_mem_user.sv" -match "Signal unoptimizable: Circular combinational logic: '*meta_sel_d'"
+lint_off -rule UNOPTFLAT -file "*/pulp_platform/axi_obi/src/axi_to_detailed_mem_user.sv" -match "Signal unoptimizable: Circular combinational logic: '*arb_valid'"

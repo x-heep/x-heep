@@ -1,0 +1,15 @@
+// Copyright 2026 EPFL
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+//
+// Waivers for pulp_platform/obi, first pulled into an X-HEEP Verilator
+// build by the HLS dot-product accelerator example
+// (hw/fpga/hls/vitis/dot_product) via the axi_obi bridges.
+
+`verilator_config
+
+// obi_mux.sv declares two modules, 'obi_mux' (used) and 'obi_mux_intf'
+// (an SV-interface-based wrapper around it that X-HEEP never instantiates
+// or vendors an OBI_BUS interface for) -- a one-file-two-modules vendor
+// layout, not something we can rename without diverging from upstream.
+lint_off -rule DECLFILENAME -file "*/pulp_platform/obi/src/obi_mux.sv" -match "Filename 'obi_mux' does not match MODULE name: 'obi_mux_intf'"

@@ -27,3 +27,9 @@ lint_off -rule UNSUPPORTED -file "*/pulp_platform/common_cells/src/fifo_v3.sv" -
 // In Verilator 4.220, matching on the hierarchy text ("In instance ... serial_link_xheep_wrapper_i... serial_link_data_link.i_flow_control_fifo.fifo_i, the problem comes from the V4.220 not being able to correctly parse dtype for logic, which happens in channel allocation for a single channel")
 lint_off -rule WIDTH  -file "*pulp_platform/common_cells/src/fifo_v3.sv"   -match "*Operator ASSIGNDLY expects 448 bits on the Assign RHS, but Assign RHS's REPLICATE generates 56 bits*"
 
+// False-positive combinational-loop flag on stream_to_mem's internal
+// ready/valid handshake (used by axi_obi's axi_to_obi, first pulled in by
+// the HLS dot-product accelerator example): the path only propagates a
+// request-ready handshake signal, not a real timing loop.
+lint_off -rule UNOPTFLAT -file "*/pulp_platform/common_cells/src/stream_to_mem.sv" -match "Signal unoptimizable: Circular combinational logic: '*req_ready'"
+

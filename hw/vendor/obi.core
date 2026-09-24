@@ -17,6 +17,9 @@ filesets:
     - pulp-platform.org::common_cells
     files:
     - pulp_platform/obi/src/obi_pkg.sv
+    - pulp_platform/obi/include/obi/assign.svh: {is_include_file: true, include_path: pulp_platform/obi/include}
+    - pulp_platform/obi/include/obi/typedef.svh: {is_include_file: true, include_path: pulp_platform/obi/include}
+    - pulp_platform/obi/src/obi_mux.sv
     file_type: systemVerilogSource
 
 targets:

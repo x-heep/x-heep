@@ -32,6 +32,8 @@ filesets:
     - lint/fpu_ss.vlt
     - lint/serial_link.vlt
     - lint/axi.vlt
+    - lint/axi_obi.vlt
+    - lint/obi.vlt
     - lint/quadrilatero.vlt
     - lint/opentitan.vlt
     file_type: vlt
@@ -45,6 +47,8 @@ generate:
       - lint/cv32e40p_v5.vlt
       - lint/cve2_v5.vlt
       - lint/axi_v5.vlt
+      - lint/axi_obi_v5.vlt
+      - lint/obi_v5.vlt
       - lint/register_interface_v5.vlt
 
 targets:

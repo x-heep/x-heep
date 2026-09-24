@@ -1,0 +1,21 @@
+CAPI=2:
+
+name: "x-heep:ip:xheep_axi_to_obi_bridge"
+description: "PULP AXI to X-HEEP flat OBI bridge wrapper."
+
+
+filesets:
+  rtl:
+    depend:
+    - x-heep::packages
+    - pulp-platform.org::obi
+    - pulp-platform.org::axi
+    - pulp-platform.org::axi_obi
+    files:
+    - rtl/xheep_axi_to_obi_bridge.sv
+    file_type: systemVerilogSource
+
+targets:
+  default:
+    filesets:
+    - rtl

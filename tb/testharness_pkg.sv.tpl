@@ -9,11 +9,11 @@ package testharness_pkg;
   import addr_map_rule_pkg::*;
   import core_v_mini_mcu_pkg::*;
 
-  localparam EXT_XBAR_NMASTER = 8;
+  localparam EXT_XBAR_NMASTER = 10;
 `ifdef SIM_SYSTEMC
   localparam EXT_XBAR_NSLAVE = 1;
 `else
-  localparam EXT_XBAR_NSLAVE = ${2 + (1 if user_peripheral_domain.contains_peripheral('serial_link_reg') else 0)};
+  localparam EXT_XBAR_NSLAVE = ${3 + (1 if user_peripheral_domain.contains_peripheral('serial_link_reg') else 0)};
 `endif
 
   //master idx
@@ -25,6 +25,9 @@ package testharness_pkg;
   localparam logic [31:0] EXT_MASTER5_IDX = 5;
   localparam logic [31:0] EXT_MASTER6_IDX = 6;
   localparam logic [31:0] EXT_MASTER7_IDX = 7;
+  // Dot-product accelerator's own AXI4 read masters, bridged to OBI.
+  localparam logic [31:0] EXT_MASTER8_IDX = 8;
+  localparam logic [31:0] EXT_MASTER9_IDX = 9;
 
 `ifdef SIM_SYSTEMC
   localparam logic [31:0] SLOW_MEMORY_START_ADDRESS = core_v_mini_mcu_pkg::EXT_SLAVE_START_ADDRESS;
@@ -47,6 +50,15 @@ package testharness_pkg;
     localparam logic [31:0] SL_EXT_IDX = 32'd2;
   % endif
 
+  // Dot-product accelerator's AXI4-Lite CTRL port, bridged as a plain OBI
+  // slave (addresses, size, result, ap_start/ap_done/...). Placed well
+  // past the slow-memory/serial-link regions above so its index/address
+  // never collide with them regardless of which peripherals are enabled.
+  localparam logic [31:0] DOT_PRODUCT_CTRL_START_ADDRESS = core_v_mini_mcu_pkg::EXT_SLAVE_START_ADDRESS + 32'h20000;
+  localparam logic [31:0] DOT_PRODUCT_CTRL_SIZE = 32'h1000;
+  localparam logic [31:0] DOT_PRODUCT_CTRL_END_ADDRESS = DOT_PRODUCT_CTRL_START_ADDRESS + DOT_PRODUCT_CTRL_SIZE;
+  localparam logic [31:0] DOT_PRODUCT_CTRL_IDX = ${2 + (1 if user_peripheral_domain.contains_peripheral('serial_link_reg') else 0)};
+
   localparam addr_map_rule_t [EXT_XBAR_NSLAVE-1:0] EXT_XBAR_ADDR_RULES = '{
       '{
           idx: SLOW_MEMORY0_IDX,
@@ -65,6 +77,14 @@ package testharness_pkg;
       ,
       '{idx: SL_EXT_IDX, start_addr: SL_EXT_START_ADDRESS, end_addr: SL_EXT_END_ADDRESS}
       %endif
+`ifndef SIM_SYSTEMC
+      ,
+      '{
+          idx: DOT_PRODUCT_CTRL_IDX,
+          start_addr: DOT_PRODUCT_CTRL_START_ADDRESS,
+          end_addr: DOT_PRODUCT_CTRL_END_ADDRESS
+      }
+`endif
   };
 
   //slave encoder

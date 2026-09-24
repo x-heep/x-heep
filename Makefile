@@ -167,6 +167,7 @@ mcu-gen:
 
 	$(MAKE) verible
 	$(MAKE) format-python
+	@$(PYTHON) util/print_mcu_config.py --config $(X_HEEP_CFG) --cpu $(CPU) --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL)
 
 ## Display mcu_gen.py help
 mcu-gen-help:

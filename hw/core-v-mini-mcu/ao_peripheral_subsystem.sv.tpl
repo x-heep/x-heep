@@ -5,7 +5,7 @@
 <%
   base_peripheral_domain = xheep.get_base_peripheral_domain()
   if base_peripheral_domain.contains_peripheral('w25q128jw_controller'):
-    w25 = xheep.get_base_peripheral_domain().get_W25Q128JW_controller()
+    w25 = xheep.get_base_peripheral_domain().get_peripheral("w25q128jw_controller")
     cache = w25.get_cache()
   else:
     cache = 0
@@ -463,7 +463,7 @@ module ao_peripheral_subsystem
       .intr_timer_expired_1_0_o(rv_timer_1_intr_o)
   );
 
-% if base_peripheral_domain.contains_peripheral('dma') and xheep.get_base_peripheral_domain().get_dma().get_is_included():
+% if base_peripheral_domain.contains_peripheral('dma') and xheep.get_base_peripheral_domain().get_peripheral("dma").get_is_included():
 
   dma_subsystem #(
       .reg_req_t  (reg_req_t),

@@ -16,8 +16,8 @@
 <%
   user_peripheral_domain = xheep.get_user_peripheral_domain()
   base_peripheral_domain = xheep.get_base_peripheral_domain()
-  dma = base_peripheral_domain.get_dma()
-  external_domains = base_peripheral_domain.get_power_manager().get_external_domains()
+  dma = base_peripheral_domain.get_peripheral("dma")
+  external_domains = base_peripheral_domain.get_peripheral("power_manager").get_external_domains()
   memory_ss = xheep.memory_ss()
   address_map = xheep.address_map()
   interrupts = xheep.get_interrupts()

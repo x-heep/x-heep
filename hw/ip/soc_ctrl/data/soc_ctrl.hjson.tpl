@@ -6,7 +6,7 @@
 <%
   user_peripheral_domain = xheep.get_user_peripheral_domain()
   base_peripheral_domain = xheep.get_base_peripheral_domain()
-  dma = base_peripheral_domain.get_dma()
+  dma = base_peripheral_domain.get_peripheral("dma")
 %>
 
 { name: "soc_ctrl"

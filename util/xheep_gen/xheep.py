@@ -5,23 +5,29 @@
 # Author(s): marinPh, David Mallasén
 # Description: X-HEEP System configuration.
 
-from copy import deepcopy
 
 from bus_type import BusType
-from debug_ss.debug_ss import DebugSS
-from memory_ss.memory_ss import MemorySS
+from system import System
 from cpu.cpu import CPU
-from cv_x_if import CvXIf
-from address_map.address_map import AddressMap
-from peripherals.abstractions import PeripheralDomain
-from peripherals.base_peripherals_domain import BasePeripheralDomain
-from peripherals.user_peripherals_domain import UserPeripheralDomain
-from pads.pad_ring import PadRing
+from peripherals.peripheral_domain import PeripheralDomain
 from linker_script.linker_script import LinkerScript
 from interrupts.interrupts import Interrupts
+from peripherals.base_peripherals import (
+    Bootrom,
+    DMA,
+    Ext_peripheral,
+    Fast_intr_ctrl,
+    Power_manager,
+    RV_timer_ao,
+    SOC_ctrl,
+    SPI_flash,
+    W25Q128JW_Controller,
+)
+
+from copy import deepcopy
 
 
-class XHeep:
+class XHeep(System):
     """
     Represents the whole X-HEEP system.
 
@@ -34,124 +40,101 @@ class XHeep:
     IL_COMPATIBLE_BUS_TYPES = [BusType.NtoM]
     """Constant set of bus types that support interleaved memory banks"""
 
-    def __init__(
-        self,
-        bus_type: BusType,
-    ):
-        if not type(bus_type) is BusType:
-            raise TypeError(
-                f"XHeep.bus_type should be of type BusType not {type(self._bus_type)}"
-            )
+    AVAILABLE_CPUS = ["cv32e20", "cv32e40p", "cv32e40px", "cv32e40x"]
+    """Constant list of CPU names available for X-HEEP."""
 
-        self._cpu = None
-        self._xif: CvXIf = None
-        self._bus_type: BusType = bus_type
-        self._memory_ss = None
-        self._debug_ss = None
+    _default_base_peripherals = [
+        SOC_ctrl(),
+        Bootrom(),
+        SPI_flash(),
+        DMA(),
+        Power_manager(),
+        RV_timer_ao(),
+        Fast_intr_ctrl(),
+        Ext_peripheral(),
+    ]
+
+    def __init__(self):
+        super().__init__()
         self._linker_script_config: LinkerScript = None
-        self._address_map: AddressMap = None
-        self._base_peripheral_domain = None
-        self._user_peripheral_domain = None
-        self._padring: PadRing = None
         self._interrupts: Interrupts = None
-        self._extensions = {}
 
     # ------------------------------------------------------------
-    # CPU
+    # Peripheral Domains
     # ------------------------------------------------------------
 
-    def set_cpu(self, cpu: CPU):
+    def add_peripheral_domain(self, domain: PeripheralDomain):
         """
-        Sets the CPU of the system.
+        Add a peripheral domain to the system. The domain should already contain all peripherals well configured.
 
-        :param CPU cpu: The CPU to set.
-        :raise TypeError: when cpu is of incorrect type.
-        """
-        if not isinstance(cpu, CPU):
-            raise TypeError(f"XHeep.cpu should be of type CPU not {type(self._cpu)}")
-        self._cpu = cpu
+        X-HEEP holds at most one base and one user peripheral domain, so a
+        domain replaces the one of the same kind if it is already present.
 
-    def cpu(self) -> CPU:
+        :param PeripheralDomain domain: The domain to add.
+        :raise ValueError: when the domain is neither a base nor a user peripheral domain.
         """
-        :return: the configured CPU
-        :rtype: CPU
-        """
-        return self._cpu
+        if domain.get_name() not in [
+            "base_peripheral_domain",
+            "user_peripheral_domain",
+        ]:
+            raise ValueError("Domain is neither a base nor a user peripheral domain.")
+        existing = self._find_domain(domain.get_name())
+        if existing is not None:
+            self.remove_domain(existing.get_name())
+        self.add_domain(domain)
 
-    # ------------------------------------------------------------
-    # CORE-V eXtension Interface (CV-X-IF)
-    # ------------------------------------------------------------
-
-    def set_xif(self, xif: CvXIf):
+    def get_base_peripheral_domain(self):
         """
-        Sets the configuration of the CORE-V eXtension Interface (CV-X-IF).
-
-        :param CvXIf xif: CV-X-IF instance with the desired paramters.
-
-        :raise TypeError: when xif is of incorrect type.
+        :return: The base peripheral domain, `None` if not present.
+        :rtype: PeripheralDomain
         """
-        if not isinstance(xif, CvXIf):
-            raise TypeError(f"XHeep.xif should be of type CvXIf not {type(xif)}")
-        self._xif = xif
+        return self._find_domain("base_peripheral_domain")
 
-    def xif(self) -> CvXIf:
+    def get_user_peripheral_domain(self):
         """
-        :return: the configured CV-X-IF
-        :rtype: CvXIf
+        :return: The user peripheral domain, `None` if not present.
+        :rtype: PeripheralDomain
         """
-        return self._xif
+        return self._find_domain("user_peripheral_domain")
 
-    # ------------------------------------------------------------
-    # Bus
-    # ------------------------------------------------------------
+    def are_base_peripherals_configured(self) -> bool:
+        """
+        :return: `True` if the base peripherals are configured, `False` otherwise.
+        :rtype: bool
+        """
+        return self._find_domain("base_peripheral_domain") is not None
 
-    def set_bus_type(self, bus_type: BusType):
+    def are_user_peripherals_configured(self) -> bool:
         """
-        Sets the bus type of the system.
+        :return: `True` if the user peripherals are configured, `False` otherwise.
+        :rtype: bool
+        """
+        return self._find_domain("user_peripheral_domain") is not None
 
-        :param BusType bus_type: The bus type to set.
-        :raise TypeError: when bus_type is of incorrect type.
+    def add_missing_peripherals(self):
         """
-        if not type(bus_type) is BusType:
-            raise TypeError(
-                f"XHeep.bus_type should be of type BusType not {type(self._bus_type)}"
-            )
-        self._bus_type = bus_type
+        Add missing peripherals to the domain.
+        """
+        # Add all default peripherals
+        peripherals_to_add = [deepcopy(p) for p in self._default_base_peripherals]
 
-    def bus_type(self) -> BusType:
-        """
-        :return: the configured bus type
-        :rtype: BusType
-        """
-        return self._bus_type
+        domain = self.get_base_peripheral_domain()
 
-    # ------------------------------------------------------------
-    # Memory
-    # ------------------------------------------------------------
+        # Remove peripherals that are already in the domain to obtain the list of missing peripherals
+        for peripheral in domain.get_peripherals():
+            for p in peripherals_to_add:
+                if type(peripheral) == type(p):
+                    peripherals_to_add.remove(p)
+                    break
 
-    def set_memory_ss(self, memory_ss: MemorySS):
-        """
-        Sets the memory subsystem of the system.
-
-        :param MemorySS memory_ss: The memory subsystem to set.
-        :raise TypeError: when memory_ss is of incorrect type.
-        """
-        if not isinstance(memory_ss, MemorySS):
-            raise TypeError(
-                f"XHeep.memory_ss should be of type MemorySS not {type(self._memory_ss)}"
-            )
-        self._memory_ss = memory_ss
-
-    def memory_ss(self) -> MemorySS:
-        """
-        :return: the configured memory subsystem
-        :rtype: MemorySS
-        """
-        return self._memory_ss
+        # Add the missing peripherals
+        for p in peripherals_to_add:
+            domain.add_peripheral(p)
 
     # ------------------------------------------------------------
     # Linker Script Configuration
     # ------------------------------------------------------------
+
     def set_linker_script_config(self, linker_script_config: LinkerScript):
         """
         Sets the linker script configuration for stack and heap sizes.
@@ -188,105 +171,6 @@ class XHeep:
         return self._linker_script_config.heap_size()
 
     # ------------------------------------------------------------
-    # Debug Subsystem
-    # ------------------------------------------------------------
-
-    def set_debug_ss(self, debug_ss: DebugSS):
-        """
-        Sets the debug subsystem of the system.
-
-        :param DebugSS debug_ss: The debug subsystem to set.
-        :raise TypeError: when debug_ss is of incorrect type.
-        """
-        if not isinstance(debug_ss, DebugSS):
-            raise TypeError(
-                f"XHeep.debug_ss should be of type DebugSS not {type(self._debug_ss)}"
-            )
-        self._debug_ss = debug_ss
-
-    def debug_ss(self) -> DebugSS:
-        """
-        :return: the configured debug subsystem
-        :rtype: DebugSS
-        """
-        return self._debug_ss
-
-    # ------------------------------------------------------------
-    # Address Map
-    # ------------------------------------------------------------
-
-    def set_address_map(self, address_map: AddressMap):
-        """
-        Sets the address map of the system.
-
-        :param AddressMap address_map: The address map to set.
-        :raise TypeError: when address_map is of incorrect type.
-        """
-        if not isinstance(address_map, AddressMap):
-            raise TypeError(
-                f"XHeep.address_map should be of type AddressMap not {type(self._address_map)}"
-            )
-        self._address_map = address_map
-
-    def address_map(self) -> AddressMap:
-        """
-        :return: the system's top-level address map.
-        :rtype: AddressMap
-        """
-        return self._address_map
-
-    # ------------------------------------------------------------
-    # Peripherals
-    # ------------------------------------------------------------
-
-    def are_base_peripherals_configured(self) -> bool:
-        """
-        :return: `True` if the base peripherals are configured, `False` otherwise.
-        :rtype: bool
-        """
-        return self._base_peripheral_domain is not None
-
-    def are_user_peripherals_configured(self) -> bool:
-        """
-        :return: `True` if the user peripherals are configured, `False` otherwise.
-        :rtype: bool
-        """
-        return self._user_peripheral_domain is not None
-
-    def add_peripheral_domain(self, domain: PeripheralDomain):
-        """
-        Add a peripheral domain to the system. The domain should already contain all peripherals well configured. When adding a domain, a deepcopy is made to avoid side effects.
-
-        :param PeripheralDomain domain: The domain to add.
-        """
-        if isinstance(domain, BasePeripheralDomain):
-            self._base_peripheral_domain = deepcopy(domain)
-        elif isinstance(domain, UserPeripheralDomain):
-            self._user_peripheral_domain = deepcopy(domain)
-        else:
-            raise ValueError(
-                "Domain is neither a BasePeripheralDomain nor a UserPeripheralDomain"
-            )
-
-    def get_user_peripheral_domain(self):
-        """
-        Returns a deepcopy of the user peripheral domain.
-
-        :return: The user peripheral domain.
-        :rtype: UserPeripheralDomain
-        """
-        return deepcopy(self._user_peripheral_domain)
-
-    def get_base_peripheral_domain(self):
-        """
-        Returns a deepcopy of the base peripheral domain.
-
-        :return: The base peripheral domain.
-        :rtype: BasePeripheralDomain
-        """
-        return deepcopy(self._base_peripheral_domain)
-
-    # ------------------------------------------------------------
     # Interrupts
     # ------------------------------------------------------------
 
@@ -311,59 +195,6 @@ class XHeep:
         return self._interrupts
 
     # ------------------------------------------------------------
-    # Pad Ring
-    # ------------------------------------------------------------
-
-    def set_padring(self, pad_ring: PadRing):
-        """
-        Sets the pad ring of the system.
-
-        :param PadRing pad_ring: The pad ring to set.
-        :raise TypeError: when pad_ring is of incorrect type.
-        """
-        if not isinstance(pad_ring, PadRing):
-            raise TypeError(
-                f"xheep.get_padring() should be of type PadRing not {type(self._padring)}"
-            )
-        self._padring = pad_ring
-
-    def get_padring(self):
-        return self._padring
-
-    # ------------------------------------------------------------
-    # Extensions
-    # ------------------------------------------------------------
-
-    def add_extension(self, name, extension):
-        """
-        Register an external extension or configuration (object, dict, etc.).
-
-        :param str name: Name of the extension.
-        :param Any extension: The extension object.
-        """
-        self._extensions[name] = extension
-
-    def get_extension(self, name):
-        """
-        Retrieve a previously registered extension.
-
-        :param str name: Name of the extension.
-        :return: The extension object.
-        :rtype: Any
-        """
-        return self._extensions.get(name, None)
-
-    def is_extension_defined(self, name):
-        """
-        Check if an extension is defined.
-
-        :param str name: Name of the extension.
-        :return: `True` if the extension is defined, `False` otherwise.
-        :rtype: bool
-        """
-        return name in self._extensions
-
-    # ------------------------------------------------------------
     # Build and Validate
     # ------------------------------------------------------------
 
@@ -372,18 +203,9 @@ class XHeep:
         Makes the system ready to be used.
         """
 
-        if self.memory_ss():
-            self.memory_ss().build()
+        super().build()
         if self.linker_script():
             self.linker_script().build(self.memory_ss().linker_data_region_size())
-        if self.address_map() and self.are_base_peripherals_configured():
-            self._base_peripheral_domain.build(
-                self.address_map().get_region("base_peripheral_domain").get_length()
-            )
-        if self.address_map() and self.are_user_peripherals_configured():
-            self._user_peripheral_domain.build(
-                self.address_map().get_region("user_peripheral_domain").get_length()
-            )
         if self._interrupts:
             self._interrupts.build()
 
@@ -395,6 +217,10 @@ class XHeep:
         """
         if not self.cpu():
             raise RuntimeError("[MCU-GEN] ERROR: A CPU must be configured")
+        if self.cpu().get_name() not in self.get_available_cpus():
+            raise RuntimeError(
+                f"[MCU-GEN] ERROR: CPU {self.cpu().get_name()} is not available for XHeep. Available CPUs: {', '.join(self.get_available_cpus())}"
+            )
 
         if not self.memory_ss():
             raise RuntimeError("[MCU-GEN] ERROR: A memory subsystem must be configured")
@@ -419,18 +245,34 @@ class XHeep:
         self.address_map().validate()
 
         if self.are_base_peripherals_configured():
-            self._base_peripheral_domain.validate(
-                self.address_map().get_region("base_peripheral_domain").get_length(),
-                self._bus_type,
-            )
+            bp = self.get_base_peripheral_domain()
+            bp.validate()
+            for peripheral in bp.get_peripherals():
+                if isinstance(peripheral, DMA):
+                    peripheral.validate()
+                if type(peripheral) == W25Q128JW_Controller:
+                    peripheral.validate(self._bus_type)
+            # Check if all base peripherals are added
+            missing = []
+            for default_peripheral in self._default_base_peripherals:
+                added = False
+                for peripheral in bp.get_peripherals():
+                    if type(peripheral) == type(default_peripheral):
+                        added = True
+                        break
+                if not added:
+                    missing.append(default_peripheral.get_name())
+
+            if missing:
+                raise RuntimeError(
+                    f"[MCU-GEN] ERROR: Missing base peripherals in domain {bp.get_name()}: {', '.join(missing)}"
+                )
         else:
             raise RuntimeError(
                 "[MCU-GEN] ERROR: Base peripheral domain must be configured"
             )
         if self.are_user_peripherals_configured():
-            self._user_peripheral_domain.validate(
-                self.address_map().get_region("user_peripheral_domain").get_length()
-            )
+            self.get_user_peripheral_domain().validate()
         else:
             raise RuntimeError(
                 "[MCU-GEN] ERROR: User peripheral domain must be configured"

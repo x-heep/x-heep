@@ -24,7 +24,10 @@ from memory_ss.linker_section import LinkerSection
 from memory_ss.linker_subsection import LinkerSubsection
 from linker_script.linker_script import LinkerScript
 from peripherals.peripheral_config_loader import load_peripherals_config
-from xheep import BusType, XHeep, CvXIf, PadRing
+from xheep import XHeep
+from bus_type import BusType
+from cv_x_if import CvXIf
+from pads.pad_ring import PadRing
 
 
 def to_int(input) -> Union[int, None]:
@@ -380,7 +383,8 @@ def load_cfg_hjson(src: str) -> XHeep:
     if cpu_type_config is None:
         raise RuntimeError("No CPU type configuration found")
 
-    system = XHeep(BusType(bus_config))
+    system = XHeep()
+    system.set_bus_type(BusType(bus_config))
     memory_ss = MemorySS()
 
     load_ram_config(memory_ss, mem_config)

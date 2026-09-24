@@ -71,7 +71,8 @@
 //   - Standardized register and window interface integration for memory-mapped access.
 
 <%
-    pdm2pcm = xheep.get_user_peripheral_domain().get_pdm2pcm()
+    _dom = xheep.get_user_peripheral_domain()
+    pdm2pcm = _dom.get_peripheral("pdm2pcm") if _dom is not None and _dom.contains_peripheral("pdm2pcm") else None
     if pdm2pcm is None :
         cic_mode = -1
     else :

@@ -16,7 +16,7 @@
 //              Michele Caon <michele.caon@epfl.ch>
 
 <%
-  dma = xheep.get_base_peripheral_domain().get_dma()
+  dma = xheep.get_base_peripheral_domain().get_peripheral("dma")
   memory_ss = xheep.memory_ss()
   user_peripheral_domain = xheep.get_user_peripheral_domain()
 %>

@@ -4,11 +4,11 @@
 
 <%
     memory_ss = xheep.memory_ss()
-    external_domains = xheep.get_base_peripheral_domain().get_power_manager().get_external_domains()
+    external_domains = xheep.get_base_peripheral_domain().get_peripheral("power_manager").get_external_domains()
 
     base_peripheral_domain = xheep.get_base_peripheral_domain()
     if base_peripheral_domain.contains_peripheral('w25q128jw_controller'):
-        w25 = xheep.get_base_peripheral_domain().get_W25Q128JW_controller()
+        w25 = xheep.get_base_peripheral_domain().get_peripheral("w25q128jw_controller")
         cache = w25.get_cache()
     else:
         cache = 0
@@ -161,7 +161,7 @@ module power_manager import power_manager_pkg::*; #(
   assign w25_cache_pwr_ctrl_o.clkgate_en_n = ~reg2hw.ram_w25_cache_clk_gate.q;
 % endif
 
-% for channel in range(xheep.get_base_peripheral_domain().get_dma().get_num_channels()):
+% for channel in range(xheep.get_base_peripheral_domain().get_peripheral("dma").get_num_channels()):
   assign dma_subsystem_pwr_ctrl_o[${channel}].clkgate_en_n = ~reg2hw.dma_ch${channel}_clk_gate.q;
 % endfor
 

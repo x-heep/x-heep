@@ -56,7 +56,7 @@ wait_on_run xilinx_mem_gen_${num_words}_synth_1
 <%
   base_peripheral_domain = xheep.get_base_peripheral_domain()
   if base_peripheral_domain.contains_peripheral('w25q128jw_controller'):
-    w25 = xheep.get_base_peripheral_domain().get_W25Q128JW_controller()
+    w25 = base_peripheral_domain.get_peripheral('w25q128jw_controller')
     cache = w25.get_cache()
   else:
     cache = 0

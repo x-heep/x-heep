@@ -5,9 +5,9 @@
 <%
     user_peripheral_domain = xheep.get_user_peripheral_domain()
     base_peripheral_domain = xheep.get_base_peripheral_domain()
-    dma = base_peripheral_domain.get_dma()
+    dma = base_peripheral_domain.get_peripheral("dma")
     memory_ss = xheep.memory_ss()
-    external_domains = base_peripheral_domain.get_power_manager().get_external_domains()
+    external_domains = base_peripheral_domain.get_peripheral("power_manager").get_external_domains()
     address_map = xheep.address_map()
     interrupts = xheep.get_interrupts()
 %>
@@ -42,7 +42,7 @@ extern "C" {
 #define AO_PERIPHERAL_END_ADDRESS (AO_PERIPHERAL_START_ADDRESS + AO_PERIPHERAL_SIZE)
 
 % for peripheral in base_peripheral_domain.get_peripherals():
-% if peripheral.get_name() == 'dma' and not base_peripheral_domain.get_dma().get_is_included():
+% if peripheral.get_name() == 'dma' and not base_peripheral_domain.get_peripheral("dma").get_is_included():
 
 % else:
 #define ${peripheral.get_name().upper()}_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + ${hex(peripheral.get_address())})
@@ -55,7 +55,7 @@ extern "C" {
 
 // This section is here to have default values for the peripherals that are not included in the user peripheral domain. Their are used in their respective structs.h files.
 // Some other files, like applications main c file, use also some peripheral attributes but the file is not generated if the peripheral is not included in the user peripheral domain.
-% if not base_peripheral_domain.get_dma().get_is_included():
+% if not base_peripheral_domain.get_peripheral("dma").get_is_included():
 #define DMA_START_ADDRESS 0
 % endif
 % if not base_peripheral_domain.contains_peripheral('spi_flash'):

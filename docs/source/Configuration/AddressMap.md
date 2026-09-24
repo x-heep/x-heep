@@ -28,7 +28,7 @@ Regions must not overlap, and the last region must not extend beyond `0xFFFF_FFF
 
 ## Relationship with peripherals
 
-Peripheral domains ({py:class}`peripherals.base_peripherals.BasePeripheralDomain` and {py:class}`peripherals.user_peripherals.UserPeripheralDomain`) must be included in the address map as regions. Each domain has a base address and a length that define the memory space occupied by its peripherals. The individual peripherals inside a domain contain their own offsets and lengths, which are relative to the base address of the domain, so they do not have to be specified in the address map. The generator uses this information to compute the absolute addresses of each peripheral.
+Peripheral domains ({py:class}`peripherals.peripheral_domain.PeripheralDomain`) must be included in the address map as regions with the same name as the domain (`base_peripheral_domain` and `user_peripheral_domain`). Each domain has a base address and a length that define the memory space occupied by its peripherals. The individual peripherals inside a domain contain their own offsets and lengths, which are relative to the base address of the domain, so they do not have to be specified in the address map. The generator uses this information to compute the absolute addresses of each peripheral.
 
 For more information on how to configure peripherals, see the [Peripheral Configuration](./PeripheralConfiguration) guide.
 

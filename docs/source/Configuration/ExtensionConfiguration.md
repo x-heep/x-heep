@@ -7,9 +7,11 @@ To add an extension to the X-HEEP system, you can use the `add_extension()` meth
 
 ```python
 from xheep import XHeep
+from bus_type import BusType
 
 def config():
-    system = XHeep(BusType.NtoM)
+    system = XHeep()
+    system.set_bus_type(BusType.NtoM)
     ...
     system.add_extension("my_extension", extension_function())
 

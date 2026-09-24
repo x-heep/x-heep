@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 <%
-  dma = xheep.get_base_peripheral_domain().get_dma()
+  dma = xheep.get_base_peripheral_domain().get_peripheral("dma")
   dma_addr_mode = dma.get_addr_mode() == 1
   dma_subaddr_mode = dma.get_subaddr_mode() == 1
   dma_hw_fifo_mode = dma.get_hw_fifo_mode() == 1

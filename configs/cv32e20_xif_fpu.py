@@ -20,8 +20,7 @@ from peripherals.base_peripherals import (
     GPIO_ao,
 )
 
-from peripherals.base_peripherals_domain import BasePeripheralDomain
-from peripherals.user_peripherals_domain import UserPeripheralDomain
+from peripherals.peripheral_domain import PeripheralDomain
 
 from peripherals.user_peripherals import (
     RV_plic,
@@ -40,7 +39,9 @@ from interrupts.interrupts import Interrupts
 
 
 def config():
-    system = XHeep(BusType.NtoM)
+    system = XHeep()
+
+    system.set_bus_type(BusType.NtoM)
     system.set_cpu(cv32e20(rv32e=False, rv32m="RV32MFast"))
 
     system.set_xif(
@@ -92,8 +93,8 @@ def config():
     system.set_address_map(address_map)
 
     # Peripheral domains initialization
-    base_peripheral_domain = BasePeripheralDomain()
-    user_peripheral_domain = UserPeripheralDomain()
+    base_peripheral_domain = PeripheralDomain(name="base_peripheral_domain")
+    user_peripheral_domain = PeripheralDomain(name="user_peripheral_domain")
 
     # Base peripherals. All base peripherals must be added.
     base_peripheral_domain.add_peripheral(SOC_ctrl(0x00000000))

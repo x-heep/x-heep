@@ -5,7 +5,7 @@
 <%
     base_peripheral_domain = xheep.get_base_peripheral_domain()
     if base_peripheral_domain.contains_peripheral('w25q128jw_controller'):
-        w25 = xheep.get_base_peripheral_domain().get_W25Q128JW_controller()
+        w25 = base_peripheral_domain.get_peripheral('w25q128jw_controller')
         cache = w25.get_cache()
     else:
         cache = 0
@@ -37,7 +37,7 @@ module spi_subsystem
     // OpenTitan SPI configuration
     input  reg_req_t  ot_reg_req_i,
     output reg_rsp_t  ot_reg_rsp_o,
-    
+
     // w25q128jw flash controller configuration
     input  reg_req_t  flash_ctr_reg_req_i,
     output reg_rsp_t  flash_ctr_reg_rsp_o,

@@ -6,3 +6,4 @@ class BusType(Enum):
 
     onetoM = "onetoM"
     NtoM = "NtoM"
+    AXI = "AXI"

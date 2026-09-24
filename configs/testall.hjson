@@ -99,10 +99,6 @@
             offset:  0x00090000
             length:  0x00010000
         }
-        uart: {
-            offset:  0x000A0000
-            length:  0x00010000
-        }
     }
 
     peripherals: {
@@ -146,6 +142,11 @@
         }
         i2s: {
             offset:  0x00070000
+            length:  0x00010000
+            is_included: "yes"
+        }
+        uart: {
+            offset:  0x00080000
             length:  0x00010000
             is_included: "yes"
         }

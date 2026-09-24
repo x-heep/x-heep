@@ -68,7 +68,7 @@ class MemorySS:
             self._ram_next_idx += 1
 
         if section_name != "":
-            self.add_linker_section_for_banks(section_name, banks)
+            self.add_linker_section_for_banks(section_name, banks=banks)
         # Add all new banks if no error was raised
         self._ram_banks += banks
 

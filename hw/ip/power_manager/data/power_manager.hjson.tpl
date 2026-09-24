@@ -4,11 +4,11 @@
 
 <%
     memory_ss = xheep.memory_ss()
-    external_domains = xheep.get_base_peripheral_domain().get_power_manager().get_external_domains()
+    external_domains = xheep.get_base_peripheral_domain().get_peripheral("power_manager").get_external_domains()
 
     base_peripheral_domain = xheep.get_base_peripheral_domain()
     if base_peripheral_domain.contains_peripheral('w25q128jw_controller'):
-      w25 = xheep.get_base_peripheral_domain().get_W25Q128JW_controller()
+      w25 = xheep.get_base_peripheral_domain().get_peripheral("w25q128jw_controller")
       cache = w25.get_cache()
     else:
       cache = 0
@@ -236,7 +236,7 @@
       ]
     }
 
-% for channel in range(xheep.get_base_peripheral_domain().get_dma().get_num_channels()):
+% for channel in range(xheep.get_base_peripheral_domain().get_peripheral("dma").get_num_channels()):
     { name:     "DMA_CH${channel}_CLK_GATE",
       desc:     "Clock-gates the DMA CH${channel}",
       resval:   "0x00000000"

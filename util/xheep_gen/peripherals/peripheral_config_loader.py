@@ -9,8 +9,7 @@ import hjson
 
 from address_map.address_map import AddressMap
 from address_map.address_region import AddressRegion
-from peripherals.base_peripherals_domain import BasePeripheralDomain
-from peripherals.user_peripherals_domain import UserPeripheralDomain
+from peripherals.peripheral_domain import PeripheralDomain
 from peripherals.base_peripherals import (
     SOC_ctrl,
     Bootrom,
@@ -89,9 +88,8 @@ def load_peripherals_config(system, config: hjson.OrderedDict, address_map: Addr
                 fields=fields,
                 domain_type="base",
                 peripheral_factory_map=base_peripheral_factories,
-                domain_constructor=BasePeripheralDomain,
+                domain_name="base_peripheral_domain",
                 are_configured_check=system.are_base_peripherals_configured,
-                get_domain_attr=lambda: system._base_peripheral_domain,
             )
             address_map.add_region(
                 AddressRegion(
@@ -108,9 +106,8 @@ def load_peripherals_config(system, config: hjson.OrderedDict, address_map: Addr
                 fields=fields,
                 domain_type="user",
                 peripheral_factory_map=user_peripheral_factories,
-                domain_constructor=UserPeripheralDomain,
+                domain_name="user_peripheral_domain",
                 are_configured_check=system.are_user_peripherals_configured,
-                get_domain_attr=lambda: system._user_peripheral_domain,
             )
             address_map.add_region(
                 AddressRegion(
@@ -262,9 +259,8 @@ def _load_domain_peripherals(
     fields,
     domain_type,
     peripheral_factory_map,
-    domain_constructor,
+    domain_name,
     are_configured_check,
-    get_domain_attr,
 ):
     """
     Load peripherals for a specific domain (base or user) from configuration.
@@ -273,26 +269,18 @@ def _load_domain_peripherals(
     :param dict fields: The configuration fields for the peripheral domain
     :param str domain_type: The type of domain ("base" or "user")
     :param dict peripheral_factory_map: Mapping of peripheral names to factory functions for this domain
-    :param function domain_constructor: Constructor function for the peripheral domain
+    :param str domain_name: The name of the peripheral domain, matching its address map region
     :param function are_configured_check: Function to check if the domain is already configured
-    :param function get_domain_attr: Function to get the existing domain attribute from the system
     """
 
-    # Create peripheral domain if not already configured
-    domain = domain_constructor() if not are_configured_check() else None
-
-    if domain is None:
+    # A domain configured from the Python configuration takes over the hjson one
+    if are_configured_check():
         return
+    domain = PeripheralDomain(domain_name)
 
     # Iterate over all peripherals and create corresponding objects
     for peripheral_name, peripheral_config in fields.items():
         if peripheral_name in ["address", "length"]:
-            continue
-
-        # Skip if peripheral was already added by python configuration
-        if are_configured_check() and get_domain_attr().contains_peripheral(
-            peripheral_name
-        ):
             continue
 
         # Check if peripheral should be included

@@ -5,8 +5,8 @@
 
 set -eu
 
-RUN_FILE="openhwgroup.org_systems_core-v-mini-mcu_1.0.5_run.tcl"
-PROJECT_TCL="openhwgroup.org_systems_core-v-mini-mcu_1.0.5.tcl"
+RUN_FILE="openhwgroup.org_systems_core-v-mini-mcu_1.0.6_run.tcl"
+PROJECT_TCL="openhwgroup.org_systems_core-v-mini-mcu_1.0.6.tcl"
 PART_LINE='set_property part xcvp1802-lsvc4072-2MP-e-S [current_project]'
 SEGMENTED_LINE='set_property segmented_configuration true [current_project]'
 

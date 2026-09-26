@@ -175,7 +175,8 @@ set_property -dict {PACKAGE_PIN CD48 IOSTANDARD LVCMOS15} [get_ports {pdm2pcm_cl
 set_property -dict {PACKAGE_PIN CA49 IOSTANDARD LVCMOS15} [get_ports {pdm2pcm_pdm_io}] ; # FMCP1_LA04_P
 set_property -dict {PACKAGE_PIN CB50 IOSTANDARD LVCMOS15} [get_ports {i2s_sck_io}]     ; # FMCP1_LA04_N
 set_property -dict {PACKAGE_PIN CC43 IOSTANDARD LVCMOS15} [get_ports {i2s_ws_io}]      ; # FMCP1_LA05_P
-set_property -dict {PACKAGE_PIN CB44 IOSTANDARD LVCMOS15} [get_ports {i2s_sd_io}]      ; # FMCP1_LA05_N
+set_property -dict {PACKAGE_PIN CB44 IOSTANDARD LVCMOS15} [get_ports {i2s_sd_rx_io}]   ; # FMCP1_LA05_N
+set_property -dict {PACKAGE_PIN BW50 IOSTANDARD LVCMOS15} [get_ports {i2s_sd_tx_io}]   ; # FMCP1_LA12_N, shared I2S TX / GPIO 22 pad
 
 # -----------------------------------------------------------------------------
 # GPIO bank
@@ -193,7 +194,6 @@ set_property -dict {PACKAGE_PIN CD45 IOSTANDARD LVCMOS15} [get_ports {gpio_io[9]
 set_property -dict {PACKAGE_PIN CB51 IOSTANDARD LVCMOS15} [get_ports {gpio_io[10]}]  ; # FMCP1_LA11_P
 set_property -dict {PACKAGE_PIN CC52 IOSTANDARD LVCMOS15} [get_ports {gpio_io[11]}]  ; # FMCP1_LA11_N
 set_property -dict {PACKAGE_PIN BW49 IOSTANDARD LVCMOS15} [get_ports {gpio_io[12]}]  ; # FMCP1_LA12_P
-set_property -dict {PACKAGE_PIN BW50 IOSTANDARD LVCMOS15} [get_ports {gpio_io[13]}]  ; # FMCP1_LA12_N
 
 # -----------------------------------------------------------------------------
 # SPI master from x-heep_system

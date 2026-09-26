@@ -8,7 +8,7 @@
 {
   upstream:
   {
-    url: https://github.com/x-heep/x-heep-fpga-support.git
-    rev: 01103f05c9018d97962322e518593513d491b202
+    url: https://github.com/mohasnik/x-heep-fpga-support.git
+    rev: 0fd5a01686ca05914305a0cd6c1329ba914732b6
   }
 }

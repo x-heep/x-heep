@@ -81,7 +81,7 @@ set_property -dict { PACKAGE_PIN H24   IOSTANDARD LVCMOS12 } [get_ports { gpio_i
 set_property -dict { PACKAGE_PIN K19   IOSTANDARD LVCMOS12 } [get_ports { gpio_io[10] }]; # Sch=sw[3]
 set_property -dict { PACKAGE_PIN N19   IOSTANDARD LVCMOS12 } [get_ports { gpio_io[11] }]; # Sch=sw[4]
 set_property -dict { PACKAGE_PIN P19   IOSTANDARD LVCMOS12 } [get_ports { gpio_io[12] }]; # Sch=sw[5]
-set_property -dict { PACKAGE_PIN P26   IOSTANDARD LVCMOS33 } [get_ports { gpio_io[13] }]; # Sch=sw[6]
+set_property -dict { PACKAGE_PIN P26   IOSTANDARD LVCMOS33 } [get_ports { i2s_sd_tx_io }]; # Sch=sw[6], i2s_sd_tx pad, muxed with gpio_22
 
 ## FMA dummy
 set_property -dict { PACKAGE_PIN P27   IOSTANDARD LVCMOS33 } [get_ports { spi_slave_cs_io }]; # Sch=sw[7]
@@ -96,4 +96,4 @@ set_property -dict { PACKAGE_PIN K28   IOSTANDARD LVCMOS12 } [get_ports { pdm2pc
 ## I2S
 set_property -dict { PACKAGE_PIN L28   IOSTANDARD LVCMOS12 } [get_ports { i2s_sck_io }]; # Sch=fmc_ha_n[01]
 set_property -dict { PACKAGE_PIN M28   IOSTANDARD LVCMOS12 } [get_ports { i2s_ws_io }]; # Sch=fmc_ha_p[01]
-set_property -dict { PACKAGE_PIN P22   IOSTANDARD LVCMOS12 } [get_ports { i2s_sd_io }]; # Sch=fmc_ha_n[02]
+set_property -dict { PACKAGE_PIN P22   IOSTANDARD LVCMOS12 } [get_ports { i2s_sd_rx_io }]; # Sch=fmc_ha_n[02]

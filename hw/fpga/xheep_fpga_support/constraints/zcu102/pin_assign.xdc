@@ -77,7 +77,7 @@ set_property -dict {PACKAGE_PIN Y10 IOSTANDARD LVCMOS18} [get_ports {spi_slave_m
 set_property -dict {PACKAGE_PIN AB5 IOSTANDARD LVCMOS18} [get_ports {spi_slave_mosi_io}]
 set_property -dict {PACKAGE_PIN AB6 IOSTANDARD LVCMOS18} [get_ports {gpio_io[11]}]
 set_property -dict {PACKAGE_PIN U4 IOSTANDARD LVCMOS18} [get_ports {gpio_io[12]}]
-set_property -dict {PACKAGE_PIN U5 IOSTANDARD LVCMOS18} [get_ports {gpio_io[13]}]
+set_property -dict {PACKAGE_PIN U5 IOSTANDARD LVCMOS18} [get_ports {i2s_sd_tx_io}] ; # i2s_sd_tx pad, muxed with gpio_22
 
 # PDM2PCM
 set_property -dict {PACKAGE_PIN Y2 IOSTANDARD LVCMOS18} [get_ports pdm2pcm_clk_io]
@@ -86,7 +86,7 @@ set_property -dict {PACKAGE_PIN Y1 IOSTANDARD LVCMOS18} [get_ports pdm2pcm_pdm_i
 # I2S
 set_property -dict {PACKAGE_PIN V4 IOSTANDARD LVCMOS18} [get_ports i2s_sck_io]
 set_property -dict {PACKAGE_PIN V3 IOSTANDARD LVCMOS18} [get_ports i2s_ws_io]
-set_property -dict {PACKAGE_PIN W7 IOSTANDARD LVCMOS18} [get_ports i2s_sd_io]
+set_property -dict {PACKAGE_PIN W7 IOSTANDARD LVCMOS18} [get_ports i2s_sd_rx_io]
 
 # SPI2 -- NO LPC 
 set_property -dict {PACKAGE_PIN V11 IOSTANDARD LVCMOS18} [get_ports {spi2_csb_o[0]}]

@@ -1,4 +1,4 @@
-# Building Linux Image for VPK180 Target
+# FPGA VPK180: Building Linux Image
 
 Unlike some other X-HEEP-supported platforms, the VPK180 target may need a locally built Linux image instead of a pre-built package. This page gives brief instructions for building a minimal VPK180 Linux image with PetaLinux 2024.2. For more information, see:
 
@@ -187,7 +187,7 @@ mkdir -p project-spec/meta-user/recipes-devtools/openocd/files
 
 2. Create `project-spec/meta-user/recipes-devtools/openocd/openocd_%.bbappend` with:
 
-```bitbake
+```text
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
 # Use the OpenOCD upstream repo/revision expected by the X-HEEP helper flow.

@@ -4,12 +4,6 @@
 Windows/WSL2 users should configure usbipd, as outlined in the [Additional steps](#additional-steps-for-windowswsl2-users) section, before proceeding.
 ```
 
-Install the required linux tools:
-
-```
-$ sudo apt install pkg-config libftdi1-2
-```
-
 Compile the iceprog program by doing
 
 ```

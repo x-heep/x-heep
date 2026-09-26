@@ -1180,7 +1180,7 @@ dma_config_flags_t dma_launch( dma_trans_t *p_trans)
 
     
     while(    p_trans->end == DMA_TRANS_END_INTR_WAIT
-          && ( dma_subsys_per[channel].intrFlag != 0x0 ) ) {
+          && ( dma_subsys_per[channel].intrFlag == 0x0 ) ) {
             wait_for_interrupt();
     }
 

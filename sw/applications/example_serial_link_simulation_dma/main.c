@@ -28,7 +28,7 @@ static uint32_t copied_data_4B[TEST_DATA_LARGE] __attribute__((aligned(4))) = {0
 #if TARGET_SIM 
     #define EXT_SLAVE_LENGTH 0x400
     #define SL_EXTERNAL_WRITE  (int32_t *)(EXT_SLAVE_START_ADDRESS + EXT_SLAVE_LENGTH)
-    #define SL_EXTERNAL_CTRL_REG_ADDR  (int32_t *)(EXT_PERIPHERAL_START_ADDRESS + 0x06000 + SERIAL_LINK_SINGLE_CHANNEL_CTRL_REG_OFFSET)
+    #define SL_EXTERNAL_CTRL_REG_ADDR  (int32_t *)(EXT_PERIPHERAL_START_ADDRESS + 0x07000 + SERIAL_LINK_SINGLE_CHANNEL_CTRL_REG_OFFSET)
 #endif
 
 #if TARGET_SIM && PRINTF_IN_SIM
@@ -122,7 +122,6 @@ int main(int argc, char *argv[]){
     PRINTF("DONE\n");  
     return EXIT_SUCCESS;
 }
-
 
 
 

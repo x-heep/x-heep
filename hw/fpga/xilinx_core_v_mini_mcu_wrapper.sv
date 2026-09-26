@@ -177,7 +177,7 @@ module xilinx_core_v_mini_mcu_wrapper
     inout logic uart_tx_o,
 `endif
 
-    inout logic [13:0] gpio_io,
+    inout logic [12:0] gpio_io,
 
     output logic exit_value_o,
     inout  logic exit_valid_o,
@@ -205,9 +205,11 @@ module xilinx_core_v_mini_mcu_wrapper
     inout logic pdm2pcm_clk_io,
     inout logic pdm2pcm_pdm_io,
 
+    // Shared pads: mux 0 selects I2S, mux 1 selects GPIO 19/20/21/22.
     inout logic i2s_sck_io,
     inout logic i2s_ws_io,
-    inout logic i2s_sd_io
+    inout logic i2s_sd_rx_io,
+    inout logic i2s_sd_tx_io
 
 );
 
@@ -694,7 +696,6 @@ module xilinx_core_v_mini_mcu_wrapper
       .gpio_10_io(gpio_io[10]),
       .gpio_11_io(gpio_io[11]),
       .gpio_12_io(gpio_io[12]),
-      .gpio_13_io(gpio_io[13]),
 `ifndef NO_DDR_CLK_PORTS
       .ddr_rcv_clk_i,
       .ddr_snd_clk_o,
@@ -702,7 +703,7 @@ module xilinx_core_v_mini_mcu_wrapper
       .ddr_rcv_clk_i(1'b0),
       .ddr_snd_clk_o(),
 `endif
-      .spi_slave_sck_i(spi_slave_sck_io),  
+      .spi_slave_sck_io(spi_slave_sck_io),
       .spi_slave_cs_io(spi_slave_cs_io),
       .spi_slave_miso_io(spi_slave_miso_io),
       .spi_slave_mosi_io(spi_slave_mosi_io),
@@ -733,7 +734,8 @@ module xilinx_core_v_mini_mcu_wrapper
       .pdm2pcm_pdm_io,
       .i2s_sck_io(i2s_sck_io),
       .i2s_ws_io(i2s_ws_io),
-      .i2s_sd_io(i2s_sd_io),
+      .i2s_sd_rx_io(i2s_sd_rx_io),
+      .i2s_sd_tx_io(i2s_sd_tx_io),
       .ext_dma_slot_tx_i('0),
       .ext_dma_slot_rx_i('0),
       .ext_dma_stop_i('0),

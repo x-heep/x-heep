@@ -76,6 +76,9 @@
           ]
         }
         { bits: "11", name: "RESET_RX_OVERFLOW", desc: "reset rx overflow", hwaccess: "hrw"}
+        { bits: "12", name: "EN_TX", desc: "Enable TX channel" }
+        { bits: "13", name: "RESET_TX_UNDERFLOW", desc: "reset tx underflow", hwaccess: "hrw"}
+        { bits: "14", name: "RESET_TX_OVERFLOW", desc: "reset tx overflow", hwaccess: "hrw"}
       ]
     }
 
@@ -88,6 +91,9 @@
         { bits: "0", name: "RUNNING", desc: "1 to indicate that SCK is on"}
         { bits: "1", name: "RX_DATA_READY", desc: "1 to indicate that an RX sample is ready"}
         { bits: "2", name: "RX_OVERFLOW", desc: "1 to indicate that an RX happend - disable rx_channel to clear"}
+        { bits: "3", name: "TX_READY", desc: "1 to indicate that the TX FIFO can accept a sample"}
+        { bits: "4", name: "TX_UNDERFLOW", desc: "1 to indicate that TX needed a sample but the FIFO was empty"}
+        { bits: "5", name: "TX_OVERFLOW", desc: "1 to indicate that software wrote TXDATA while the TX FIFO was full"}
       ]
     }
 
@@ -130,6 +136,17 @@
       hwaccess: "hwo"
       fields: [
         { bits: "15:0", name: "Waterlevel", desc: "Count of RX samples"}
+      ]
+    }
+
+    // TX DATA
+    { name: "TXDATA"
+      desc: "I2s Transmit data"
+      swaccess: "rw"
+      hwaccess: "hro"
+      hwqe:   "true"
+      fields: [
+        { bits: "31:0", name: "TXDATA", desc: "TX sample to enqueue"}
       ]
     }
   ]

@@ -2,13 +2,7 @@
 
 ## Prerequisite
 
-1. Install the required linux tools:
-
-```
-sudo apt install pkg-config libftdi1-2
-```
-
-You need at least GCC>10, so in case you do not have it:
+1. You need at least GCC version >10. If your version is older, you can install GCC 10 and G++ 10 by running the following commands:
 
 ```
 sudo apt install gcc-10 g++-10

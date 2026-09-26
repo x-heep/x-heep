@@ -12,5 +12,5 @@ Check this section to run your design on the FPGA.
    AUP-ZU3
    Genesys2
    VPK_180
-   Petalinux_VPK180
+   VPK_180_Petalinux
    DEBUG_with_ILA

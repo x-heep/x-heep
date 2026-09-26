@@ -141,6 +141,9 @@ import serial_link_pkg::*;
   logic [NumChannels-1:0]       phy2alloc_data_in_valid;
   logic [NumChannels-1:0]       alloc2phy_data_in_ready;
 
+  // Network-layer credit-stall diagnostic. This top does not export it; an
+  // endpoint that needs it instantiates serial_link_network directly.
+  logic                         network_credit_blocked;
 
   ///////////////////////
   //   NETWORK LAYER   //
@@ -168,7 +171,8 @@ import serial_link_pkg::*;
     .axis_in_req_i  ( axis_in_req     ),
     .axis_in_rsp_o  ( axis_in_rsp     ),
     .axis_out_req_o ( axis_out_req    ),
-    .axis_out_rsp_i ( axis_out_rsp    )
+    .axis_out_rsp_i ( axis_out_rsp    ),
+    .credit_blocked_o ( network_credit_blocked )
   );
 
   /////////////////////////

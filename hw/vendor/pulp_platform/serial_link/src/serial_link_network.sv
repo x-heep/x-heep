@@ -35,7 +35,10 @@ module serial_link_network #(
   output axis_req_t axis_out_req_o,
   input  axis_rsp_t axis_out_rsp_i,
   input  axis_req_t axis_in_req_i,
-  output axis_rsp_t axis_in_rsp_o
+  output axis_rsp_t axis_in_rsp_o,
+  /// Diagnostic: sending is prohibited by zero credit or the reserved last
+  /// credit. Combinational, state-neutral, and never part of a control cone.
+  output logic      credit_blocked_o
 );
 
   import serial_link_pkg::*;
@@ -61,6 +64,8 @@ module serial_link_network #(
   logic axis_reg_valid_out, axis_reg_ready_out;
   logic axis_reg_valid_in, axis_reg_ready_in;
   payload_t axis_reg_data_in, axis_reg_data_out;
+  assign credit_blocked_o = (credits_out_q == 0)
+    || ((credits_out_q == 1) && (credits_to_send_q == 0));
 
   always_comb begin : commiter
     aw_gnt  = 1'b0;
@@ -121,14 +126,11 @@ module serial_link_network #(
           // We can no longer grant AR request but we can still grant AW requests
           aw_gnt = 1'b1;
         end else begin
-          // Otherwise we grant R/W beats
-          // Deciding between R/W requests with entropy prevents starvation
-          if (axi_out_rsp_i.r_valid) begin
-            r_gnt = (axi_in_req_i.w_valid)? entropy_q : 1'b1;
-          end
-          if (axi_in_req_i.w_valid) begin
-            w_gnt = (axi_out_rsp_i.r_valid)? ~entropy_q : 1'b1;
-          end
+          // Otherwise we grant R beats. W is held until its AW has been granted:
+          // a WLAST accepted here is consumed with no write pending, and the AW
+          // that follows then waits in AwPend for a WLAST the master has already
+          // sent. AXI permits a slave to wait for AWVALID before asserting WREADY.
+          r_gnt = axi_out_rsp_i.r_valid;
         end
 
         // Once last R response is out we can terminate AR burst and/or accepted a AW beat

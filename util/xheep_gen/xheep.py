@@ -450,3 +450,88 @@ class XHeep:
         self._padring.validate()
 
         return True
+
+    # ------------------------------------------------------------
+    # String representation
+    # ------------------------------------------------------------
+
+    @staticmethod
+    def _print_branch(label, children=(), prefix="", last=True):
+        """
+        Render a single branch of a tree view as a list of lines.
+
+        Each node is a ``(label, children)`` tuple where ``children`` is an
+        iterable of nested nodes. Used by :meth:`XHeep.pretty_print` to produce
+        a compact visual summary of the MCU configuration.
+
+        :param str label: The text of the node.
+        :param iterable children: The child nodes of this node.
+        :param str prefix: The indentation prefix accumulated so far.
+        :param bool last: Whether this node is the last child of its parent.
+        :return: The rendered lines for this branch.
+        :rtype: list[str]
+        """
+        lines = [prefix + ("`-- " if last else "|-- ") + label]
+        for index, (child_label, grandchildren) in enumerate(children):
+            lines.extend(
+                XHeep._print_branch(
+                    child_label,
+                    grandchildren,
+                    prefix + ("    " if last else "|   "),
+                    index == len(children) - 1,
+                )
+            )
+        return lines
+
+    def pretty_print(self) -> str:
+        """
+        Return a compact tree view of the main components of the MCU.
+
+        This is a quick visual summary for the user, not a detailed dump of the
+        configuration. The tree is built from the ``pretty_print()`` methods of
+        the subsystems and rendered with :meth:`XHeep._print_branch`.
+
+        :return: The rendered tree view.
+        :rtype: str
+        """
+        nodes = [
+            (self.cpu().pretty_print(), ()),
+            (f"Bus: {self.bus_type().value}", ()),
+            (
+                f"RAM: {self.memory_ss().ram_size_address() // 1024} KiB",
+                self.memory_ss().pretty_print(),
+            ),
+        ]
+        if self.xif() is not None:
+            nodes.append((self.xif().pretty_print(), ()))
+
+        address_map = self.address_map()
+        base = self.get_base_peripheral_domain().pretty_print(
+            address_map.get_region("base_peripheral_domain").get_start_address()
+        )
+        user = self.get_user_peripheral_domain().pretty_print(
+            address_map.get_region("user_peripheral_domain").get_start_address()
+        )
+        nodes.extend(
+            [
+                (f"Always-on peripherals ({len(base)})", base),
+                (f"User peripherals ({len(user)})", user),
+            ]
+        )
+
+        lines = []
+        for index, (label, children) in enumerate(nodes):
+            lines.extend(
+                XHeep._print_branch(label, children, last=index == len(nodes) - 1)
+            )
+
+        # Align the " @ 0x..." addresses in a column for readability.
+        address_column = max(
+            len(line.rsplit(" @ 0x", 1)[0]) for line in lines if " @ 0x" in line
+        )
+        for i, line in enumerate(lines):
+            if " @ 0x" in line:
+                label, address = line.rsplit(" @ 0x", 1)
+                lines[i] = f"{label:<{address_column}} @ 0x{address}"
+
+        return "\n".join(lines)

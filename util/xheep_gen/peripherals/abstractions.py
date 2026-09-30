@@ -68,6 +68,15 @@ class Peripheral(ABC):
         """
         return self._name
 
+    def pretty_print(self):
+        """
+        Return a compact description of the peripheral.
+
+        :return: The peripheral name.
+        :rtype: str
+        """
+        return self.get_name()
+
 
 class BasePeripheral(Peripheral, ABC):
     """
@@ -324,3 +333,29 @@ class PeripheralDomain(ABC):
             raise RuntimeError(
                 f"[MCU-GEN - PeripheralDomain] ERROR: The peripheral {peripherals_sorted[-1].get_name()} is out of the domain (starts at {peripherals_sorted[-1].get_address():#08X}, domain ends at {address_length:#08X})."
             )
+
+    def pretty_print(self, base_address: int) -> "List[tuple]":
+        """
+        Return a compact description of the peripheral domain as a list of
+        ``(label, children)`` nodes, ready to be rendered as a tree.
+
+        Peripherals that are not included in the configuration are skipped.
+
+        :param int base_address: The base address of the peripheral domain.
+        :return: The list of ``(label, children)`` nodes.
+        :rtype: list[tuple]
+        """
+        nodes = []
+        for peripheral in self._peripherals:
+            if (
+                hasattr(peripheral, "get_is_included")
+                and not peripheral.get_is_included()
+            ):
+                continue
+            nodes.append(
+                (
+                    f"{peripheral.pretty_print()} @ 0x{base_address + peripheral.get_address():08X}",
+                    (),
+                )
+            )
+        return nodes

@@ -30,3 +30,12 @@ class DebugSS:
         :param int has_spi_slave: Whether the debug subsystem has an SPI slave interface.
         """
         self._has_spi_slave = has_spi_slave
+
+    def pretty_print(self) -> str:
+        """
+        Return a compact description of the debug subsystem.
+
+        :return: Whether the SPI slave interface is enabled.
+        :rtype: str
+        """
+        return f"Debug: SPI slave {'enabled' if self.has_spi_slave() else 'disabled'}"

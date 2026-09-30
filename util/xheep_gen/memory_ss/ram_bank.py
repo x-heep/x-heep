@@ -123,3 +123,12 @@ class Bank:
         :rtype: int
         """
         return self._il_offset
+
+    def pretty_print(self) -> str:
+        """
+        Return a compact description of the bank.
+
+        :return: The bank name, size and start address.
+        :rtype: str
+        """
+        return f"Bank {self.name()}: {self.size() // 1024} KiB @ 0x{self.start_address():08X}"

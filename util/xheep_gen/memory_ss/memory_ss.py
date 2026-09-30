@@ -1,5 +1,6 @@
 from copy import deepcopy
 from typing import List, Set, Iterable, Generator, Optional, Union
+from collections import Counter
 from .ram_bank import Bank, is_pow2
 from .il_ram_group import ILRamGroup
 from .linker_section import LinkerSection
@@ -439,3 +440,38 @@ class MemorySS:
                 )
 
             old_sec = sec
+
+    def pretty_print(self) -> "List[tuple]":
+        """
+        Return a compact description of the memory subsystem as a list of
+        ``(label, children)`` nodes, ready to be rendered as a tree.
+
+        Continuous banks are grouped by size, interleaved banks are grouped by
+        their interleaved group.
+
+        :return: The list of ``(label, children)`` nodes.
+        :rtype: list[tuple]
+        """
+        banks = list(self.iter_ram_banks())
+        continuous_banks = [bank for bank in banks if not bank.il_level()]
+        continuous = Counter(bank.size() // 1024 for bank in continuous_banks)
+
+        nodes = []
+        if continuous:
+            sizes = ", ".join(
+                f"{count} x {size} KiB" for size, count in continuous.items()
+            )
+            nodes.append(
+                (
+                    f"Continuous: {sizes}",
+                    [(bank.pretty_print(), ()) for bank in continuous_banks],
+                )
+            )
+        for group in self.iter_il_groups():
+            nodes.append(
+                (
+                    group.pretty_print(),
+                    [(bank.pretty_print(), ()) for bank in group.banks],
+                )
+            )
+        return nodes

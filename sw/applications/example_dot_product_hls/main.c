@@ -28,7 +28,11 @@
 // CTRL AXI4-Lite port, from hw/fpga/hls/vitis/dot_product's generated
 // dot_product_CTRL_s_axi.v (standard Vitis HLS ap_ctrl_hs + s_axilite
 // layout: AP_CTRL @0x00, a @0x10/0x14, b @0x1c/0x20, size @0x28,
-// result @0x30/0x34). Base address defined in testharness_pkg.sv as
+// result @0x30/0x34). The Bambu HLS flow (hw/fpga/hls/bambu/dot_product)
+// has the very same register map, as a regtool-generated register file
+// (data/dot_product_ctrl.hjson), so this application works unchanged with
+// either HLS tool.
+// Base address defined in testharness_pkg.sv as
 // DOT_PRODUCT_CTRL_START_ADDRESS = EXT_SLAVE_START_ADDRESS + 0x20000.
 //
 // 'a'/'b' are 64-bit registers in hardware (Vitis HLS derives the m_axi

@@ -787,8 +787,10 @@ module xilinx_core_v_mini_mcu_wrapper
 
 `ifdef USE_HLS_EXAMPLE
 `ifndef PS_ENABLE
-  // HLS-generated streaming dot-product accelerator -- see
-  // hw/fpga/hls/vitis/dot_product/rtl/dot_product_xheep_wrapper.sv.
+  // HLS-generated streaming dot-product accelerator (Vitis HLS, Bambu HLS or
+  // Dynamatic, see the use_vitis_hls / use_bambu_hls / use_dynamatic_hls
+  // flags) -- see
+  // hw/fpga/hls/common/dot_product/dot_product_xheep_wrapper.sv.
   // Only wired up for the plain (non-PS) FPGA boards, pynq-z2 included;
   // see the ext_xbar_master_req_i/ext_core_data_req_o connections above.
   dot_product_xheep_wrapper #(

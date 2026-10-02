@@ -11,6 +11,16 @@
 
 #define TEST_DATA_SIZE 16
 
+// Largest vector the accelerator handles with every HLS flow: the Dynamatic
+// one copies a/b into local buffers of this many elements
+// (DOT_PRODUCT_DYNAMATIC_MAX_LEN in hw/fpga/hls/common/dot_product/dot_product.h)
+// and would silently clamp a larger size. Keep the two equal.
+#define DOT_PRODUCT_MAX_SIZE 1024
+
+#if TEST_DATA_SIZE > DOT_PRODUCT_MAX_SIZE
+#error "FATAL ERROR: TEST_DATA_SIZE exceeds DOT_PRODUCT_MAX_SIZE (1024), the largest vector the dot_product accelerator handles"
+#endif
+
 /* By default, PRINTs are activated for FPGA and disabled for simulation. */
 #define PRINTF_IN_FPGA  1
 #define PRINTF_IN_SIM   0
@@ -28,7 +38,13 @@
 // CTRL AXI4-Lite port, from hw/fpga/hls/vitis/dot_product's generated
 // dot_product_CTRL_s_axi.v (standard Vitis HLS ap_ctrl_hs + s_axilite
 // layout: AP_CTRL @0x00, a @0x10/0x14, b @0x1c/0x20, size @0x28,
-// result @0x30/0x34). Base address defined in testharness_pkg.sv as
+// result @0x30/0x34). The Bambu HLS and Dynamatic flows
+// (hw/fpga/hls/bambu/dot_product, hw/fpga/hls/dynamatic/dot_product) have
+// the very same register map, as a shared regtool-generated register file
+// (hw/fpga/hls/common/dot_product/data/dot_product_ctrl.hjson), so this
+// application works unchanged with any of the three HLS tools (within
+// DOT_PRODUCT_MAX_SIZE, see above).
+// Base address defined in testharness_pkg.sv as
 // DOT_PRODUCT_CTRL_START_ADDRESS = EXT_SLAVE_START_ADDRESS + 0x20000.
 //
 // 'a'/'b' are 64-bit registers in hardware (Vitis HLS derives the m_axi

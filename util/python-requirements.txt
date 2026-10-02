@@ -14,8 +14,9 @@ setuptools<81
 # Development version with OT-specific changes
 git+https://github.com/x-heep/fusesoc.git@ot#egg=fusesoc
 
-# Install edalize by hand as pip install git+https://github.com/x-heep/edalize.git
-git+https://github.com/x-heep/edalize.git
+# Install edalize by hand as pip install git+https://github.com/x-heep/edalize.git@abf56019cd74ac0e8762849323a91bef4635542a
+# Pinned to a commit. Bump the commit when a newer edalize is needed.
+git+https://github.com/x-heep/edalize.git@abf56019cd74ac0e8762849323a91bef4635542a
 
 # RISC-V firmware profiler
 git+https://github.com/edge-group-polito/rv_profile.git

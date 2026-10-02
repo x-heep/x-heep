@@ -12,8 +12,13 @@
 open_project -reset dot_product_proj
 set_top dot_product
 
-add_files dot_product.cpp
-add_files -tb dot_product_tb.cpp
+# The header and the C++ testbench are shared with the Bambu HLS flow (see
+# hw/fpga/hls/bambu/dot_product); only this kernel file's pragmas are
+# Vitis-specific.
+set common_dir [file normalize ../../common/dot_product]
+
+add_files dot_product.cpp -cflags "-I$common_dir"
+add_files -tb $common_dir/dot_product_tb.cpp -cflags "-I$common_dir"
 
 open_solution -reset "solution1"
 set_part {xc7z020clg400-1}
@@ -30,7 +35,8 @@ csynth_design
 # 2021.1's IP packager derives an integer core_revision from today's date,
 # which overflows its 32-bit field once the year is 2026+. We don't need
 # the packaged IP-XACT anyway -- X-HEEP integration uses a hand-written
-# wrapper (rtl/dot_product_xheep_wrapper.sv) directly against the plain
-# RTL produced by csynth_design under solution1/syn/verilog/.
+# wrapper (../../common/dot_product/dot_product_xheep_wrapper.sv, through
+# rtl/dot_product_hls_adapter.sv) directly against the plain RTL produced by
+# csynth_design under solution1/syn/verilog/.
 
 exit

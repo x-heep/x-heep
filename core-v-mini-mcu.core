@@ -102,6 +102,60 @@ filesets:
     depend:
     - technology::prim_mytech
 
+  rtl-ihp130:
+    depend:
+    - technology::prim_ihp130
+  
+  # Pre-build hook: generates x_heep_system_synth_top.sv, a synthesis-only
+  # top that ties off x_heep_system's 6 unconnected `if_xif` interface ports
+  generate_synth_top:
+    files:
+    - scripts/synthesis/generate_synth_top.py
+    file_type: user
+
+  postsynthesis-netlist:
+    files:
+    - implementation/postsynth/x_heep_system_netlist.v
+    file_type: verilogSource
+
+  postsynthesis-sim-shim:
+    files:
+    - implementation/postsynth/x_heep_system_postsyn_sim_shim.sv
+    file_type: systemVerilogSource
+
+  # tech_cells_generic's own `rtl_sim` fileset (tc_sram, tc_clk_gating, ...)
+  tb-tech-cells-sim:
+    files:
+    - hw/vendor/pulp_platform/tech_cells_generic/src/rtl/tc_clk.sv
+    - hw/vendor/pulp_platform/tech_cells_generic/src/rtl/tc_sram.sv
+    file_type: systemVerilogSource
+
+  pre_build_postsyn_models:
+    files:
+    - scripts/sim/modelsim/compile_postsyn_models.sh
+    file_type: user
+
+  postsynthesis-cells-verilator:
+    files:
+    - implementation/postsynth/x_heep_system_cells_verilator.sv
+    file_type: systemVerilogSource
+
+  rtl-sim-cells-verilator:
+    depend:
+    - x-heep:sim:sram_wrapper
+    - openhwgroup:cve2:cve2_clock_gate
+    files:
+    - hw/vendor/pulp_platform/tech_cells_generic/src/rtl/tc_clk.sv
+    - hw/vendor/pulp_platform/tech_cells_generic/src/rtl/tc_sram.sv
+    - hw/vendor/pulp_platform/tech_cells_generic/src/tc_pwr.sv
+    - hw/vendor/pulp_platform/tech_cells_generic/src/deprecated/cluster_clk_cells.sv
+    - hw/vendor/pulp_platform/tech_cells_generic/src/deprecated/pulp_clk_cells.sv
+    - hw/vendor/openhwgroup/cv32e40p/bhv/cv32e40p_sim_clock_gate.sv
+    - hw/vendor/openhwgroup/cv32e40x/bhv/cv32e40x_sim_clock_gate.sv
+    - hw/vendor/xheep/cv32e40px/bhv/cv32e40px_sim_clock_gate.sv
+    - hw/vendor/pulp_platform/gpio/src/gpio_input_stage.sv
+    file_type: systemVerilogSource
+
   rtl-sky130:
     files:
     - hw/asic/sky130/sram_wrapper.sv
@@ -115,6 +169,10 @@ filesets:
   lib-sky130:
     files:
       - hw/asic/sky130/sky130_sram_4kbyte_1rw_32x1024_8_TT_1p8V_25C.lib : { copyto: lib/sky130_sram_4kbyte_1rw_32x1024_8_TT_1p8V_25C.lib }
+
+  asic-ihp-sg13g2:
+    depend:
+    - technology::prim_ihp-sg13g2
 
   # Scripts for hooks
   post_build_modelsim_scripts:
@@ -308,6 +366,22 @@ scripts:
     cmd: [sh, -c, rm -f uart0.log]
   print_uart_log:
     cmd: [sh, -c, cat uart0.log]
+  pre_build_postsyn_models:
+    cmd:
+    - sh
+    - ../../../scripts/sim/modelsim/compile_postsyn_models.sh
+
+  # ASIC yosys synthesis utils
+  generate_yosys_filelist:
+    cmd:
+    - sh
+    - ../../../scripts/synthesis/yosys/generate_yosys_filelist.sh
+  generate_synth_top:
+    cmd:
+    - python
+    - ../../../scripts/synthesis/generate_synth_top.py
+  asic_tech_ihp130:
+    cmd: [sh, -c, "echo 'set ASIC_TECH ihp130' > asic_tech.tcl"]
 
 targets:
   default: &default_target
@@ -427,6 +501,107 @@ targets:
           - "-Wall"
         make_options:
           # Use the number of available cores (up to a max of 8) for parallel compilation, with a fallback to 4 if nproc is not available
+          - '-j$(shell N=$$(nproc 2>/dev/null || echo 4); [ "$$N" -le 8 ] && echo "$$N" || echo 8)'
+
+  sim_postsynthesis:
+    default_tool: modelsim
+    description: QuestaSim post-synthesis (gate-level) simulation of the staged ASIC netlist
+    filesets:
+    - files_rtl_generic
+    - tb-tech-cells-sim
+    - tb-utils
+    - postsynthesis-netlist
+    - postsynthesis-sim-shim
+    - pre_build_remote_bitbang
+    - pre_build_uartdpi
+    - pre_patch_modelsim_Makefile
+    - pre_build_postsyn_models
+    - tb-sv
+    toplevel: [tb_top]
+    hooks:
+      pre_build:
+        - tool_modelsim? (pre_build_uartdpi)
+        - tool_modelsim? (pre_build_remote_bitbang)
+        - tool_modelsim? (pre_patch_modelsim_Makefile) # this is required by Questa 2020 on
+        - tool_modelsim? (pre_build_postsyn_models)
+      pre_run:
+        - remove_uart_log
+      post_run:
+        - print_uart_log
+    parameters:
+    - JTAG_DPI
+    - USE_EXTERNAL_DEVICE_EXAMPLE
+    - REMOVE_OBI_FIFO
+    - COMMON_CELLS_ASSERTS_OFF
+    - ASSERTS_OFF
+    tools:
+      modelsim:
+        vlog_options:
+        - -override_timescale 1ns/1ps
+        - -suppress vlog-2583
+        - -suppress vlog-2577
+        - -suppress vlog-2720
+        - -pedanticerrors
+        - -define MODELSIM
+        - -define POSTSYNTHESIS
+        - +notimingcheck
+        - +nospecify
+        vsim_options:
+        - -sv_lib ../../../hw/vendor/lowrisc/opentitan/hw/dv/dpi/uartdpi/uartdpi
+        - -sv_lib ../../../hw/vendor/pulp_platform/pulpissimo/rtl/tb/remote_bitbang/librbs
+        - -voptargs=+acc=npr
+        - +bus_conflict_off
+        - -L pdk_lib
+
+  sim_postsynthesis_verilator:
+    default_tool: verilator
+    description: Verilator post-synthesis (gate-level) simulation of the staged ASIC netlist
+    filesets:
+    - files_rtl_generic
+    - rtl-sim-cells-verilator
+    - tb-utils
+    - postsynthesis-netlist
+    - postsynthesis-sim-shim
+    - postsynthesis-cells-verilator
+    - tb-verilator
+    # Lint waivers, and the core defining the waiver-v5-gen generator that
+    # tb-utils uses with Verilator (the default target adds them for `sim` only)
+    - files_verilator_waiver
+    toplevel: [testharness]
+    hooks:
+      pre_run:
+        - remove_uart_log
+      post_run:
+        - print_uart_log
+    parameters:
+    - JTAG_DPI
+    - USE_EXTERNAL_DEVICE_EXAMPLE
+    - REMOVE_OBI_FIFO
+    - COMMON_CELLS_ASSERTS_OFF
+    - ASSERTS_OFF
+    tools:
+      verilator:
+        mode: cc
+        verilator_options:
+          - '--cc'
+          - '--trace'
+          - '--trace-fst'
+          # Gate-level netlist: trace only the testbench and the netlist's
+          # top ports (full tracing would multiply build time and size).
+          - '--trace-depth 3'
+          - '--x-assign unique'
+          - '--x-initial unique'
+          # The SRAM models have an `initial #0` check: ignore delays.
+          - '--no-timing'
+          - '+define+POSTSYNTHESIS'
+          # Netlists and PDK models are not lint-clean: report, do not stop.
+          - '-Wno-fatal'
+          - '-Wno-lint'
+          - '-Wno-style'
+          - '--exe tb_top.cpp'
+          - '-CFLAGS "-Wall -fpermissive"'
+          - '-LDFLAGS "-pthread -lutil -lelf"'
+        make_options:
           - '-j$(shell N=$$(nproc 2>/dev/null || echo 4); [ "$$N" -le 8 ] && echo "$$N" || echo 8)'
 
   sim_sc:
@@ -637,19 +812,66 @@ targets:
 
   asic_yosys_synthesis:
     <<: *default_target
-    default_tool: openroad
-    description: yosys
+    default_tool: yosys
+    description: Yosys synthesis of X-HEEP for IHP130
     parameters:
       - SYNTHESIS=true
-      - VERILATOR=true
       - REMOVE_OBI_FIFO
     filesets_append:
-      - use_sky130? (rtl-sky130)
-      - lib-sky130
-      - openroad_base_files
-      - openroad_sky130_files
-    toplevel: [core_v_mini_mcu]
+      - x_heep_system
+      - rtl-ihp130
+      - generate_synth_top
+    hooks:
+      pre_build:
+        - generate_yosys_filelist
+        - generate_synth_top
+        - asic_tech_ihp130
+    toplevel: [x_heep_system]
     tools:
-      openroad:
-        flow_path: flow/OpenROAD-flow-scripts/flow
-        make_target: synth
+      yosys:
+        arch: generic
+        output_format: verilog
+        yosys_template: ../../../scripts/synthesis/yosys/edalize_yosys_template.tcl
+
+  asic_librelane_chip_ihp:
+    <<: *default_target
+    default_tool: librelane
+    description: Librelane flow to get an X-Heep chip on IHP-SG13G2.
+    parameters:
+      - SYNTHESIS=true
+    filesets_append:
+      - asic-ihp-sg13g2
+    toplevel: [ihp_sg13g2_asic_x_heep_system_wrapper]
+    tools:
+      librelane:
+        flow: Chip
+        remove_steps:
+          - Magic.DRC           # Too long
+          - Checker.MagicDRC
+          - Checker.IllegalOverlap  # Uninteresting
+        clock_port: clk_i
+        clock_net: pad_ring_i.u_pad_clk.pad_cell_input/p2c
+        clock_period: 20
+        die_area: [0,0,5000,5000]
+        core_area: [365,365,4635,4635]
+
+  asic_librelane_macro_ihp:
+    <<: *default_target
+    default_tool: librelane
+    description: Librelane flow to get an X-Heep macro on IHP-SG13G2.
+    parameters:
+      - SYNTHESIS=true
+    filesets_append:
+      - asic-ihp-sg13g2
+    toplevel: [ihp_sg13g2_asic_x_heep_system_wrapper]
+    tools:
+      librelane:
+        flow: Classic
+        remove_steps:
+          - Magic.DRC               # Too long
+          - Checker.MagicDRC
+          - Checker.IllegalOverlap  # Uninteresting
+        clock_port: clk_i
+        clock_net: clk_i
+        clock_period: 20
+        die_area: [0,0,4000,4000]

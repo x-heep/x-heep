@@ -120,6 +120,16 @@ module testharness #(
   wire [1:0] spi_csb;
   wire spi_sck;
 
+`ifndef VERILATOR
+  pullup (spi_csb[0]);
+  pullup (spi_csb[1]);
+  pulldown (spi_sck);
+  pullup (spi_sd_io[0]);
+  pullup (spi_sd_io[1]);
+  pullup (spi_sd_io[2]);
+  pullup (spi_sd_io[3]);
+`endif
+
   logic iffifo_in_ready, iffifo_out_valid;
   logic iffifo_int_o;
 

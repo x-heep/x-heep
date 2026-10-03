@@ -1,0 +1,23 @@
+CAPI=2:
+
+# Copyright 2022 OpenHW Group
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+name: "technology::prim_ihp130"
+description: "IHP130 technology-specific primitive wrappers"
+filesets:
+  files_rtl:
+    files:
+      - rtl/prim_ihp130_clk.sv
+      - rtl/ihp130_blackbox_stubs.sv
+      - rtl/pad_cell_inout_ihp130.sv  
+      - rtl/pad_cell_input_ihp130.sv  
+      - rtl/pad_cell_output_ihp130.sv 
+      - rtl/sram_wrapper_ihp130.sv
+    file_type: systemVerilogSource
+
+targets:
+  default:
+    filesets:
+      - target_asic_yosys_synthesis ? (files_rtl)

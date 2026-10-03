@@ -4,85 +4,24 @@
 #
 # Author(s): Juan Sapriza, David Mallasen
 # Description: Pad configuration for X-HEEP
+#
+# Modified on the 05/08/2026 by Nathan Chandanson to implement an ASIC padring.
+#
+
+import sys, os
+
+sys.path.append(os.path.dirname(__file__))  # configs/, for pad_cfg
+sys.path.append(
+    os.path.join(os.path.dirname(__file__), "..", "hw", "asic", "ihp-sg13g2")
+)
 
 from xheep import XHeep
 from pads.pad_ring import PadRing
 from pads.floorplan import Side
 from pads.pin import Input, Output, Inout
+from pad_definition import PinVdd, PinVss, PinIoVdd, PinIoVss
 
-
-def digital_pins():
-    pins = [
-        Input("clk"),
-        Input("rst", module="x_heep_system", attributes={"active": "low"}),
-        Input("boot_select"),
-        Output("exit_valid"),
-        # JTAG
-        Input("jtag_tck"),
-        Input("jtag_tms"),
-        Input("jtag_trst", attributes={"active": "low"}),
-        Input("jtag_tdi"),
-        Output("jtag_tdo"),
-        # UART
-        Input("uart_rx"),
-        Output("uart_tx"),
-        # SPI Flash
-        Inout("spi_flash_sck"),
-        Inout("spi_flash_cs_0"),
-        Inout("spi_flash_cs_1"),
-        Inout("spi_flash_sd_0"),
-        Inout("spi_flash_sd_1"),
-        Inout("spi_flash_sd_2"),
-        Inout("spi_flash_sd_3"),
-        # SPI Host
-        Inout("spi_sck"),
-        Inout("spi_cs_0"),
-        Inout("spi_cs_1"),
-        Inout("spi_sd_0"),
-        Inout("spi_sd_1"),
-        Inout("spi_sd_2"),
-        Inout("spi_sd_3"),
-        # SPI Slave
-        # In the debug_ss. If the debug_ss does not have an SPI slave, these pins should be removed.
-        Input("spi_slave_sck"),
-        Input("spi_slave_cs"),
-        Inout("spi_slave_miso"),
-        Input("spi_slave_mosi"),
-        # PDM2PCM
-        Inout("pdm2pcm_pdm"),
-        Inout("pdm2pcm_clk"),
-        # I2S
-        Inout("i2s_sck"),
-        Inout("i2s_ws"),
-        Input("i2s_sd_rx"),
-        Output("i2s_sd_tx"),
-        # SPI2
-        Inout("spi2_cs_0"),
-        Inout("spi2_cs_1"),
-        Inout("spi2_sck"),
-        Inout("spi2_sd_0"),
-        Inout("spi2_sd_1"),
-        Inout("spi2_sd_2"),
-        Inout("spi2_sd_3"),
-        # I2C
-        Inout("i2c_scl"),
-        Inout("i2c_sda"),
-        # Serial link DDR
-        Input("ddr_rcv_clk"),
-        Output("ddr_snd_clk"),
-        Input("ddr_rcv_0"),
-        Input("ddr_rcv_1"),
-        Input("ddr_rcv_2"),
-        Input("ddr_rcv_3"),
-        Output("ddr_snd_0"),
-        Output("ddr_snd_1"),
-        Output("ddr_snd_2"),
-        Output("ddr_snd_3"),
-    ]
-
-    for i in range(32):
-        pins.append(Inout(f"gpio_{i}", attributes={"priority": 0}))
-    return pins
+import pad_cfg
 
 
 def config(xheep: XHeep) -> PadRing:
@@ -91,9 +30,28 @@ def config(xheep: XHeep) -> PadRing:
     For detailed documentation and usage instructions, please refer to docs/source/Configuration/PadConfiguration.md
     """
 
-    # Generate a pin dict with all these pins
+    ##############################################
+    # DEFINE ALL THE AVAILABLE PINS (POWER)
+    power_pins = [
+        PinVdd("vdd0"),
+        PinVdd("vdd1"),
+        PinVss("vss0"),
+        PinVss("vss1"),
+        PinIoVdd("iovdd0"),
+        PinIoVdd("iovdd1"),
+        PinIoVss("iovss0"),
+        PinIoVss("iovss1"),
+    ]
 
-    pin_dict = {pin.name: pin for pin in digital_pins()}
+    # Add all gpios at once
+    digital_pins = pad_cfg.digital_pins()
+
+    # Generate a pin dict with all these pins
+    pin_dict = {}
+    for pin in digital_pins:
+        pin_dict.update({pin.name: pin})
+    for pin in power_pins:
+        pin_dict.update({pin.name: pin})
 
     ##############################################
     # MAP PINS TO PADS
@@ -117,6 +75,10 @@ def config(xheep: XHeep) -> PadRing:
             ["ddr_rcv_clk"],
             ["ddr_snd_clk"],
             ["gpio_0"],
+            ["vdd0"],
+            ["vss0"],
+        ],
+        Side.LEFT: [
             ["gpio_1", "ddr_rcv_0"],
             ["gpio_2", "ddr_rcv_1"],
             ["gpio_3", "ddr_rcv_2"],
@@ -132,6 +94,12 @@ def config(xheep: XHeep) -> PadRing:
             ["spi_flash_sck"],
             ["spi_flash_cs_0"],
             ["spi_flash_cs_1"],
+            ["iovdd0"],
+            ["iovss0"],
+        ],
+        Side.BOTTOM: [
+            ["vdd1"],
+            ["vss1"],
             ["spi_flash_sd_0"],
             ["spi_flash_sd_1"],
             ["spi_flash_sd_2"],
@@ -147,6 +115,10 @@ def config(xheep: XHeep) -> PadRing:
             ["spi_slave_cs", "gpio_14"],
             ["spi_slave_miso", "gpio_15"],
             ["spi_slave_mosi", "gpio_16"],
+        ],
+        Side.RIGHT: [
+            ["iovdd1"],
+            ["iovss1"],
             ["pdm2pcm_pdm", "gpio_17"],
             ["pdm2pcm_clk", "gpio_18"],
             ["i2s_sck", "gpio_19"],
@@ -181,6 +153,7 @@ def config(xheep: XHeep) -> PadRing:
         floorplan_dimensions=None,
         pin_list=list(pin_dict.values()),
         mapping=mapping,
+        attributes={},
     )
 
     # Check the pins attached to each pad so you can do a visual-sanity check

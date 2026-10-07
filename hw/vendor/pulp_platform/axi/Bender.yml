@@ -2,8 +2,9 @@ package:
   name: axi
   authors:
     # Alphabetically ordered by last name (maintainers first)
-    - "Thomas Benz <tbenz@iis.ee.ethz.ch>" # current maintainer
-    - "Michael Rogenmoser <michaero@iis.ee.ethz.ch>" # current maintainer
+    - "Chen Wu <chenwu@iis.ee.ethz.ch>" # current maintainer
+    - "Niccolo Giuliani <niccolo.giuliani@chips.it>" # current maintainer
+    - "Thomas Benz <tbenz@iis.ee.ethz.ch>"
     - "Matheus Cavalcante <matheusd@iis.ee.ethz.ch>"
     - "Tim Fischer <fischeti@iis.ee.ethz.ch>"
     - "Noah Huetter <huettern@ethz.ch>"
@@ -11,6 +12,7 @@ package:
     - "Andreas Kurth <akurth@iis.ee.ethz.ch>"
     - "Stefan Mach <smach@iis.ee.ethz.ch>"
     - "Samuel Riedel <sriedel@iis.ee.ethz.ch>"
+    - "Michael Rogenmoser <michaero@iis.ee.ethz.ch>"
     - "Wolfgang Rönninger <wroennin@iis.ee.ethz.ch>"
     - "Paul Scheffler <paulsc@iis.ee.ethz.ch>"
     - "Fabian Schuiki <fschuiki@iis.ee.ethz.ch>"
@@ -19,7 +21,7 @@ package:
     - "Florian Zaruba <zarubaf@iis.ee.ethz.ch>"
 
 dependencies:
-  common_cells: { git: "https://github.com/pulp-platform/common_cells.git", version: 1.37.0 }
+  common_cells: { git: "https://github.com/pulp-platform/common_cells.git", version: 1.39.0 }
   common_verification: { git: "https://github.com/pulp-platform/common_verification.git", version: 0.2.5 }
   tech_cells_generic:  { git: "https://github.com/pulp-platform/tech_cells_generic.git", version: 0.2.2 }
 
@@ -33,6 +35,7 @@ sources:
   # Level 0
   - src/axi_pkg.sv
   # Level 1
+  - src/axi_demux_id_counters.sv
   - src/axi_intf.sv
   # Level 2
   - src/axi_atop_filter.sv

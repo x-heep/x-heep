@@ -442,6 +442,7 @@ module axi_lite_demux #(
 
     // pragma translate_off
     `ifndef VERILATOR
+    `ifndef XSIM
     default disable iff (!rst_ni);
     aw_select: assume property( @(posedge clk_i) (slv_req_i.aw_valid |->
                                                  (slv_aw_select_i < NoMstPorts))) else
@@ -464,14 +465,15 @@ module axi_lite_demux #(
                                |=> $stable(slv_ar_chan)) else
       $fatal(1, "slv_aw_chan_select unstable with valid set.");
     `endif
+    `endif
     // pragma translate_on
   end
 
   // pragma translate_off
   `ifndef VERILATOR
     initial begin: p_assertions
-      NoPorts:  assert (NoMstPorts > 0) else $fatal("Number of master ports must be at least 1!");
-      MaxTnx:   assert (MaxTrans   > 0) else $fatal("Number of transactions must be at least 1!");
+      NoPorts:  assert (NoMstPorts > 0) else $fatal(1, "Number of master ports must be at least 1!");
+      MaxTnx:   assert (MaxTrans   > 0) else $fatal(1, "Number of transactions must be at least 1!");
     end
   `endif
   // pragma translate_on
@@ -559,8 +561,8 @@ module axi_lite_demux_intf #(
   // pragma translate_off
   `ifndef VERILATOR
     initial begin: p_assertions
-      AddrWidth: assert (AxiAddrWidth > 0) else $fatal("Axi Parmeter has to be > 0!");
-      DataWidth: assert (AxiDataWidth > 0) else $fatal("Axi Parmeter has to be > 0!");
+      AddrWidth: assert (AxiAddrWidth > 0) else $fatal(1, "Axi Parmeter has to be > 0!");
+      DataWidth: assert (AxiDataWidth > 0) else $fatal(1, "Axi Parmeter has to be > 0!");
     end
   `endif
   // pragma translate_on

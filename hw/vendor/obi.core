@@ -1,32 +1,49 @@
 CAPI=2:
+# Created by bender from the available manifest file.
 
-# Copyright (C) 2026 EPFL.
-# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
-# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
-#
-# File: obi.core
-# Author: Mohammad Hossein Nikkhah
-# Description: 
 
-name: pulp-platform.org::obi
-description: OBI package from pulp-platform/obi with package renamed to obi_pkg.
-
+name: ::obi:0.1.7
 filesets:
-  rtl:
-    depend:
-    - pulp-platform.org::common_cells
-    files:
-    - pulp_platform/obi/src/obi_pkg.sv
-    - pulp_platform/obi/include/obi/assign.svh: {is_include_file: true, include_path: pulp_platform/obi/include}
-    - pulp_platform/obi/include/obi/typedef.svh: {is_include_file: true, include_path: pulp_platform/obi/include}
-    - pulp_platform/obi/src/obi_mux.sv
+  test:
     file_type: systemVerilogSource
-
+    files:
+    - src/test/obi_asserter.sv
+    - src/test/obi_test.sv
+    - src/test/obi_sim_mem.sv
+    - src/test/tb_obi_xbar.sv
+    - src/test/atop_golden_mem_pkg.sv
+    - src/test/tb_obi_atop_resolver.sv
+    depend:
+    - pulp-platform.org::common_cells:1.38.0
+    - tool_modelsim ? (pulp-platform.org::common_verification:0.2.5)
+  files_rtl:
+    file_type: systemVerilogSource
+    files:
+    - src/obi_pkg.sv
+    - src/obi_intf.sv
+    - src/obi_rready_converter.sv
+    - src/apb_to_obi.sv
+    - src/obi_atop_resolver.sv
+    - src/obi_cut.sv
+    - src/obi_demux.sv
+    - src/obi_err_sbr.sv
+    - src/obi_mux.sv
+    - src/obi_sram_shim.sv
+    - src/obi_xbar.sv
+    - include/obi/typedef.svh:
+        is_include_file: true
+        include_path: include
+    - include/obi/assign.svh:
+        is_include_file: true
+        include_path: include
+    depend:
+    - pulp-platform.org::common_cells:1.38.0
+    - tool_modelsim ? (pulp-platform.org::common_verification:0.2.5)
 targets:
   default:
     filesets:
-    - rtl
-
-  rtl:
+    - files_rtl
+  simulation:
     filesets:
-    - rtl
+    - files_rtl
+    - test

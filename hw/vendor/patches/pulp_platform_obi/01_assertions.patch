@@ -1,0 +1,20 @@
+diff --git a/src/apb_to_obi.sv b/src/apb_to_obi.sv
+index f4811fb..f836a3c 100644
+--- a/src/apb_to_obi.sv
++++ b/src/apb_to_obi.sv
+@@ -138,7 +138,7 @@ module apb_to_obi #(
+   // ----------
+   // Assertions
+   // ----------
+-
++  `ifndef VERILATOR
+   `ASSERT(penable, obi_phase_q == RESP |-> apb_req_i.penable, clk_i, !rst_ni,
+       "APB PENABLE must be asserted during OBI RESP phase!")
+   `ASSERT_INIT(no_integrity, !ObiCfg.Integrity,
+@@ -153,5 +153,5 @@ module apb_to_obi #(
+       "RDATA width mismatch between APB and OBI ports!")
+   `ASSERT_INIT(equal_addr_width, $bits(apb_req_i.paddr) == $bits(obi_req_o.a.addr),
+       "Address width mismatch between APB and OBI ports!")
+-
++  `endif
+ endmodule

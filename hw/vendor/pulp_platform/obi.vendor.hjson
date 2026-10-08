@@ -11,10 +11,10 @@
 
   upstream: {
     url: "https://github.com/pulp-platform/obi.git",
-    rev: "v0.1.7",
+    rev: "0155fc34e900c7c884e081c0a1114a247937ff69",
   },
 
-  // patch_dir: "../patches/pulp_platform_obi",
+  patch_dir: "../patches/pulp_platform_obi",
 
   exclude_from_upstream: [
     ".ci",

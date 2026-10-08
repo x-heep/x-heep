@@ -2,6 +2,14 @@ diff --git a/axi.core b/axi.core
 index 3b4cc5bd..927a9cab 100644
 --- a/axi.core
 +++ b/axi.core
+@@ -15,6 +15,7 @@ filesets:
+       # Level 0
+       - src/axi_pkg.sv
+       # Level 1
++      - src/axi_demux_id_counters.sv
+       - src/axi_intf.sv
+       # Level 2
+       - src/axi_atop_filter.sv
 @@ -73,8 +73,6 @@ filesets:
        - src/axi_to_mem_split.sv
        - src/axi_chan_compare.sv

@@ -75,7 +75,7 @@ class Pad:
         pin.
         """
         if self.pins:
-            # The pins assigned a pad are sorted by priority.
+            # The pins assigned to a pad are sorted by priority.
             # Priority is an optional attribute and the highest priority will be used as main pin
             # (will be placed first on the list)
             self.pins = sorted(
@@ -90,7 +90,33 @@ class Pad:
             main_pin = self.pins[0]
             self.name = main_pin.name
             self.attributes = main_pin.attributes.copy()
-            self.iocell = main_pin.iocell.copy()
+
+            # Check that all pins are of the same type (digital or analog). If they are not, raise an error.
+            digital_types = (Input, Output, Inout)
+            analog_types = (Asignal,)
+            any_digital = any(isinstance(pin, digital_types) for pin in self.pins)
+            any_analog = any(isinstance(pin, analog_types) for pin in self.pins)
+            if any_digital and any_analog:
+                raise ValueError(
+                    f"Pad {self.name} has mixed digital and analog pins. This is not allowed."
+                )
+
+            if any_digital:
+                # Select the iocell type based on the pin type. If all pins are input or output, use the corresponding iocell. If they are mixed, use an inout iocell.
+                all_input = all(isinstance(pin, Input) for pin in self.pins)
+                all_output = all(isinstance(pin, Output) for pin in self.pins)
+                if all_input:
+                    self.iocell = main_pin.iocell.copy()
+                    self.iocell.rtl_wrapper = "pad_cell_input"
+                elif all_output:
+                    self.iocell = main_pin.iocell.copy()
+                    self.iocell.rtl_wrapper = "pad_cell_output"
+                else:
+                    self.iocell = main_pin.iocell.copy()
+                    self.iocell.rtl_wrapper = "pad_cell_inout"
+            else:
+                self.iocell = main_pin.iocell.copy()
+
             self.bondpad = main_pin.bondpad.copy()
 
     def is_muxed(self):

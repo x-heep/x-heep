@@ -95,7 +95,7 @@ filesets:
   files_rtl:
     depend:
     - x-heep::packages
-    - pulp-platform.org::obi
+    - ::obi:0.1.7
     - pulp-platform.org::axi
     - pulp-platform.org::axi_obi
     - x-heep:ip:xheep_obi_to_axi_bridge

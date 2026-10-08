@@ -14,7 +14,7 @@ description: OBI to AXI protocol bridge from pulp-platform/axi_obi.
 filesets:
   obi_to_axi:
     depend:
-    - pulp-platform.org::obi
+    - ::obi:0.1.7
     - pulp-platform.org::common_cells
     - pulp-platform.org::axi
     files:
@@ -23,7 +23,7 @@ filesets:
 
   axi_to_obi:
     depend:
-    - pulp-platform.org::obi
+    - ::obi:0.1.7
     - pulp-platform.org::common_cells
     - pulp-platform.org::axi
     files:

@@ -1,0 +1,205 @@
+// Copyright EPFL contributors.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+//
+// CTRL register file of the Bambu HLS 'dot_product' core.
+//
+// Bambu cannot generate an 's_axilite' control port (its cores only expose
+// clock/reset/start_port/done_port plus one plain port per C argument), so
+// this block plays the role of Vitis HLS' generated dot_product_CTRL_s_axi.v:
+// it has the SAME register map and (with one exception, see ISR) the same bit
+// semantics, which is what lets X-HEEP software and the shared OBI wrapper
+// stay identical between the two HLS flows.
+//
+// The "clear on read" (COR) bits of Vitis are regtool's 'rc' access, its
+// "clear on handshake" (COH) ap_start is 'rw1s' cleared by hardware.
+//
+// NOTE on 'rc' and 'rw1c': when software clears a bit in the very same clock
+// cycle in which hardware sets it, software wins and the hardware set is lost
+// (prim_subreg_arb). The COR bits are therefore declared 'hrw' -- the hardware
+// reads them back -- so that dot_product_ctrl_regs.sv can repeat its set until
+// the bit is seen set. Losing AP_DONE this way would hang the caller.
+//
+// Reserved offsets (0x18, 0x24, 0x2c, 0x3c) are not mapped: accessing them
+// returns a bus error, as with any regtool-generated register file.
+{
+  name: "dot_product_ctrl"
+  clock_primary: "clk_i"
+  bus_interfaces: [
+    { protocol: "reg_iface", direction: "device" }
+  ]
+  regwidth: "32"
+  registers: [
+    { name: "AP_CTRL"
+      desc: "Control signals (Vitis ap_ctrl_hs)"
+      swaccess: "ro"
+      hwaccess: "hro"
+      fields: [
+        { bits: "0"
+          name: "AP_START"
+          desc: '''
+                Write 1 to start the core (writing 0 has no effect). The
+                hardware clears it once the core has accepted the start, or
+                sets it again when the core is done and AUTO_RESTART is set. A
+                software write of 1 in the very cycle the hardware clears it
+                wins, as in Vitis.
+                '''
+          swaccess: "rw1s"
+          hwaccess: "hrw"
+          resval: "0"
+        }
+        { bits: "1"
+          name: "AP_DONE"
+          desc: "Set when the core is done. Cleared on read."
+          swaccess: "rc"
+          hwaccess: "hrw"
+          resval: "0"
+        }
+        { bits: "2"
+          name: "AP_IDLE"
+          desc: "Set while the core is idle (not running and no start pending)."
+          swaccess: "ro"
+          hwaccess: "hwo"
+          resval: "1"
+        }
+        { bits: "3"
+          name: "AP_READY"
+          desc: '''
+                Set when the core is ready for new inputs. Bambu cores are not
+                overlapped, so this is set together with AP_DONE. Cleared on
+                read.
+                '''
+          swaccess: "rc"
+          hwaccess: "hrw"
+          resval: "0"
+        }
+        { bits: "7"
+          name: "AUTO_RESTART"
+          desc: "Start the core again as soon as it is done."
+          swaccess: "rw"
+          hwaccess: "hro"
+          resval: "0"
+        }
+      ]
+    }
+
+    { name: "GIER"
+      desc: "Global interrupt enable"
+      fields: [
+        { bits: "0"
+          name: "GIE"
+          desc: "Global interrupt enable"
+          swaccess: "rw"
+          hwaccess: "hro"
+          resval: "0"
+        }
+      ]
+    }
+
+    { name: "IER"
+      desc: "IP interrupt enable"
+      fields: [
+        { bits: "0"
+          name: "AP_DONE"
+          desc: "Enable the ap_done interrupt"
+          swaccess: "rw"
+          hwaccess: "hro"
+          resval: "0"
+        }
+        { bits: "1"
+          name: "AP_READY"
+          desc: "Enable the ap_ready interrupt"
+          swaccess: "rw"
+          hwaccess: "hro"
+          resval: "0"
+        }
+      ]
+    }
+
+    { name: "ISR"
+      desc: '''
+            IP interrupt status. NOTE: in the Vitis-generated block these bits
+            are toggle-on-write; here they are write-1-to-clear, which is
+            identical for the normal use (clearing a bit that is set).
+            '''
+      fields: [
+        { bits: "0"
+          name: "AP_DONE"
+          desc: "ap_done interrupt status"
+          swaccess: "rw1c"
+          hwaccess: "hrw"
+          resval: "0"
+        }
+        { bits: "1"
+          name: "AP_READY"
+          desc: "ap_ready interrupt status"
+          swaccess: "rw1c"
+          hwaccess: "hrw"
+          resval: "0"
+        }
+      ]
+    }
+
+    { name: "A_LO"
+      desc: "Base address of vector a, bits 31:0"
+      swaccess: "rw"
+      hwaccess: "hro"
+      fields: [ { bits: "31:0", name: "A_LO", desc: "a[31:0]", resval: "0" } ]
+    }
+    { name: "A_HI"
+      desc: '''
+            Base address of vector a, bits 63:32. Kept for register-map
+            compatibility with the Vitis flow (64-bit host pointers); the Bambu
+            core targets a 32-bit address space, so this is not used.
+            '''
+      swaccess: "rw"
+      hwaccess: "hro"
+      fields: [ { bits: "31:0", name: "A_HI", desc: "a[63:32]", resval: "0" } ]
+    }
+    { skipto: "0x1c" }
+    { name: "B_LO"
+      desc: "Base address of vector b, bits 31:0"
+      swaccess: "rw"
+      hwaccess: "hro"
+      fields: [ { bits: "31:0", name: "B_LO", desc: "b[31:0]", resval: "0" } ]
+    }
+    { name: "B_HI"
+      desc: "Base address of vector b, bits 63:32 (unused, see A_HI)"
+      swaccess: "rw"
+      hwaccess: "hro"
+      fields: [ { bits: "31:0", name: "B_HI", desc: "b[63:32]", resval: "0" } ]
+    }
+    { skipto: "0x28" }
+    { name: "SIZE"
+      desc: "Number of elements to read from each vector"
+      swaccess: "rw"
+      hwaccess: "hro"
+      fields: [ { bits: "31:0", name: "SIZE", desc: "size", resval: "0" } ]
+    }
+    { skipto: "0x30" }
+    { name: "RESULT_LO"
+      desc: "Dot product, bits 31:0"
+      swaccess: "ro"
+      hwaccess: "hwo"
+      fields: [ { bits: "31:0", name: "RESULT_LO", desc: "result[31:0]", resval: "0" } ]
+    }
+    { name: "RESULT_HI"
+      desc: "Dot product, bits 63:32"
+      swaccess: "ro"
+      hwaccess: "hwo"
+      fields: [ { bits: "31:0", name: "RESULT_HI", desc: "result[63:32]", resval: "0" } ]
+    }
+    { name: "RESULT_CTRL"
+      desc: "Control signal of result"
+      fields: [
+        { bits: "0"
+          name: "RESULT_AP_VLD"
+          desc: "Set when the core has written the result. Cleared on read."
+          swaccess: "rc"
+          hwaccess: "hrw"
+          resval: "0"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+Add the missing src/axi_demux_id_counters.sv entry to axi.core.
+
+pulp-platform/axi 0.39.10 moved axi_demux_id_counters out of
+axi_demux_simple.sv into its own file but did not list it in axi.core (fixed
+upstream in 0.39.11, pulp-platform/axi#406). Without this entry any
+axi_demux_simple built with UniqueIds=0 (axi_demux, axi_xbar, ...) fails with
+"Cannot find file containing module: 'axi_demux_id_counters'", and Verilator
+-Wall reports axi_demux_simple's 'AxiLookBits' as unused under UniqueIds=1
+(axi_obi's axi_to_obi, i.e. the HLS dot-product example).
+
+Drop this patch once the vendored rev includes upstream's fix (>= 0.39.11).
+
+diff --git a/axi.core b/axi.core
+index e1e553b..e66d50b 100644
+--- a/axi.core
++++ b/axi.core
+@@ -15,6 +15,7 @@ filesets:
+       # Level 0
+       - src/axi_pkg.sv
+       # Level 1
++      - src/axi_demux_id_counters.sv
+       - src/axi_intf.sv
+       # Level 2
+       - src/axi_atop_filter.sv

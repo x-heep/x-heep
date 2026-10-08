@@ -635,13 +635,17 @@ module testharness #(
 
       // HLS-generated streaming dot-product accelerator: AXI4-Lite CTRL
       // bridged as an OBI slave, its two AXI4 read masters bridged as OBI
-      // masters -- see hw/fpga/hls/vitis/dot_product/rtl/dot_product_xheep_wrapper.sv
+      // masters -- see hw/fpga/hls/common/dot_product/dot_product_xheep_wrapper.sv
       //
       // Only built when the 'use_hls_example' FuseSoC flag is passed (see
       // core-v-mini-mcu.core): that flag both defines USE_HLS_EXAMPLE here
-      // and gates the epfl:ip:dot_product dependency / the pre-build hook
-      // that runs Vitis HLS, so without it X-HEEP never needs Vitis HLS
-      // installed at all. Also not present in the SIM_SYSTEMC build: that
+      // and gates the epfl:ip:dot_product dependency. The HLS tool that
+      // generates the accelerator is chosen with a second flag
+      // (use_vitis_hls or use_bambu_hls), which also gates the pre-build hook
+      // that runs it -- the wrapper is the same for both, so this
+      // instantiation does not change. Without the flags X-HEEP never needs
+      // any HLS tool installed at all. Also not present in the SIM_SYSTEMC
+      // build: that
       // flow keeps EXT_XBAR_NSLAVE at its original size (see
       // testharness_pkg.sv), which has no slot for this accelerator's
       // CTRL port.

@@ -1,0 +1,16 @@
+// Copyright EPFL contributors.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+//
+// Lint waivers for the tool-independent part of the dot_product HLS example
+// (dot_product_xheep_wrapper.sv and the bridges it pulls in). The
+// waivers for each HLS tool's generated RTL live next to it, in
+// hw/fpga/hls/<tool>/dot_product/dot_product.vlt.
+
+`verilator_config
+
+// Pre-existing width-mismatch in xheep_obi_to_axi_bridge.sv's AxiBurstType
+// default (2-bit axi_pkg::BURST_INCR into a 32-bit unsigned parameter).
+// dot_product is the first consumer to pull this bridge into a Verilator
+// build; not this IP's code to fix.
+lint_off -rule WIDTHEXPAND -file "*/hw/ip/xheep_obi_to_axi_bridge/rtl/xheep_obi_to_axi_bridge.sv"

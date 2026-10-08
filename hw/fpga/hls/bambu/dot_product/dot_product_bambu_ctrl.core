@@ -1,0 +1,54 @@
+CAPI=2:
+
+# Copyright EPFL contributors.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+# AXI4-Lite CTRL register file of the Bambu HLS dot_product core: the register
+# map (data/dot_product_ctrl.hjson) is turned into RTL by regtool, like the
+# other X-HEEP peripherals' register files. Unlike dot_product_bambu.core this
+# core does not depend on the HLS run, so it is a normal hand-maintained one.
+#
+# NOTE on the name: the vendor is 'x-heep' (like the other regtool-based IPs),
+# not 'epfl', on purpose. FuseSoC orders sibling cores by name, and the
+# regtool-generated core (<this name>-dot-product-ctrl-regs) must come AFTER
+# OpenTitan's prim cores (lowrisc:prim:*): the generated reg_top includes
+# common_cells/assertions.svh, and if that happens before prim_assert.sv is
+# read, Vivado (one global macro namespace) ends up with OpenTitan's 2-argument
+# ASSERT_INIT when common_cells/exp_backoff.sv uses the 3-argument one, and
+# synthesis fails ("incorrect number of macro arguments").
+
+name: "x-heep:ip:dot_product_bambu_ctrl"
+description: "Regtool-generated AXI4-Lite CTRL register file of the Bambu dot_product core."
+
+filesets:
+  files_rtl:
+    depend:
+      - lowrisc:prim:all
+      - pulp-platform.org::register_interface
+      - pulp-platform.org::reg_to_axi
+      - xheep:util:reg-generator
+    files:
+      - rtl/dot_product_ctrl_regs.sv
+    file_type: systemVerilogSource
+
+  verilator-waiver:
+    files:
+      - dot_product_ctrl.vlt
+    file_type: vlt
+
+generate:
+  dot-product-ctrl-regs:
+    generator: regtool
+    parameters:
+      config: data/dot_product_ctrl.hjson
+      name:   dot_product_ctrl
+      rtl_dir: rtl
+
+targets:
+  default:
+    filesets:
+      - files_rtl
+      - tool_verilator ? (verilator-waiver)
+    generate:
+      - dot-product-ctrl-regs

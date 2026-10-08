@@ -46,6 +46,11 @@ module tb_top #(
   wire                jtag_tdi;
   wire                jtag_tdo;
 
+  assign jtag_tck    = 1'b0;
+  assign jtag_trst_n = 1'b0;
+  assign jtag_tms    = 1'b0;
+  assign jtag_tdi    = 1'b0;
+
   // allow vcd dump
   initial begin
     if ($test$plusargs("vcd")) begin

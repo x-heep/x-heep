@@ -7,6 +7,20 @@
 %>
 
 `ifndef SYNTHESIS
+`ifdef POSTSYNTHESIS
+export "DPI-C" task tb_loadHEX;
+export "DPI-C" task tb_set_exit_loop;
+export "DPI-C" task load_flash_hex;
+
+task tb_loadHEX;
+  input string file;
+  $fatal(1, "[TESTBENCH]: tb_loadHEX (JTAG force-load) is not supported in post-synthesis simulation, use +boot_sel=1");
+endtask
+
+task tb_set_exit_loop;
+  $fatal(1, "[TESTBENCH]: tb_set_exit_loop is not supported in post-synthesis simulation, use +boot_sel=1");
+endtask
+`else
 // Task for loading 'mem' with SystemVerilog system task $readmemh()
 export "DPI-C" task tb_readHEX;
 export "DPI-C" task tb_loadHEX;
@@ -117,6 +131,7 @@ task tb_set_exit_loop;
   x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.soc_ctrl_i.testbench_set_exit_loop[0] = 1'b1;
 `endif
 endtask
+`endif // POSTSYNTHESIS
 `endif
 
 task load_flash_hex;

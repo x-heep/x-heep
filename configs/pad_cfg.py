@@ -11,16 +11,8 @@ from pads.floorplan import Side
 from pads.pin import Input, Output, Inout
 
 
-def config(xheep: XHeep) -> PadRing:
-    """
-    Build and return the PadRing for the design, including pin definitions and pad mapping.
-    For detailed documentation and usage instructions, please refer to docs/source/Configuration/PadConfiguration.md
-    """
-
-    ##############################################
-    # DEFINE ALL THE AVAILABLE PINS (SIGNALS)
-
-    digital_pins = [
+def digital_pins():
+    pins = [
         Input("clk"),
         Input("rst", module="x_heep_system", attributes={"active": "low"}),
         Input("boot_select"),
@@ -88,14 +80,20 @@ def config(xheep: XHeep) -> PadRing:
         Output("ddr_snd_3"),
     ]
 
-    # Add all gpios at once
     for i in range(32):
-        digital_pins.append(Inout(f"gpio_{i}", attributes={"priority": 0}))
+        pins.append(Inout(f"gpio_{i}", attributes={"priority": 0}))
+    return pins
+
+
+def config(xheep: XHeep) -> PadRing:
+    """
+    Build and return the PadRing for the design, including pin definitions and pad mapping.
+    For detailed documentation and usage instructions, please refer to docs/source/Configuration/PadConfiguration.md
+    """
 
     # Generate a pin dict with all these pins
-    pin_dict = {}
-    for pin in digital_pins:
-        pin_dict.update({pin.name: pin})
+
+    pin_dict = {pin.name: pin for pin in digital_pins()}
 
     ##############################################
     # MAP PINS TO PADS

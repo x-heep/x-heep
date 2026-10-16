@@ -196,7 +196,7 @@ padring = PadRing(
     attributes={
         "bits": "7:0",  # Custom bit width for pad control
         "resval": 0x0,  # Default reset value for pad control
-        "technology": "sky130",
+        "technology": "ihp-sg13g2",
     },
 )
 ```

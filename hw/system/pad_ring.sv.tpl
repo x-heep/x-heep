@@ -4,6 +4,10 @@
 
 <%!
     from pads.pin import Input, Output, Inout, PinDigital, Asignal
+
+    # Power pin classes live in the PDK pad definitions (e.g. hw/asic/ihp-sg13g2/pad_definition.py), match by name
+    def is_a(pin, cls):
+        return any(c.__name__ == cls for c in type(pin).__mro__)
 %>
 
 <%
@@ -14,6 +18,7 @@
                 else 0
             )
     analog_signal_pads = [ pad for pad in xheep.get_padring().pad_list if any(isinstance(pin, Asignal) for pin in pad.pins) ] 
+    power_pads = [ pad for pad in xheep.get_padring().pad_list if any(is_a(pin, "PinPower") for pin in pad.pins) ]
 %>
 
 module pad_ring (
@@ -47,6 +52,14 @@ module pad_ring (
             % endfor
         `endif
     %endif
+    % if power_pads:
+    `ifdef USE_POWER_PINS
+    inout wire vdd_io,
+    inout wire vss_io,
+    inout wire iovdd_io,
+    inout wire iovss_io,
+    `endif
+    % endif
 
     % if attribute_bits != None:
         input logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][${attribute_bits}] pad_attributes_i
@@ -87,6 +100,14 @@ module pad_ring (
     ${pad.iocell.rtl_wrapper} #(
         .PADATTR(${num_attribute_bits})
     ) u_pad_${pad.name} (
+        % if power_pads:
+        `ifdef USE_POWER_PINS
+        .iovdd(iovdd_io),
+        .iovss(iovss_io),
+        .vdd(vdd_io),
+        .vss(vss_io),
+        `endif
+        % endif
         .pad_in_i(${pad_in_i}),
         .pad_oe_i(${pad_oe_i}),
         .pad_out_o(${pad_out_o}),
@@ -103,6 +124,20 @@ module pad_ring (
         % endfor
     `endif
 % endif #len(analog_signal_pads) > 0:
+% if power_pads:
+
+    // POWER PADS
+    % for pad in power_pads:
+    ${pad.iocell.rtl_wrapper} u_pad_${pad.name} (
+        `ifdef USE_POWER_PINS
+        .iovdd(iovdd_io),
+        .iovss(iovss_io),
+        .vdd(vdd_io),
+        .vss(vss_io)
+        `endif
+    );
+    % endfor
+% endif
 
 % if xheep.get_padring().get_custom_rtl():
     // Custom RTL code for the pad ring

@@ -120,6 +120,16 @@ module testharness #(
   wire [1:0] spi_csb;
   wire spi_sck;
 
+`ifndef VERILATOR
+  pullup (spi_csb[0]);
+  pullup (spi_csb[1]);
+  pulldown (spi_sck);
+  pullup (spi_sd_io[0]);
+  pullup (spi_sd_io[1]);
+  pullup (spi_sd_io[2]);
+  pullup (spi_sd_io[3]);
+`endif
+
   logic iffifo_in_ready, iffifo_out_valid;
   logic iffifo_int_o;
 
@@ -270,8 +280,10 @@ module testharness #(
   assign boot_select = boot_select_i;
   assign exit_valid_o = exit_valid;
 
-  // X-HEEP system instance
-  x_heep_system #(
+  // X-HEEP system instance (the post-synthesis netlist has no parameters)
+  x_heep_system
+`ifndef POSTSYNTHESIS
+  #(
       .EXT_XBAR_NMASTER(HEEP_EXT_XBAR_NMASTER),
       .AO_SPC_NUM(AO_SPC_NUM),
       .obi_req_t(obi_req_t),
@@ -280,7 +292,9 @@ module testharness #(
       .reg_rsp_t(reg_rsp_t),
       .fifo_req_t(fifo_req_t),
       .fifo_rsp_t(fifo_rsp_t)
-  ) x_heep_system_i (
+  )
+`endif
+  x_heep_system_i (
       .clk_i(clk),
       .rst_ni(rst_n),
       .hart_id_i('0),
@@ -344,12 +358,14 @@ module testharness #(
       .i2c_sda_io(gpio[30]),
       .exit_value_o,
       .intr_vector_ext_i(intr_vector_ext),
+`ifndef XHEEP_STANDALONE_SYNTHESIS
       .xif_compressed_if(ext_if),
       .xif_issue_if(ext_if),
       .xif_commit_if(ext_if),
       .xif_mem_if(ext_if),
       .xif_mem_result_if(ext_if),
       .xif_result_if(ext_if),
+`endif
       .ext_xbar_master_req_i(heep_slave_req),
       .ext_xbar_master_resp_o(heep_slave_resp),
       .ext_core_instr_req_o(heep_core_instr_req),

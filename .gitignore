@@ -1,6 +1,8 @@
 
 *.log
 build/
+implementation/synthesis/
+hw/asic/pdk/
 *.so
 *.hex
 *.elf
@@ -46,6 +48,16 @@ hw/core-v-mini-mcu/spi_subsystem.sv
 
 hw/system/x_heep_system.sv
 hw/system/pad_ring.sv
+
+hw/asic/ihp-sg13g2/librelane/librelane_chip_config.yaml
+hw/asic/ihp-sg13g2/librelane/librelane_chip_fallback_pnr_signoff.sdc
+hw/asic/ihp-sg13g2/librelane/librelane_macro_config.yaml
+hw/asic/ihp-sg13g2/librelane/librelane_macro_fallback_pnr_signoff.sdc
+hw/asic/ihp-sg13g2/librelane/librelane_macro_pin_order.cfg
+hw/asic/ihp-sg13g2/librelane/librelane_pdn_cfg.tcl
+hw/asic/ihp-sg13g2/librelane/librelane_sram_placement.cfg
+hw/asic/ihp-sg13g2/rtl/ihp_sg13g2_asic_chip_x_heep_system_wrapper.sv
+hw/asic/ihp-sg13g2/rtl/ihp_sg13g2_asic_macro_x_heep_system_wrapper.sv
 
 hw/system/pad_control/data/pad_control.hjson
 hw/system/pad_control/rtl/pad_control.sv
@@ -101,9 +113,6 @@ sw/device/lib/drivers/pdm2pcm/pdm2pcm_regs.md
 
 sw/device/lib/drivers/pad_control/pad_control_regs.h
 sw/device/lib/drivers/pad_control/pad_control_regs.md
-
-# Openroad
-flow/OpenROAD-flow-scripts
 
 # Automatically generated docs
 /docs/source/Configuration/xheep_gen

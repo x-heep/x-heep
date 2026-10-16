@@ -91,24 +91,24 @@ module x_heep_system #(
     input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] hw_fifo_done_i,
 
     // eXtension interface
+`ifndef XHEEP_STANDALONE_SYNTHESIS
     if_xif.cpu_compressed xif_compressed_if,
     if_xif.cpu_issue      xif_issue_if,
     if_xif.cpu_commit     xif_commit_if,
     if_xif.cpu_mem        xif_mem_if,
     if_xif.cpu_mem_result xif_mem_result_if,
     if_xif.cpu_result     xif_result_if,
+`endif
 
     // External SPC interface
     output logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_done_o,
 
-    % for pad in xheep.get_padring().pad_list:
+    ## Only pads with signal pins (not e.g. power pads), so that loop.last is the last port
+    % for pad in [pad for pad in xheep.get_padring().pad_list if any(isinstance(pin, (Input, Output, Inout)) for pin in pad.pins)]:
       <%
       has_input_pin = any(isinstance(pin, Input) for pin in pad.pins)
       has_output_pin = any(isinstance(pin, Output) for pin in pad.pins)
       has_inout_pin = any(isinstance(pin, Inout) for pin in pad.pins)
-
-      if not (has_input_pin or has_output_pin or has_inout_pin):
-        continue
       pin0_name = pad.pins[0].rtl_name()
       muxed_string = "_muxed" if pad.is_muxed() else ""
       %>\
@@ -123,6 +123,16 @@ module x_heep_system #(
 );
 
   import core_v_mini_mcu_pkg::*;
+
+`ifdef XHEEP_STANDALONE_SYNTHESIS
+  // No eXtension interface ports (ASIC flows): tie it off internally
+  if_xif xif_compressed_if ();
+  if_xif xif_issue_if ();
+  if_xif xif_commit_if ();
+  if_xif xif_mem_if ();
+  if_xif xif_mem_result_if ();
+  if_xif xif_result_if ();
+`endif
 
   localparam EXT_HARTS = 0;
 

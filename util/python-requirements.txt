@@ -22,3 +22,6 @@ git+https://github.com/edge-group-polito/rv_profile.git
 
 # Area Plot
 git+https://github.com/edge-group-polito/area-plot-post-syn.git
+
+# PDK downloader (make pdk)
+ciel==3.0.0

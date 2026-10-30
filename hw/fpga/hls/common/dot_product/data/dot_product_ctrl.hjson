@@ -2,14 +2,13 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 //
-// CTRL register file of the Bambu HLS 'dot_product' core.
+// CTRL register file of the 'dot_product' HLS example, for the HLS tools that
+// cannot generate an 's_axilite' control port (Bambu, Dynamatic).
 //
-// Bambu cannot generate an 's_axilite' control port (its cores only expose
-// clock/reset/start_port/done_port plus one plain port per C argument), so
-// this block plays the role of Vitis HLS' generated dot_product_CTRL_s_axi.v:
+// This block plays the role of Vitis HLS' generated dot_product_CTRL_s_axi.v:
 // it has the SAME register map and (with one exception, see ISR) the same bit
 // semantics, which is what lets X-HEEP software and the shared OBI wrapper
-// stay identical between the two HLS flows.
+// stay identical between the HLS flows.
 //
 // The "clear on read" (COR) bits of Vitis are regtool's 'rc' access, its
 // "clear on handshake" (COH) ap_start is 'rw1s' cleared by hardware.
@@ -65,9 +64,9 @@
         { bits: "3"
           name: "AP_READY"
           desc: '''
-                Set when the core is ready for new inputs. Bambu cores are not
-                overlapped, so this is set together with AP_DONE. Cleared on
-                read.
+                Set when the core is ready for new inputs. The Bambu and
+                Dynamatic cores are not overlapped, so this is set together
+                with AP_DONE. Cleared on read.
                 '''
           swaccess: "rc"
           hwaccess: "hrw"
@@ -150,7 +149,8 @@
       desc: '''
             Base address of vector a, bits 63:32. Kept for register-map
             compatibility with the Vitis flow (64-bit host pointers); the Bambu
-            core targets a 32-bit address space, so this is not used.
+            and Dynamatic cores target a 32-bit address space, so this is not
+            used.
             '''
       swaccess: "rw"
       hwaccess: "hro"

@@ -164,8 +164,8 @@ module dot_product_xheep_wrapper #(
 
   // ---------------------------------------------------------------------
   // HLS-generated dot-product core, seen through the flow-specific
-  // adapter (Vitis HLS or Bambu HLS -- whichever epfl:ip:dot_product pulled
-  // in).
+  // adapter (Vitis HLS, Bambu HLS or Dynamatic -- whichever
+  // epfl:ip:dot_product pulled in).
   // ---------------------------------------------------------------------
   dot_product_hls_adapter #(
       .ctrl_axi_req_t(ctrl_axi_req_t),

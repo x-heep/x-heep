@@ -2,7 +2,8 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 //
-// Lint waivers for the regtool-generated register file of the Bambu flow --
+// Lint waivers for the regtool-generated register file of the Bambu and
+// Dynamatic flows --
 // the same ones the other regtool-based X-HEEP peripherals carry (e.g.
 // hw/ip/soc_ctrl/soc_ctrl.vlt). Nothing here is code we write.
 

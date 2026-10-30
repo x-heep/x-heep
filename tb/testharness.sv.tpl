@@ -641,9 +641,9 @@ module testharness #(
       // core-v-mini-mcu.core): that flag both defines USE_HLS_EXAMPLE here
       // and gates the epfl:ip:dot_product dependency. The HLS tool that
       // generates the accelerator is chosen with a second flag
-      // (use_vitis_hls or use_bambu_hls), which also gates the pre-build hook
-      // that runs it -- the wrapper is the same for both, so this
-      // instantiation does not change. Without the flags X-HEEP never needs
+      // (use_vitis_hls, use_bambu_hls or use_dynamatic_hls), which also gates
+      // the pre-build hook that runs it -- the wrapper is the same for all of
+      // them, so this instantiation does not change. Without the flags X-HEEP never needs
       // any HLS tool installed at all. Also not present in the SIM_SYSTEMC
       // build: that
       // flow keeps EXT_XBAR_NSLAVE at its original size (see

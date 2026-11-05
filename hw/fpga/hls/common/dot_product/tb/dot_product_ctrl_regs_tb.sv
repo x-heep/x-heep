@@ -3,12 +3,12 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 // Self-checking unit test of dot_product_ctrl_regs (the regtool-based AXI4-Lite
-// CTRL register file of the Bambu flow), against the behaviour of the
-// Vitis-generated dot_product_CTRL_s_axi.v it stands in for. It emulates the
-// Bambu core with a tiny model (start_port in, done_port/result out).
+// CTRL register file of the Bambu and Dynamatic flows), against the behaviour
+// of the Vitis-generated dot_product_CTRL_s_axi.v it stands in for. It
+// emulates the core with a tiny model (start pulse in, done/result out).
 //
 // Run it with (from anywhere):
-//   hw/fpga/hls/bambu/dot_product/tb/run.sh
+//   hw/fpga/hls/common/dot_product/tb/run.sh
 
 `include "axi/typedef.svh"
 
@@ -76,7 +76,7 @@ module dot_product_ctrl_regs_tb;
   int unsigned errors = 0;
 
   // ---------------------------------------------------------------------
-  // Bambu core model: on a start pulse, run for core_cycles cycles, present a
+  // Core model: on a start pulse, run for core_cycles cycles, present a
   // result with a one-cycle valid strobe, then a one-cycle done pulse.
   // ---------------------------------------------------------------------
   int unsigned core_cycles = 5;

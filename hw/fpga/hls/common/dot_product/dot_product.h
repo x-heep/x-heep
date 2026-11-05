@@ -24,19 +24,38 @@ typedef int64_t dp_result_t;  // accumulator / result type
 // with the standard ap_ctrl_hs start/done/idle/ready control register, so
 // a single AXI4-Lite slave port lets software set up the addresses/length,
 // pulse start, poll done and read the result. (Vitis HLS generates that
-// register file itself; Bambu HLS cannot, so the Bambu flow provides an
-// equivalent one by hand -- see ../../bambu/dot_product. The register map
-// seen by X-HEEP software is the same in both flows.)
+// register file itself; Bambu HLS and Dynamatic cannot, so their flows use an
+// equivalent regtool-generated one -- see data/dot_product_ctrl.hjson. The
+// register map seen by X-HEEP software is the same in every flow.)
 //
-// The function has C linkage on purpose: this header is shared by the Vitis
-// HLS and the Bambu HLS flows, and Bambu names the generated RTL module after
-// the (mangled) symbol, so C++ linkage would give it an unusable name like
+// The function has C linkage on purpose: this header is shared by all the
+// flows, and Bambu names the generated RTL module after the (mangled) symbol,
+// so C++ linkage would give it an unusable name like
 // '_Z11dot_productPKiS0_jPx' instead of 'dot_product'.
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#ifdef DOT_PRODUCT_DYNAMATIC
+// Dynamatic (../../dynamatic/dot_product, whose kernel defines
+// DOT_PRODUCT_DYNAMATIC) accepts neither pointer arguments nor results
+// returned through a pointer: a/b are fixed-size arrays (each becomes a
+// memory port of the circuit) and the result is the return value. Same
+// computation; the X-HEEP-side interface is the same, see that flow's adapter.
+//
+// The array size is also the size of the local RAMs the adapter copies a/b
+// into before starting the circuit (MaxLen in its
+// rtl/dot_product_hls_adapter.sv), so it caps the length the Dynamatic flow
+// can process: a longer 'size' is clamped to it. Keep it equal to MaxLen and
+// to DOT_PRODUCT_MAX_SIZE in sw/applications/example_dot_product_hls/main.c,
+// which checks its test size against it at compile time.
+#define DOT_PRODUCT_DYNAMATIC_MAX_LEN 1024
+
+dp_result_t dot_product(const dp_data_t a[DOT_PRODUCT_DYNAMATIC_MAX_LEN],
+                        const dp_data_t b[DOT_PRODUCT_DYNAMATIC_MAX_LEN], uint32_t size);
+#else
 void dot_product(const dp_data_t *a, const dp_data_t *b, uint32_t size, dp_result_t *result);
+#endif
 
 #ifdef __cplusplus
 }

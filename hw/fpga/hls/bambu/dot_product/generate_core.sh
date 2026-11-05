@@ -20,8 +20,8 @@
 #
 # ./generate_core.sh clean
 #   Removes the generated artifacts: the Bambu work directory, rtl/hls/ and the
-#   regtool-generated CTRL register file (with its cache). Needs neither Bambu
-#   nor Docker (`make clean` runs it).
+#   regtool-generated CTRL register file in ../../common (with its cache).
+#   Needs neither Bambu nor Docker (`make clean` runs it).
 #   Does NOT remove dot_product_bambu.core -- that file is committed to git
 #   (unlike rtl/hls/ and dot_product_proj/, which are gitignored) because
 #   FuseSoC needs it to resolve epfl:ip:dot_product_bambu as a dependency
@@ -41,7 +41,9 @@ CORE_FILE="dot_product_bambu.core"
 
 if [ "${1:-}" = "clean" ]; then
   rm -rf "$WORK_DIR" "$DST_DIR"
-  rm -f rtl/dot_product_ctrl_reg_top.sv rtl/dot_product_ctrl_reg_pkg.sv .dot_product_ctrl_reg_gen.cache
+  rm -f ../../common/dot_product/rtl/dot_product_ctrl_reg_top.sv \
+    ../../common/dot_product/rtl/dot_product_ctrl_reg_pkg.sv \
+    ../../common/dot_product/.dot_product_ctrl_reg_gen.cache
   echo "Removed $WORK_DIR/, $DST_DIR/ and the generated CTRL register file."
   echo "$CORE_FILE was left untouched (it's committed to git, not generated)."
   exit 0
@@ -100,7 +102,7 @@ description: "Bambu HLS-generated streaming dot-product core with its X-HEEP ada
 filesets:
   files_rtl:
     depend:
-    - x-heep:ip:dot_product_bambu_ctrl
+    - x-heep:ip:dot_product_ctrl
     files:
 $HLS_FILES
     - rtl/dot_product_hls_adapter.sv

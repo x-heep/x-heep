@@ -1,0 +1,16 @@
+// Copyright EPFL contributors.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+//
+// Dynamatic's RTL library is not written with Verilator's lint checks in mind
+// (unused ports/parameters of generic components, width mismatches in
+// parameterised ones, initial blocks, etc.). None of this is X-HEEP's own code
+// to fix -- waive it wholesale for the generated sources only.
+// hw/fpga/hls/dynamatic/dot_product's hand-written integration code
+// (rtl/dot_product_hls_adapter.sv, rtl/dot_product_operand_buffer.sv, and the
+// shared register file and wrapper under hw/fpga/hls/common/dot_product/) is
+// deliberately NOT covered here: its warnings are fixed at the source instead.
+
+`verilator_config
+
+lint_off -file "*/hw/fpga/hls/dynamatic/dot_product/rtl/hls/*"

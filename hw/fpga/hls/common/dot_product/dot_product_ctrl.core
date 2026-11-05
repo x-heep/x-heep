@@ -4,10 +4,12 @@ CAPI=2:
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 
-# AXI4-Lite CTRL register file of the Bambu HLS dot_product core: the register
-# map (data/dot_product_ctrl.hjson) is turned into RTL by regtool, like the
-# other X-HEEP peripherals' register files. Unlike dot_product_bambu.core this
-# core does not depend on the HLS run, so it is a normal hand-maintained one.
+# AXI4-Lite CTRL register file of the dot_product HLS example, for the HLS
+# tools that cannot generate one themselves (Bambu, Dynamatic): same register
+# map as the block Vitis HLS generates. The register map
+# (data/dot_product_ctrl.hjson) is turned into RTL by regtool, like the other
+# X-HEEP peripherals' register files. This core does not depend on any HLS
+# run, so it is a normal hand-maintained one.
 #
 # NOTE on the name: the vendor is 'x-heep' (like the other regtool-based IPs),
 # not 'epfl', on purpose. FuseSoC orders sibling cores by name, and the
@@ -18,8 +20,8 @@ CAPI=2:
 # ASSERT_INIT when common_cells/exp_backoff.sv uses the 3-argument one, and
 # synthesis fails ("incorrect number of macro arguments").
 
-name: "x-heep:ip:dot_product_bambu_ctrl"
-description: "Regtool-generated AXI4-Lite CTRL register file of the Bambu dot_product core."
+name: "x-heep:ip:dot_product_ctrl"
+description: "Regtool-generated AXI4-Lite CTRL register file of the dot_product HLS example (Bambu and Dynamatic flows)."
 
 filesets:
   files_rtl:

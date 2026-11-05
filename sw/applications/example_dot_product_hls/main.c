@@ -7,6 +7,7 @@
 #include <stdlib.h>
 
 #include "core_v_mini_mcu.h"
+#include "csr.h"
 #include "x-heep.h"
 
 #define TEST_DATA_SIZE 16
@@ -69,6 +70,7 @@ int main(int argc, char *argv[]) {
   static int32_t vec_a[TEST_DATA_SIZE] __attribute__((aligned(4)));
   static int32_t vec_b[TEST_DATA_SIZE] __attribute__((aligned(4)));
 
+  unsigned int cycles;
   int64_t expected = 0;
   for (int i = 0; i < TEST_DATA_SIZE; i++) {
     vec_a[i] = i + 1;
@@ -77,6 +79,9 @@ int main(int argc, char *argv[]) {
   }
 
   volatile uint32_t *dot_product = (uint32_t *)DOT_PRODUCT_CTRL_BASE_ADDRESS;
+
+  // Cycles of the whole offload: programming a/b/size, START and waiting for DONE
+  CSR_WRITE(CSR_REG_MCYCLE, 0);
 
   dot_product[DOT_PRODUCT_A_ADDR_OFFSET] = (uint32_t)(uintptr_t)&vec_a[0];
   dot_product[DOT_PRODUCT_B_ADDR_OFFSET] = (uint32_t)(uintptr_t)&vec_b[0];
@@ -88,13 +93,16 @@ int main(int argc, char *argv[]) {
   // UNTIL DONE
   while ((dot_product[DOT_PRODUCT_AP_CTRL_OFFSET] & DOT_PRODUCT_AP_DONE) == 0);
 
+  CSR_READ(CSR_REG_MCYCLE, &cycles);
+
   int64_t result = (int64_t)dot_product[DOT_PRODUCT_RESULT_LO_OFFSET] |
                     ((int64_t)dot_product[DOT_PRODUCT_RESULT_HI_OFFSET] << 32);
 
   // X-HEEP's simulation printf doesn't support %lld, so split 64-bit
   // values into hi/lo 32-bit halves for display.
   if (result == expected) {
-    PRINTF("Dot Product Accelerator Successful: 0x%08x%08x\n\r", (uint32_t)(result >> 32), (uint32_t)result);
+    PRINTF("Dot Product Accelerator Successful: 0x%08x%08x in %d cycles\n\r", (uint32_t)(result >> 32), (uint32_t)result,
+           cycles);
     return EXIT_SUCCESS;
   } else {
     PRINTF("Dot Product Accelerator failure: got 0x%08x%08x, expected 0x%08x%08x\n\r", (uint32_t)(result >> 32),

@@ -1,1 +1,121 @@
-../generate_sram.tcl.tpl
+# Copyright 2026 X-HEEP contibutors
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+% for num_words in xheep.memory_ss().iter_bank_numwords():
+
+set ipName  xilinx_mem_gen_${num_words}
+
+<%
+  u_ram = num_words > (8 * 512)
+  write_depth = (num_words + 1) // 2 if u_ram else num_words
+%>
+
+set word_size ${64 if u_ram else  32}
+
+create_ip -name blk_mem_gen -vendor xilinx.com -library ip -version 8.4 -module_name $ipName
+
+set_property -dict [list CONFIG.Enable_32bit_Address {false} \\
+
+                        CONFIG.Use_Byte_Write_Enable {true}  \\
+
+                        CONFIG.Byte_Size {8}  \\
+
+% if u_ram:
+                        CONFIG.PRIM_type_to_Implement {URAM} \\
+
+% else:
+                        CONFIG.Primitive {2kx9}  \\
+
+% endif
+                        CONFIG.Algorithm {Minimum_Area}  \\
+
+                        CONFIG.Write_Width_A $word_size  \\
+
+                        CONFIG.Write_Depth_A {${write_depth}}  \\
+
+                        CONFIG.Read_Width_A $word_size  \\
+
+                        CONFIG.Enable_A {Use_ENA_Pin}  \\
+
+                        CONFIG.Write_Width_B $word_size  \\
+
+                        CONFIG.Read_Width_B $word_size  \\
+
+                        CONFIG.Register_PortA_Output_of_Memory_Primitives {false}  \\
+
+                        CONFIG.Use_RSTA_Pin {false}  \\
+
+                        CONFIG.EN_SAFETY_CKT {false}] [get_ips $ipName]
+
+#generate_target {instantiation_template} [get_ips $ipName]
+
+#export_ip_user_files -of_objects [get_ips $ipName] -no_script -sync -force -quiet
+
+create_ip_run [get_ips $ipName]
+
+% endfor
+
+<%ips = ""
+for num_words in xheep.memory_ss().iter_bank_numwords():
+    ips += f" xilinx_mem_gen_{num_words}_synth_1"%>
+launch_runs -jobs 8 ${ips}
+
+% for num_words in xheep.memory_ss().iter_bank_numwords():
+wait_on_run xilinx_mem_gen_${num_words}_synth_1
+% endfor
+
+<%
+  base_peripheral_domain = xheep.get_base_peripheral_domain()
+  if base_peripheral_domain.contains_peripheral('w25q128jw_controller'):
+    w25 = base_peripheral_domain.get_peripheral('w25q128jw_controller')
+    cache = w25.get_cache()
+  else:
+    cache = 0
+%>
+
+% if cache:
+
+set ipName xilinx_mem_gen_llc_cache
+
+create_ip -name blk_mem_gen -vendor xilinx.com -library ip -version 8.4 -module_name $ipName
+
+set_property -dict [list CONFIG.Enable_32bit_Address {false} \\
+
+                        CONFIG.Use_Byte_Write_Enable {true}  \\
+
+                        CONFIG.Byte_Size {8}  \\
+
+                        CONFIG.Algorithm {Minimum_Area}  \\
+
+                        CONFIG.Primitive {2kx9}  \\
+
+                        CONFIG.Write_Width_A {32}  \\
+
+                        CONFIG.Write_Depth_A {4096}  \\
+
+                        CONFIG.Read_Width_A {32}  \\
+
+                        CONFIG.Enable_A {Use_ENA_Pin}  \\
+
+                        CONFIG.Write_Width_B {32}  \\
+
+                        CONFIG.Read_Width_B {32}  \\
+
+                        CONFIG.Register_PortA_Output_of_Memory_Primitives {false}  \\
+
+                        CONFIG.Use_RSTA_Pin {false}  \\
+
+                        CONFIG.EN_SAFETY_CKT {false}] [get_ips $ipName]
+
+#generate_target {instantiation_template} [get_ips $ipName]
+
+#export_ip_user_files -of_objects [get_ips $ipName] -no_script -sync -force -quiet
+
+create_ip_run [get_ips $ipName]
+
+launch_runs -jobs 8 xilinx_mem_gen_llc_cache_synth_1
+
+wait_on_run xilinx_mem_gen_llc_cache_synth_1
+
+% endif

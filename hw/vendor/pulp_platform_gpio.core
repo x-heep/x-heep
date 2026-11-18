@@ -50,3 +50,4 @@ targets:
     - target_aup-zu3? (no-clock-gate)
     - target_genesys2? (no-clock-gate)
     - target_vpk180? (no-clock-gate)
+    - target_bergen? (no-clock-gate)

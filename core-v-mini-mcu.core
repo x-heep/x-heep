@@ -241,6 +241,10 @@ parameters:
     datatype: bool
     paramtype: vlogdefine
     default: false
+  FPGA_BERGEN:
+    datatype: bool
+    paramtype: vlogdefine
+    default: false
   NO_DDR_CLK_PORTS:
     datatype: bool
     paramtype: vlogdefine
@@ -530,6 +534,24 @@ targets:
         part: xc7z020clg400-1
         board_part: tul.com.tw:pynq-z2:part0:1.0
         board_repo_paths: [../../../hw/fpga/xheep_fpga_support/board_files/esl_epfl_pynq_z2_board_files]
+    toplevel: [xilinx_core_v_mini_mcu_wrapper]
+
+  bergen:
+    <<: *default_target
+    default_tool: vivado
+    description: NewAE CW310 Bergen Board
+    filesets_append:
+    - x_heep_system
+    - rtl-fpga
+    parameters:
+    - SYNTHESIS=true
+    - REMOVE_OBI_FIFO
+    - FPGA_SYNTHESIS=true
+    - FPGA_BERGEN=true
+    - NO_DDR_CLK_PORTS=true
+    tools:
+      vivado:
+        part: xc7k410tfbg676-1
     toplevel: [xilinx_core_v_mini_mcu_wrapper]
 
   zcu104:

@@ -283,6 +283,8 @@ module xilinx_core_v_mini_mcu_wrapper
   wire cips_rst_n;
   // TODO: for now system reset of pl is ignored.
   assign rst_n = ~rst_i;
+`elsif FPGA_BERGEN
+  assign rst_n = rst_i;
 `else
   assign rst_n = !rst_i;
 `endif
@@ -343,6 +345,11 @@ module xilinx_core_v_mini_mcu_wrapper
 `elsif FPGA_NEXYS
   xilinx_clk_wizard_wrapper xilinx_clk_wizard_wrapper_i (
       .clk_100MHz(clk_i),
+      .clk_out1_0(clk_gen)
+  );
+`elsif FPGA_BERGEN
+  xilinx_clk_wizard_wrapper xilinx_clk_wizard_wrapper_i (
+      .clk_25MHz(clk_i),
       .clk_out1_0(clk_gen)
   );
 `else  // FPGA PYNQ-Z2

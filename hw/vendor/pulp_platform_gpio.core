@@ -51,3 +51,4 @@ targets:
     - target_genesys2? (no-clock-gate)
     - target_auboard-15p? (no-clock-gate)
     - target_vpk180? (no-clock-gate)
+    - target_bergen? (no-clock-gate)

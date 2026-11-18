@@ -12,6 +12,7 @@ Check this section to run your design on the FPGA.
    AUP-ZU3
    AUBoard-15P
    Genesys2
+   CW310_Bergen
    VPK_180
    VPK_180_Petalinux
    DEBUG_with_ILA

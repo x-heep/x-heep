@@ -264,11 +264,17 @@ parameters:
     datatype: bool
     paramtype: vlogdefine
     description: |
-      Include the Vitis HLS-generated dot_product example accelerator in
-      the testbench. Enable with `--flag use_hls_example`, which also
-      triggers the generate_hls_dot_product pre-build hook (runs Vitis
-      HLS) and pulls in epfl:ip:dot_product -- so without the flag,
-      building/simulating X-HEEP never requires Vitis HLS to be installed.
+      Include the HLS-generated dot_product example accelerator in the
+      testbench / FPGA top. Enable it with `--flag use_hls_example` plus the
+      flag of the HLS tool that must generate it:
+        --flag use_hls_example --flag use_vitis_hls       (Vitis HLS)
+        --flag use_hls_example --flag use_bambu_hls       (Bambu HLS, open source)
+        --flag use_hls_example --flag use_dynamatic_hls   (Dynamatic, open source)
+      `use_hls_example` defines this macro and pulls in epfl:ip:dot_product;
+      the tool flag selects the tool-specific RTL (epfl:ip:dot_product_vitis /
+      _bambu / _dynamatic) and triggers its generate_hls_dot_product_*
+      pre-build hook. Without the flags, building/simulating X-HEEP never
+      requires any HLS tool. See docs/source/FPGA/HLS_DotProduct_Example.md.
     default: false
 
 scripts:
@@ -293,10 +299,22 @@ scripts:
     cmd:
     - python
     - ../../../scripts/sim/vcs/patch_vcs_ams_Makefile.py
-  generate_hls_dot_product:
+  # HLS example: run the selected HLS tool and (re)generate its core. Needs
+  # Vivado's and Vitis HLS's settings64.sh sourced for Vitis; Bambu and
+  # Dynamatic only need Docker (or BAMBU=/path/to/bambu,
+  # DYNAMATIC_DIR=/path/to/dynamatic).
+  generate_hls_dot_product_vitis:
     cmd:
     - bash
     - ../../../hw/fpga/hls/vitis/dot_product/generate_core.sh
+  generate_hls_dot_product_bambu:
+    cmd:
+    - bash
+    - ../../../hw/fpga/hls/bambu/dot_product/generate_core.sh
+  generate_hls_dot_product_dynamatic:
+    cmd:
+    - bash
+    - ../../../hw/fpga/hls/dynamatic/dot_product/generate_core.sh
 
   patch_vpk_run:
     cmd:
@@ -348,7 +366,9 @@ targets:
         - ams_sim? (pre_patch_vcs_ams_Makefile)
         - tool_xcelium? (pre_build_uartdpi)
         - tool_xcelium? (pre_build_remote_bitbang)
-        - use_hls_example? (generate_hls_dot_product)
+        - use_vitis_hls? (generate_hls_dot_product_vitis)
+        - use_bambu_hls? (generate_hls_dot_product_bambu)
+        - use_dynamatic_hls? (generate_hls_dot_product_dynamatic)
       pre_run:
         - remove_uart_log
       post_run:
@@ -502,7 +522,9 @@ targets:
     - use_hls_example ? (USE_HLS_EXAMPLE=true)
     hooks:
       pre_build:
-        - use_hls_example? (generate_hls_dot_product)
+        - use_vitis_hls? (generate_hls_dot_product_vitis)
+        - use_bambu_hls? (generate_hls_dot_product_bambu)
+        - use_dynamatic_hls? (generate_hls_dot_product_dynamatic)
     tools:
       vivado:
         part: xc7z020clg400-1

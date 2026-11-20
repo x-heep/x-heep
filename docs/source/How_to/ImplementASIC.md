@@ -16,7 +16,7 @@ make asic
 
 ## OpenRoad support for SkyWater 130nm
 
-This relies on a fork of [edalize](https://github.com/davideschiavone/edalize) that contains templates for Design Compiler and OpenRoad.
+This relies on the [x-heep fork of edalize](https://github.com/x-heep/edalize), which contains templates for Design Compiler and OpenRoad. It is the edalize that `util/python-requirements.txt` (and therefore the conda environment and the `make venv` virtual environment) installs.
 
 
 ## Install OpenROAD

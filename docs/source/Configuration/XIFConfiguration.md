@@ -32,5 +32,5 @@ The CPU parameters are updated automatically to reflect the requested XIF config
 An example of a XIF-enable X-HEEP using the CV32E20 core is available in [configs/cv32e20_xif_fpu.py](https://github.com/x-heep/x-heep/blob/main/configs/cv32e20_xif_fpu.py) and can be built with:
 
 ```bash
-make mcu-gen PYTHON_X_HEEP_CFG=configs/cv32e20_xif_fpu.py X_HEEP_CFG=configs/python_unsupported.hjson
+make mcu-gen X_HEEP_CFG=configs/cv32e20_xif_fpu.py
 ```

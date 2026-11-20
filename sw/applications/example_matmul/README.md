@@ -4,7 +4,7 @@ The `matrix multiplication` is often used to profile the performance of a CPU an
 
 To get the best performance, first of all configure `X-HEEP` as following:
 
-`make mcu-gen X_HEEP_CFG=configs/benchmark.hjson`
+`make mcu-gen X_HEEP_CFG=configs/benchmark.py`
 
 This configuration contains the best settings for `X-HEEP` to compute a fast matrix multiplication.
 

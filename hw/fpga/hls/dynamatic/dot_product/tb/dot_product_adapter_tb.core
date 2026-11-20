@@ -1,0 +1,31 @@
+CAPI=2:
+
+# Copyright EPFL contributors.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+# Test of the Dynamatic flow's adapter with the generated circuit. Run it with
+# run.sh (which generates the circuit first if needed).
+
+name: "epfl:ip:dot_product_dynamatic_tb"
+description: "Self-checking test of the Dynamatic dot_product adapter, with the generated circuit."
+
+filesets:
+  files_tb:
+    depend:
+      - epfl:ip:dot_product_dynamatic
+      # sram_wrapper (the operand buffers' RAM): X-HEEP's simulation model,
+      # which the top-level simulation build normally provides
+      - pulp-platform.org::tech_cells_generic
+      - x-heep:sim:sram_wrapper
+    files:
+      - dot_product_adapter_tb.sv
+    file_type: systemVerilogSource
+
+targets:
+  # Named 'sim' so that the target_sim flag selects tech_cells_generic's
+  # simulation models (tc_sram, used by sram_wrapper).
+  sim:
+    filesets:
+      - files_tb
+    toplevel: dot_product_adapter_tb

@@ -1,6 +1,6 @@
 # Interrupts Configuration
 
-The default interrupt configuration can be found in [configs/general.hjson](https://github.com/x-heep/x-heep/blob/main/configs/general.hjson) and [configs/general.py](https://github.com/x-heep/x-heep/blob/main/configs/general.py).
+The default interrupt configuration can be found in [configs/general.py](https://github.com/x-heep/x-heep/blob/main/configs/general.py).
 
 ## Overall structure
 
@@ -52,22 +52,4 @@ system.set_interrupts(interrupts)
 ```
 
 When {py:meth}`xheep.XHeep.build` is called, any unused IDs are automatically populated with `EXT_INTR_x` entries by {py:meth}`interrupts.interrupts.Interrupts.build`.
-
-## HJSON configuration file
-
-In an HJSON configuration file, interrupts are specified under the top-level `interrupts` object:
-
-```{code} js
-interrupts: {
-    number: 64 // Do not change this number!
-    list: {
-        null_intr:               0
-        uart_intr_tx_watermark:  1
-        uart_intr_rx_watermark:  2
-        // ... remaining interrupts ...
-    }
-}
-```
-
-The `number` field is validated against `PLIC_NUM_INTERRUPTS` and must remain `64`.
  

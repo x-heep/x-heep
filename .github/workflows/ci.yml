@@ -66,7 +66,7 @@ jobs:
       - name: Compile all apps with GCC and Clang
         shell: bash -le {0}
         run: |
-          make mcu-gen X_HEEP_CFG=configs/ci.hjson && \
+          make mcu-gen X_HEEP_CFG=configs/ci.py && \
           python3 test/test_apps/test_apps.py --compilers gcc,clang,gcc --compiler-paths /tools/riscv --compiler-prefixes riscv32-corev-,riscv32-unknown-,riscv32-unknown- --table --compile-only
 
   simulate-apps:
@@ -83,7 +83,7 @@ jobs:
       - name: Compile and simulate all apps
         shell: bash -le {0}
         run: |
-          make mcu-gen X_HEEP_CFG=configs/ci.hjson && \
+          make mcu-gen X_HEEP_CFG=configs/ci.py && \
           python3 test/test_apps/test_apps.py --compilers gcc --compiler-paths /tools/riscv --compiler-prefixes riscv32-corev- --table
 
   test-rv-profile:
@@ -103,7 +103,7 @@ jobs:
       - name: Run RV Profile test
         shell: bash -le {0}
         run: |
-          make mcu-gen PYTHON_X_HEEP_CFG=configs/ci.py
+          make mcu-gen X_HEEP_CFG=configs/ci.py
           make verilator-build
           make app
           make verilator-run

@@ -71,7 +71,7 @@ def mcu_gen(repo_root: pathlib.Path, outdir: pathlib.Path):
         [
             "make",
             "mcu-gen",
-            "X_HEEP_CFG=configs/ci.hjson",
+            "X_HEEP_CFG=configs/ci.py",
         ],
         cwd=repo_root,
     )

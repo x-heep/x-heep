@@ -36,7 +36,7 @@ This documentation describes the minimal configuration and usage of the Serial L
    - To use the serial link, the memory-mapped **registers must be correctly programmed**.  
    - The initialization function `sl_init` provides the required register setup.
 4. **RX Mode**: Selected at runtime via `sl_wrapper_set_rx_mode()`.
-5. **TX Address Window**: Configured in `configs/general.hjson` or in `configs/python_unsupported.hjson`:.
+5. **TX Address Window**: Configured in `configs/general.py`:.
 ```
    serial_link: {
        address: 0x50000000

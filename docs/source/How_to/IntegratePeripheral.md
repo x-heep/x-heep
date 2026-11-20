@@ -124,21 +124,11 @@ This is a crucial step in integrating the new peripheral in X-HEEP's flow:
 This is another crucial step in the integration of the peripheral. Please be aware that the address map of X-HEEP might change in the future, so consider this for the addresses of the following examples.
 As said at the beginning of this guide, these steps are the same for any domain you want to integrate the peripheral in, both `user peripherals` and `base peripherals`.
 
-1. Extend the configuration you built (HJSON or Python) with a new entry in the preferred domain. Example (`configs/general.hjson`):
-   ```js
-   peripherals: {
-       address: 0x30000000
-       length:  0x00100000
-       // existing peripherals…
-       <peripheral>: {
-           offset:  0x00080000
-           length:  0x00010000
-           is_included: "yes"
-       }
-       // existing peripherals…
-   }
+1. Extend the Python configuration with a new entry in the preferred domain. Example (`configs/general.py`):
+   ```python
+   user_peripheral_domain.add_peripheral(MyPeripheral(0x00080000, 0x00010000))
    ```
-2. For Python configs, import a new class in `util/xheep_gen/peripherals/user_peripherals.py` (or `base_peripherals.py` if mandatory):
+2. Import a new class in `util/xheep_gen/peripherals/user_peripherals.py` (or `base_peripherals.py` if mandatory):
    ```python
    class MyPeripheral(UserPeripheral):
        _name = "my_peripheral"
@@ -279,7 +269,7 @@ For reference, please check out our guide on how to update the documentation [he
 ## Checklist
 - [ ] IP directory added under `hw/ip/<name>` (or `hw/ip_examples/<name>`) with `.core`, RTL, and HJSON files.
 - [ ] `regtool` executed; generated RTL and headers checked in.
-- [ ] Configuration (HJSON or Python) updated with offset, length, and optional interrupt entries.
+- [ ] Python configuration updated with offset, length, and optional interrupt entries.
 - [ ] Templates updated and `make mcu-gen` run; regenerated outputs reviewed.
 - [ ] `peripheral_subsystem` (and other templates) instantiate and connect the IP.
 - [ ] Testbench and FPGA wrappers handle the new signals.

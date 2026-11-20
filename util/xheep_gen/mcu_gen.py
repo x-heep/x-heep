@@ -137,7 +137,7 @@ def main():
         metavar="file",
         type=str,
         required=True,
-        help="System general configuration (.py or .hjson)",
+        help="System general configuration (.py)",
     )
 
     parser.add_argument(

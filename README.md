@@ -71,7 +71,7 @@ Full documentation is available on [Read the Docs](https://x-heep.readthedocs.io
 
 ```
 x-heep/
-├── configs/          # MCU configuration files (HJSON and Python)
+├── configs/          # MCU configuration files (Python)
 ├── docs/             # Sphinx documentation source
 ├── hw/               # Hardware (RTL, IPs, FPGA wrappers)
 │   ├── ip/           # X-HEEP core IPs

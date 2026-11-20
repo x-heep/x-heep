@@ -66,7 +66,7 @@ set_false_path -from  x_heep_system_i/core_v_mini_mcu_i/debug_subsystem_i/gen_sp
 set_max_delay -datapath_only -from x_heep_system_i/core_v_mini_mcu_i/debug_subsystem_i/gen_spi_slave.obi_spi_slave_i/u_dcfifo_tx/i_cdc_fifo_gray/i_src/wptr_q_reg[*]/C \
 -to x_heep_system_i/core_v_mini_mcu_i/debug_subsystem_i/gen_spi_slave.obi_spi_slave_i/u_dcfifo_tx/i_cdc_fifo_gray/i_dst/gen_sync[*].i_sync/reg_q_reg[0]/D 5.00
 
-set_max_delay -datapath_only -from x_heep_system_i/core_v_mini_mcu_i/debug_subsystem_i/gen_spi_slave.obi_spi_slave_i/u_dcfifo_tx/i_cdc_fifo_gray/i_src/gen_word[*].data_q_reg[*][*]/C \
+set_max_delay -datapath_only -from x_heep_system_i/core_v_mini_mcu_i/debug_subsystem_i/gen_spi_slave.obi_spi_slave_i/u_dcfifo_tx/i_cdc_fifo_gray/i_src/data_q_reg[*][*]/C \
 -to x_heep_system_i/core_v_mini_mcu_i/debug_subsystem_i/gen_spi_slave.obi_spi_slave_i/u_dcfifo_tx/i_cdc_fifo_gray/i_dst/i_spill_register/spill_register_flushable_i/gen_spill_reg.a_data_q_reg[*]/D 5.00
 
 set_max_delay -datapath_only -from x_heep_system_i/core_v_mini_mcu_i/debug_subsystem_i/gen_spi_slave.obi_spi_slave_i/u_dcfifo_tx/i_cdc_fifo_gray/i_dst/rptr_q_reg[*]/C \
@@ -76,7 +76,7 @@ set_max_delay -datapath_only -from x_heep_system_i/core_v_mini_mcu_i/debug_subsy
 set_max_delay -datapath_only -from x_heep_system_i/core_v_mini_mcu_i/debug_subsystem_i/gen_spi_slave.obi_spi_slave_i/u_dcfifo_rx/i_cdc_fifo_gray/i_src/wptr_q_reg[*]/C \
 -to x_heep_system_i/core_v_mini_mcu_i/debug_subsystem_i/gen_spi_slave.obi_spi_slave_i/u_dcfifo_rx/i_cdc_fifo_gray/i_dst/gen_sync[*].i_sync/reg_q_reg[0]/D 5.00
 
-set_max_delay -datapath_only -from x_heep_system_i/core_v_mini_mcu_i/debug_subsystem_i/gen_spi_slave.obi_spi_slave_i/u_dcfifo_rx/i_cdc_fifo_gray/i_src/gen_word[*].data_q_reg[*][*]/C \
+set_max_delay -datapath_only -from x_heep_system_i/core_v_mini_mcu_i/debug_subsystem_i/gen_spi_slave.obi_spi_slave_i/u_dcfifo_rx/i_cdc_fifo_gray/i_src/data_q_reg[*][*]/C \
 -to x_heep_system_i/core_v_mini_mcu_i/debug_subsystem_i/gen_spi_slave.obi_spi_slave_i/u_dcfifo_rx/i_cdc_fifo_gray/i_dst/i_spill_register/spill_register_flushable_i/gen_spill_reg.a_data_q_reg[*]/D 5.00
 
 set_max_delay -datapath_only -from x_heep_system_i/core_v_mini_mcu_i/debug_subsystem_i/gen_spi_slave.obi_spi_slave_i/u_dcfifo_rx/i_cdc_fifo_gray/i_dst/rptr_q_reg[*]/C \

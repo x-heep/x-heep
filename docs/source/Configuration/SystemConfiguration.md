@@ -1,11 +1,10 @@
 # System Configuration
 
-The X-HEEP system can be configured by three methods:
+The X-HEEP system can be configured by two methods:
 - Directly passing arguments to the make command.
-- Using an hjson file.
 - Using a Python script (recommended)
 
-If an `hjson` file or `Python` script is used for configuration, the following parameters can be overridden from the make command:
+If a `Python` script is used for configuration, the following parameters can be overridden from the make command:
 
 - `CPU`
 - `BUS`
@@ -23,16 +22,6 @@ make mcu-gen CPU=cv32e40p BUS=NtoM MEMORY_BANKS=12 MEMORY_BANKS_IL=4
 This generates X-HEEP with the cv32e40p core, a parallel bus, and 16 memory banks (12 continuous and 4 interleaved), 32KB each, for a total memory of 512KB.
 
 This method has certain limitations, such as the size of the memory banks, which are fixed at 32KB. For compatibility reasons `MEMORY_BANKS` does not create linker sections while `MEMORY_BANKS_IL` does create a linker section. You can find more details in the documented code of the Makefile and in the specific configuration sections of this chapter.
-
-## Hjson Configuration File
-
-X-HEEP can be configured in more detail using an hjson file. The default configurations and examples are located in the `configs` directory.
-
-To run `mcu-gen` with a specific `hjson` configuration file, use the following command:
-
-```{code} bash
-make mcu-gen X_HEEP_CFG=configs/general.hjson
-```
 
 ## Python Configuration (recommended)
 

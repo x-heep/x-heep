@@ -5,7 +5,7 @@
 // Waivers for pulp_platform/axi_obi (axi_to_obi.sv / obi_to_axi.sv /
 // axi_to_detailed_mem_user.sv), first pulled into an X-HEEP Verilator build
 // by the HLS dot-product accelerator example
-// (hw/fpga/hls/vitis/dot_product), which is the first consumer to exercise
+// (hw/fpga/hls/common/dot_product), which is the first consumer to exercise
 // these code paths.
 
 `verilator_config

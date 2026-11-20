@@ -15,7 +15,7 @@ software is built with Make + CMake using a RISC-V cross-compiler.
 
 ## Repository map
 
-- `configs/` — MCU configuration (HJSON files or Python scripts). Entry point for customization.
+- `configs/` — MCU configuration (Python scripts). Entry point for customization.
 - `hw/` — RTL: `core-v-mini-mcu/` (SoC top), `ip/`, `ip_examples/`, `fpga/`, `asic/`, `simulation/`, `system/` (SoC + pad ring), `vendor/` (vendored third-party IPs).
 - `sw/` — Software: applications, drivers, SDK, linker scripts.
 - `tb/` — Testbench (`tb_top.sv`, `testharness.sv`) and C++ simulation driver (`tb_top.cpp`).

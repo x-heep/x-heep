@@ -64,7 +64,7 @@ LINKER ?= on_chip
 TARGET ?= sim
 
 # Mcu-gen configuration files
-X_HEEP_CFG  ?= configs/general.hjson
+X_HEEP_CFG  ?= configs/general.py
 PADS_CFG ?= configs/pad_cfg.py
 
 # MCU-Gen template files to generate
@@ -158,7 +158,7 @@ conda: util/conda_environment.yml
 ## @param BUS=[onetoM(default),NtoM]
 ## @param MEMORY_BANKS=[2(default)to(16-MEMORY_BANKS_IL)]
 ## @param MEMORY_BANKS_IL=[0(default),2,4,8]
-## @param X_HEEP_CFG=[configs/general.hjson(default),<path-to-config-file>]
+## @param X_HEEP_CFG=[configs/general.py(default),<path-to-config-file>]
 mcu-gen:
 	$(PYTHON) util/xheep_gen/mcu_gen.py --config $(X_HEEP_CFG) --pads_cfg $(PADS_CFG) --outtpl "$(MCU_GEN_TEMPLATES)" --externaltpl "$(EXTERNAL_MCU_GEN_TEMPLATES)" --cpu $(CPU) --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL)
 
@@ -374,7 +374,7 @@ gdb_connect:
 ## Run the tests for X-HEEP. Cleans and rebuilds all the project.
 .PHONY: test
 test:
-	$(MAKE) mcu-gen X_HEEP_CFG=configs/ci.hjson
+	$(MAKE) mcu-gen X_HEEP_CFG=configs/ci.py
 	$(RM) test/*.log
 	$(PYTHON) test/test_apps/test_apps.py $(TEST_FLAGS) 2>&1 | tee test/test_apps/test_apps.log
 	@echo "You can also find the output in test/test_apps/test_apps.log"
@@ -428,14 +428,25 @@ vendor-clean:
 
 ## @section Cleaning commands
 
+# generate_core.sh of every HLS flow. Each one must handle the 'clean' argument
+# without running (or needing) the HLS tool.
+HLS_GENERATE_CORE_SCRIPTS = $(mkfile_path)/hw/fpga/hls/vitis/dot_product/generate_core.sh \
+                            $(mkfile_path)/hw/fpga/hls/bambu/dot_product/generate_core.sh \
+                            $(mkfile_path)/hw/fpga/hls/dynamatic/dot_product/generate_core.sh
+
 ## Remove the sw build folder
 .PHONY: clean-app
 clean-app:
 	$(RM) -r sw/build
 
+## Remove the HLS-generated RTL, projects and logs (needs none of the HLS tools, nor Docker)
+.PHONY: clean-hls
+clean-hls:
+	@for script in $(HLS_GENERATE_CORE_SCRIPTS); do $$script clean || exit 1; done
+
 ## Remove the build folders
 .PHONY: clean
-clean: clean-app
+clean: clean-app clean-hls
 	$(RM) -r $(BUILD_DIR)
 	$(RM) $(MCU_GEN_OUTPUTS) $(EXTERNAL_MCU_GEN_OUTPUTS)
 	find . -type f -name "*_reg_gen.cache" -delete

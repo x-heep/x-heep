@@ -1,0 +1,25 @@
+CAPI=2:
+
+# Copyright EPFL contributors.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+# Unit test of the CTRL register file of the Bambu and Dynamatic flows. Run it
+# with run.sh.
+
+name: "epfl:ip:dot_product_ctrl_tb"
+description: "Self-checking unit test of the dot_product CTRL register file (Bambu and Dynamatic flows)."
+
+filesets:
+  files_tb:
+    depend:
+      - x-heep:ip:dot_product_ctrl
+    files:
+      - dot_product_ctrl_regs_tb.sv
+    file_type: systemVerilogSource
+
+targets:
+  default:
+    filesets:
+      - files_tb
+    toplevel: dot_product_ctrl_regs_tb

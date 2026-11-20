@@ -14,53 +14,34 @@ The following rules always apply:
 `code` and `data` are special sections. They do not only contain the `.text` and `.data` input sections: the
 generated linker scripts also place the related runtime sections there.
 
-## HJSON configuration file
+## Creating linker sections
 
-In HJSON, linker sections can be created in two ways:
+Linker sections can be created in two ways:
 
-1. Automatically from a top-level `ram_banks` entry with `auto_section: auto`.
-2. Manually through the `linker_sections` list.
+1. Automatically from a RAM bank group, by giving the group a section name.
+2. Manually through `LinkerSection` objects.
 
 Both mechanisms can be mixed in the same configuration.
 
 ### Automatically created sections
 
-If a top-level `ram_banks` entry contains `auto_section: auto`, X-HEEP creates a linker section that exactly
-matches that RAM bank group. This works for both continuous and interleaved bank groups.
+A linker section that exactly matches a RAM bank group can be created directly from the memory configuration.
+This works for both continuous and interleaved bank groups.
 
-For example, the following configuration creates an automatic linker section named `data_interleaved` on the
-interleaved banks:
+For continuous banks, pass the section name as the second argument of `add_ram_banks()`:
 
-```{code} js
-{
-    bus_type: "NtoM"
+```{code} python
+memory_ss.add_ram_banks([32] * 2, "code_and_data")
+```
 
-    ram_banks: {
-        code_and_data: {
-            num: 2
-            sizes: [32]
-        }
+For interleaved banks, create the group and then add a section spanning it with
+`add_linker_section_for_banks()`:
 
-        data_interleaved: {
-            auto_section: auto
-            type: interleaved
-            num: 4
-            size: 16
-        }
-    }
-
-    linker_sections: [
-        {
-            name: code
-            start: 0x00000000
-            size: 0x0000E800
-        }
-        {
-            name: data
-            start: 0x0000E800
-        }
-    ]
-}
+```{code} python
+memory_ss.add_ram_banks_il(4, 16, "data_interleaved")
+memory_ss.add_linker_section_for_banks(
+    "data_interleaved", interleaved=True, il_group_name="data_interleaved"
+)
 ```
 
 This automatic section produces a custom linker output section named `.data_interleaved`.
@@ -72,15 +53,15 @@ int32_t buffer[16 * 16] __attribute__((section(".data_interleaved")));
 
 ### Manually created sections
 
-Manual sections are defined in the `linker_sections` list. Each entry must contain:
+Manual sections are created with `LinkerSection`. Each section must have:
 
 - `name`: linker section name.
 - `start`: start address.
 
 You can then choose one of the following:
 
-- `size`: section size.
-- `end`: end address.
+- `size`: section size, using `LinkerSection.by_size()`.
+- `end`: end address, using `LinkerSection()`.
 - neither `size` nor `end`: the end is inferred automatically.
 
 If the end is not specified, X-HEEP infers it from the start of the next linker section. If there is no following
@@ -88,23 +69,10 @@ section, the end is inferred from the end of the last RAM bank.
 
 Example:
 
-```{code} js
-linker_sections: [
-    {
-        name: code
-        start: 0x00000000
-        size: 0x0000E800
-    }
-    {
-        name: data
-        start: 0x0000E800
-    }
-    {
-        name: scratchpad
-        start: 0x00018000
-        end: 0x0001C000
-    }
-]
+```{code} python
+memory_ss.add_linker_section(LinkerSection.by_size("code", 0x00000000, 0x0000E800))
+memory_ss.add_linker_section(LinkerSection("data", 0x0000E800, None))
+memory_ss.add_linker_section(LinkerSection("scratchpad", 0x00018000, 0x0001C000))
 ```
 
 This creates a custom linker output section named `.scratchpad`:
@@ -114,9 +82,9 @@ uint8_t scratch[1024] __attribute__((section(".scratchpad")));
 ```
 
 ```{note}
-In HJSON, a custom linker section named `foo` collects the input ELF section `.foo`.
+A custom linker section named `foo` collects the input ELF section `.foo`.
 If you want a linker section to collect a different input section name such as `.xheep_foo`, or several input
-section names at once, use the Python configuration API described below.
+section names at once, use `LinkerSubsection` as described below.
 ```
 
 ## Python configuration file
@@ -128,8 +96,7 @@ from memory_ss.linker_section import LinkerSection
 from memory_ss.linker_subsection import LinkerSubsection
 ```
 
-Without extra arguments, a Python `LinkerSection("foo", ...)` behaves like the HJSON flow and collects the
-input section `.foo`.
+Without extra arguments, a `LinkerSection("foo", ...)` collects the input section `.foo`.
 
 There are are two functions to add linker sections:
 
@@ -252,41 +219,12 @@ The generated linker section will look like this:
 ```
 
 ```{note}
-`LinkerSubsection` is currently a Python-configuration feature. The HJSON `linker_sections` parser does not accept a `subsections` field,
-since we'll discontinue the HJSON system this feature will remain a Python exclusive.
+`LinkerSubsection` allows grouping several input ELF sections inside a single linker section, as shown above.
 ```
 
 ## Linker script configuration
 
 The linker script configuration is used to configure the heap and stack sizes for runtime code execution. These settings only affect how the linker organizes the `data` section, and do not modify the hardware configuration.
-
-
-### HJSON linker script configuration
-
-In an HJSON configuration file, use the top-level `linker_script` object:
-
-```{code} js
-linker_script: {
-    stack_size: 0x800
-    heap_size: 0x800
-}
-```
-
-Both fields are sizes in bytes. Each value must be a strictly positive integer. The value can be written as an
-integer literal, including hexadecimal notation.
-
-If one of the fields is omitted, X-HEEP infers it from the size of the `data` linker region:
-
-```{code} js
-linker_script: {
-    stack_size: 0x800
-}
-```
-
-In this example, `heap_size` is inferred as half of the remaining `data` region after reserving the configured
-stack size. If both `stack_size` and `heap_size` are omitted, X-HEEP reserves one quarter of the `data` region for
-the stack and one quarter for the heap, leaving the remaining half available for static data and BSS. Inferred
-sizes are aligned down to 16 bytes.
 
 ### Python linker script configuration
 
@@ -297,6 +235,19 @@ from linker_script.linker_script import LinkerScript
 
 system.set_linker_script_config(LinkerScript(stack_size=0x800, heap_size=0x800))
 ```
+
+Both fields are sizes in bytes. Each value must be a strictly positive integer.
+
+If one of the fields is omitted, X-HEEP infers it from the size of the `data` linker region:
+
+```{code} python
+system.set_linker_script_config(LinkerScript(stack_size=0x800))
+```
+
+In this example, `heap_size` is inferred as half of the remaining `data` region after reserving the configured
+stack size. If both `stack_size` and `heap_size` are omitted, X-HEEP reserves one quarter of the `data` region for
+the stack and one quarter for the heap, leaving the remaining half available for static data and BSS. Inferred
+sizes are aligned down to 16 bytes.
 
 Either argument can be omitted to let X-HEEP infer the missing value:
 

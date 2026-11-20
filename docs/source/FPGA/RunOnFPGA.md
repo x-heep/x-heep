@@ -169,7 +169,7 @@ It contains few peripherals, 64kB of SRAM, the small bus, and the CV32E2 CPU wit
 Generated as:
 
 ```
-make mcu-gen MCU_CFG_PERIPHERALS=mcu_cfg_minimal.hjson
+make mcu-gen X_HEEP_CFG=configs/minimal.py
 make vivado-fpga FPGA_BOARD=pynq-z2
 ```
 

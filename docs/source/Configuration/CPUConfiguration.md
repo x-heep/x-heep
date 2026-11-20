@@ -6,10 +6,9 @@ The currently available CPUs can be found in `hw/core-v-mini-mcu/include/core_v_
 - cv32e40x
 - cv32e40px
 
-The CPU used in X-HEEP can be selected and configured in three different ways: 
+The CPU used in X-HEEP can be selected and configured in two different ways:
 - Arguments in the make command: simple CPU selection only.
-- Python configuration file: full CPU configuration capabilities (recommended).
-- HJSON configuration file: limited CPU configuration.
+- Python configuration file: full CPU configuration capabilities.
 
 ## Arguments in the make command
 
@@ -183,26 +182,3 @@ xheep.set_xif(CvXIf(
 ))
 ```
 
-## HJSON configuration file
-
-You can select the CPU in the `.hjson` configuration file using the `cpu_type` field. For example:
-
-```
-cpu_type: cv32e40p
-```
-
-Furthermore, a limited set of CPU-specific configuration parameters from the ones described above
-can be provided through the `cpu_features` field. The complete list is the following:
-
-```
-cpu_features: {
-    fpu: false
-    zfinx: false
-    corev_pulp: false
-    cve2_rv32e: false
-    cve2_rv32m: "RV32MFast"
-}
-```
-
-The available options depend on the selected CPU core, and are completely optional. No options (by
-not having the `cpu_features` field), a single option, or multiple options can be provided.

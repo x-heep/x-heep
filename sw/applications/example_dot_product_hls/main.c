@@ -7,9 +7,20 @@
 #include <stdlib.h>
 
 #include "core_v_mini_mcu.h"
+#include "csr.h"
 #include "x-heep.h"
 
 #define TEST_DATA_SIZE 16
+
+// Largest vector the accelerator handles with every HLS flow: the Dynamatic
+// one copies a/b into local buffers of this many elements
+// (DOT_PRODUCT_DYNAMATIC_MAX_LEN in hw/fpga/hls/common/dot_product/dot_product.h)
+// and would silently clamp a larger size. Keep the two equal.
+#define DOT_PRODUCT_MAX_SIZE 1024
+
+#if TEST_DATA_SIZE > DOT_PRODUCT_MAX_SIZE
+#error "FATAL ERROR: TEST_DATA_SIZE exceeds DOT_PRODUCT_MAX_SIZE (1024), the largest vector the dot_product accelerator handles"
+#endif
 
 /* By default, PRINTs are activated for FPGA and disabled for simulation. */
 #define PRINTF_IN_FPGA  1
@@ -28,7 +39,13 @@
 // CTRL AXI4-Lite port, from hw/fpga/hls/vitis/dot_product's generated
 // dot_product_CTRL_s_axi.v (standard Vitis HLS ap_ctrl_hs + s_axilite
 // layout: AP_CTRL @0x00, a @0x10/0x14, b @0x1c/0x20, size @0x28,
-// result @0x30/0x34). Base address defined in testharness_pkg.sv as
+// result @0x30/0x34). The Bambu HLS and Dynamatic flows
+// (hw/fpga/hls/bambu/dot_product, hw/fpga/hls/dynamatic/dot_product) have
+// the very same register map, as a shared regtool-generated register file
+// (hw/fpga/hls/common/dot_product/data/dot_product_ctrl.hjson), so this
+// application works unchanged with any of the three HLS tools (within
+// DOT_PRODUCT_MAX_SIZE, see above).
+// Base address defined in testharness_pkg.sv as
 // DOT_PRODUCT_CTRL_START_ADDRESS = EXT_SLAVE_START_ADDRESS + 0x20000.
 //
 // 'a'/'b' are 64-bit registers in hardware (Vitis HLS derives the m_axi
@@ -53,6 +70,7 @@ int main(int argc, char *argv[]) {
   static int32_t vec_a[TEST_DATA_SIZE] __attribute__((aligned(4)));
   static int32_t vec_b[TEST_DATA_SIZE] __attribute__((aligned(4)));
 
+  unsigned int cycles;
   int64_t expected = 0;
   for (int i = 0; i < TEST_DATA_SIZE; i++) {
     vec_a[i] = i + 1;
@@ -61,6 +79,9 @@ int main(int argc, char *argv[]) {
   }
 
   volatile uint32_t *dot_product = (uint32_t *)DOT_PRODUCT_CTRL_BASE_ADDRESS;
+
+  // Cycles of the whole offload: programming a/b/size, START and waiting for DONE
+  CSR_WRITE(CSR_REG_MCYCLE, 0);
 
   dot_product[DOT_PRODUCT_A_ADDR_OFFSET] = (uint32_t)(uintptr_t)&vec_a[0];
   dot_product[DOT_PRODUCT_B_ADDR_OFFSET] = (uint32_t)(uintptr_t)&vec_b[0];
@@ -72,13 +93,16 @@ int main(int argc, char *argv[]) {
   // UNTIL DONE
   while ((dot_product[DOT_PRODUCT_AP_CTRL_OFFSET] & DOT_PRODUCT_AP_DONE) == 0);
 
+  CSR_READ(CSR_REG_MCYCLE, &cycles);
+
   int64_t result = (int64_t)dot_product[DOT_PRODUCT_RESULT_LO_OFFSET] |
                     ((int64_t)dot_product[DOT_PRODUCT_RESULT_HI_OFFSET] << 32);
 
   // X-HEEP's simulation printf doesn't support %lld, so split 64-bit
   // values into hi/lo 32-bit halves for display.
   if (result == expected) {
-    PRINTF("Dot Product Accelerator Successful: 0x%08x%08x\n\r", (uint32_t)(result >> 32), (uint32_t)result);
+    PRINTF("Dot Product Accelerator Successful: 0x%08x%08x in %d cycles\n\r", (uint32_t)(result >> 32), (uint32_t)result,
+           cycles);
     return EXIT_SUCCESS;
   } else {
     PRINTF("Dot Product Accelerator failure: got 0x%08x%08x, expected 0x%08x%08x\n\r", (uint32_t)(result >> 32),

@@ -242,8 +242,7 @@ ROOT_DIR := $(realpath .)
 
 # X-HEEP configuration
 XHEEP_DIR        := $(ROOT_DIR)/hw/vendor/x-heep
-X_HEEP_CFG       := $(ROOT_DIR)/config/python_unsupported.hjson
-PYTHON_CHEEP_CFG := $(ROOT_DIR)/config/cheep_configs.py
+X_HEEP_CFG       := $(ROOT_DIR)/config/cheep_configs.py
 PAD_CFG          ?= $(ROOT_DIR)/config/cheep_pads.py
 
 # CHEEP templated files
@@ -258,7 +257,6 @@ EXTERNAL_MCU_GEN_TEMPLATES = $(addprefix $(HEEP_REL_PATH)/,$(CHEEP_GEN_TPLS))
 mcu-gen:
 	$(MAKE) -f $(XHEEP_MAKE) mcu-gen \
 		X_HEEP_CFG=$(X_HEEP_CFG) \
-		PYTHON_X_HEEP_CFG=$(PYTHON_CHEEP_CFG) \
 		PADS_CFG=$(PAD_CFG) \
 		EXTERNAL_DOMAINS=$(EXTERNAL_DOMAINS) \
 		EXTERNAL_MCU_GEN_TEMPLATES="$(EXTERNAL_MCU_GEN_TEMPLATES)"

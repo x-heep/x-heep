@@ -1,0 +1,16 @@
+// Copyright EPFL contributors.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+//
+// Bambu's RTL backend is not written with Verilator's lint checks in mind
+// (unused ports/parameters from generic component templates, mixed
+// blocking/non-blocking styles, etc.). None of this is X-HEEP's own code to
+// fix -- waive it wholesale for the generated sources only.
+// hw/fpga/hls/bambu/dot_product's hand-written integration code
+// (rtl/dot_product_hls_adapter.sv, rtl/dot_product_ctrl_regs.sv and the
+// shared hw/fpga/hls/common/dot_product/dot_product_xheep_wrapper.sv) is
+// deliberately NOT covered here: its warnings are fixed at the source instead.
+
+`verilator_config
+
+lint_off -file "*/hw/fpga/hls/bambu/dot_product/rtl/hls/*"

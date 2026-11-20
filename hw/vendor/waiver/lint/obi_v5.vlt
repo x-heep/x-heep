@@ -4,7 +4,7 @@
 //
 // Waivers for rules only named this way starting from Verilator 5, for
 // pulp_platform/obi, first pulled into an X-HEEP Verilator build by the HLS
-// dot-product accelerator example (hw/fpga/hls/vitis/dot_product) via the
+// dot-product accelerator example (hw/fpga/hls/common/dot_product) via the
 // axi_obi bridges, which are the first consumers to exercise obi_mux.
 
 `verilator_config

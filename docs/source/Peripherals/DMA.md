@@ -61,7 +61,7 @@ Depending on the configuration, some of these units can be modified or even remo
 ![DMA channel structure](/images/dma_channel.png)
 <p  align="center">Figure 2: Structure of a DMA channel, including a tightly-coupled accelerator </p>
 
-The DMA subsystem is composed of a parametrized number of control units called **channels**, configurable in `mcu_cfg.hjson`. 
+The DMA subsystem is composed of a parametrized number of control units called **channels**, configurable in the Python configuration. 
 Each channel can be configured, by the CPU or by an external controller, to perform a *transaction*, independently of the state of other channels.
 
 N-channels are connected to a *N-to-M bus* that exposes M-master ports on the system bus. **Multiple channels** can thus perform **multiple transactions in parallel**, a feature that enables memory-intense applications to increase their throughput.
@@ -75,7 +75,7 @@ There are two possible solutions:
 - CH0, CH1 connected to port 0 & CH2, CH3 connected to port 1
 - CH0, CH1, CH2 connected to port 0 & CH3 connected to port 1
 
-In order to specify one among these configurations, the user has to set the `num_channels_per_master_port` parameter in `mcu_cfg.hjson`, which defines the _maximum_ channels per master port ratio.
+In order to specify one among these configurations, the user has to set the `num_channels_per_master_port` parameter in the Python configuration, which defines the _maximum_ channels per master port ratio.
 
 The first configuration of the previous example has 2 channels per master port, so a channels per master port ratio of 2.
 On the other hand, the second solution has a ratio of 3: the first 3 channels are connected to port 0, while the remaining channel is connected to the remaining port 1.
@@ -106,13 +106,13 @@ The **size of the FIFOs is parametric** and is the same across all channels.
 Some applications can benefit from larger FIFOs because it allows for more values to be buffered in situations where the bus is heavily utilized or the target peripheral, such as the SPI, is too slow.
 On the other hand, other applications might not require such large FIFOs, so area can be saved by reducing its size.
 
-It is possible to specify the size of the DMA FIFOs in `mcu_cfg.hjson`, by modifying the `fifo_depth` parameter. 
+It is possible to specify the size of the DMA FIFOs in the Python configuration, by modifying the `fifo_depth` parameter. 
 
 <br>
 
 ## Advanced Data Processing
 
-The DMA can perform complex tasks such as *2D* transactions and it can apply **zero padding** and perform **transpositions** on-the-fly, reducing the overhead of matrix operations. However, as always, performance costs area occupation. If needed, the zero padding feature can be disabled by modifying the `mcu_cfg.hjson` parameter `zero_padding_en: "yes"` to `zero_padding_en: "no"`. This will eliminate entirely the **processing unit**, which takes care of the zero padding feature. However, the 2D transactions feature will still be present, as it is managed by the **read unit** and **write unit**.
+The DMA can perform complex tasks such as *2D* transactions and it can apply **zero padding** and perform **transpositions** on-the-fly, reducing the overhead of matrix operations. However, as always, performance costs area occupation. If needed, the zero padding feature can be disabled by setting the `zero_padding` parameter of the `DMA` peripheral to `"no"` in the Python configuration. This will eliminate entirely the **processing unit**, which takes care of the zero padding feature. However, the 2D transactions feature will still be present, as it is managed by the **read unit** and **write unit**.
 
 ### Triggers
 

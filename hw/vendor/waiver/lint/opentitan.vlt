@@ -6,3 +6,9 @@
 
 lint_off -rule REDEFMACRO -file "*/prim_assert_dummy_macros.svh" -match "*"
 lint_off -rule REDEFMACRO -file "*/prim_assert.sv" -match "*"
+
+// prim_subreg_arb compares its SWACCESS string parameter against strings of
+// other lengths ("RC" against "W1S", ...). First exercised by regtool register
+// files using the RC/W1S/W1C access types (hw/fpga/hls/bambu/dot_product); not
+// this repo's code to fix.
+lint_off -rule WIDTH -file "*/prim_subreg_arb.sv" -match "Operator EQ expects *"

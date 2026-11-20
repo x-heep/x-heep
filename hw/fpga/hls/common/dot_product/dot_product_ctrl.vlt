@@ -1,0 +1,14 @@
+// Copyright EPFL contributors.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+//
+// Lint waivers for the regtool-generated register file of the Bambu and
+// Dynamatic flows --
+// the same ones the other regtool-based X-HEEP peripherals carry (e.g.
+// hw/ip/soc_ctrl/soc_ctrl.vlt). Nothing here is code we write.
+
+`verilator_config
+
+lint_off -rule WIDTH -file "*/dot_product_ctrl_reg_top.sv" -match "Operator ASSIGNW expects *"
+lint_off -rule UNUSED -file "*/dot_product_ctrl_reg_top.sv" -match "Parameter is not used: 'AW'*"
+lint_off -rule DECLFILENAME -file "*/dot_product_ctrl_reg_top.sv"

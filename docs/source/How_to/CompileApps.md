@@ -84,13 +84,18 @@ The main FreeRTOS configuration is allocated under `sw\freertos`, in `FreeRTOSCo
 Moreover, FreeRTOS is being fetched from 'https://github.com/FreeRTOS/FreeRTOS-Kernel.git' by CMake. Specifically, 'V10.5.1' is used. Finally, the fetch repository is located under `sw\build\_deps` after building.
 
 
-## Compiling ML models using Deeploy
 
-You can compile ONNX models for the X-HEEP target using [Deeploy](https://github.com/pulp-platform/Deeploy). Install Deeploy and its dependencies by following the [Deeploy installation guide](https://github.com/pulp-platform/Deeploy/blob/main/docs/install.md). You can either follow the manual installation procedure below or use the Docker image, which includes the required dependencies.
+
+## Compiling ONNX models using Deeploy
+
+You can compile ONNX models for the X-HEEP target using [Deeploy](https://github.com/pulp-platform/Deeploy). Deeploy is an ONNX-to-C compiler that generates low-level, optimized C code for heterogeneous SoCs. Currently, execution is limited to the CPU, with SRAM banks as the primary memory. Support for external memory (DDR) and automatic data transfers using DMA is under development.
+
+You can set up Deeploy either manually or by using an existing Docker image.
 
 ### Manual installation requirements
 
 1. Install Deeploy and its dependencies as described in the [Deeploy installation guide](https://github.com/pulp-platform/Deeploy/blob/main/docs/install.md).
+
 2. Set `XHEEP_HOME` to the path of your X-HEEP checkout so that Deeploy can locate it:
 
    ```sh
@@ -109,15 +114,6 @@ You can compile ONNX models for the X-HEEP target using [Deeploy](https://github
    make mcu-gen X_HEEP_CFG=configs/deeploy.py
    ```
 
-```{Warning}
-Due to the memory-intensive nature of the models, ensure that the generated program fits within the memory available in the selected X-HEEP configuration. Configure sufficient memory capacity for both code and data. Otherwise, compilation may fail because of insufficient memory space.
-```
-
-```{Warning}
-The distribution of the code and data regions, as well as the stack and heap sizes, must also be configured carefully. Deeploy often maps individual layers to function calls, which can result in significant stack usage. Therefore, ensure that sufficient stack space is allocated in `linker_script_config`.
-
-Additionally, Deeploy's code-generation structure performs extensive dynamic memory allocation, which may require a considerable amount of heap space. Because heap allocation occurs at runtime, insufficient heap space may not produce compilation errors but can instead lead to runtime failures or memory corruption, potentially overwriting the code section.
-```
 
 5. Optionally, build Verilator to simulate the compiled program:
 
@@ -127,40 +123,51 @@ Additionally, Deeploy's code-generation structure performs extensive dynamic mem
 
 ### Docker setup
 
-Alternatively, you can use the X-HEEP Dockerfile provided by Deeploy. From the directory that contains both the `Deeploy` and `x-heep` checkouts, build the image and start a container:
+Alternatively, you can use the X-HEEP Docker image provided by Deeploy.
 
-```sh
-docker build -t deeploy-xheep -f Deeploy/Container/Dockerfile.xheep Deeploy
-docker run -it \
-  -v "/Path/to/Deeploy:/app/Deeploy" \
-  -v "/Path/to/x-heep:/app/x-heep" \
-  deeploy-xheep
-```
+1. Clone the Deeploy repository:
 
-To use the Docker container with X-HEEP, create the X-HEEP Python virtual environment inside the container:
-```sh
-cd /app/x-heep
-make venv
-```
+   ```sh
+   git clone https://github.com/pulp-platform/Deeploy.git
+   ```
 
+2. Pull the Docker image containing Deeploy and the X-HEEP prerequisites:
 
-After installing Deeploy and configuring X-HEEP, run the following command from `Deeploy/DeeployTest` to compile your model:
+   ```sh
+   docker pull ghcr.io/pulp-platform/deeploy-xheep:latest
+   ```
+
+3. Create a container with access to both the local Deeploy and X-HEEP directories:
+
+   ```sh
+   docker run -it --name deeploy_xheep -v </PATH/TO/DEEPLOY/DIR>:/app/Deeploy -v </PATH/TO/X-HEEP/DIR>:/app/x-heep ghcr.io/pulp-platform/deeploy-xheep:latest
+   ```
+
+   This creates a Docker container with all X-HEEP prerequisites already installed. You can run X-HEEP commands and simulations inside this container.
+
+4. Create the X-HEEP Python virtual environment inside the container:
+
+   ```sh
+   cd /app/x-heep
+   make venv
+   ```
+
+### Compile and Simulate
+
+You can compile and simulate your ONNX model using the following script:
 
 ```sh
 python deeployRunner_xheep.py -t /path/to/your/onnx-model-directory
 ```
 
-The script uses Deeploy to generate C code for X-HEEP, compiles it with the GCC toolchain, and simulates it with Verilator. By default, it uses the integer ISA `rv32imc_zicsr`.
+The script uses Deeploy to generate C code for X-HEEP, compiles it with the GCC or LLVM toolchain, and simulates it with Verilator.
 
-```{warning}
-Add `--skipsim` to build without running a Verilator simulation. Without this option, Deeploy attempts to simulate the executable after compilation.
-```
+Additional arguments :
 
-As in the default X-HEEP compilation settings, the ISA is `rv32imc_zicsr`. To compile with single-precision floating-point instructions, use an X-HEEP configuration that supports the `F` extension and override the ISA as follows:
+- `--target` : Same as `TARGET` in X-HEEP makefile, to set the hardware tareget. By default it is set to `sim`.
+- `--linker` : Same as `LINKER` in X-HEEP makefile, to set the linker file based on deployment method and target hardware. available options are : `on-chip`, `flash_load`, and `flash_exec`.
+- `--skipsim` : Skips Verilator simulation. Use it when compiling for FPGA/ASIC targets.
 
-```sh
-python deeployRunner_xheep.py -t /path/to/your/onnx-model-directory -D ISA=rv32imfc_zicsr
-```
 
 Even small models can take more than 10 minutes—and sometimes several hours—to run in Verilator. To run the compiled model on an FPGA instead, select the linker mode that matches your boot flow (`on_chip`, `flash_load`, or `flash_exec`). The build generates the ELF and HEX files required to deploy the application to the FPGA.
 
@@ -174,3 +181,28 @@ python deeployRunner_xheep.py \
 ```
 
 This command generates the model code and builds it for the ZCU104 without running a Verilator simulation. You can choose any target supported by X-HEEP and select the linker type based on how you program the FPGA and the target hardware's requirements or limitations. To program the resulting files onto the FPGA, refer to the [Run on FPGA guide.](./../FPGA/RunOnFPGA.md).
+
+### Considerations
+
+#### Memory size and linker configuration:
+
+ONNX is mostly used to represent complex graphs of tensor operations, such as ML/CV/LLM models. Due to the large memory size requirement of these algorithms, ensure that the generated program fits within the memory available in the selected X-HEEP configuration. Configure sufficient memory capacity for both code and data. Otherwise, compilation may fail due to insufficient memory space.
+
+Furthermore, the distribution of code and data regions, as well as the stack and heap sizes, must also be configured carefully. Deeploy often maps individual layers to function calls, which can result in considerable stack usage. Therefore, ensure that sufficient stack space is allocated in `linker_script_config`.
+
+Additionally, Deeploy's code-generation structure performs extensive dynamic memory allocation, which may require a considerable amount of heap space. Because heap allocation occurs at runtime, insufficient heap space may not produce compilation errors but can instead lead to runtime failures or memory corruption, potentially overwriting the code section.
+
+#### ISA configuration:
+
+As in the default X-HEEP compilation settings, the ISA is `rv32imc_zicsr`. This compiles floating-point operations using software-based algorithms, regardless of the selected core's floating-point unit (FPU) availability. To compile with single-precision floating-point instructions, use an X-HEEP configuration that supports the `F` extension and override the ISA as follows:
+
+```sh
+python deeployRunner_xheep.py -t /path/to/your/onnx-model-directory -D ISA=rv32imfc_zicsr
+```
+
+
+### Limitations and Future Steps:
+As explained earlier, simulating a computationally intensive algorithm on a potentially large hardware design is often infeasible. Therefore, FPGAs are preferable for rapid prototyping and reducing the time from model development to SoC deployment. However, the memory-intensive nature of such algorithms also requires orders of magnitude more memory capacity than the on-chip memory available on FPGAs. This necessitates a memory hierarchy that utilizes both on-chip SRAM and external DDR memory available on FPGA boards. As a result, memory transfers also become a challenge, which, in embedded systems, is typically addressed by utilizing Direct Memory Access (DMA) engines.
+
+Deeploy already supports defining memory hierarchies with different capacities and constraints, as well as regulating how data is transferred between memory levels. The future implementation, currently under development, will extend X-HEEP with DDR connectivity on FPGA platforms and enable Deeploy to optimize data movement and tensor tiling between X-HEEP's SRAM banks and external DRAM, while automatically handling data transfers using X-HEEP's DMA engines. 
+

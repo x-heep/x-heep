@@ -31,6 +31,9 @@ module xilinx_core_v_mini_mcu_wrapper
 `elsif FPGA_GENESYS2
     inout logic clk_200mhz_n,
     inout logic clk_200mhz_p,
+`elsif FPGA_AUBOARD_15P
+    inout logic clk_300mhz_n,
+    inout logic clk_300mhz_p,
 `elsif FPGA_VPK180
     input logic lpddr4_clk1_clk_n,
     input logic lpddr4_clk1_clk_p,
@@ -273,6 +276,9 @@ module xilinx_core_v_mini_mcu_wrapper
   assign rst_n = rst_i;
 `elsif FPGA_GENESYS2
   assign rst_n = rst_i;
+`elsif FPGA_AUBOARD_15P
+  // The board's reset push button (SYS_RST_N) is active low.
+  assign rst_n = rst_i;
 `elsif FPGA_VPK180
   wire cips_rst_n;
   // TODO: for now system reset of pl is ignored.
@@ -320,6 +326,12 @@ module xilinx_core_v_mini_mcu_wrapper
   xilinx_clk_wizard_wrapper xilinx_clk_wizard_wrapper_i (
       .CLK_IN1_D_0_clk_n(clk_200mhz_n),
       .CLK_IN1_D_0_clk_p(clk_200mhz_p),
+      .clk_out1_0(clk_gen)
+  );
+`elsif FPGA_AUBOARD_15P
+  xilinx_clk_wizard_wrapper xilinx_clk_wizard_wrapper_i (
+      .CLK_IN1_D_0_clk_n(clk_300mhz_n),
+      .CLK_IN1_D_0_clk_p(clk_300mhz_p),
       .clk_out1_0(clk_gen)
   );
 `elsif FPGA_VPK180

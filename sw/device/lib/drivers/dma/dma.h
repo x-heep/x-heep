@@ -296,9 +296,10 @@ typedef enum
     in loss of syncronism. If the processing of the window takes longer than the
     time it takes to the DMA to finish the next window, the application will not
     be able to cope. Although "how small is too small" is highly dependent on
-    the length of the processing, this flag will be raised when the transaction
-    and window size ratio is smaller than an arbitrarily chosen ratio as a mere
-    reminder. This value can be overriden buy means of defining a non-weak
+    the length of the processing, this flag will be raised when the ratio of
+    the transaction size to the window size (size_d1_du / win_du) is larger
+    than an arbitrarily chosen threshold, as a mere reminder. This value can be
+    overridden by means of defining a non-weak
     implementation of the dma_window_ratio_warning_threshold function. */
     DMA_CONFIG_TRANS_OVERRIDE   = 0x0100, /*!< A transaction is running. Its
     values cannot be modified, nor can it be re-launched. */
@@ -470,8 +471,9 @@ void dma_init( dma *dma_peri);
  * @brief Creates a transaction that can be loaded into the DMA.
  * @param p_trans Pointer to the dma_transaction_t structure where configuration
  * should be allocated. The content of this pointer must be a static variable.
- * @note Variables size_b, inc_b and type will be set by this function. It is
- * not necessary to set them externally before calling it.
+ * @note This function always sets the member flags, and it sets the members
+ * src_type, dst_type and inc_b when the validation succeeds. It is not
+ * necessary to set them externally before calling it.
  * @param p_enRealign Whether to allow the DMA to take a smaller data type
  * in order to counter misalignments between the selected data type and the
  * start pointer.
@@ -493,32 +495,32 @@ dma_config_flags_t dma_validate_transaction(  dma_trans_t       *p_trans,
  * @return A configuration flags mask. Each individual flag can be accessed
  * with a bitwise AND ( ret & DMA_CONFIG_* ). It is not recommended to query
  * the result from inside target structure as an error could have appeared
- * before the creation of the structure.
+ * before the creation of the structure. A NULL pointer returns
+ * DMA_CONFIG_CRITICAL_ERROR.
  */
 dma_config_flags_t dma_load_transaction( dma_trans_t* p_trans);
 
 /**
  * @brief Launches the loaded transaction.
- * @param p_trans A pointer to the desired transaction. This is only used to
- * double check that the loaded transaction is the desired one.
- *                  This check can be avoided by passing a NULL pointer.
- * @retval DMA_CONFIG_CRITICAL_ERROR if the passed pointer does not correspond
- * itself with the loaded transaction (i.e. it is likely the transaction to be
- * loaded is not the desired one).
- * @retval DMA_CONFIG_OK == 0 otherwise.
+ * @param p_trans A pointer to the transaction loaded on its channel.
+ * @retval DMA_CONFIG_CRITICAL_ERROR if the passed pointer is NULL or does not
+ * correspond with the loaded transaction (i.e. it is likely the transaction to
+ * be loaded is not the desired one). The DMA does not start.
+ * @retval DMA_CONFIG_TRANS_OVERRIDE if the channel is still busy. The DMA does
+ * not start.
+ * @retval DMA_CONFIG_OK == 0 after the launch. With DMA_TRANS_END_INTR_WAIT,
+ * the function first waits for the end-of-transaction interrupt.
  */
 dma_config_flags_t dma_launch( dma_trans_t* p_trans);
 
 /**
- * @brief Read from the done register of the DMA. Additionally decreases the
- * count of simultaneously-launched transactions. Be careful when calling this
- * function  * after it has returned 1, unless there is another transaction
- * running or a new transaction was launched.
+ * @brief Read the READY bit of the channel's STATUS register. It changes no
+ * software state.
  * Be careful when calling this function if interrupts were chosen as the end
  * event.
  * @param channel The channel to read from.
- * @return Whether the DMA is working or not. It starts returning 0 as soon as
- * the dma_launch function has returned.
+ * @return The READY bit of the channel's STATUS register: 0 while the channel
+ * works and 1 when it is idle.
  * @retval 0 - DMA is working.
  * @retval 1 - DMA has finished the transmission. DMA is idle.
  */

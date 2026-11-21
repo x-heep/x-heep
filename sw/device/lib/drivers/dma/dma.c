@@ -88,8 +88,8 @@ extern "C"
  * of the window takes longer than the time it takes to the DMA to finish the
  * next window, the application will not be able to cope. Although "how small
  * is too small" is highly dependent on the length of the processing, this
- * flag will be raised when the transaction and window size ratio is smaller
- * than this arbitrarily chosen ratio as a mere reminder.
+ * flag will be raised as a mere reminder when the ratio of the transaction
+ * size to the window size is larger than this arbitrarily chosen threshold.
  */
 #define DMA_DEFAULT_TRANS_TO_WIND_SIZE_RATIO_THRESHOLD 4
 
@@ -451,13 +451,21 @@ dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,
     DMA_STATIC_ASSERT( p_trans->dim < DMA_DIM_CONF__size, "Dimensionality not valid");
 
     /*
+     * Clear the flags of a previous call before the first check. The checks
+     * below return early on a critical flag, so a critical flag left in a
+     * reused structure would otherwise refuse each later call that does not
+     * clear the flags itself.
+     */
+    p_trans->flags = DMA_CONFIG_OK;
+
+    /*
      * CHECK IF TARGETS HAVE ERRORS
      */
 
     /*
-     * The transaction is NOT created if the targets include errors.
-     * A successful target validation has to be done before loading it to the
-     * DMA.
+     * None of the target errors below is critical, so they do not stop the
+     * validation, and the flags are cleared again before the default
+     * configurations are set.
      */
     uint8_t errorSrc = validate_target( p_trans->src, p_trans);
     uint8_t errorDst = validate_target( p_trans->dst, p_trans);
@@ -714,6 +722,20 @@ dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,
         }
 
         /*
+         * Each active dimension must fit its 16-bit SIZE_D1 or SIZE_D2 field.
+         * A larger size is truncated when written, so the DMA moves another
+         * amount of data, and a SIZE_D1 write that truncates to zero does not
+         * start the transfer.
+         */
+        if(     p_trans->size_d1_du > DMA_SIZE_D1_SIZE_MASK
+            ||  (p_trans->dim == DMA_DIM_CONF_2D && p_trans->size_d2_du > DMA_SIZE_D2_SIZE_MASK))
+        {
+            p_trans->flags |= DMA_CONFIG_SRC;
+            p_trans->flags |= DMA_CONFIG_CRITICAL_ERROR;
+            return p_trans->flags;
+        }
+
+        /*
          * CHECK IF THERE IS CROSS-OUTBOUND
          */
 
@@ -794,10 +816,10 @@ dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,
          * certainty that an real error will occur.
          */
         uint32_t threshold = dma_window_ratio_warning_threshold();
-        uint32_t ratio = p_trans->size_d1_du / p_trans->win_du;
+        /* The zero test must short-circuit before the division. */
         if(     p_trans->win_du
             &&  threshold
-            &&  ( ratio > threshold) )
+            &&  ( ( p_trans->size_d1_du / p_trans->win_du ) > threshold) )
         {
             p_trans->flags |= DMA_CONFIG_WINDOW_SIZE;
         }
@@ -809,7 +831,13 @@ dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,
 
 dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans)
 {
-    uint8_t channel = p_trans->channel;
+    uint8_t channel;
+
+    if( p_trans == NULL )
+    {
+        return DMA_CONFIG_CRITICAL_ERROR;
+    }
+    channel = p_trans->channel;
     /*
      * CHECK FOR CRITICAL ERRORS
      */
@@ -850,8 +878,9 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans)
 
     /*
      * If the selected end event is polling, interrupts are disabled.
-     * Otherwise the mie.MEIE bit is set to one to enable machine-level
-     * fast DMA interrupt.
+     * Otherwise mstatus.MIE and the DMA done and window fast-interrupt bits
+     * of mie are set, and the channel's transaction-done interrupt is
+     * enabled.
      */
     dma_subsys_per[channel].peri->INTERRUPT_EN = INTR_EN_NONE;
     CSR_CLEAR_BITS(CSR_REG_MIE, DMA_DONE_CSR_REG_MIE_MASK );
@@ -1120,15 +1149,20 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans)
 
 dma_config_flags_t dma_launch( dma_trans_t *p_trans)
 {
-    uint8_t channel = p_trans->channel;
+    uint8_t channel;
+
+    if( p_trans == NULL )
+    {
+        return DMA_CONFIG_CRITICAL_ERROR;
+    }
+    channel = p_trans->channel;
 
     /*
      * Make sure that the loaded transaction is the intended transaction.
      * If the loaded trans was NULL'd, then this the transaction is never
      * launched.
      */
-    if(     ( p_trans == NULL )
-        ||  ( dma_subsys_per[channel].trans != p_trans ) ) // @ToDo: Check per-element.
+    if( dma_subsys_per[channel].trans != p_trans ) // @ToDo: Check per-element.
     {
         return DMA_CONFIG_CRITICAL_ERROR;
     }

@@ -66,9 +66,9 @@
 #define FC_RDQIO   0xEB /** Fast Read Quad I/O */
 #define FC_PP      0x02 /** Page Program */
 #define FC_PPQ     0x32 /** Quad Input Page Program */
-#define FC_SE      0x20 /** Sector Erase 4kb */
-#define FC_BE32    0x52 /** Block Erase 32kb */
-#define FC_BE64    0xD8 /** Block Erase 64kb */
+#define FC_SE      0x20 /** Sector Erase 4 KiB */
+#define FC_BE32    0x52 /** Block Erase 32 KiB */
+#define FC_BE64    0xD8 /** Block Erase 64 KiB */
 #define FC_CE      0xC7 /** Chip Erase */
 #define FC_RSR1    0x05 /** Read Status Register 1 */
 #define FC_WSR1    0x01 /** Write Status Register 1 */
@@ -194,6 +194,8 @@ w25q_error_codes_t w25q128jw_init(spi_host_t* spi_host);
  *
  * The function automatically uses the best parameters based on
  * the current state of the system and the length of the data to read.
+ * For a length of RX_DMA_THRESHOLD bytes or more, data must be word-aligned,
+ * otherwise the read returns FLASH_ERROR_DMA.
  *
  * @param addr 24-bit flash address to read from.
  * @param data pointer to the data buffer to be filled.
@@ -210,8 +212,10 @@ w25q_error_codes_t w25q128jw_read(uint32_t addr, void* data, uint32_t length);
  * If erase_before_write is set, the function will take care of erasing
  * the correct sectors before writing. All the bytes not written will be
  * copied back in their current state before the write operation.
+ * Otherwise it writes with w25q128jw_write_quad_dma(), so a page whose DMA
+ * transfer is refused is written with polled FIFO writes instead.
  *
- * @param addr 24-bit flash address to read from.
+ * @param addr 24-bit flash address to write to.
  * @param data pointer to the data buffer.
  * @param length number of bytes to write.
  * @param erase_before_write if set to 1, the function will take care of erasing
@@ -224,8 +228,9 @@ w25q_error_codes_t w25q128jw_write(uint32_t addr, void* data, uint32_t length, u
  *
  * @param addr 24-bit flash address to read from.
  * @param data pointer to the data buffer.
- * @param length number of bytes to write.
- * @return ptr to SPI data register.
+ * @param length number of bytes to read.
+ * @return ptr to SPI data register, or NULL when the arguments are invalid or an
+ * SPI step fails. On NULL no receive segment is queued, so do not wait for one.
 */
 uint32_t* w25q128jw_read_standard_setup(uint32_t addr, void *data, uint32_t length);
 
@@ -245,7 +250,7 @@ w25q_error_codes_t w25q128jw_read_standard(uint32_t addr, void* data, uint32_t l
  * @brief Write to flash at standard speed. Use this function only to write to unitialized data
  *
  *
- * @param addr 24-bit flash address to read from.
+ * @param addr 24-bit flash address to write to.
  * @param data pointer to the data buffer.
  * @param length number of bytes to write.
  * @return FLASH_OK if the write is successful, @ref error_codes otherwise.
@@ -257,7 +262,7 @@ w25q_error_codes_t w25q128jw_write_standard(uint32_t addr, void* data, uint32_t 
  * @brief Erase and Write to flash at standard speed.
  *
  *
- * @param addr 24-bit flash address to read from.
+ * @param addr 24-bit flash address to write to.
  * @param data pointer to the data buffer.
  * @param length number of bytes to write.
  * @return FLASH_OK if the write is successful, @ref error_codes otherwise.
@@ -267,9 +272,19 @@ w25q_error_codes_t w25q128jw_erase_and_write_standard(uint32_t addr, void* data,
 /**
  * @brief Read from flash at standard speed using DMA
  *
+ * For a length of 4 bytes or more, data must be word-aligned, otherwise the
+ * read returns FLASH_ERROR_DMA.
+ *
  * @param addr 24-bit flash address to read from.
  * @param data pointer to the data buffer.
  * @param length number of bytes to read.
+ * @param no_wait_init_dma nonzero to skip dma_init() and the wait for the DMA.
+ * With at least one whole word and 1 to 3 trailing bytes, the tail read and the
+ * DMA can then take each other's word, so use it only for a multiple of 4 bytes
+ * or for fewer than 4 bytes, where no DMA runs and the tail read still waits.
+ * @param no_sanity_checks nonzero to skip the checks of the address range, of
+ * a NULL data pointer and of a zero length. Set it only when the caller has
+ * already made those checks.
  * @return FLASH_OK if the read is successful, @ref error_codes otherwise.
 */
 w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32_t length, uint8_t no_wait_init_dma, uint8_t no_sanity_checks);
@@ -277,17 +292,26 @@ w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32
 /**
  * @brief Read from flash at standard speed using DMA but wait for DMA in the application
  *
+ * data must be word-aligned, otherwise the read returns FLASH_ERROR_DMA. The
+ * SPI read is queued before the DMA launch, so when the launch is refused the
+ * read data stays in the SPI RX FIFO; drain it before the next read.
+ *
  * @param addr 24-bit flash address to read from.
  * @param data pointer to the data buffer.
  * @param length number of bytes to read, must be multiple of 4
- * @return FLASH_OK if the read is successful, @ref error_codes otherwise.
+ * @return FLASH_OK when the read is queued and the DMA transfer is launched;
+ * the data is in the buffer once the DMA transfer completes. @ref error_codes
+ * otherwise.
 */
 w25q_error_codes_t w25q128jw_read_standard_dma_async(uint32_t addr, void *data, uint32_t length);
 
 /**
  * @brief Write to flash at standard speed using DMA. Use this function only to write to unitialized data
  *
- * @param addr 24-bit flash address to read from.
+ * A page whose DMA transfer is refused, for example from a buffer that is not
+ * word-aligned, is written with polled FIFO writes instead.
+ *
+ * @param addr 24-bit flash address to write to.
  * @param data pointer to the data buffer.
  * @param length number of bytes to write.
  * @return FLASH_OK if the write is successful, @ref error_codes otherwise.
@@ -297,7 +321,7 @@ w25q_error_codes_t w25q128jw_write_standard_dma(uint32_t addr, void* data, uint3
 /**
  * @brief Erase and Write to flash at standard speed using DMA
  *
- * @param addr 24-bit flash address to read from.
+ * @param addr 24-bit flash address to write to.
  * @param data pointer to the data buffer.
  * @param length number of bytes to write.
  * @return FLASH_OK if the write is successful, @ref error_codes otherwise.
@@ -309,8 +333,8 @@ w25q_error_codes_t w25q128jw_erase_and_write_standard_dma(uint32_t addr, void* d
  *
  * @param addr 24-bit flash address to read from.
  * @param data pointer to the data buffer.
- * @param length number of bytes to write.
- * @return FLASH_OK if the write is successful, @ref error_codes otherwise.
+ * @param length number of bytes to read.
+ * @return FLASH_OK if the read is successful, @ref error_codes otherwise.
 */
 w25q_error_codes_t w25q128jw_read_quad(uint32_t addr, void* data, uint32_t length);
 
@@ -319,7 +343,7 @@ w25q_error_codes_t w25q128jw_read_quad(uint32_t addr, void* data, uint32_t lengt
  *
  * @param addr 24-bit flash address to read from.
  * @param data pointer to the data buffer.
- * @param length number of bytes to write.
+ * @param length number of bytes to read.
  * @return ptr to SPI data register.
 */
 uint32_t* w25q128jw_read_quad_setup(uint32_t addr, void *data, uint32_t length);
@@ -327,7 +351,7 @@ uint32_t* w25q128jw_read_quad_setup(uint32_t addr, void *data, uint32_t length);
 /**
  * @brief Write to flash at quad speed. Use this function only to write to unitialized data
  *
- * @param addr 24-bit flash address to read from.
+ * @param addr 24-bit flash address to write to.
  * @param data pointer to the data buffer.
  * @param length number of bytes to write.
  * @return FLASH_OK if the write is successful, @ref error_codes otherwise.
@@ -337,7 +361,7 @@ w25q_error_codes_t w25q128jw_write_quad(uint32_t addr, void* data, uint32_t leng
 /**
  * @brief Erase and Write to flash at quad speed.
  *
- * @param addr 24-bit flash address to read from.
+ * @param addr 24-bit flash address to write to.
  * @param data pointer to the data buffer.
  * @param length number of bytes to write.
  * @return FLASH_OK if the write is successful, @ref error_codes otherwise.
@@ -347,36 +371,54 @@ w25q_error_codes_t w25q128jw_erase_and_write_quad(uint32_t addr, void* data, uin
 /**
  * @brief Read from flash at quad speed using DMA.
  *
+ * For a length of 4 bytes or more, data must be word-aligned, otherwise the
+ * read returns FLASH_ERROR_DMA.
+ *
  * @param addr 24-bit flash address to read from.
  * @param data pointer to the data buffer.
- * @param length number of bytes to write.
- * @return FLASH_OK if the write is successful, @ref error_codes otherwise.
+ * @param length number of bytes to read.
+ * @return FLASH_OK if the read is successful, @ref error_codes otherwise.
 */
 w25q_error_codes_t w25q128jw_read_quad_dma(uint32_t addr, void* data, uint32_t length);
 
 /**
- * @brief Read from flash at quad speed using DMA but wait for DMA in the application using w25q128jw_wait_quad_dma()
+ * @brief Read from flash at quad speed using DMA but wait for DMA in the application using w25q128jw_wait_quad_dma_async()
+ *
+ * For a length of 4 bytes or more, data must be word-aligned, otherwise the
+ * read returns FLASH_ERROR_DMA.
  *
  * @param addr 24-bit flash address to read from.
  * @param data pointer to the data buffer.
- * @param length number of bytes to write.
- * @return FLASH_OK if the write is successful, @ref error_codes otherwise.
+ * @param length number of bytes to read.
+ * @return FLASH_ERROR when the address, pointer or length check fails, and
+ * FLASH_ERROR_DMA when the DMA refuses the whole-word transfer. Otherwise
+ * FLASH_OK after the SPI steps are issued. Their results are not checked. The
+ * data is in the buffer once w25q128jw_wait_quad_dma_async() returns. A read
+ * of 1 to 3 bytes starts no DMA, and the wait function copies those bytes.
 */
 w25q_error_codes_t w25q128jw_read_quad_dma_async(uint32_t addr, void *data, uint32_t length);
 
 /**
  * @brief Wait for w25q128jw_read_quad_dma_async (works only used along with that function) and take care of the last bytes, if present
  *
- * @param data pointer to the data buffer.
- * @param length number of bytes to write.
- * @return FLASH_OK if the write is successful, @ref error_codes otherwise.
+ * Call it once for each w25q128jw_read_quad_dma_async that returned FLASH_OK,
+ * with the same buffer and length. Do not call it after any other return:
+ * no read was queued then, so with 1 to 3 trailing bytes it waits until a word
+ * reaches the RX FIFO, or takes and copies a word that belongs to another
+ * command.
+ *
+ * @param data pointer to the data buffer of the read.
+ * @param length number of bytes of the read.
 */
 void w25q128jw_wait_quad_dma_async(void *data, uint32_t length);
 
 /**
  * @brief Write to flash at quad speed using DMA. Use this function only to write to unitialized data
  *
- * @param addr 24-bit flash address to read from.
+ * A page whose DMA transfer is refused, for example from a buffer that is not
+ * word-aligned, is written with polled FIFO writes instead.
+ *
+ * @param addr 24-bit flash address to write to.
  * @param data pointer to the data buffer.
  * @param length number of bytes to write.
  * @return FLASH_OK if the write is successful, @ref error_codes otherwise.
@@ -386,7 +428,7 @@ w25q_error_codes_t w25q128jw_write_quad_dma(uint32_t addr, void* data, uint32_t 
 /**
  * @brief Erase and Write to flash at quad speed using DMA. Use this function only to write to unitialized data
  *
- * @param addr 24-bit flash address to read from.
+ * @param addr 24-bit flash address to write to.
  * @param data pointer to the data buffer.
  * @param length number of bytes to write.
  * @return FLASH_OK if the write is successful, @ref error_codes otherwise.
@@ -394,9 +436,9 @@ w25q_error_codes_t w25q128jw_write_quad_dma(uint32_t addr, void* data, uint32_t 
 w25q_error_codes_t w25q128jw_erase_and_write_quad_dma(uint32_t addr, void* data, uint32_t length);
 
 /**
- * @brief Erase a 4kb sector.
+ * @brief Erase a 4 KiB sector.
  *
- * Sets all memory within a 4kb sector to the erased state of all 1s (FFh).
+ * Sets all memory within a 4 KiB sector to the erased state of all 1s (FFh).
  * After the erase is issued, waits for the flash to be ready.
  *
  * @param addr 24-bit address of the sector to erase.
@@ -404,9 +446,9 @@ w25q_error_codes_t w25q128jw_erase_and_write_quad_dma(uint32_t addr, void* data,
 w25q_error_codes_t w25q128jw_4k_erase(uint32_t addr);
 
 /**
- * @brief Erase a 32kb block.
+ * @brief Erase a 32 KiB block.
  *
- * Sets all memory within a 32kb block to the erased state of all 1s (FFh).
+ * Sets all memory within a 32 KiB block to the erased state of all 1s (FFh).
  * After the erase is issued, waits for the flash to be ready.
  *
  * @param addr 24-bit address of the block to erase.
@@ -414,9 +456,9 @@ w25q_error_codes_t w25q128jw_4k_erase(uint32_t addr);
 w25q_error_codes_t w25q128jw_32k_erase(uint32_t addr);
 
 /**
- * @brief Erase a 64kb block.
+ * @brief Erase a 64 KiB block.
  *
- * Sets all memory within a 64kb block to the erased state of all 1s (FFh).
+ * Sets all memory within a 64 KiB block to the erased state of all 1s (FFh).
  * After the erase is issued, waits for the flash to be ready.
  *
  * @param addr 24-bit address of the block to erase.

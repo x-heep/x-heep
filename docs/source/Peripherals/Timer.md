@@ -9,10 +9,10 @@ The SDK provides a set of functions to interact with the HW Timer for various ti
 
 ### Initialize Timer for Counting Cycles
 
-This function configures the counter at the running clock frequency to count the number of clock cycles. Call this function before any of the other timer SDK functions.
+This function configures the counter at the running clock frequency to count the number of clock cycles. Call this function before the cycle-counting functions; `timer_wait_us` calls it itself. It returns `kRvTimerOk` on success, and an error when the SoC frequency reads as zero or the timer cannot be configured.
 
 ```c
-void timer_cycles_init();
+rv_timer_result_t timer_cycles_init(void);
 ```
 
 ### Start Timer
@@ -38,9 +38,9 @@ Completely resets the HW counter, disabling all IRQs, counters, and comparators.
 void timer_reset();
 ```
  
-### Stop and Reset Timer
+### Stop Timer
 
-Retrieve the current value of the HW timer and stop it.
+Add the current value of the HW timer to the elapsed count, stop the counter and return the elapsed count. The counter is not reset.
 
 ```c
 uint32_t timer_stop();
@@ -91,7 +91,7 @@ void enable_timer_interrupt();
 Block execution for a specified number of microseconds. This function is not precise for small numbers of microseconds. Enable timer interrupts with `enable_timer_interrupt()` before using this function.
 
 ```c
-void timer_wait_us(uint32_t ms);
+void timer_wait_us(uint32_t us);
 ```
 
 ### Get Execution Time in Microseconds

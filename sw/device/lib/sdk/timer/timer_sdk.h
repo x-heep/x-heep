@@ -38,7 +38,7 @@ extern rv_timer_t timer;
 /**
  * @brief Get the current value of the HW timer
  * 
-* @return int64_t Current value of the HW timer
+* @return uint32_t The low 32 bits of the HW timer count
  */
 uint32_t timer_get_cycles();
 
@@ -57,16 +57,18 @@ void timer_reset();
 /**
  * @brief Stop the HW timer
  * 
- * @return int64_t Elapsed time in clock cycles
+ * @return uint32_t Elapsed time in clock cycles
  */
 uint32_t timer_stop();
 
 /**
  * @brief Initialize the timer for counting clock cycles
- * @brief Initialize the timer for counting clock cycles
  * 
+ * @return kRvTimerBadArg for a zero clock frequency or when no tick
+ * parameters fit the frequency, otherwise the result of rv_timer_init() or
+ * rv_timer_set_tick_params().
  */
-void timer_cycles_init();
+rv_timer_result_t timer_cycles_init(void);
 
 /**
  * @brief Enable the timer IRQ
@@ -104,7 +106,7 @@ void enable_timer_interrupt();
  * @brief Wait for a certain amount of microseconds. 
  * You need to enable timer interrupts with enable_timer_interrupt() before using this function
  */
-void timer_wait_us(uint32_t ms);
+void timer_wait_us(uint32_t us);
 
 /**
  * @brief Enable the timer machine-level interrupts for X-Heep

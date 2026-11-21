@@ -98,22 +98,22 @@ typedef struct power_manager_counters {
 // pointers to the power manager to control vectors of power domains
 // as memory banks or external domains 
 typedef struct power_manager_vector_sram_map_t {
-  uint32_t* clk_gate;
-  uint32_t* power_gate_ack;
-  uint32_t* switch_off;
-  uint32_t* wait_ack_switch;
-  uint32_t* iso;
-  uint32_t* retentive;
+  volatile uint32_t* clk_gate;
+  volatile uint32_t* power_gate_ack;
+  volatile uint32_t* switch_off;
+  volatile uint32_t* wait_ack_switch;
+  volatile uint32_t* iso;
+  volatile uint32_t* retentive;
 } power_manager_vector_sram_map_t;
 
 typedef struct power_manager_vector_ext_map_t {
-  uint32_t* clk_gate;
-  uint32_t* power_gate_ack;
-  uint32_t* switch_off;
-  uint32_t* wait_ack_switch;
-  uint32_t* iso;
-  uint32_t* retentive;
-  uint32_t* reset;
+  volatile uint32_t* clk_gate;
+  volatile uint32_t* power_gate_ack;
+  volatile uint32_t* switch_off;
+  volatile uint32_t* wait_ack_switch;
+  volatile uint32_t* iso;
+  volatile uint32_t* retentive;
+  volatile uint32_t* reset;
 } power_manager_vector_ext_map_t;
 
 void power_manager_init();

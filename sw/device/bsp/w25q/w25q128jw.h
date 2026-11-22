@@ -230,7 +230,10 @@ w25q_error_codes_t w25q128jw_write(uint32_t addr, void* data, uint32_t length, u
  * @param data pointer to the data buffer.
  * @param length number of bytes to read.
  * @return ptr to SPI data register, or NULL when the arguments are invalid or an
- * SPI step fails. On NULL no receive segment is queued, so do not wait for one.
+ * SPI step fails. When a step fails after the read command is in the TX FIFO,
+ * the function resets the SPI host with spi_sw_reset(), which also discards any
+ * other queued command. On NULL no receive segment is queued, so do not wait
+ * for one.
 */
 uint32_t* w25q128jw_read_standard_setup(uint32_t addr, void *data, uint32_t length);
 
@@ -293,8 +296,11 @@ w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32
  * @brief Read from flash at standard speed using DMA but wait for DMA in the application
  *
  * data must be word-aligned, otherwise the read returns FLASH_ERROR_DMA. The
- * SPI read is queued before the DMA launch, so when the launch is refused the
- * read data stays in the SPI RX FIFO; drain it before the next read.
+ * DMA transaction is validated and loaded before any SPI traffic, so a busy
+ * channel returns FLASH_ERROR_DMA with nothing queued. The SPI read is queued
+ * before the DMA launch. When the launch is refused, the function resets the
+ * flash SPI host with spi_sw_reset() and returns FLASH_ERROR_DMA. The reset
+ * discards the read and any other command queued in that SPI host.
  *
  * @param addr 24-bit flash address to read from.
  * @param data pointer to the data buffer.

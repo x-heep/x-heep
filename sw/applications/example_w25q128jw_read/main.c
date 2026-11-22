@@ -330,8 +330,12 @@ int main(void) {
 
     PRINTF("Starting flash read tests\n");
 
-    // SW read: assumed to be correct to initialize the expected buffer
-    do_read(flash_ptr_source_pattern, (void *)expected_base, two_sectors_bytes, FLAG_SW);
+    // SW read: assumed to be correct to initialize the expected buffer. Every
+    // later case compares against it, so a failed read ends the test here.
+    if (do_read(flash_ptr_source_pattern, (void *)expected_base, two_sectors_bytes, FLAG_SW) != 0) {
+        PRINTF("Failed to read the reference pattern from flash\n");
+        return EXIT_FAILURE;
+    }
 
     errors += run_mode_tests(
         "Hardware Read, standard speed, DMA",

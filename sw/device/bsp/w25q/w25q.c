@@ -472,6 +472,10 @@ w25q_error_codes_t w25q128jw_write_standard(uint32_t addr, void* data, uint32_t 
 
 
 w25q_error_codes_t w25q128jw_erase_and_write_standard(uint32_t addr, void* data, uint32_t length){
+    // Sanity checks, before the first sector is erased
+    if (w25q128jw_sanity_checks(addr, data, length) != FLASH_OK) {
+        return FLASH_ERROR;
+    }
 
     uint32_t remaining_length = length;
     uint32_t current_addr = addr;
@@ -698,6 +702,10 @@ w25q_error_codes_t w25q128jw_write_standard_dma(uint32_t addr, void *data, uint3
 }
 
 w25q_error_codes_t w25q128jw_erase_and_write_standard_dma(uint32_t addr, void* data, uint32_t length){
+    // Sanity checks, before the first sector is erased
+    if (w25q128jw_sanity_checks(addr, data, length) != FLASH_OK) {
+        return FLASH_ERROR;
+    }
 
     uint32_t remaining_length = length;
     uint32_t current_addr = addr;
@@ -897,6 +905,10 @@ w25q_error_codes_t w25q128jw_write_quad(uint32_t addr, void *data, uint32_t leng
 
 
 w25q_error_codes_t w25q128jw_erase_and_write_quad(uint32_t addr, void *data, uint32_t length) {
+    // Sanity checks, before the first sector is erased
+    if (w25q128jw_sanity_checks(addr, data, length) != FLASH_OK) {
+        return FLASH_ERROR;
+    }
 
     uint32_t remaining_length = length;
     uint32_t current_addr = addr;
@@ -1182,6 +1194,10 @@ w25q_error_codes_t w25q128jw_write_quad_dma(uint32_t addr, void *data, uint32_t 
 }
 
 w25q_error_codes_t w25q128jw_erase_and_write_quad_dma(uint32_t addr, void *data, uint32_t length) {
+    // Sanity checks, before the first sector is erased
+    if (w25q128jw_sanity_checks(addr, data, length) != FLASH_OK) {
+        return FLASH_ERROR;
+    }
 
     uint32_t remaining_length = length;
     uint32_t current_addr = addr;
@@ -1245,6 +1261,8 @@ w25q_error_codes_t w25q128jw_4k_erase(uint32_t addr) {
 
     // Wait for the erase operation to be finished
     flash_wait();
+
+    return FLASH_OK;
 }
 
 w25q_error_codes_t w25q128jw_32k_erase(uint32_t addr) {
@@ -1272,6 +1290,8 @@ w25q_error_codes_t w25q128jw_32k_erase(uint32_t addr) {
 
     // Wait for the erase operation to be finished
     flash_wait();
+
+    return FLASH_OK;
 }
 
 w25q_error_codes_t w25q128jw_64k_erase(uint32_t addr) {
@@ -1299,6 +1319,8 @@ w25q_error_codes_t w25q128jw_64k_erase(uint32_t addr) {
 
     // Wait for the erase operation to be finished
     flash_wait();
+
+    return FLASH_OK;
 }
 
 void w25q128jw_chip_erase(void) {

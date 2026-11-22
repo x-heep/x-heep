@@ -444,30 +444,36 @@ w25q_error_codes_t w25q128jw_erase_and_write_quad_dma(uint32_t addr, void* data,
 /**
  * @brief Erase a 4 KiB sector.
  *
- * Sets all memory within a 4 KiB sector to the erased state of all 1s (FFh).
- * After the erase is issued, waits for the flash to be ready.
+ * Issues the sector erase command, which sets all memory within a 4 KiB sector
+ * to the erased state of all 1s (FFh), and waits for the flash to be ready.
+ * FLASH_OK does not confirm that the flash accepted the command.
  *
  * @param addr 24-bit address of the sector to erase.
+ * @return FLASH_ERROR if addr is out of range, FLASH_OK otherwise.
 */
 w25q_error_codes_t w25q128jw_4k_erase(uint32_t addr);
 
 /**
  * @brief Erase a 32 KiB block.
  *
- * Sets all memory within a 32 KiB block to the erased state of all 1s (FFh).
- * After the erase is issued, waits for the flash to be ready.
+ * Issues the block erase command, which sets all memory within a 32 KiB block
+ * to the erased state of all 1s (FFh), and waits for the flash to be ready.
+ * FLASH_OK does not confirm that the flash accepted the command.
  *
  * @param addr 24-bit address of the block to erase.
+ * @return FLASH_ERROR if addr is out of range, FLASH_OK otherwise.
 */
 w25q_error_codes_t w25q128jw_32k_erase(uint32_t addr);
 
 /**
  * @brief Erase a 64 KiB block.
  *
- * Sets all memory within a 64 KiB block to the erased state of all 1s (FFh).
- * After the erase is issued, waits for the flash to be ready.
+ * Issues the block erase command, which sets all memory within a 64 KiB block
+ * to the erased state of all 1s (FFh), and waits for the flash to be ready.
+ * FLASH_OK does not confirm that the flash accepted the command.
  *
  * @param addr 24-bit address of the block to erase.
+ * @return FLASH_ERROR if addr is out of range, FLASH_OK otherwise.
 */
 w25q_error_codes_t w25q128jw_64k_erase(uint32_t addr);
 

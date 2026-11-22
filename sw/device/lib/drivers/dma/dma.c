@@ -84,7 +84,7 @@ extern "C"
 #define DMA_SELECTION_OFFSET_START 0
 
 /**
- * A small window size might result in loss of syncronism. If the processing
+ * A small window size might result in loss of synchronism. If the processing
  * of the window takes longer than the time it takes to the DMA to finish the
  * next window, the application will not be able to cope. Although "how small
  * is too small" is highly dependent on the length of the processing, this

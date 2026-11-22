@@ -183,14 +183,19 @@ gpio_result_t gpio_reset_all (void);
 gpio_result_t gpio_set_mode (gpio_pin_number_t pin, gpio_mode_t mode);
 
 /**
- * @brief enable sampling as input by writing one in GPIO_EN. If disables
- * (0) the corresponding GPIO will not sample the inputs (saves power) and
- * will not generate any interrupts.
+ * @brief enable sampling as input by writing one in GPIO_EN. The input stage
+ * is enabled only while the pin is also in input mode (GpioModeIn). While it
+ * is disabled, by GPIO_EN at zero or by another mode, the GPIO can stop
+ * updating the sampled input to save power.
  */
 gpio_result_t gpio_en_input_sampling (gpio_pin_number_t pin);
 
 /**
  * @brief disable sampling as input by writing zero in GPIO_EN.
+ * The interrupt enables stay set, so interrupts can still occur. Where the
+ * input stage holds its last sampled level, an enabled level interrupt acts
+ * on that level and an enabled edge interrupt can still fire. Call
+ * gpio_intr_dis_all() for the pin when no new interrupt must occur.
  */
 gpio_result_t gpio_dis_input_sampling (gpio_pin_number_t pin);
 

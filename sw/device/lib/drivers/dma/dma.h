@@ -293,7 +293,7 @@ typedef enum
     DMA_CONFIG_INCOMPATIBLE     = 0x0040, /*!< Different arguments result in
     incompatible requests. */
     DMA_CONFIG_WINDOW_SIZE      = 0x0080, /*!< A small window size might result
-    in loss of syncronism. If the processing of the window takes longer than the
+    in loss of synchronism. If the processing of the window takes longer than the
     time it takes to the DMA to finish the next window, the application will not
     be able to cope. Although "how small is too small" is highly dependent on
     the length of the processing, this flag will be raised when the ratio of
@@ -461,7 +461,15 @@ static inline void write_register( uint32_t  p_val,
 /**
  *@brief Takes all DMA configurations to a state where no accidental
  * transaction can be performed.
- * It can be called anytime to reset the DMA control block.
+ * It clears the pointer, size, increment, dimension, slot, data-type,
+ * sign-extension, mode, window, interrupt-enable, hardware-configuration and
+ * slot-wait registers, and the address-pointer and padding registers when they
+ * are built in. It does not clear HW_FIFO_EN.
+ * With dma_peri NULL, it clears these registers in every integrated channel,
+ * including a channel whose transfer still runs, so call it only when no other
+ * transaction is loaded or running. With a supplied register block, every
+ * channel uses that block, and the function clears it.
+ * Both forms clear every saved transaction pointer.
  * @param dma_peri Pointer to a register address following the dma structure. By
  * default (peri == NULL), the integrated DMA will be used.
  */
@@ -561,9 +569,9 @@ void dma_intr_handler_window_done(uint8_t channel);
 /**
  * @brief This weak implementation allows the user to override the threshold
  * in which a warning is raised for a transaction to window size ratio that
- * could cause a loss of syncronism.
- * Crete this override with caution. For small transaction sizes, even a large
- * window size might cause loss of syncronism (e.g. If the DMA is copying 10
+ * could cause a loss of synchronism.
+ * Create this override with caution. For small transaction sizes, even a large
+ * window size might cause loss of synchronism (e.g. If the DMA is copying 10
  * bytes and the one interrupt is received every 5 bytes, there is a large
  * chance that the DMA will finish copying the remaining 5 bytes before the
  * CPU managed to process the previous 5 bytes.

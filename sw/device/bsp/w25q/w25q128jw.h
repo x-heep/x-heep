@@ -104,7 +104,6 @@
 /** @} */
 
 /**
-/**
  * @brief Threshold value for switching to DMA in read mode.
  *        If the number of bytes to be read exceeds this threshold,
  *        DMA is the more efficient data transfer.
@@ -295,10 +294,16 @@ w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32
 /**
  * @brief Read from flash at standard speed using DMA but wait for DMA in the application
  *
- * data must be word-aligned, otherwise the read returns FLASH_ERROR_DMA. The
- * DMA transaction is validated and loaded before any SPI traffic, so a busy
- * channel returns FLASH_ERROR_DMA with nothing queued. The SPI read is queued
- * before the DMA launch. When the launch is refused, the function resets the
+ * data must be word-aligned, otherwise the read returns FLASH_ERROR_DMA. A
+ * request that fails validation returns FLASH_ERROR_DMA and writes no DMA
+ * register. The function keeps its DMA descriptors in static storage, so calls
+ * must not overlap: a call from an interrupt handler between the load and the
+ * launch of another call changes that call's transfer. A valid request then
+ * calls dma_init(), which clears the configuration registers of every
+ * channel, so the caller must not have another DMA transfer loaded or running.
+ * If channel 0 is still busy, the load refuses it and the function returns
+ * FLASH_ERROR_DMA before any SPI traffic, after dma_init() has already cleared
+ * the configuration registers of the busy transfer. The SPI read is queued before the DMA launch. When the launch is refused, the function resets the
  * flash SPI host with spi_sw_reset() and returns FLASH_ERROR_DMA. The reset
  * discards the read and any other command queued in that SPI host.
  *

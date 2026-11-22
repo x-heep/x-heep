@@ -1050,7 +1050,7 @@ w25q_error_codes_t w25q128jw_read_quad_dma(uint32_t addr, void *data, uint32_t l
     // Take into account the extra bytes (if any)
     if (length % 4 != 0) {
         uint32_t last_word = 0;
-      
+
         // The SPI host queues the zero-padded last word when the segment
         // ends, which can be after the DMA has taken the whole words.
         spi_wait_for_rx_not_empty(spi);
@@ -1061,7 +1061,7 @@ w25q_error_codes_t w25q128jw_read_quad_dma(uint32_t addr, void *data, uint32_t l
     #else
         memcpy(&data[length - length%4], &last_word, length%4);
     #endif
-     
+
     }
 
     return FLASH_OK;
@@ -1173,7 +1173,7 @@ void w25q128jw_wait_quad_dma_async(void *data, uint32_t length){
     // Take into account the extra bytes (if any)
     if (length % 4 != 0) {
         uint32_t last_word = 0;
-      
+
         // The SPI host queues the zero-padded last word when the segment
         // ends, which can be after the DMA has taken the whole words.
         spi_wait_for_rx_not_empty(spi);
@@ -1184,7 +1184,7 @@ void w25q128jw_wait_quad_dma_async(void *data, uint32_t length){
     #else
         memcpy(&data[length - length%4], &last_word, length%4);
     #endif
-     
+
     }
 }
 

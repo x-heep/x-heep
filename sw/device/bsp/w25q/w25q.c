@@ -209,8 +209,8 @@ static void flash_write_enable(void);
 /**
  * @brief Performs sanity checks on the input parameters.
  *
- * Checks if the address is valid, the data pointer is not NULL
- * and the length is not 0.
+ * Checks that the address and the last byte, addr + length - 1, are within
+ * the flash, that the data pointer is not NULL and that the length is not 0.
  *
  * @param addr 24-bit address.
  * @param data pointer to the data buffer.
@@ -358,7 +358,6 @@ uint32_t* w25q128jw_read_standard_setup(uint32_t addr, void *data, uint32_t leng
     uint32_t read_byte_cmd = ((REVERT_24b_ADDR(addr & 0x00ffffff) << 8) | FC_RD);
     // Load command to TX FIFO
     if (spi_write_word(spi, read_byte_cmd) != SPI_FLAG_OK) return NULL;
-    if (spi_wait_for_ready(spi) != SPI_FLAG_OK) return NULL;
 
     // Set up segment parameters -> send command and address
     const uint32_t cmd_read_1 = spi_create_command((spi_command_t){
@@ -367,10 +366,6 @@ uint32_t* w25q128jw_read_standard_setup(uint32_t addr, void *data, uint32_t leng
         .speed      = SPI_SPEED_STANDARD, // Single speed
         .direction  = SPI_DIR_TX_ONLY      // Write only
     });
-    // Load segment parameters to COMMAND register
-    if (spi_set_command(spi, cmd_read_1) != SPI_FLAG_OK) return NULL;
-    if (spi_wait_for_ready(spi) != SPI_FLAG_OK) return NULL;
-
     // Set up segment parameters -> read length bytes
     const uint32_t cmd_read_2 = spi_create_command((spi_command_t){
         .len        = length-1,          // len bytes
@@ -378,10 +373,21 @@ uint32_t* w25q128jw_read_standard_setup(uint32_t addr, void *data, uint32_t leng
         .speed      = SPI_SPEED_STANDARD, // Single speed
         .direction  = SPI_DIR_RX_ONLY      // Read only
     });
-    if (spi_set_command(spi, cmd_read_2) != SPI_FLAG_OK) return NULL;
-    if (spi_wait_for_ready(spi) != SPI_FLAG_OK) return NULL;
+    // Load the two segments to the COMMAND register. With a valid host these
+    // steps fail only when another context drives the same host. The read
+    // command word, which carries the address, is already in the TX FIFO, and
+    // the first segment holds chip select, so a failure from here on resets the
+    // SPI host rather than leave a
+    // partial read queued for the next flash operation.
+    if (spi_wait_for_ready(spi) != SPI_FLAG_OK ||
+        spi_set_command(spi, cmd_read_1) != SPI_FLAG_OK ||
+        spi_wait_for_ready(spi) != SPI_FLAG_OK ||
+        spi_set_command(spi, cmd_read_2) != SPI_FLAG_OK ||
+        spi_wait_for_ready(spi) != SPI_FLAG_OK) {
+        spi_sw_reset(spi);
+        return NULL;
+    }
 
-    
     return fifo_ptr_rx;
 }
 
@@ -618,9 +624,6 @@ w25q_error_codes_t w25q128jw_read_standard_dma_async(uint32_t addr, void *data, 
     // SPI and SPI_FLASH are the same IP so same register map
     uint32_t *fifo_ptr_rx = (uint32_t *)((uintptr_t)spi + SPI_HOST_RXDATA_REG_OFFSET);
 
-    // Init DMA, the integrated DMA is used (peri == NULL)
-    dma_init(NULL);
-
     // The DMA will wait for the SPI FLASH RX FIFO valid signal
     uint8_t slot = DMA_TRIG_SLOT_SPI_FLASH_RX;
 
@@ -650,11 +653,20 @@ w25q_error_codes_t w25q128jw_read_standard_dma_async(uint32_t addr, void *data, 
     };
     // Size is in data units (words in this case)
     trans.size_d1_du = length>>2;
-    // Validate and load the DMA transaction. No realignment: it narrows only
-    // the destination type, while each source read pops a whole RX FIFO word.
+    // Validate the DMA transaction. No realignment: it narrows only the
+    // destination type, while each source read pops a whole RX FIFO word.
+    // Validate before dma_init, which clears the configuration registers of
+    // every channel, so that a transaction that fails validation writes no DMA
+    // register. The descriptors are static: calls must not overlap, because a
+    // call between the load and the launch of another changes that call's
+    // transfer.
     dma_config_flags_t res;
     res = dma_validate_transaction(&trans, DMA_DO_NOT_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
     if (res != DMA_CONFIG_OK) return FLASH_ERROR_DMA;
+
+    // Init DMA, the integrated DMA is used (peri == NULL). The load refuses a
+    // busy channel, so that refusal returns before any SPI traffic.
+    dma_init(NULL);
     res = dma_load_transaction(&trans);
     if (res != DMA_CONFIG_OK) return FLASH_ERROR_DMA;
 
@@ -662,8 +674,16 @@ w25q_error_codes_t w25q128jw_read_standard_dma_async(uint32_t addr, void *data, 
     // The DMA has no abort, so a failed setup must not leave a running
     // transfer. The SPI host holds the data in its RX FIFO until the launch.
     if (w25q128jw_read_standard_setup(addr, data, length) == NULL) return FLASH_ERROR;
+
     res = dma_launch(&trans);
-    if (res != DMA_CONFIG_OK) return FLASH_ERROR_DMA;
+    if (res != DMA_CONFIG_OK) {
+        // The launch refuses only when another context used channel 0 after
+        // the load, for example from an interrupt handler. The read is already
+        // queued, so reset the SPI host: the next flash operation must not
+        // receive this command's data.
+        spi_sw_reset(spi);
+        return FLASH_ERROR_DMA;
+    }
 
     // The caller waits for the DMA to finish. dma_load_transaction already
     // enabled the DMA done interrupt in the DMA and in the CPU.
@@ -1751,8 +1771,12 @@ static w25q_error_codes_t w25q128jw_sanity_checks(uint32_t addr, uint8_t *data, 
     // Check if length is 0
     if (length <= 0) return FLASH_ERROR;
 
-    // Check if current address + length is out of range
-    if (addr + length > MAX_FLASH_ADDR) return FLASH_ERROR;
+    // Check that the last byte, addr + length - 1, is in range. The checks
+    // above make addr <= MAX_FLASH_ADDR and length >= 1, so neither side of
+    // the comparison can wrap.
+    if (length - 1 > MAX_FLASH_ADDR - addr) {
+        return FLASH_ERROR;
+    }
 
     return FLASH_OK; // Success
 }

@@ -95,11 +95,13 @@
         },
         { bits: "30",
           name: "SW_RST",
-          desc: '''Clears the entire IP to the reset state when set to 1, including
-                   the FIFOs, the CDC's, the core state machine and the shift register.
-                   In the current implementation, the CDC FIFOs are drained not reset.
-                   Therefore software must confirm that both FIFO's empty before releasing
-                   the IP from reset.''',
+          desc: '''Clears the FIFOs, the command queue, the core state machine and
+                   the shift register when set to 1. It does not clear the
+                   configuration that the state machine latched from the last
+                   command, or the latched bits of !!ERROR_STATUS, and a set
+                   !!ERROR_STATUS bit still halts the core. Software should
+                   confirm that both FIFOs are empty before it releases the IP
+                   from reset.''',
           resval: "0x0"
         },
         { bits: "29",
@@ -134,7 +136,7 @@
           name: "READY",
           desc: '''When high, indicates the SPI host is ready to receive
                    commands. Writing to COMMAND when READY is low is
-                   an error, and will trigger an interrupt.
+                   an error, and sets !!ERROR_STATUS.CMDBUSY.
                    ''',
           resval: "0x0"
         },
@@ -147,7 +149,8 @@
         { bits: "29",
           name: "TXFULL",
           desc: '''When high, indicates that the transmit data fifo is full.
-                   Any further writes to !!RXDATA will create an error interrupt.
+                   A write to !!TXDATA while the TX FIFO is full sets
+                   !!ERROR_STATUS.OVERFLOW.
                 '''
           resval: "0x0"
         },
@@ -179,7 +182,8 @@
         { bits: "24",
           name: "RXEMPTY",
           desc: '''When high, indicates that the receive fifo is empty.
-                   Any reads from RX FIFO will cause an error interrupt.
+                   A read from !!RXDATA while the RX FIFO is empty sets
+                   !!ERROR_STATUS.UNDERFLOW.
                    '''
           resval: "0x0"
         },
@@ -196,29 +200,26 @@
         }
         { bits: "20",
           name: "RXWM",
-          desc: '''If high, the number of 32-bits in the RX FIFO now exceeds the
+          desc: '''If high, the number of 32-bit words in the RX FIFO has reached
                    !!CONTROL.RX_WATERMARK entries (32b each).'''
           resval: "0x0"
         },
         { bits: "19:16",
           name: "CMDQD",
-          desc: '''Command queue depth. Indicates how many unread 32-bit words are
-                   currently in the command segment queue.''',
+          desc: '''Command queue depth. Indicates how many command segment
+                   descriptors are currently in the command queue.''',
           resval: "0x0"
         },
         { bits: "15:8",
           name: "RXQD",
           desc: '''Receive queue depth. Indicates how many unread 32-bit words are
-                   currently in the RX FIFO.  When active, this result may an
-                   underestimate due to synchronization delays.''',
+                   currently in the RX FIFO.''',
           resval: "0x0"
         },
         { bits: "7:0",
           name: "TXQD",
           desc: '''Transmit queue depth. Indicates how many unsent 32-bit words
-                   are currently in the TX FIFO.  When active, this result may
-                   be an overestimate due to synchronization delays,
-                ''',
+                   are currently in the TX FIFO.''',
           resval: "0x0"
         }
       ]
@@ -240,7 +241,7 @@
             name: "CPOL",
             desc: '''The polarity of the sck clock signal.  When CPOL is 0,
                      sck is low when idle, and emits high pulses.   When CPOL
-                     is low, sck is high when idle, and emits a series of low
+                     is 1, sck is high when idle, and emits a series of low
                      pulses.
                      '''
             resval: "0x0"
@@ -250,7 +251,7 @@
             desc: '''The phase of the sck clock signal relative to the data. When
                      CPHA = 0, the data changes on the trailing edge of sck
                      and is typically sampled on the leading edge.  Conversely
-                     if CPHA = 1 high, data lines change on the leading edge of
+                     if CPHA = 1, data lines change on the leading edge of
                      sck and are typically sampled on the trailing edge.
                      CPHA should be chosen to match the phase of the selected
                      device.  The sampling behavior is modified by the
@@ -265,9 +266,12 @@
                      bus a half cycle after shifting out data, the data is sampled
                      a full cycle after shifting data out.  This means that if
                      CPHA = 0, data is shifted out on the trailing edge, and
-                     sampled a full cycle later.  If CPHA = 1, data is shifted and
-                     sampled with the trailing edge, also separated by a
-                     full cycle.''',
+                     sampled a full cycle later.  If CPHA = 1, data is shifted out
+                     on the leading edge, and sampled a full cycle later, at the
+                     next leading edge.  For the last bit of a CPHA = 1 segment,
+                     no further leading edge follows unless another segment
+                     continues at once, so the sample is taken when the segment
+                     ends, one half sck cycle after the last sck edge.''',
             resval: 0
           },
           { bits: "27:24",
@@ -282,8 +286,10 @@
             name: "CSNTRAIL"
             desc: '''CS_N Trailing Time.  Indicates the number of half sck cycles,
                      CSNTRAIL+1, to leave between last edge of sck and the rising
-                     edge of cs_n. Setting this register to zero corresponds
-                     to the minimum delay of one-half sck cycle.'''
+                     edge of cs_n when CPHA is 0.  When CPHA is 1, the delay is
+                     one half sck cycle longer.  Setting this register to zero
+                     corresponds to the minimum delay of one-half sck cycle, or
+                     one sck cycle when CPHA is 1.'''
             resval: 0
           },
           { bits: "19:16",
@@ -346,8 +352,8 @@
         { bits: "24",
           name: "CSAAT",
           desc: '''Chip select active after transaction.  If CSAAT = 0, the
-                   chip select line is raised immediately at the end of the
-                   command segment.   If !!COMMAND.CSAAT = 1, the chip select
+                   chip select line is raised at the end of the command
+                   segment, after the trail delay of !!CONFIGOPTS.CSNTRAIL.   If !!COMMAND.CSAAT = 1, the chip select
                    line is left low at the end of the current transaction
                    segment.  This allows the creation longer, more
                    complete SPI transactions, consisting of several separate
@@ -386,7 +392,7 @@
                  The serial order of bit transmission
                  is chosen to match SPI flash devices. Individual bytes
                  are always transmitted with the most significant bit first.
-                 Only four-bute reads are supported. If ByteOrder = 0,
+                 Only four-byte reads are supported. If ByteOrder = 0,
                  the first byte received is packed in the MSB of !!RXDATA.
                  For some processor architectures, this could lead to shuffling
                  of flash data as compared to how it is written in memory.
@@ -434,13 +440,15 @@
         { bits: "4",
           name: "CSIDINVAL",
           desc: '''Invalid CSID: If this bit is set, the block sends an error interrupt whenever
-                   a command is submitted, but CSID exceeds NumCS.''',
+                   a command is written to !!COMMAND while the command queue
+                   has space and CSID is NumCS or larger.''',
           resval: "0x1"
         }
         { bits: "3",
           name: "CMDINVAL",
           desc: '''Invalid Command Errors: If this bit is set, the block sends an
-                   error interrupt whenever a command is sent with invalid values for
+                   error interrupt whenever a command is written to !!COMMAND
+                   while the command queue has space, with invalid values for
                    !!COMMAND.SPEED or !!COMMAND.DIRECTION.''',
           resval: "0x1"
         },
@@ -460,14 +468,14 @@
         { bits: "0",
           name: "CMDBUSY",
           desc: '''Command Error: If this bit is set, the block sends an error
-                   interrupt whenever a command is issued while busy (i.e. a 1 is
-                   when !!STATUS.READY is not asserted.)''',
+                   interrupt whenever a command is issued while busy (i.e. while
+                   !!STATUS.READY is not asserted).''',
           resval: "0x1"
         },
       ]
     },
     { name: "ERROR_STATUS",
-      desc: '''Indicates that any errors that have occurred.
+      desc: '''Indicates the errors that have occurred.
                When an error
                occurs, the corresponding bit must be cleared here before
                issuing any further commands.'''
@@ -476,22 +484,23 @@
       fields: [
         { bits: "5",
           name: "ACCESSINVAL",
-          desc: '''Indicates that TLUL attempted to write to TXDATA with no bytes enabled. Such
-                   'zero byte' writes are not supported.''',
+          desc: '''Indicates a write to TXDATA whose byte enables are not one byte, two
+                   adjacent bytes or all four bytes. Such writes are not supported.''',
           resval: "0x0"
           tags: [// Updated by the hw. Exclude from init and write-checks.
                  "excl:CsrAllTests:CsrExclCheck"]
         },
         { bits: "4",
           name: "CSIDINVAL",
-          desc: '''Indicates a command was attempted with an invalid value for !!CSID.''',
+          desc: '''Indicates a command was written to !!COMMAND while the command queue had
+                   space, with an invalid value for !!CSID.''',
           resval: "0x0"
         },
         { bits: "3",
           name: "CMDINVAL",
-          desc: '''Indicates an invalid command segment, meaning either an invalid value of
-                   !!COMMAND.SPEED or a request for bidirectional data transfer at dual or quad
-                   speed''',
+          desc: '''Indicates an invalid command segment written to !!COMMAND while the command
+                   queue had space, meaning either an invalid value of !!COMMAND.SPEED or a
+                   request for bidirectional data transfer at dual or quad speed.''',
              resval: "0x0"
         },
         { bits: "2",
@@ -543,7 +552,7 @@
         { bits: "2",
           name: "RXWM",
           desc: '''Assert to send a spi_event interrupt whenever the number of 32-bit words in
-                   the RX FIFO is greater than !!CONTROL.RX_WATERMARK. To prevent the
+                   the RX FIFO is at least !!CONTROL.RX_WATERMARK. To prevent the
                    reassertion of this interrupt, read more data from the RX FIFO, or
                    increase !!CONTROL.RX_WATERMARK.''',
           resval: "0x0"

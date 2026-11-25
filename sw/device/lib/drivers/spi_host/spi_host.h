@@ -435,7 +435,7 @@ spi_return_flags_e spi_set_enable(spi_host_t* spi, bool enable);
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @param watermark Queue/fifo trigger level (minimum level).
  * @return SPI_FLAG_NULL_PTR          if spi NULL pointer.
- * @return SPI_FLAG_WATERMARK_EXCEEDS if watermark exceeds max (currently 76).
+ * @return SPI_FLAG_WATERMARK_EXCEEDS if watermark exceeds SPI_HOST_PARAM_TX_DEPTH.
  * @return SPI_FLAG_OK                if success.
  */
 spi_return_flags_e spi_set_tx_watermark(spi_host_t* spi, uint8_t watermark);
@@ -667,8 +667,9 @@ spi_tristate_e spi_get_error_intr_enable(spi_host_t* spi)
 /**
  * @brief Read SPI status register
  *
- * @param spi Pointer to spi_host_t representing the target SPI.
- * @return Pointer to spi_status_t structure. NULL if spi is NULL.
+ * @param spi Pointer to spi_host_t representing the target SPI. Must not be
+ * NULL.
+ * @return The STATUS register value as an spi_status_t, by value.
  */
 static inline __attribute__((always_inline)) 
 const volatile spi_status_t spi_get_status(spi_host_t* spi)
@@ -690,10 +691,7 @@ static inline __attribute__((always_inline))
 spi_tristate_e spi_get_active(spi_host_t* spi)
 {
     SPI_NULL_CHECK(spi, SPI_TRISTATE_ERROR)
-    //return spi_get_status(spi)->active ? SPI_TRISTATE_TRUE : SPI_TRISTATE_FALSE;
-    spi_status_t spi_status;
-    spi_status.value = 0x00;
-    spi_status.value = SPI_HW(spi)->STATUS;
+    return spi_get_status(spi).active ? SPI_TRISTATE_TRUE : SPI_TRISTATE_FALSE;
 }
 
 /**

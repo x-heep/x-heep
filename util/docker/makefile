@@ -16,7 +16,14 @@ docker-pull:
 # Spawn a Docker container and mount the X-HEEP directory in `/workspace/x-heep`
 .PHONY: docker-run
 docker-run:
-	docker run --platform $(PLATFORM) --user "$$(id -u):$$(id -g)" --env HOME=/tmp $(RUNFLAGS) -it -v "$(ROOT_DIR):/workspace/x-heep" $(IMAGE_ID):$(TAG)
+	@docker_user="$$(id -u):$$(id -g)"; \
+	if docker info --format '{{json .SecurityOptions}}' 2>/dev/null | \
+		grep -q 'name=rootless'; then \
+		docker_user=0:0; \
+	fi; \
+	docker run --platform $(PLATFORM) --user "$$docker_user" \
+		--env HOME=/tmp $(RUNFLAGS) -it \
+		-v "$(ROOT_DIR):/workspace/x-heep" $(IMAGE_ID):$(TAG)
 
 # Build the image locally
 .PHONY: docker-build

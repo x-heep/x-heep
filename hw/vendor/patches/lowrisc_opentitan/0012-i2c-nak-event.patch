@@ -1,0 +1,12 @@
+diff --git a/hw/ip/i2c/rtl/i2c_fsm.sv b/hw/ip/i2c/rtl/i2c_fsm.sv
+--- a/hw/ip/i2c/rtl/i2c_fsm.sv
++++ b/hw/ip/i2c/rtl/i2c_fsm.sv
+@@ -435,7 +435,7 @@ module i2c_fsm (
+         host_idle_o = 1'b0;
+         sda_temp = 1'b1;
+         scl_temp = 1'b1;
+-        if (!sda_i && !fmt_flag_nak_ok_i) event_nak_o = 1'b1;
++        if (sda_i && !fmt_flag_nak_ok_i) event_nak_o = 1'b1;
+         if ((stretch > stretch_timeout_i) && timeout_enable_i) begin
+           event_stretch_timeout_o = 1'b1;
+         end

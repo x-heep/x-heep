@@ -37,6 +37,12 @@ filesets:
     - scripts/pynq-z2/xilinx_generate_clk_wizard.tcl
     file_type: tclSource
 
+  ip-fpga-bergen:
+    files:
+    - scripts/bergen/xilinx_generate_clk_wizard.tcl
+    - scripts/generate_sram.tcl
+    file_type: tclSource
+
   ip-fpga-nexys:
     files:
     - scripts/nexys/generate_sram.tcl
@@ -72,6 +78,12 @@ filesets:
     - scripts/genesys2/xilinx_generate_clk_wizard.tcl
     file_type: tclSource
 
+  ip-fpga-auboard-15p:
+    files:
+    - scripts/auboard-15p/generate_sram.tcl
+    - scripts/auboard-15p/xilinx_generate_clk_wizard.tcl
+    file_type: tclSource
+
   xdc-fpga-nexys:
     files:
     - constraints/nexys/pin_assign.xdc
@@ -85,6 +97,15 @@ filesets:
     files:
     - constraints/pynq-z2/pin_assign.xdc
     - constraints/pynq-z2/constraints.xdc
+    - constraints/common/spi_slave.xdc
+    - constraints/common/jtag.xdc
+    - constraints/common/sync.xdc
+    file_type: xdc
+
+  xdc-fpga-bergen:
+    files:
+    - constraints/bergen/pin_assign.xdc
+    - constraints/bergen/constraints.xdc
     - constraints/common/spi_slave.xdc
     - constraints/common/jtag.xdc
     - constraints/common/sync.xdc
@@ -135,6 +156,15 @@ filesets:
     - constraints/common/sync.xdc
     file_type: xdc
 
+  xdc-fpga-auboard-15p:
+    files:
+    - constraints/auboard-15p/pin_assign.xdc
+    - constraints/auboard-15p/constraints.xdc
+    - constraints/common/spi_slave.xdc
+    - constraints/common/jtag.xdc
+    - constraints/common/sync.xdc
+    file_type: xdc
+
   tcl-fpga-ps-utils:
     files:
     - scripts/vivado/set_tcl_hooks.tcl
@@ -168,6 +198,10 @@ targets:
     - target_aup-zu3 ? (tcl-fpga-ps-utils)
     - target_genesys2 ? (ip-fpga-genesys2)
     - target_genesys2 ? (xdc-fpga-genesys2)
+    - target_auboard-15p ? (ip-fpga-auboard-15p)
+    - target_auboard-15p ? (xdc-fpga-auboard-15p)
+    - target_bergen ? (ip-fpga-bergen)
+    - target_bergen ? (xdc-fpga-bergen)
 
     parameters:
       - PS_ENABLE

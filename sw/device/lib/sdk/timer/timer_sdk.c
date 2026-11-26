@@ -93,21 +93,36 @@ uint32_t timer_stop()
 }
 
 // Initialize the timer
-void timer_cycles_init()
+rv_timer_result_t timer_cycles_init(void)
 {
     // Get current Frequency
     soc_ctrl_t soc_ctrl;
     soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
     uint32_t freq_hz = soc_ctrl_get_frequency(&soc_ctrl);
+    // A zero frequency divides by zero in the tick parameter search.
+    if (freq_hz == 0)
+    {
+        return kRvTimerBadArg;
+    }
 
-    // Initialize the timer
-    timer_reset();
-    rv_timer_init(timer_base, timer_cfg, &timer);
-    rv_timer_approximate_tick_params(freq_hz, freq_hz, &tick_params);
-    rv_timer_set_tick_params(&timer, 0, tick_params);
+    // rv_timer_init() binds the handle and resets the timer. Do not reset the
+    // timer before it: on the first call the handle is unbound, and a reset
+    // through it writes to address 0.
+    rv_timer_result_t result = rv_timer_init(timer_base, timer_cfg, &timer);
+    if (result != kRvTimerOk)
+    {
+        return result;
+    }
+    hw_timer_value = 0;
+    if (rv_timer_approximate_tick_params(freq_hz, freq_hz, &tick_params) !=
+        kRvTimerApproximateTickParamsOk)
+    {
+        return kRvTimerBadArg;
+    }
+    return rv_timer_set_tick_params(&timer, 0, tick_params);
 }
 
-// Initialize the timer
+// Wait for us microseconds with the timer interrupt
 void timer_wait_us(uint32_t us)
 {
     // Get current Frequency
@@ -115,9 +130,23 @@ void timer_wait_us(uint32_t us)
     soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
     uint32_t freq_hz = soc_ctrl_get_frequency(&soc_ctrl);
 
-    timer_cycles_init();
+    // The arm value leaves init_cycles for the initialization. A wait of
+    // init_cycles or fewer has nothing left to wait for, so return before the
+    // timer is reset. Below init_cycles the unsigned subtraction would also
+    // wrap to a wait of about 2^32 cycles.
+    const uint32_t init_cycles = 50;
+    uint32_t wait_cycles = us*(freq_hz/FREQ_1MHz);
+    if (wait_cycles <= init_cycles)
+    {
+        return;
+    }
+    // Without a configured timer, no timer interrupt ends the wfi below.
+    if (timer_cycles_init() != kRvTimerOk)
+    {
+        return;
+    }
     timer_irq_enable();
-    timer_arm_start(us*(freq_hz/1000000)-50); // 50 cycles for taking into account initialization        
+    timer_arm_start(wait_cycles - init_cycles);
     asm volatile ("wfi");
     timer_irq_clear();
     return;
@@ -127,7 +156,7 @@ void enable_timer_interrupt()
 {
     //enable timer interrupt
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
-    // Set mie.MEIE bit to one to enable machine-level timer interrupts
+    // Set mie.MTIE (bit 7) to enable machine-level timer interrupts
     const uint32_t mask = 1 << 7;
     CSR_SET_BITS(CSR_REG_MIE, mask);
 }

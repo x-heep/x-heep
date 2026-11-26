@@ -15,7 +15,9 @@ The following FPGA boards are supported:
 | AMD         | [Zynq™ UltraScale+™ MPSoC ZCU102](https://www.amd.com/en/products/adaptive-socs-and-fpgas/evaluation-boards/ek-u1-zcu102-g.html)          | zcu102        |
 | Digilent    | [Nexys-A7-100t](https://digilent.com/reference/programmable-logic/nexys-a7/start)                                                         | nexys-a7-100t |
 | Digilent    | [Genesys2](https://digilent.com/reference/programmable-logic/genesys-2/start)                                                             | genesys2      |
+| NewAE       | [CW310 Bergen Board (Kintex FPGA Target)](https://chipwhisperer.readthedocs.io/en/latest/Targets/CW310%20Bergen%20Board.html)                                                                                                                   | bergen        |
 | RealDigital | [AUP-ZU3 (8GB)](https://www.amd.com/en/corporate/university-program/aup-boards/realdigital-aup-zu3.html)                                  | aup-zu3       |
+| Avnet/Tria  | [AUBoard-15P](https://avnet.me/AUBoard-15P)                                                                                               | auboard-15p   |
 
 1. Make sure you have the FPGA board files installed in your Vivado.
 > For example, for the Pynq-Z2 board, use the documentation provided at the following [link](https://pynq.readthedocs.io/en/v2.5/overlay_design_methodology/board_settings.html) to download and install them.

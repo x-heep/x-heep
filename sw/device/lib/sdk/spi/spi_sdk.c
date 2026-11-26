@@ -231,7 +231,8 @@ bool spi_validate_segments(const spi_segment_t* segments, uint32_t segments_len,
  * @brief Fills the TX FIFO until no more space or no more data.
  * 
  * @param peri Pointer to the spi_peripheral_t instance with the relevant data
- * @return true if any word has been written to TX fifo
+ * @return true if the TX buffer had words left to send on entry; txcnt
+ * then holds the number of words written so far in the transaction.
  * @return false otherwise
  */
 bool spi_fill_tx(spi_peripheral_t* peri);
@@ -240,7 +241,8 @@ bool spi_fill_tx(spi_peripheral_t* peri);
  * @brief Empties the RX FIFO.
  * 
  * @param peri Pointer to the spi_peripheral_t instance with the relevant data
- * @return true if any word has been read to RX fifo
+ * @return true if the RX buffer still expected words on entry; rxcnt
+ * then holds the number of words read so far in the transaction.
  * @return false otherwise
  */
 bool spi_empty_rx(spi_peripheral_t* peri);
@@ -387,7 +389,7 @@ spi_t spi_init(spi_idx_e idx, spi_slave_t slave)
     if (SPI_IDX_INVALID(idx))       error |= SPI_CODE_IDX_INVAL;
     // Since watermark is set here, not a good idea to allow for initialization.
     // Anyways not very elegant to initialize while being busy... right?
-    if (SPI_BUSY(peripherals[idx])) error |= SPI_CODE_IS_BUSY;
+    else if (SPI_BUSY(peripherals[idx])) error |= SPI_CODE_IS_BUSY;
     if (error)
         return (spi_t) {
             .idx   = UINT32_MAX,
@@ -1008,17 +1010,29 @@ void spi_event_handler(spi_peripheral_t* peri, spi_event_e events)
             spi_set_events_enabled(peri->instance, SPI_EVENT_ALL, false);
             spi_enable_evt_intr   (peri->instance, false);
             // Read the last data from the RX fifo
-            spi_empty_rx(peri);
+            bool rx_read = spi_empty_rx(peri);
+            // A callback can start a new transaction, so end this one first
+            // and call its callbacks with copies of its arguments.
+            const spi_callbacks_t callbacks = peri->callbacks;
+            const uint32_t* txbuffer = peri->txn.txbuffer;
+            uint32_t* rxbuffer = peri->txn.rxbuffer;
+            uint32_t txcnt = peri->txcnt;
+            uint32_t rxcnt = peri->rxcnt;
             // Set the state to Transaction is done (meaning successful)
             peri->state = SPI_STATE_DONE;
-            // If there is a callback defined call it
-            if (peri->callbacks.done_cb != NULL) 
-            {
-                peri->callbacks.done_cb(peri->txn.txbuffer, peri->txcnt, 
-                                        peri->txn.rxbuffer, peri->rxcnt);
-            }
             // Reset all transaction related variables
             spi_reset_transaction(peri);
+            // The same status sample can also hold RXWM, and the return below
+            // skips the RXWM block, so call the RXWM callback here.
+            if (rx_read && (events & SPI_EVENT_RXWM) && callbacks.rxwm_cb != NULL)
+            {
+                callbacks.rxwm_cb(txbuffer, txcnt, rxbuffer, rxcnt);
+            }
+            // If there is a callback defined call it
+            if (callbacks.done_cb != NULL)
+            {
+                callbacks.done_cb(txbuffer, txcnt, rxbuffer, rxcnt);
+            }
             return;
         }
     }

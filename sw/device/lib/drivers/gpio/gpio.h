@@ -68,16 +68,18 @@ typedef enum gpio_mode
 
 /**
  * gpio_intr_general_mode
- * 1 keep the interrupt line asserted until all interrupts for all GPIOs
- * are cleared.
- * 0 generate one cycle wide pulses for every new interrupt.
+ * Selects how the pins of a GPIO bank drive their interrupt lines (CFG bit 0,
+ * one setting for each bank).
  */
 typedef enum gpio_intr_general_mode
 {
-    IntrOnePulse    = 0, /*!< keep the interrupt line asserted until all
-    interrupts for all GPIOs are cleared. */
-    IntrAsserted    = 1, /*!< generate one cycle wide pulses for every
-    new interrupt. */
+    IntrOnePulse    = 0, /*!< A pin's line follows its enabled edge and level
+    conditions. With input sampling enabled, an edge drives one pulse. While
+    sampling is disabled, the FPGA input stage holds its last sample, so an
+    enabled edge condition can keep the line high. An enabled level condition
+    keeps the line asserted while the sampled input holds that level. */
+    IntrAsserted    = 1, /*!< A pin's line stays asserted until that pin's
+    pending interrupts are cleared. */
 } gpio_intr_general_mode_t;
 
 /**
@@ -151,21 +153,24 @@ void gpio_reset_handlers_list( );
 void handler_irq_gpio( uint32_t id );
 
 /**
- * @brief gpio configuration. It first reset the pin configuration.
- * @param gpio_struct_t contatining pin, mode, en_input_sampling, en_intr,
- * intr_type
- * @return GpioOk: no problem, GpioError: there is an error.
+ * @brief Validate the request, then reset and configure the selected pin.
+ * Invalid pin, mode or enabled interrupt type leaves GPIO registers unchanged.
+ * intr_type is ignored when en_intr is false.
+ * @param cfg Pin, mode, sampling and interrupt configuration.
+ * @return GpioOk or the corresponding pin, mode or interrupt-type error.
  */
 gpio_result_t gpio_config (gpio_cfg_t cfg);
 
 /**
- * @brief reset completely all the configurations set for the pin
- * @param gpio_pin_number_t specify pin number
+ * @brief Reset pin mode, sampling, output latch and interrupt configuration.
+ * The interrupt mode of the pin's bank is also reset to IntrOnePulse.
+ * @param pin Pin to reset; other output latches in its bank are preserved.
  */
 gpio_result_t gpio_reset (gpio_pin_number_t pin);
 
 /**
- * @brief reset completely all the configurations for all the pins
+ * @brief Reset both banks' pin configuration, output latches and CFG registers.
+ * Pending interrupts are cleared and default callbacks are restored.
  */
 gpio_result_t gpio_reset_all (void);
 
@@ -178,34 +183,42 @@ gpio_result_t gpio_reset_all (void);
 gpio_result_t gpio_set_mode (gpio_pin_number_t pin, gpio_mode_t mode);
 
 /**
- * @brief enable sampling as input by writing one in GPIO_EN. If disables
- * (0) the corresponding GPIO will not sample the inputs (saves power) and
- * will not generate any interrupts.
+ * @brief enable sampling as input by writing one in GPIO_EN. The input stage
+ * is enabled only while the pin is also in input mode (GpioModeIn). While it
+ * is disabled, by GPIO_EN at zero or by another mode, the GPIO can stop
+ * updating the sampled input to save power.
  */
 gpio_result_t gpio_en_input_sampling (gpio_pin_number_t pin);
 
 /**
  * @brief disable sampling as input by writing zero in GPIO_EN.
+ * The interrupt enables stay set, so interrupts can still occur. Where the
+ * input stage holds its last sampled level, an enabled level interrupt acts
+ * on that level and an enabled edge interrupt can still fire. Call
+ * gpio_intr_dis_all() for the pin when no new interrupt must occur.
  */
 gpio_result_t gpio_dis_input_sampling (gpio_pin_number_t pin);
 
 /**
  * @brief reading from a gpio pin, which is done by reading from GPIO_IN reg
- * @param gpio_pin_number_t specify pin number
- * @return gpio value as GpioLow (false) or GpioHigh (true)
+ * @param pin Pin to read.
+ * @param val Receives the input level on success; must not be NULL.
+ * @return GpioOk or GpioPinNotAcceptable.
  */
 gpio_result_t gpio_read (gpio_pin_number_t pin, bool *val);
 
 /**
- * @brief toggle a pin. Using masking through GPIO_TOGGLE, and then
- * writing to GPIO_OUT
- * @param gpio_pin_number_t specify pin number
+ * @brief Toggle the selected pin with a read/modify/write of GPIO_OUT0.
+ * @param pin Pin to toggle.
+ * @return GpioOk or GpioPinNotAcceptable.
  */
 gpio_result_t gpio_toggle (gpio_pin_number_t pin);
 
 /**
- * @brief write to a pin. using gpio_set and gpio_clear functions.
- * @param gpio_pin_number_t specify pin number
+ * @brief Write the selected pin with a read/modify/write of GPIO_OUT0.
+ * @param pin Pin to write.
+ * @param val Output level to write.
+ * @return GpioOk or GpioPinNotAcceptable.
  */
 gpio_result_t gpio_write (gpio_pin_number_t pin, bool val);
 
@@ -343,9 +356,13 @@ gpio_result_t gpio_intr_clear_stat (gpio_pin_number_t pin);
 
 /**
  * @brief Controls the interrupt mode of the gpios.
- * @gpio_intr_mode If true, keep the interrupt line asserted until all
- * interrupts for all GPIOs are cleared. If false, generate one cycle wide
- * pulses for every new interrupt.
+ * @param pin Selects the GPIO bank whose interrupt mode is changed.
+ * @param mode If IntrAsserted, each pin's interrupt line stays asserted until
+ * that pin's pending interrupts are cleared. If IntrOnePulse, each pin's line
+ * follows its enabled edge and level conditions: with input sampling enabled,
+ * an edge drives one pulse, and an enabled level interrupt keeps the line
+ * asserted while the sampled input holds that level.
+ * An invalid pin or mode is ignored without accessing GPIO registers.
  */
 void gpio_intr_set_mode (gpio_pin_number_t pin, gpio_intr_general_mode_t mode);
 

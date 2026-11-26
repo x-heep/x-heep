@@ -1,0 +1,1 @@
+../generate_sram.tcl.tpl

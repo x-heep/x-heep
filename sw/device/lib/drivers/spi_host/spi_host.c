@@ -48,7 +48,12 @@ extern "C" {
 #define SPI_EVENTS_INDEX    0
 #define SPI_ERRORS_INDEX    0
 
-#define SPI_CONFIGOPTS_ADDR(spi, csid) ((&SPI_HW(spi)->CONFIGOPTS0) + csid*sizeof(uint32_t))
+/* One CONFIGOPTS register per chip select. Callers check csid first. */
+#define SPI_CONFIGOPTS_ADDR(spi, csid) \
+    ((csid) == 0 ? &SPI_HW(spi)->CONFIGOPTS0 : &SPI_HW(spi)->CONFIGOPTS1)
+#if SPI_HOST_PARAM_NUM_C_S != 2
+#error "SPI_CONFIGOPTS_ADDR selects CONFIGOPTS0 or CONFIGOPTS1 only"
+#endif
 
 /****************************************************************************/
 /**                                                                        **/
@@ -184,7 +189,7 @@ spi_return_flags_e spi_alert_test_fatal_fault_trigger(spi_host_t* spi)
 
 volatile uint8_t spi_get_tx_queue_depth(spi_host_t* spi)
 {
-    // Returning an impossible value (tx fifo is 76 words long...)
+    // A NULL host returns UINT8_MAX, above any TX queue depth.
     SPI_NULL_CHECK(spi, UINT8_MAX)
     return spi_get_status(spi).txqd;
 }
@@ -204,14 +209,17 @@ volatile uint32_t spi_get_csid(spi_host_t* spi)
 
 spi_return_flags_e spi_sw_reset(spi_host_t* spi)
 {
+    spi_status_t status;
+
     SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR)
     // Assert spi reset bit
     SPI_HW(spi)->CONTROL = bitfield_write(SPI_HW(spi)->CONTROL, BIT_MASK_1, 
                                           SPI_HOST_CONTROL_SW_RST_BIT, true);
 
-    volatile spi_status_t status = spi_get_status(spi);
     // Wait for spi active and txqd & rxqd both go to 0
-    while (status.active || status.txqd || status.rxqd);
+    do {
+        status = spi_get_status(spi);
+    } while (status.active || status.txqd || status.rxqd);
     // Deassert spi reset bit
     SPI_HW(spi)->CONTROL = bitfield_write(SPI_HW(spi)->CONTROL, BIT_MASK_1, 
                                           SPI_HOST_CONTROL_SW_RST_BIT, false);
@@ -256,8 +264,6 @@ spi_return_flags_e spi_set_configopts(spi_host_t* spi, uint32_t csid, const uint
 {
     SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR)
     if (SPI_CSID_INVALID(csid)) return SPI_FLAG_CSID_INVALID;
-    // Since the configopts registers always follow one after another, offset
-    // by csid times address delta
     *SPI_CONFIGOPTS_ADDR(spi, csid) = conf_reg;
     return SPI_FLAG_OK;
 }
@@ -266,8 +272,6 @@ spi_return_flags_e spi_get_configopts(spi_host_t* spi, uint32_t csid, uint32_t* 
 {
     SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR)
     if (SPI_CSID_INVALID(csid)) return SPI_FLAG_CSID_INVALID;
-    // Since the configopts registers always follow one after another, offset
-    // by csid times address delta
     *conf_reg = *SPI_CONFIGOPTS_ADDR(spi, csid);
     return SPI_FLAG_OK;
 }
@@ -455,6 +459,7 @@ spi_return_flags_e spi_get_events(spi_host_t* spi, spi_event_e* events) {
     // map the statuses to their respective event. This allows to pass a pseudo-event
     // variable to the event handlers.
     volatile spi_status_t status = spi_get_status(spi);
+    *events = SPI_EVENT_NONE;
     // Also, we do not need any NULL check since this function is made to be called
     // __ONLY__ from `handler_irq_spi`, `fic_irq_spi`, `fic_irq_spi_flash`.
     // Therefore we know that spi argument will not be NULL.

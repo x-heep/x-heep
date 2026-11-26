@@ -144,12 +144,12 @@ void  __attribute__ ((noinline)) power_manager_init() {
         // they are all consecutive
         volatile uint32_t *this_ram_hw = ram_block_ptr + (i * 6);
         //the order matters and has to match the one on the struct
-        power_manager_ram_map[i].clk_gate           = (uint32_t *)&(this_ram_hw[0]);
-        power_manager_ram_map[i].power_gate_ack     = (uint32_t *)&(this_ram_hw[1]);
-        power_manager_ram_map[i].switch_off         = (uint32_t *)&(this_ram_hw[2]);
-        power_manager_ram_map[i].wait_ack_switch    = (uint32_t *)&(this_ram_hw[3]);
-        power_manager_ram_map[i].iso                = (uint32_t *)&(this_ram_hw[4]);
-        power_manager_ram_map[i].retentive          = (uint32_t *)&(this_ram_hw[5]);
+        power_manager_ram_map[i].clk_gate           = &(this_ram_hw[0]);
+        power_manager_ram_map[i].power_gate_ack     = &(this_ram_hw[1]);
+        power_manager_ram_map[i].switch_off         = &(this_ram_hw[2]);
+        power_manager_ram_map[i].wait_ack_switch    = &(this_ram_hw[3]);
+        power_manager_ram_map[i].iso                = &(this_ram_hw[4]);
+        power_manager_ram_map[i].retentive          = &(this_ram_hw[5]);
     }
 
     //same for external domain
@@ -157,17 +157,17 @@ void  __attribute__ ((noinline)) power_manager_init() {
     volatile uint32_t *external_domain_ptr = (volatile uint32_t *)&(power_manager_peri->EXTERNAL_0_CLK_GATE);
 
     for (int i = 0; i < EXTERNAL_DOMAINS; i++) {
-        // every SRAM power domain has 6 uint32_t fields
+        // every external power domain has 7 uint32_t fields
         // they are all consecutive
         volatile uint32_t *this_ext_domain_hw = external_domain_ptr + (i * 7);
         //the order matters and has to match the one on the struct
-        power_manager_external_map[i].clk_gate           = (uint32_t *)&(this_ext_domain_hw[0]);
-        power_manager_external_map[i].power_gate_ack     = (uint32_t *)&(this_ext_domain_hw[1]);
-        power_manager_external_map[i].reset              = (uint32_t *)&(this_ext_domain_hw[2]);
-        power_manager_external_map[i].switch_off         = (uint32_t *)&(this_ext_domain_hw[3]);
-        power_manager_external_map[i].wait_ack_switch    = (uint32_t *)&(this_ext_domain_hw[4]);
-        power_manager_external_map[i].iso                = (uint32_t *)&(this_ext_domain_hw[5]);
-        power_manager_external_map[i].retentive          = (uint32_t *)&(this_ext_domain_hw[6]);
+        power_manager_external_map[i].clk_gate           = &(this_ext_domain_hw[0]);
+        power_manager_external_map[i].power_gate_ack     = &(this_ext_domain_hw[1]);
+        power_manager_external_map[i].reset              = &(this_ext_domain_hw[2]);
+        power_manager_external_map[i].switch_off         = &(this_ext_domain_hw[3]);
+        power_manager_external_map[i].wait_ack_switch    = &(this_ext_domain_hw[4]);
+        power_manager_external_map[i].iso                = &(this_ext_domain_hw[5]);
+        power_manager_external_map[i].retentive          = &(this_ext_domain_hw[6]);
     }
 #endif
 

@@ -10,7 +10,7 @@
 #
 # By default Bambu runs inside a Docker container (see ./Dockerfile), so the
 # only host dependency is Docker. The image is built automatically the first
-# time (it downloads Bambu's ~1.4 GB release AppImage), and the container:
+# time (it downloads Bambu's ~510 MB release AppImage), and the container:
 #   - sees the X-HEEP checkout and the current directory at the same paths as
 #     on the host, so relative and absolute paths in the arguments just work;
 #   - runs as the calling user, so the generated files are owned by you;
@@ -23,7 +23,7 @@
 #   BAMBU_ENV=/path/to/settings.sh   # optional: sourced first (from-source installs)
 #
 # Other knobs:
-#   BAMBU_DOCKER_IMAGE   image to use/build (default xheep-bambu:2024.10)
+#   BAMBU_DOCKER_IMAGE   image to use/build (default xheep-bambu:2026.11)
 
 set -euo pipefail
 
@@ -45,7 +45,7 @@ if [ -n "${BAMBU:-}" ]; then
 fi
 
 # --- Docker ------------------------------------------------------------------
-IMAGE="${BAMBU_DOCKER_IMAGE:-xheep-bambu:2024.10}"
+IMAGE="${BAMBU_DOCKER_IMAGE:-xheep-bambu:2026.11}"
 
 if ! command -v docker >/dev/null 2>&1; then
   echo "error: docker not found. Install Docker, or install Bambu natively and set BAMBU=/path/to/bambu" >&2
@@ -54,7 +54,7 @@ fi
 
 if ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
   echo "Docker image '$IMAGE' not found: building it from $SCRIPT_DIR/Dockerfile" >&2
-  echo "(one-off, downloads Bambu's release AppImage, ~1.4 GB)" >&2
+  echo "(one-off, downloads Bambu's release AppImage, ~510 MB)" >&2
   docker build -t "$IMAGE" "$SCRIPT_DIR" >&2
 fi
 

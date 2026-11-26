@@ -134,7 +134,7 @@ The accelerator's behaviour and register map are the same, but the tools differ 
 | Reset | Active-low `ap_rst_n` | Active-low `reset` | Active-high, synchronous `rst` |
 | HDL emitted | Verilog | Verilog, one self-contained file | Verilog with `write-hdl --hdl verilog` (its default is VHDL, which Verilator cannot read), one file per component |
 | Host dependencies | Vivado + Vitis HLS (licensed) | Docker | Docker |
-| Docker image | -- | `xheep-bambu:2024.10`, ~5 GB: the release AppImage (~1.4 GB download), SHA-256 checked | `xheep-dynamatic:2fac291`, ~4.1 GB: Dynamatic built from source at a pinned commit, against its prebuilt LLVM (~0.8 GB download, SHA-256 checked), plus Verilator 5.040 |
+| Docker image | -- | `xheep-bambu:2026.11`, ~2.4 GB: the release AppImage (~510 MB download), SHA-256 checked | `xheep-dynamatic:2fac291`, ~4.1 GB: Dynamatic built from source at a pinned commit, against its prebuilt LLVM (~0.8 GB download, SHA-256 checked), plus Verilator 5.040 |
 | One-off setup | Tool install | Image build: download-bound, a few minutes | Image build: ~12 minutes on a 16-core host (compiling Dynamatic and Verilator) |
 | RTL generation (this kernel, 16-core host) | ~26 s (`csynth_design`) | ~11 s | ~2 s (`compile` + `write-hdl`); co-simulation ~30 s |
 
@@ -230,7 +230,7 @@ This wiring lives in `hw/fpga/xilinx_core_v_mini_mcu_wrapper.sv`, scoped to the 
 
 The Bambu flow runs Bambu inside a Docker container by default, so **Docker is the only host dependency** (no Xilinx tools, no 32-bit toolchain, no Verilator install). The `use_bambu_hls` pre-build hook takes care of everything; this section describes what happens underneath and how to run the steps by hand.
 
-- **The container.** `hw/fpga/hls/bambu/bambu.sh` runs Bambu in the `xheep-bambu:2024.10` image, building it from `hw/fpga/hls/bambu/Dockerfile` the first time it is needed (one-off: it downloads Bambu's release AppImage, ~1.4 GB, and produces a ~5 GB image). The Bambu version is pinned and the download is checked against a SHA-256, so a changed file fails the build. The container runs as your user (generated files are yours), has no network access, and sees the X-HEEP checkout at the same path as on the host.
+- **The container.** `hw/fpga/hls/bambu/bambu.sh` runs Bambu in the `xheep-bambu:2026.11` image, building it from `hw/fpga/hls/bambu/Dockerfile` the first time it is needed (one-off: it downloads Bambu's release AppImage, ~510 MB, and produces a ~2.4 GB image). The Bambu version is pinned and the download is checked against a SHA-256, so a changed file fails the build. The container runs as your user (generated files are yours), has no network access, and sees the X-HEEP checkout at the same path as on the host.
 - **A native install instead.** Set `BAMBU=/path/to/bambu` (and, for from-source installs, `BAMBU_ENV=/path/to/settings.sh`) to skip Docker. A native Bambu additionally needs a 32-bit toolchain (`g++-multilib`) and Verilator for co-simulation.
 - **Generating the RTL.** `hw/fpga/hls/bambu/dot_product/generate_core.sh` (what the hook runs) calls `run_bambu.sh`, copies Bambu's output into `rtl/hls/` and regenerates `dot_product_bambu.core`. Bambu writes the whole design -- the top and every library component it uses -- into a single self-contained `dot_product.v`.
 - **Checking the HLS result on its own.** `run_bambu.sh sim` co-simulates the generated RTL against the shared C++ testbench through Bambu's own Verilator flow and AXI memory model, and checks for `TEST PASSED`:
@@ -245,7 +245,7 @@ The Bambu flow runs Bambu inside a Docker container by default, so **Docker is t
   TEST PASSED
   ```
 
-  This validates the HLS output only, not the X-HEEP integration (adapter, register file, wrapper, bridges); that is what the Verilator system simulation above is for. Bambu's co-simulation also prints a one-off `ERROR: MDPI driver: Interface 3: Unknown data required: 4.` line before the test runs; the test still passes and returns 0, and the message is not from X-HEEP's code.
+  This validates the HLS output only, not the X-HEEP integration (adapter, register file, wrapper, bridges); that is what the Verilator system simulation above is for.
 
   `run_bambu.sh` with no argument only synthesizes. Everything is generated in `dot_product_proj/` (gitignored).
 - **Unit test of the register file.** `common/dot_product/rtl/dot_product_ctrl_regs.sv` (shared with the Dynamatic flow) replaces a block that Vitis generates, so it has its own self-checking testbench, which drives it over AXI4-Lite against a small model of the core and checks the behaviour described by the Vitis-generated register map: reset values, the one-cycle start pulse, clear-on-read of `ap_done`/`ap_ready`/result-valid, `auto_restart`, the interrupt registers, the bus errors above, AW/W arriving in either order, and a sweep of software polls across every cycle alignment with the core's done pulse (the race above). It needs Verilator 5 plus what any X-HEEP FuseSoC build needs (the register file is generated by regtool through FuseSoC, see `util/python-requirements.txt`), but no HLS tool, and prints `dot_product_ctrl_regs_tb: PASS`:

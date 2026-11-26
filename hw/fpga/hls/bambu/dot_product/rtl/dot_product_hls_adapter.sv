@@ -128,6 +128,7 @@ module dot_product_hls_adapter #(
       .reset      (rst_ni),
       .start_port (core_start),
       .done_port  (core_done),
+      .idle_port  (),
       .a          (core_a),
       .b          (core_b),
       .size       (core_size),

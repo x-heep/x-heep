@@ -155,6 +155,8 @@ uint32_t test_read_flash_only_dma(uint32_t *test_buffer, uint32_t len, dma_trans
     tgt_src.type = dma_trans_data_type,
     // Target is SPI RX FIFO
     tgt_src.ptr = (uint8_t*) (w25q128jw_read_standard_setup(test_buffer_flash, flash_data, len));
+    // On NULL no receive segment is queued, so the DMA would wait forever.
+    if (tgt_src.ptr == NULL) return 1;
     // Trigger to control the data flow
     tgt_src.trig = slot;
 
@@ -237,6 +239,8 @@ uint32_t test_read_dma(uint32_t *test_buffer, uint32_t len, dma_trans_data_t dma
     tgt_src.type = dma_trans_data_type;
     // Target is SPI RX FIFO
     tgt_src.ptr = (uint8_t*) (w25q128jw_read_standard_setup((uint32_t*)(TEST_BUFFER_WORDS), flash_data, len));
+    // On NULL no receive segment is queued, so the DMA would wait forever.
+    if (tgt_src.ptr == NULL) return 1;
     // Trigger to control the data flow
     tgt_src.trig = slot;
 

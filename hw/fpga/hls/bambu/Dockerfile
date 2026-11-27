@@ -7,7 +7,7 @@
 # of the Bambu flows under hw/fpga/hls/bambu is Docker. bambu.sh builds this
 # image the first time it is needed:
 #
-#   docker build -t xheep-bambu:2024.10 hw/fpga/hls/bambu
+#   docker build -t xheep-bambu:2026.11 hw/fpga/hls/bambu
 #
 # What is inside:
 #   - Bambu, taken from the project's official AppImage release. The version is
@@ -15,18 +15,18 @@
 #     tampered file fails the build instead of being used.
 #   - the 32-bit toolchain Bambu needs (it synthesizes for a 32-bit address
 #     space and links a 32-bit co-simulation testbench) and Verilator, which
-#     Bambu uses to co-simulate the generated RTL. Ubuntu 22.04 ships the
-#     Verilator 4.x line that Bambu's generated simulation scripts expect.
-FROM ubuntu:22.04
+#     Bambu uses to co-simulate the generated RTL. Ubuntu 26.04 ships the
+#     Verilator 5.x line that Bambu's generated simulation scripts expect.
+FROM ubuntu:26.04
 
-ARG BAMBU_VERSION=2024.10
-ARG BAMBU_SHA256=e4f0214496a5d35de1932975b0f41cd95bc33a53a904fc565d6c2cb01df40773
+ARG BAMBU_VERSION=2026.11
+ARG BAMBU_SHA256=6e8cd7049c09ef48ec7ea2ece88e91f2c70bf67547c77a71b6ff44c4e008fa06
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
          build-essential ca-certificates file gcc-multilib g++-multilib \
-         libtinfo5 make verilator wget \
+         libtinfo6 make verilator wget gettext \
     && rm -rf /var/lib/apt/lists/*
 
 # The AppImage is extracted instead of executed through FUSE, which is not

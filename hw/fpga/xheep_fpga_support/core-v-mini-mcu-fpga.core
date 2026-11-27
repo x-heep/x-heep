@@ -9,7 +9,8 @@ description: X-HEEP FPGA related files.
 filesets:
   rtl-fpga:
     files:
-    - rtl/sram_wrapper.sv
+    - "!target_zcu104 ? (rtl/sram_wrapper.sv)"
+    - "target_zcu104 ? (rtl/zcu104_sram_wrapper.sv)"
     file_type: systemVerilogSource
 
   rtl-fpga-vpk180:

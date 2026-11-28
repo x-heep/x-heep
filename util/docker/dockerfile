@@ -61,7 +61,8 @@ RUN --mount=type=tmpfs,destination=/tmp/verilator \
 # Install Verible
 RUN mkdir -p /tools/verible && \
     wget -qO- https://github.com/chipsalliance/verible/releases/download/${VERIBLE_VERSION}/verible-${VERIBLE_VERSION}-linux-static-x86_64.tar.gz | \
-    tar -xz -o -C /tools/verible
+    tar -xz -o -C /tools/verible && \
+    chmod -R a+rX /tools/verible
 
 # Install conda & setup environment
 COPY --from=conda-source /opt/conda /opt/conda

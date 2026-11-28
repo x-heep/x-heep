@@ -58,10 +58,9 @@ extern "C" {
 #define GPIO_EN__DISABLED    0
 
 /**
- * GPIO_CLEAR and GPIO_SET putting and removing mask
+ * GPIO_CLEAR and GPIO_SET mask bit: each bit written as one acts on its pin
  */
 #define GPIO_PUT_MASK 0x01
-#define GPIO_REMOVE_MASK 0x00
 
 /**
  * GPIO is set or reset. The value read from gpio_perif->GPIO_IN0 or
@@ -129,17 +128,19 @@ void (*gpio_handlers[ GPIO_INTR_QTY ])( void );
  * A dummy function to prevent unassigned irq to access a null pointer.
  */
 
-volatile gpio * gpio_perif;
+__attribute__((optimize("O0"))) static void gpio_handler_irq_dummy(void);
 
-__attribute__((optimize("O0"))) static void gpio_handler_irq_dummy( uint32_t dummy );
+/**
+ * Return the bank of a pin. Each function keeps its own pointer, so an
+ * interrupt callback that calls a GPIO function cannot redirect the caller.
+ */
+static inline volatile gpio *gpio_domain_registers(gpio_pin_number_t pin);
 
-
-__attribute__((always_inline)) void select_gpio_domain(gpio_pin_number_t pin)
-{
-
-    gpio_perif = pin < GPIO_AO_DOMAIN_LIMIT ? gpio_ao_peri : gpio_peri;
-    return;
-}
+/**
+ * Check an interrupt type before any register is changed, so a rejected
+ * request leaves the pin's configuration as it was.
+ */
+static bool gpio_intr_type_is_valid(gpio_intr_type_t type);
 
 /****************************************************************************/
 /**                                                                        **/
@@ -162,7 +163,7 @@ void gpio_reset_handlers_list( )
 {
     for( uint8_t i = 0; i < GPIO_INTR_QTY; i++ )
     {
-        gpio_handlers[ i ] = (void (*)(void))&gpio_handler_irq_dummy;
+        gpio_handlers[ i ] = gpio_handler_irq_dummy;
     }
 }
 
@@ -176,11 +177,14 @@ gpio_result_t gpio_config (gpio_cfg_t cfg)
     /* check that pin is in acceptable range. */
     if (cfg.pin > (MAX_PIN-1) || cfg.pin < 0)
         return GpioPinNotAcceptable;
-    /* reset pin coniguration first.*/
-    gpio_reset (cfg.pin);
-    /* check mode. */
+    /* check mode and interrupt type before the reset, so a rejected request
+     * leaves the pin unchanged. */
     if ((cfg.mode < GpioModeIn) || (cfg.mode > GpioModeoutOpenDrain1))
         return GpioModeNotAcceptable;
+    if (cfg.en_intr == true && !gpio_intr_type_is_valid(cfg.intr_type))
+        return GpioIntrTypeNotAcceptable;
+    /* reset the pin configuration before the new one is set. */
+    gpio_reset (cfg.pin);
     /* set mode. */
     gpio_set_mode (cfg.pin, cfg.mode);
     /* if input sampling is enabled */
@@ -195,10 +199,12 @@ gpio_result_t gpio_config (gpio_cfg_t cfg)
 
 gpio_result_t gpio_set_mode (gpio_pin_number_t pin, gpio_mode_t mode)
 {
-    if (pin < 0 && pin > (MAX_PIN-1))
+    if (pin > (MAX_PIN-1) || pin < 0)
+        return GpioPinNotAcceptable;
+    if ((mode < GpioModeIn) || (mode > GpioModeoutOpenDrain1))
         return GpioModeNotAcceptable;
 
-    select_gpio_domain(pin);
+    volatile gpio *gpio_perif = gpio_domain_registers(pin);
 
     if (pin >= 0 && pin < 1*GPIO_MODE_NUM_PINS)
         gpio_perif->GPIO_MODE0 = bitfield_write(gpio_perif->GPIO_MODE0,
@@ -213,7 +219,7 @@ gpio_result_t gpio_en_input_sampling (gpio_pin_number_t pin)
 {
     if (pin > (MAX_PIN-1) || pin < 0)
         return GpioPinNotAcceptable;
-    select_gpio_domain(pin);
+    volatile gpio *gpio_perif = gpio_domain_registers(pin);
     gpio_perif->GPIO_EN0 = bitfield_write(gpio_perif->GPIO_EN0,
                                          BIT_MASK_1, pin, GPIO_EN__ENABLED);
     return GpioOk;
@@ -223,7 +229,7 @@ gpio_result_t gpio_dis_input_sampling (gpio_pin_number_t pin)
 {
     if (pin > (MAX_PIN-1) || pin < 0)
         return GpioPinNotAcceptable;
-    select_gpio_domain(pin);
+    volatile gpio *gpio_perif = gpio_domain_registers(pin);
     gpio_perif->GPIO_EN0 = bitfield_write(gpio_perif->GPIO_EN0,
                                          BIT_MASK_1, pin, GPIO_EN__DISABLED);
     return GpioOk;
@@ -237,11 +243,10 @@ gpio_result_t gpio_reset (gpio_pin_number_t pin)
     gpio_intr_set_mode (pin, 0);
     gpio_set_mode (pin, GpioModeIn);
     gpio_dis_input_sampling (pin);
-    select_gpio_domain(pin);
-    gpio_perif->GPIO_CLEAR0 = bitfield_write(gpio_perif->GPIO_CLEAR0,
-                                         BIT_MASK_1, pin, GPIO_REMOVE_MASK);
-    gpio_perif->GPIO_SET0 = bitfield_write(gpio_perif->GPIO_SET0,
-                                         BIT_MASK_1, pin, GPIO_REMOVE_MASK);
+    volatile gpio *gpio_perif = gpio_domain_registers(pin);
+    /* GPIO_CLEAR0 acts only on the bits written as one, so this clears the
+     * output latch of this pin and keeps the other outputs of the bank. */
+    gpio_perif->GPIO_CLEAR0 = (uint32_t)GPIO_PUT_MASK << pin;
     gpio_intr_dis_all(pin);
     gpio_intr_clear_stat(pin);
     return GpioOk;
@@ -251,26 +256,24 @@ gpio_result_t gpio_reset_all (void)
 {
 
     /* first reset the GPIO in the AO domain by setting the GPIO pin to 0 */
-    select_gpio_domain(0);
+    volatile gpio *gpio_perif = gpio_domain_registers(0);
     gpio_perif->GPIO_MODE0 = 0;
     gpio_perif->GPIO_MODE1 = 0;
     gpio_perif->GPIO_EN0 = 0;
-    gpio_perif->GPIO_CLEAR0 = 0;
-    gpio_perif->GPIO_SET0 = 0;
-    gpio_perif->GPIO_TOGGLE0 = 0;
+    gpio_perif->GPIO_OUT0 = 0;
+    gpio_perif->CFG = 0;
     gpio_perif->INTRPT_RISE_EN0 = 0;
     gpio_perif->INTRPT_FALL_EN0 = 0;
     gpio_perif->INTRPT_LVL_HIGH_EN0 = 0;
     gpio_perif->INTRPT_LVL_LOW_EN0 = 0;
     gpio_perif->INTRPT_STATUS0 = 0xFFFFFFFF;
     /* then reset the GPIO in the peripheral domain by setting the GPIO pin to GPIO_AO_DOMAIN_LIMIT */
-    select_gpio_domain(GPIO_AO_DOMAIN_LIMIT);
+    gpio_perif = gpio_domain_registers(GPIO_AO_DOMAIN_LIMIT);
     gpio_perif->GPIO_MODE0 = 0;
     gpio_perif->GPIO_MODE1 = 0;
     gpio_perif->GPIO_EN0 = 0;
-    gpio_perif->GPIO_CLEAR0 = 0;
-    gpio_perif->GPIO_SET0 = 0;
-    gpio_perif->GPIO_TOGGLE0 = 0;
+    gpio_perif->GPIO_OUT0 = 0;
+    gpio_perif->CFG = 0;
     gpio_perif->INTRPT_RISE_EN0 = 0;
     gpio_perif->INTRPT_FALL_EN0 = 0;
     gpio_perif->INTRPT_LVL_HIGH_EN0 = 0;
@@ -278,13 +281,14 @@ gpio_result_t gpio_reset_all (void)
     gpio_perif->INTRPT_STATUS0 = 0xFFFFFFFF;
 
     gpio_reset_handlers_list( );
+    return GpioOk;
 }
 
 gpio_result_t gpio_read (gpio_pin_number_t pin, bool *val)
 {
     if (pin > (MAX_PIN-1) || pin < 0)
         return GpioPinNotAcceptable;
-    select_gpio_domain(pin);
+    volatile gpio *gpio_perif = gpio_domain_registers(pin);
     *val = bitfield_read(gpio_perif->GPIO_IN0, BIT_MASK_1, pin);
     return GpioOk;
 }
@@ -293,7 +297,7 @@ gpio_result_t gpio_toggle (gpio_pin_number_t pin)
 {
     if (pin > (MAX_PIN-1) || pin < 0)
         return GpioPinNotAcceptable;
-    select_gpio_domain(pin);
+    volatile gpio *gpio_perif = gpio_domain_registers(pin);
     gpio_perif->GPIO_OUT0 = bitfield_write(gpio_perif->GPIO_OUT0, BIT_MASK_1,
         pin, !(bitfield_read(gpio_perif->GPIO_OUT0, BIT_MASK_1, pin)));
     return GpioOk;
@@ -303,7 +307,7 @@ gpio_result_t gpio_write (gpio_pin_number_t pin, bool val)
 {
     if (pin > (MAX_PIN-1) || pin < 0)
         return GpioPinNotAcceptable;
-    select_gpio_domain(pin);
+    volatile gpio *gpio_perif = gpio_domain_registers(pin);
     gpio_perif->GPIO_OUT0 = bitfield_write(gpio_perif->GPIO_OUT0,
         BIT_MASK_1, pin, val);
     return GpioOk;
@@ -314,7 +318,7 @@ gpio_result_t gpio_intr_en_rise (gpio_pin_number_t pin)
 {
     if (pin > (MAX_PIN-1) || pin < 0)
         return GpioPinNotAcceptable;
-    select_gpio_domain(pin);
+    volatile gpio *gpio_perif = gpio_domain_registers(pin);
     gpio_perif->INTRPT_RISE_EN0 =  bitfield_write(
         gpio_perif->INTRPT_RISE_EN0, BIT_MASK_1, pin, GPIO_INTR_ENABLE);
     return GpioOk;
@@ -324,7 +328,7 @@ gpio_result_t gpio_intr_en_fall (gpio_pin_number_t pin)
 {
     if (pin > (MAX_PIN-1) || pin < 0)
         return GpioPinNotAcceptable;
-    select_gpio_domain(pin);
+    volatile gpio *gpio_perif = gpio_domain_registers(pin);
     gpio_perif->INTRPT_FALL_EN0 =  bitfield_write(gpio_perif->INTRPT_FALL_EN0,
         BIT_MASK_1, pin, GPIO_INTR_ENABLE);
     return GpioOk;
@@ -334,7 +338,7 @@ gpio_result_t gpio_intr_en_lvl_high (gpio_pin_number_t pin)
 {
     if (pin > (MAX_PIN-1) || pin < 0)
         return GpioPinNotAcceptable;
-    select_gpio_domain(pin);
+    volatile gpio *gpio_perif = gpio_domain_registers(pin);
     gpio_perif->INTRPT_LVL_HIGH_EN0 =  bitfield_write(
         gpio_perif->INTRPT_LVL_HIGH_EN0, BIT_MASK_1, pin, GPIO_INTR_ENABLE);
     return GpioOk;
@@ -344,7 +348,7 @@ gpio_result_t gpio_intr_en_lvl_low (gpio_pin_number_t pin)
 {
     if (pin > (MAX_PIN-1) || pin < 0)
         return GpioPinNotAcceptable;
-    select_gpio_domain(pin);
+    volatile gpio *gpio_perif = gpio_domain_registers(pin);
     gpio_perif->INTRPT_LVL_LOW_EN0 =  bitfield_write(
         gpio_perif->INTRPT_LVL_LOW_EN0, BIT_MASK_1, pin, GPIO_INTR_ENABLE);
     return GpioOk;
@@ -354,7 +358,7 @@ gpio_result_t gpio_intr_dis_rise (gpio_pin_number_t pin)
 {
     if (pin > (MAX_PIN-1) || pin < 0)
         return GpioPinNotAcceptable;
-    select_gpio_domain(pin);
+    volatile gpio *gpio_perif = gpio_domain_registers(pin);
     gpio_perif->INTRPT_RISE_EN0 =  bitfield_write(
         gpio_perif->INTRPT_RISE_EN0, BIT_MASK_1, pin, GPIO_INTR_DISABLE);
     return GpioOk;
@@ -364,7 +368,7 @@ gpio_result_t gpio_intr_dis_fall (gpio_pin_number_t pin)
 {
     if (pin > (MAX_PIN-1) || pin < 0)
         return GpioPinNotAcceptable;
-    select_gpio_domain(pin);
+    volatile gpio *gpio_perif = gpio_domain_registers(pin);
     gpio_perif->INTRPT_FALL_EN0 =  bitfield_write(
         gpio_perif->INTRPT_FALL_EN0, BIT_MASK_1, pin, GPIO_INTR_DISABLE);
     return GpioOk;
@@ -374,7 +378,7 @@ gpio_result_t gpio_intr_dis_lvl_high (gpio_pin_number_t pin)
 {
     if (pin > (MAX_PIN-1) || pin < 0)
         return GpioPinNotAcceptable;
-    select_gpio_domain(pin);
+    volatile gpio *gpio_perif = gpio_domain_registers(pin);
     gpio_perif->INTRPT_LVL_HIGH_EN0 =  bitfield_write(
         gpio_perif->INTRPT_LVL_HIGH_EN0, BIT_MASK_1, pin, GPIO_INTR_DISABLE);
     return GpioOk;
@@ -384,7 +388,7 @@ gpio_result_t gpio_intr_dis_lvl_low (gpio_pin_number_t pin)
 {
     if (pin > (MAX_PIN-1) || pin < 0)
         return GpioPinNotAcceptable;
-    select_gpio_domain(pin);
+    volatile gpio *gpio_perif = gpio_domain_registers(pin);
     gpio_perif->INTRPT_LVL_LOW_EN0 =  bitfield_write(
         gpio_perif->INTRPT_LVL_LOW_EN0, BIT_MASK_1, pin, GPIO_INTR_DISABLE);
     return GpioOk;
@@ -393,7 +397,7 @@ gpio_result_t gpio_intr_dis_lvl_low (gpio_pin_number_t pin)
 gpio_result_t gpio_intr_dis_all (gpio_pin_number_t pin){
     if (pin > (MAX_PIN-1) || pin < 0)
         return GpioPinNotAcceptable;
-    select_gpio_domain(pin);
+    volatile gpio *gpio_perif = gpio_domain_registers(pin);
     gpio_perif->INTRPT_RISE_EN0 =  bitfield_write(
         gpio_perif->INTRPT_RISE_EN0, BIT_MASK_1, pin, GPIO_INTR_DISABLE);
     gpio_perif->INTRPT_FALL_EN0 =  bitfield_write(
@@ -409,6 +413,8 @@ gpio_result_t gpio_intr_en (gpio_pin_number_t pin, gpio_intr_type_t type)
 {
     if (pin > (MAX_PIN-1) || pin < 0)
         return GpioPinNotAcceptable;
+    if (!gpio_intr_type_is_valid(type))
+        return GpioIntrTypeNotAcceptable;
     gpio_intr_dis_all(pin);
     switch(type)
     {
@@ -449,7 +455,7 @@ gpio_result_t gpio_intr_check_stat_rise (gpio_pin_number_t pin, bool *is_pending
         *is_pending = GPIO_INTR_IS_NOT_TRIGGERED;
         return GpioPinNotAcceptable;
     }
-    select_gpio_domain(pin);
+    volatile gpio *gpio_perif = gpio_domain_registers(pin);
     *is_pending = bitfield_read(gpio_perif->INTRPT_RISE_STATUS0, BIT_MASK_1, pin);
     return GpioOk;
 }
@@ -461,7 +467,7 @@ gpio_result_t gpio_intr_check_stat_fall (gpio_pin_number_t pin, bool *is_pending
         *is_pending = GPIO_INTR_IS_NOT_TRIGGERED;
         return GpioPinNotAcceptable;
     }
-    select_gpio_domain(pin);
+    volatile gpio *gpio_perif = gpio_domain_registers(pin);
     *is_pending = bitfield_read(gpio_perif->INTRPT_FALL_STATUS0, BIT_MASK_1, pin);
     return GpioOk;
 }
@@ -473,7 +479,7 @@ gpio_result_t gpio_intr_check_stat_lvl_low (gpio_pin_number_t pin, bool *is_pend
         *is_pending = GPIO_INTR_IS_NOT_TRIGGERED;
         return GpioPinNotAcceptable;
     }
-    select_gpio_domain(pin);
+    volatile gpio *gpio_perif = gpio_domain_registers(pin);
     *is_pending = bitfield_read(gpio_perif->INTRPT_LVL_LOW_STATUS0, BIT_MASK_1, pin);
     return GpioOk;
 }
@@ -485,7 +491,7 @@ gpio_result_t gpio_intr_check_stat_lvl_high (gpio_pin_number_t pin, bool *is_pen
         *is_pending = GPIO_INTR_IS_NOT_TRIGGERED;
         return GpioPinNotAcceptable;
     }
-    select_gpio_domain(pin);
+    volatile gpio *gpio_perif = gpio_domain_registers(pin);
      *is_pending = bitfield_read(gpio_perif->INTRPT_LVL_HIGH_STATUS0, BIT_MASK_1, pin);
     return GpioOk;
 }
@@ -497,6 +503,7 @@ gpio_result_t gpio_intr_check_stat (gpio_pin_number_t pin, bool *is_pending)
         *is_pending = GPIO_INTR_IS_NOT_TRIGGERED;
         return GpioPinNotAcceptable;
     }
+    volatile gpio *gpio_perif = gpio_domain_registers(pin);
     *is_pending = bitfield_read(gpio_perif->INTRPT_STATUS0, BIT_MASK_1, pin);
     return GpioOk;
 }
@@ -505,9 +512,10 @@ gpio_result_t gpio_intr_clear_stat_rise (gpio_pin_number_t pin)
 {
     if (pin > (MAX_PIN-1) || pin < 0)
         return GpioPinNotAcceptable;
-    select_gpio_domain(pin);
-    gpio_perif->INTRPT_RISE_STATUS0 = bitfield_write(
-        gpio_perif->INTRPT_RISE_STATUS0, BIT_MASK_1, pin, GPIO_INTR_CLEAR);
+    volatile gpio *gpio_perif = gpio_domain_registers(pin);
+    /* The status registers are write-one-to-clear: a read-modify-write would
+     * also acknowledge the other pending pins of the bank. */
+    gpio_perif->INTRPT_RISE_STATUS0 = (uint32_t)GPIO_INTR_CLEAR << pin;
     return GpioOk;
 
 }
@@ -516,9 +524,8 @@ gpio_result_t gpio_intr_clear_stat_fall (gpio_pin_number_t pin)
 {
     if (pin > (MAX_PIN-1) || pin < 0)
         return GpioPinNotAcceptable;
-    select_gpio_domain(pin);
-    gpio_perif->INTRPT_FALL_STATUS0 = bitfield_write(
-        gpio_perif->INTRPT_FALL_STATUS0, BIT_MASK_1, pin, GPIO_INTR_CLEAR);
+    volatile gpio *gpio_perif = gpio_domain_registers(pin);
+    gpio_perif->INTRPT_FALL_STATUS0 = (uint32_t)GPIO_INTR_CLEAR << pin;
     return GpioOk;
 }
 
@@ -526,9 +533,8 @@ gpio_result_t gpio_intr_clear_stat_lvl_low (gpio_pin_number_t pin)
 {
     if (pin > (MAX_PIN-1) || pin < 0)
         return GpioPinNotAcceptable;
-    select_gpio_domain(pin);
-    gpio_perif->INTRPT_LVL_LOW_STATUS0 = bitfield_write(
-        gpio_perif->INTRPT_LVL_LOW_STATUS0, BIT_MASK_1, pin, GPIO_INTR_CLEAR);
+    volatile gpio *gpio_perif = gpio_domain_registers(pin);
+    gpio_perif->INTRPT_LVL_LOW_STATUS0 = (uint32_t)GPIO_INTR_CLEAR << pin;
     return GpioOk;
 }
 
@@ -536,9 +542,8 @@ gpio_result_t gpio_intr_clear_stat_lvl_high (gpio_pin_number_t pin)
 {
     if (pin > (MAX_PIN-1) || pin < 0)
         return GpioPinNotAcceptable;
-    select_gpio_domain(pin);
-    gpio_perif->INTRPT_LVL_HIGH_STATUS0 = bitfield_write(
-        gpio_perif->INTRPT_LVL_HIGH_STATUS0, BIT_MASK_1, pin, GPIO_INTR_CLEAR);
+    volatile gpio *gpio_perif = gpio_domain_registers(pin);
+    gpio_perif->INTRPT_LVL_HIGH_STATUS0 = (uint32_t)GPIO_INTR_CLEAR << pin;
     return GpioOk;
 }
 
@@ -546,15 +551,16 @@ gpio_result_t gpio_intr_clear_stat (gpio_pin_number_t pin)
 {
     if (pin > (MAX_PIN-1) || pin < 0)
         return GpioPinNotAcceptable;
-    select_gpio_domain(pin);
-    gpio_perif->INTRPT_STATUS0 = bitfield_write(
-        gpio_perif->INTRPT_STATUS0, BIT_MASK_1, pin, GPIO_INTR_CLEAR);
+    volatile gpio *gpio_perif = gpio_domain_registers(pin);
+    gpio_perif->INTRPT_STATUS0 = (uint32_t)GPIO_INTR_CLEAR << pin;
     return GpioOk;
 }
 
 void gpio_intr_set_mode (gpio_pin_number_t pin, gpio_intr_general_mode_t mode)
 {
-    select_gpio_domain(pin);
+    if (pin > (MAX_PIN-1) || pin < 0 || (mode != IntrOnePulse && mode != IntrAsserted))
+        return;
+    volatile gpio *gpio_perif = gpio_domain_registers(pin);
     gpio_perif->CFG = bitfield_write(
         gpio_perif->CFG, BIT_MASK_1, GPIO_CFG_INTR_MODE_INDEX, mode);
 }
@@ -565,9 +571,20 @@ void gpio_intr_set_mode (gpio_pin_number_t pin, gpio_intr_general_mode_t mode)
 /**                                                                        **/
 /****************************************************************************/
 
-__attribute__((optimize("O0"))) static void gpio_handler_irq_dummy( uint32_t dummy )
+__attribute__((optimize("O0"))) static void gpio_handler_irq_dummy(void)
 {
   return;
+}
+
+static inline volatile gpio *gpio_domain_registers(gpio_pin_number_t pin)
+{
+    return pin < GPIO_AO_DOMAIN_LIMIT ? gpio_ao_peri : gpio_peri;
+}
+
+static bool gpio_intr_type_is_valid(gpio_intr_type_t type)
+{
+    /* Valid types run from 0 to GpioIntrEdgeFallingLevelHigh without gaps. */
+    return (uint32_t)type <= (uint32_t)GpioIntrEdgeFallingLevelHigh;
 }
 
 /****************************************************************************/
